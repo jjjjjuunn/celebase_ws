@@ -1,0 +1,58 @@
+# CelebBase Wellness — Bootstrap Tasks
+# 스키마: .claude/tasks.schema.json
+# 상태 전이 규칙: scripts/check_task_transitions.py 참조
+
+tasks:
+  - id: BOOT-001
+    title: "하네스 정합성 수정 (UUID, 에러 포맷, 정책 분리)"
+    owner: agent-claude-opus
+    dependsOn: []
+    status: done
+    definitionOfDone:
+      - "spec.md 내 gen_random_uuid() 0건"
+      - "spec.md 에러 포맷에 requestId 포함"
+      - "harness/policy.yaml + policy.schema.json 존재"
+      - ".github/CODEOWNERS에 harness/ 보호"
+
+  - id: BOOT-002
+    title: "IMPLEMENTATION_LOG.md 구조화 스키마 생성"
+    owner: agent-claude-opus
+    dependsOn: []
+    status: done
+    definitionOfDone:
+      - "docs/IMPLEMENTATION_LOG.md에 YAML front-matter 스키마 포함"
+      - "필수 필드: date, agent, task_id, commit_sha, verified_by"
+
+  - id: BOOT-003
+    title: "tasks.yaml + 스키마 + 전이 규칙 생성"
+    owner: agent-claude-opus
+    dependsOn:
+      - BOOT-001
+      - BOOT-002
+    status: pending
+    definitionOfDone:
+      - ".claude/tasks.yaml 존재 + tasks.schema.json 검증 통과"
+      - "scripts/check_task_transitions.py 역전 탐지 통과"
+      - "done 전환 시 IMPL LOG verified_by 크로스체크"
+
+  - id: BOOT-004
+    title: "CI 파이프라인 10 Job + 검증 스크립트 + Contract Tests"
+    owner: agent-claude-opus
+    dependsOn:
+      - BOOT-003
+    status: pending
+    definitionOfDone:
+      - ".github/workflows/ci.yml 10 Job 정��"
+      - "scripts/validate_impl_log.py 필수 필드 검증"
+      - "tests/contract/test_spec_contracts.py UUID/에러 계약 통과"
+
+  - id: BOOT-005
+    title: "시크릿 스캔 + evaluator MCP 완화 + spec changelog"
+    owner: agent-claude-opus
+    dependsOn:
+      - BOOT-003
+    status: pending
+    definitionOfDone:
+      - "security.md 시크릿 패턴 보강"
+      - "evaluator-runtime.md에 EVALUATOR_BROWSER_TOOL 참조"
+      - "spec.md changelog v1.4.1 반영"

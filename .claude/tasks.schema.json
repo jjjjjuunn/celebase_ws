@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CelebBase Tasks Schema",
+  "description": "tasks.yaml 구조 강제 — 태스크 상태 관리 및 DoD 추���",
+  "type": "object",
+  "required": ["tasks"],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "owner", "dependsOn", "status", "definitionOfDone"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z]+-\\d{3}$",
+            "description": "태스크 ID (예: BOOT-001)"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^(agent-[a-z0-9-]+|human-[a-z0-9-]+)$",
+            "description": "소유자. agent-*이 human-*으로 설정해 크로스체크 우회 방지"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]+-\\d{3}$"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in-progress", "done", "blocked"]
+          },
+          "definitionOfDone": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 5
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

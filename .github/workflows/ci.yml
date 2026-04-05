@@ -1,0 +1,393 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# 동시 실행 방지: 같은 브랜치의 이전 실행 취소
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================
+  # Job 1a: 문서 검증
+  # ============================================
+  validate-docs:
+    name: "📄 Validate Docs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check no gen_random_uuid in spec.md
+        run: |
+          if grep -n "gen_random_uuid" spec.md; then
+            echo "❌ gen_random_uuid() found in spec.md. Use uuid_generate_v7()."
+            exit 1
+          fi
+          echo "✅ No gen_random_uuid in spec.md"
+
+      - name: Check requestId in error format
+        run: |
+          if ! grep -q "requestId" spec.md; then
+            echo "❌ requestId not found in spec.md error format"
+            exit 1
+          fi
+          echo "✅ requestId found in spec.md"
+
+      - name: Markdownlint docs and rules
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: |
+            docs/**/*.md
+            .claude/rules/**/*.md
+        continue-on-error: true  # 초기에는 경고만
+
+  # ============================================
+  # Job 1b: 스키마 검증
+  # ============================================
+  validate-schemas:
+    name: "🔍 Validate Schemas"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+
+      - name: Validate tasks.yaml against schema
+        run: |
+          python -c "
+          import json, yaml, jsonschema
+          with open('.claude/tasks.yaml') as f:
+              tasks = yaml.safe_load(f)
+          with open('.claude/tasks.schema.json') as f:
+              schema = json.load(f)
+          jsonschema.validate(tasks, schema)
+          print('✅ tasks.yaml schema validation passed')
+          "
+
+      - name: Validate policy.yaml against schema
+        run: |
+          python -c "
+          import json, yaml, jsonschema
+          with open('harness/policy.yaml') as f:
+              policy = yaml.safe_load(f)
+          with open('harness/policy.schema.json') as f:
+              schema = json.load(f)
+          jsonschema.validate(policy, schema)
+          print('✅ policy.yaml schema validation passed')
+          "
+
+  # ============================================
+  # Job 1c: 컴플라이언스 검증
+  # ============================================
+  validate-compliance:
+    name: "🛡️ Validate Compliance"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for diff
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Check policy compliance (deny patterns in source files)
+        run: |
+          # PR diff에서 실행 파일만 검사 (*.md 제외)
+          DENY_PATTERNS=(
+            "--no-verify"
+            "rm -rf"
+            "git push --force"
+            "git reset --hard"
+            "gen_random_uuid()"
+            "console.log"
+          )
+          FILES=$(git diff --name-only origin/main...HEAD -- '*.ts' '*.py' '*.sql' '*.sh' 2>/dev/null || true)
+          if [ -z "$FILES" ]; then
+            echo "✅ No source files changed, skipping policy check"
+            exit 0
+          fi
+          FOUND=0
+          for pattern in "${DENY_PATTERNS[@]}"; do
+            while IFS= read -r file; do
+              if [ -f "$file" ] && grep -n "$pattern" "$file"; then
+                echo "❌ Denied pattern '$pattern' found in $file"
+                FOUND=1
+              fi
+            done <<< "$FILES"
+          done
+          if [ "$FOUND" -eq 1 ]; then
+            exit 1
+          fi
+          echo "✅ Policy compliance check passed"
+
+      - name: Check evaluator-runtime.md no direct playwright reference
+        run: |
+          # evaluator-runtime.md에서 직접 playwright 참조가 남아있으면 fail
+          # EVALUATOR_BROWSER_TOOL 환경변수로 indirection해야 함
+          if grep -n "playwright-mcp" .claude/rules/evaluator-runtime.md 2>/dev/null | grep -v "EVALUATOR_BROWSER_TOOL" | grep -v "^#"; then
+            echo "⚠️ Direct playwright-mcp reference found (will enforce after Step 10)"
+          fi
+          echo "✅ Evaluator reference check done"
+
+      - name: Check task transitions
+        run: python scripts/check_task_transitions.py
+
+      - name: Validate implementation log
+        run: python scripts/validate_impl_log.py
+
+  # ============================================
+  # Job 2: Lint + Type Check (코드 추가 후 활성)
+  # ============================================
+  lint-typecheck:
+    name: "🧹 Lint & Typecheck"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run lint typecheck
+
+      - name: Python lint (if applicable)
+        if: hashFiles('**/*.py', 'pyproject.toml') != ''
+        run: |
+          pip install ruff
+          ruff check .
+          ruff format --check .
+
+  # ============================================
+  # Job 3: Tests (코드 추가 후 활성)
+  # ============================================
+  test:
+    name: "🧪 Tests"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: celebbase
+          POSTGRES_PASSWORD: testpw
+          POSTGRES_DB: celebbase_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://celebbase:testpw@localhost:5432/celebbase_test
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run test
+
+  # ============================================
+  # Job 4: Contract Tests (즉시 활성)
+  # ============================================
+  contract-tests:
+    name: "📜 Contract Tests"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run contract tests
+        run: pytest tests/contract/test_spec_contracts.py -v
+
+  # ============================================
+  # Job 5: Security Scan (즉시 활성)
+  # ============================================
+  security-scan:
+    name: "🔒 Security Scan"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/secrets
+        continue-on-error: true  # 초기에는 경고만, 코드 추가 후 strict
+
+      - name: Check for .env / .key files in tracked files
+        run: |
+          if git ls-files | grep -E '\.(env|key|pem|p12)$' | grep -v '.example'; then
+            echo "❌ Secret files found in tracked files"
+            exit 1
+          fi
+          echo "✅ No secret files tracked"
+
+  # ============================================
+  # Job 6: Require Log Entry (즉시 활성)
+  # ============================================
+  require-log-entry:
+    name: "📝 Require Log Entry"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check implementation log updated for code changes
+        run: |
+          # 코드 변경 패턴 (spec.md 제외 — contract-tests가 담당)
+          CODE_PATTERNS="src/|services/|packages/|\.sql$|\.claude/rules/"
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+
+          if [ -z "$CHANGED" ]; then
+            echo "✅ No changes detected, skipping"
+            exit 0
+          fi
+
+          HAS_CODE_CHANGE=$(echo "$CHANGED" | grep -E "$CODE_PATTERNS" || true)
+          if [ -z "$HAS_CODE_CHANGE" ]; then
+            echo "✅ No code changes, log entry not required"
+            exit 0
+          fi
+
+          HAS_LOG_UPDATE=$(echo "$CHANGED" | grep "docs/IMPLEMENTATION_LOG.md" || true)
+          if [ -z "$HAS_LOG_UPDATE" ]; then
+            echo "❌ Code changes detected but docs/IMPLEMENTATION_LOG.md not updated"
+            echo "Changed code files:"
+            echo "$HAS_CODE_CHANGE"
+            exit 1
+          fi
+
+          echo "✅ Implementation log updated"
+
+  # ============================================
+  # Job 7: Generate Progress (즉시 활성)
+  # ============================================
+  generate-progress:
+    name: "📊 Generate Progress"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate progress report
+        run: python scripts/generate-progress.py
+
+      - name: Post progress to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const progress = fs.readFileSync('progress.md', 'utf8');
+            const body = `## 📊 Progress Report\n\n${progress}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # ============================================
+  # Job 8: Notify on Failure (통합 PR 알림)
+  # ============================================
+  notify-on-failure:
+    name: "⚠️ Notify on Failure"
+    needs:
+      - validate-docs
+      - validate-schemas
+      - validate-compliance
+      - contract-tests
+      - security-scan
+      - require-log-entry
+      - lint-typecheck
+      - test
+      - generate-progress
+    runs-on: ubuntu-latest
+    if: always() && contains(needs.*.result, 'failure')
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post failure comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const needs = ${{ toJSON(needs) }};
+            const failed = Object.entries(needs)
+              .filter(([_, v]) => v.result === 'failure')
+              .map(([k, _]) => `- ❌ ${k}`)
+              .join('\n');
+            const body = `## ⚠️ CI 실패\n\n다음 Job이 실패했습니다:\n${failed}\n\n확인 및 수정이 필요합니다.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

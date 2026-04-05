@@ -1,7 +1,8 @@
-# CelebBase Wellness — Technical Specification v1.4
+# CelebBase Wellness — Technical Specification v1.4.1
 
 > **Status**: Draft  
-> **Last Updated**: 2026-04-04 (v1.4)  
+> **Last Updated**: 2026-04-05 (v1.4.1)  
+> **Changelog v1.4.1**: Phase B 하네스 보강 — tasks.yaml 태스크 관리 + JSON Schema 검증, CI 10 Job 파이프라인 (validate-docs/schemas/compliance, contract-tests, security-scan, require-log-entry, generate-progress, notify-on-failure), 계약 테스트 (UUID/에러 포맷/FK 안전), 시크릿 스캔 규칙 보강 (Stripe/Slack 패턴 추가), evaluator-runtime.md MCP 직접 참조 → `EVALUATOR_BROWSER_TOOL` 환경변수 indirection  
 > **Changelog v1.4**: 하네스 아키텍처 적용 — CLAUDE.md 60줄 인덱스로 축소, `.claude/rules/` 모듈형 규칙 9파일 분리 (path-scoped), Evaluator 런타임 검증 + Playwright MCP, DoD 3층 구조(Functional/Verification/Provenance) 도입, 프로젝트 구조에 `.claude/` 반영  
 > **Changelog v1.3.1**: CASCADE→RESTRICT+삭제 정책 명시, WS ticket API 정식 등록, 전체 상태 전이 통합, diet_view_events 추가, MView SQL 수정(전일평균), DB CHECK 6필드, WS 경로 통일, PHI 암호화 매트릭스  
 > **Changelog v1.3**: [버그] deleted_at·enum·snack·PHI 정책 수정. [신규] 비동기 상태 머신, 구독 할당량, 필드 유효성, 열거형 용어집, 매크로 우선순위, OCR 계약  

@@ -33,6 +33,12 @@ deny:
       description: "GitHub Personal Access Token"
     - pattern: "(sk-[a-zA-Z0-9]{48})"
       description: "OpenAI/Anthropic API Key"
+    - pattern: "(sk_live_[a-zA-Z0-9]{24,})"
+      description: "Stripe Live Secret Key"
+    - pattern: "(sk_test_[a-zA-Z0-9]{24,})"
+      description: "Stripe Test Secret Key"
+    - pattern: "(xoxb-[0-9]{10,})"
+      description: "Slack Bot Token"
 
   deprecated:
     - "gen_random_uuid()"

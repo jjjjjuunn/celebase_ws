@@ -11,11 +11,17 @@ paths:
 1. `npm test` (또는 `pytest`) 실행 → 단위 테스트 통과 확인.
 2. `eslint` / `ruff check` → 린트 경고 0건 확인.
 3. `tsc --noEmit` → TypeScript 컴파일 에러 0건 확인.
-4. UI 변경이 포함된 경우 → Playwright MCP로 런타임 검증.
+4. UI 변경이 포함된 경우 → 브라우저 도구로 런타임 검증.
 
-## Playwright MCP 런타임 검증 (UI 변경 시)
+## 브라우저 런타임 검증 (UI 변경 시)
 
-- Playwright MCP로 `http://localhost:3000` (또는 적절한 로컬 URL)을 열어 검증.
+> 브라우저 도구는 `EVALUATOR_BROWSER_TOOL` 환경변수로 결정된다.
+> 허용값은 `harness/policy.yaml`의 `evaluator.browser_tool.allowed_values` 참조.
+> 미설정 시 검증을 중단하고 `exit 1` + 오류 메시지를 출력한다.
+> Claude용 어댑터: `.claude/settings.json`에서 MCP 서버로 바인딩.
+> 다른 모델 대응 시 해당 모델의 어댑터 설정 파일만 교체한다.
+
+- `$EVALUATOR_BROWSER_TOOL`로 `http://localhost:3000` (또는 적절한 로컬 URL)을 열어 검증.
 - 검증 시나리오:
   - 로그인 → 플랜 선택 → 결제 → 대시보드 진입
   - 모바일(375px), 태블릿(768px), 데스크탑(1440px) 반응형 확인
