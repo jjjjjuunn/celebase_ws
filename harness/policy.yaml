@@ -1,0 +1,69 @@
+# NOTE: 텍스트 패턴 기반 최소 안전장치. SQL 주석/문서 예시 내 키워드 오탐 가능.
+# 코드 빌드 단계 시작 시(src/** 최초 생성 시점) Semgrep/SQLFluff 기반 AST 검증으로 확장.
+
+# 모든 에이전트(Claude, GPT, Gemini 등)에 공통 적용되는 정책.
+# 모델별 설정은 .claude/settings.json 등 어댑터 파일에서 관리.
+
+version: "1.0"
+
+# ============================================
+# deny 패턴 — 매칭 시 PR 차단
+# check-policy-compliance 검사 대상: 실행 파일(*.ts, *.py, *.sql, *.sh)만. 문서(*.md) 내 예시는 제외.
+# ============================================
+deny:
+  shell:
+    - "--no-verify"
+    - "rm -rf"
+    - "git push --force"
+    - "git reset --hard"
+
+  sql:
+    - "DROP TABLE"
+    - "TRUNCATE"
+    # DB 위험 패턴: WHERE 절 없는 전체 삭제/수정
+    - pattern: "DELETE FROM\\s+\\w+\\s*;"
+      description: "DELETE FROM without WHERE clause"
+    - pattern: "UPDATE\\s+\\w+\\s+SET\\s+.*(?<!WHERE.*);"
+      description: "UPDATE without WHERE clause"
+
+  secrets:
+    - pattern: "(AKIA[0-9A-Z]{16})"
+      description: "AWS Access Key"
+    - pattern: "(ghp_[a-zA-Z0-9]{36})"
+      description: "GitHub Personal Access Token"
+    - pattern: "(sk-[a-zA-Z0-9]{48})"
+      description: "OpenAI/Anthropic API Key"
+
+  deprecated:
+    - "gen_random_uuid()"
+    - "console.log"
+
+# ============================================
+# allow 패턴 — 명시적으로 허용된 명령만 실행 가능
+# ============================================
+allow:
+  shell:
+    - "git add"
+    - "git commit"
+    - "git push"
+    - "git diff"
+    - "git status"
+    - "git log"
+    - "npm test"
+    - "npm run"
+    - "pnpm"
+    - "pytest"
+    - "ruff"
+    - "eslint"
+    - "tsc"
+
+# ============================================
+# evaluator 설정
+# ============================================
+evaluator:
+  browser_tool:
+    env_var: "EVALUATOR_BROWSER_TOOL"
+    allowed_values:
+      - "playwright-mcp"
+      - "puppeteer-mcp"
+    on_missing: "exit 1 with error: EVALUATOR_BROWSER_TOOL is not set"

@@ -1,0 +1,9 @@
+# 하네스 정책 파일 — 에이전트 자가수정 방지, 사람 승인 필수
+harness/ @junwon
+.claude/settings.json @junwon
+
+# CI 파이프라인 보호 — 에이전트가 CI를 약화시켜 guard 우회 방지
+.github/workflows/** @junwon
+
+# CODEOWNERS 자기보호
+.github/CODEOWNERS @junwon

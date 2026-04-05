@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.anthropic.com/claude-code/settings-schema.json",
+  "_comment": "Claude 전용 어댑터. 공통 정책은 harness/policy.yaml 참조. 다른 모델 사용 시 이 파일만 교체.",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@anthropic-ai/mcp-server-playwright"]
+    }
+  }
+}

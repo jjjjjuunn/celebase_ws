@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness Policy Schema",
+  "description": "policy.yaml 구조 강제 — 모든 에이전트 공통 정책",
+  "type": "object",
+  "required": ["version", "deny", "allow", "evaluator"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "deny": {
+      "type": "object",
+      "required": ["shell", "sql"],
+      "properties": {
+        "shell": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string" }
+        },
+        "sql": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "required": ["pattern", "description"],
+                "properties": {
+                  "pattern": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            ]
+          }
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "required": ["pattern", "description"],
+                "properties": {
+                  "pattern": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            ]
+          }
+        },
+        "deprecated": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "allow": {
+      "type": "object",
+      "required": ["shell"],
+      "properties": {
+        "shell": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "required": ["browser_tool"],
+      "properties": {
+        "browser_tool": {
+          "type": "object",
+          "required": ["env_var", "allowed_values", "on_missing"],
+          "properties": {
+            "env_var": { "type": "string" },
+            "allowed_values": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" }
+            },
+            "on_missing": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
