@@ -29,7 +29,7 @@ tasks:
     dependsOn:
       - BOOT-001
       - BOOT-002
-    status: pending
+    status: done
     definitionOfDone:
       - ".claude/tasks.yaml 존재 + tasks.schema.json 검증 통과"
       - "scripts/check_task_transitions.py 역전 탐지 통과"
@@ -40,7 +40,7 @@ tasks:
     owner: agent-claude-opus
     dependsOn:
       - BOOT-003
-    status: pending
+    status: done
     definitionOfDone:
       - ".github/workflows/ci.yml 10 Job 정��"
       - "scripts/validate_impl_log.py 필수 필드 검증"
@@ -51,7 +51,7 @@ tasks:
     owner: agent-claude-opus
     dependsOn:
       - BOOT-003
-    status: pending
+    status: done
     definitionOfDone:
       - "security.md 시크릿 패턴 보강"
       - "evaluator-runtime.md에 EVALUATOR_BROWSER_TOOL 참조"
