@@ -42,6 +42,8 @@
 | `.claude/rules/testing-ci.md` | 테스트 전략, CI/CD, Git/PR 규칙, DoD 체크리스트 |
 | `.claude/rules/domain/ai-engine.md` | AI 엔진 안전장치, 영양 bounds, PHI 최소화, 테스트 시나리오 |
 | `.claude/rules/domain/content.md` | 셀러브리티 데이터, 면책조항, 트렌드 규칙, 접근성 |
+| `.claude/rules/pipeline.md` | Claude-Codex 파이프라인 운용 규칙, 게이트 판정, 에스컬레이션 |
+| `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
 
 ## 4. Workflow
 

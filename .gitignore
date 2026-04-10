@@ -35,3 +35,10 @@ coverage/
 
 # Generated artifacts (CI에서 자동 생성)
 progress.md
+
+# Pipeline run artifacts (per-task, transient)
+pipeline/runs/
+!pipeline/runs/.gitkeep
+
+# Worktrees (pipeline isolation)
+.worktrees/

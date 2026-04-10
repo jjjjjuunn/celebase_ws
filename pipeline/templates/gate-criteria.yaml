@@ -1,0 +1,57 @@
+version: "1.0"
+
+gates:
+  implement:
+    description: "구현 완료 후 코드 품질 + 아키텍처 검증"
+    required_checks:
+      - name: typecheck
+        command: "pnpm turbo run typecheck"
+        pass_condition: "exit_code == 0"
+      - name: lint
+        command: "pnpm turbo run lint"
+        pass_condition: "exit_code == 0"
+      - name: test
+        command: "pnpm turbo run test"
+        pass_condition: "exit_code == 0"
+      - name: policy_compliance
+        command: "scripts/gate-check.sh policy"
+        pass_condition: "exit_code == 0"
+      - name: secret_scan
+        command: "scripts/gate-check.sh secrets"
+        pass_condition: "exit_code == 0"
+    claude_judgment:
+      - "구현이 CODEX-HANDOFF.md 명세와 일치하는가"
+      - "절대 규칙 14개 위반이 없는가"
+      - "서비스 경계를 넘어 다른 서비스 DB를 직접 쿼리하지 않는가"
+      - "PHI 접근 코드에 감사 로그가 포함되어 있는가 (해당 시)"
+    max_iterations: 3
+    on_max_fail: "ESCALATE_TO_HUMAN"
+
+  review:
+    description: "Codex 독립 리뷰 결과 평가"
+    required_checks:
+      - name: no_secrets_in_diff
+        command: "scripts/gate-check.sh secrets"
+        pass_condition: "exit_code == 0"
+    claude_judgment:
+      - "Critical/High severity 이슈가 모두 해결되었는가"
+      - "코드가 기존 패턴을 따르는가"
+      - "테스트가 충분한가 (새 코드에 대한 테스트 존재)"
+    max_iterations: 3
+    on_max_fail: "ESCALATE_TO_HUMAN"
+
+  qa:
+    description: "QA 실행 결과 평가"
+    required_checks:
+      - name: all_tests_pass
+        command: "pnpm turbo run test"
+        pass_condition: "exit_code == 0"
+      - name: contract_tests
+        command: "pytest tests/contract/ -v"
+        pass_condition: "exit_code == 0"
+    claude_judgment:
+      - "QA-PLAN의 모든 시나리오가 실행되었는가"
+      - "Edge case가 커버되었는가"
+      - "기존 테스트에 regression이 없는가"
+    max_iterations: 2
+    on_max_fail: "ESCALATE_TO_HUMAN"
