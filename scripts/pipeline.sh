@@ -64,9 +64,31 @@ log_event() {
 ensure_run_dir() {
   mkdir -p "$RUN_DIR"
   if [[ ! -f "$LOG_FILE" ]]; then
-    echo "# Pipeline log for $TASK_ID" > /dev/null
     touch "$LOG_FILE"
   fi
+}
+
+# Run codex exec reading prompt from a file via stdin.
+# Usage: run_codex <prompt_file> <output_file>
+# Returns codex's exit code (not tee's).
+run_codex() {
+  local prompt_file="$1"
+  local output_file="$2"
+
+  # Use stdin (-) so file content is never shell-expanded.
+  # PIPESTATUS[0] captures codex exit code even with pipefail enabled.
+  set +e
+  codex exec \
+    --full-auto \
+    --cd "$WORKTREE_DIR" \
+    -m "$CODEX_MODEL" \
+    - \
+    < "$prompt_file" \
+    2>&1 | tee "$output_file"
+  local pipe_exit=("${PIPESTATUS[@]}")
+  set -e
+
+  return "${pipe_exit[0]}"
 }
 
 # ── Steps ──────────────────────────────────────────
@@ -114,14 +136,8 @@ step_implement() {
   echo "Model: $CODEX_MODEL"
   echo "---"
 
-  # Run Codex with handoff as prompt
-  codex exec \
-    --full-auto \
-    --cd "$WORKTREE_DIR" \
-    -m "$CODEX_MODEL" \
-    "$(cat "$handoff")" \
-    2>&1 | tee "$RUN_DIR/codex-implement-output.txt"
-
+  # Prompt is piped via stdin to avoid shell-expansion of backticks/quotes in HANDOFF.md
+  run_codex "$handoff" "$RUN_DIR/codex-implement-output.txt"
   local codex_exit=$?
 
   if [[ $codex_exit -eq 0 ]]; then
@@ -162,27 +178,29 @@ step_review() {
 
   echo "Running codex review on worktree..."
 
-  # Use codex exec with review prompt (codex review is for interactive use)
-  local review_prompt
-  review_prompt="Review the code changes in this repository. Check for:
-1. Security issues (hardcoded secrets, SQL injection, XSS, SSRF)
-2. Architecture violations (cross-service DB access, missing validation)
-3. Code quality (any types, empty catch, console.log, magic numbers)
-4. Missing tests for new code
-5. PHI handling compliance (encryption, audit logs)
-6. Database rules (UUID v7, soft delete, N+1)
+  # Write review prompt to file — avoids shell-expansion of CODEX-INSTRUCTIONS.md content
+  local review_prompt="$RUN_DIR/review-prompt.txt"
+  {
+    cat <<'HEADER'
+Review all code changes in this repository (compare to the base branch).
+Check for each of the following and assign severity CRITICAL / HIGH / MEDIUM / LOW:
 
-Reference rules: $(cat "$PROJECT_ROOT/CODEX-INSTRUCTIONS.md")
+1. Security: hardcoded secrets, SQL injection, XSS, SSRF, missing Zod validation
+2. Architecture: cross-service DB access, missing parameterized queries
+3. Code quality: `any` types, empty `catch {}`, `console.log`, magic numbers
+4. Test coverage: new logic without corresponding tests
+5. PHI handling: health fields without AES-256 encryption, missing audit logs, fail-open patterns
+6. Database rules: UUID v4 used instead of v7, missing soft-delete, potential N+1 queries
 
-Output a structured review with severity levels: CRITICAL, HIGH, MEDIUM, LOW."
+Reference project rules:
+HEADER
+    cat "$PROJECT_ROOT/CODEX-INSTRUCTIONS.md"
+    echo ""
+    echo "---"
+    echo "Output a structured review. Group findings by severity. End with a PASS / FAIL verdict."
+  } > "$review_prompt"
 
-  codex exec \
-    --full-auto \
-    --cd "$WORKTREE_DIR" \
-    -m "$CODEX_MODEL" \
-    "$review_prompt" \
-    2>&1 | tee "$RUN_DIR/codex-review.txt"
-
+  run_codex "$review_prompt" "$RUN_DIR/codex-review.txt"
   local codex_exit=$?
   log_event "review" "done" "Exit code: $codex_exit"
 
@@ -239,13 +257,8 @@ step_fix() {
   echo "Running Codex fix (iteration $iteration/3)..."
   echo "Fix request: $fix_request"
 
-  codex exec \
-    --full-auto \
-    --cd "$WORKTREE_DIR" \
-    -m "$CODEX_MODEL" \
-    "$(cat "$fix_request")" \
-    2>&1 | tee "$RUN_DIR/codex-fix-${iteration}-output.txt"
-
+  # Pipe fix-request via stdin — avoids shell expansion of TypeScript code in fix docs
+  run_codex "$fix_request" "$RUN_DIR/codex-fix-${iteration}-output.txt"
   local codex_exit=$?
   log_event "fix" "done" "Iteration $iteration, exit code: $codex_exit"
 
@@ -268,15 +281,15 @@ step_qa_exec() {
 
   echo "Running Codex QA..."
 
-  codex exec \
-    --full-auto \
-    --cd "$WORKTREE_DIR" \
-    -m "$CODEX_MODEL" \
-    "Execute the following QA plan. Write any missing tests, then run all tests and report results.
+  # Write combined prompt to file — avoids shell-expansion of QA-PLAN.md content
+  local qa_prompt="$RUN_DIR/qa-prompt.txt"
+  {
+    echo "Execute the following QA plan. Write any missing tests, then run all tests and report results."
+    echo ""
+    cat "$qa_plan"
+  } > "$qa_prompt"
 
-$(cat "$qa_plan")" \
-    2>&1 | tee "$RUN_DIR/qa-results.txt"
-
+  run_codex "$qa_prompt" "$RUN_DIR/qa-results.txt"
   local codex_exit=$?
   log_event "qa-exec" "done" "Exit code: $codex_exit"
 
