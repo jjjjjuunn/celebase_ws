@@ -56,3 +56,15 @@ tasks:
       - "security.md 시크릿 패턴 보강"
       - "evaluator-runtime.md에 EVALUATOR_BROWSER_TOOL 참조"
       - "spec.md changelog v1.4.1 반영"
+
+  - id: IMPL-001
+    title: "DB 기초 공사 — migration 검증 + shared-types entity 타입 정의"
+    owner: agent-claude-sonnet
+    dependsOn:
+      - BOOT-005
+    status: done
+    definitionOfDone:
+      - "db/migrations/0001_initial-schema.sql spec §3.1과 일치 확인"
+      - "packages/shared-types/src/entities.ts — 13개 테이블 row 타입 정의"
+      - "shared-types typecheck/lint 통과"
+      - "docs/IMPLEMENTATION_LOG.md 업데이트"
