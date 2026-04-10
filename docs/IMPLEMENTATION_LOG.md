@@ -28,6 +28,26 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-10
+agent: claude-sonnet-4-6
+task_id: IMPL-001
+commit_sha: 0dc3f97
+files_changed:
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/index.ts
+  - .claude/tasks.yaml
+verified_by: human
+---
+### 완료: DB 기초 공사
+- db/migrations/0001_initial-schema.sql 검증 완료 (spec §3.1과 일치, 13테이블 + materialized view)
+- packages/shared-types/src/entities.ts 신규 — 13개 테이블 row TypeScript 타입 정의
+  (User, BioProfile, Celebrity, BaseDiet, Recipe, Ingredient, RecipeIngredient,
+   MealPlan, InstacartOrder, Subscription, DailyLog, DietViewEvent, PhiAccessLog)
+- typecheck/lint 통과
+### 미완료: 서비스별 route/repository/service 레이어 (IMPL-002 이후)
+### 연관 파일: packages/shared-types/src/, db/migrations/
+
+---
 date: 2026-04-08
 agent: claude-opus-4-6
 task_id: BOOT-003
