@@ -29,6 +29,37 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-04-10
+agent: claude-opus-4-6
+task_id: IMPL-002
+commit_sha: TBD
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/types.d.ts
+  - services/user-service/src/routes/user.routes.ts
+  - services/user-service/src/routes/bio-profile.routes.ts
+  - services/user-service/src/routes/ws-ticket.routes.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/repositories/bio-profile.repository.ts
+  - services/user-service/src/services/user.service.ts
+  - services/user-service/src/services/bio-profile.service.ts
+  - services/user-service/tests/unit/user.service.test.ts
+  - services/user-service/tests/unit/bio-profile.service.test.ts
+  - services/user-service/package.json
+  - services/user-service/tsconfig.json
+verified_by: claude-opus-4-6
+---
+### 완료: user-service route + repository + service 레이어
+- repositories: findById/findByEmail/updateUser(동적 SET)/softDelete, upsert(ON CONFLICT DO UPDATE), updateCalculated
+- services: getMe(soft-delete 체크), updateMe, deleteMe, getBioProfile, createOrUpdateBioProfile, recalculate(Mifflin-St Jeor + TDEE + macro + [1200,5000] clamp)
+- routes: GET/PATCH/DELETE /users/me, POST/GET/PATCH /users/me/bio-profile, POST /ws/ticket (Redis TTL 30s, rate limit 10/min)
+- PHI audit fail-closed (writePhiAuditLog on GET/PATCH bio-profile)
+- 18 unit tests PASS, 94% line coverage, typecheck 0 errors, lint 0 errors
+- ESM jest: jest.unstable_mockModule + top-level await
+### 미완료: content-service (IMPL-003), meal-plan-engine (IMPL-004)
+### 연관 파일: services/user-service/src/, services/user-service/tests/
+
+---
+date: 2026-04-10
 agent: claude-sonnet-4-6
 task_id: IMPL-001
 commit_sha: 0dc3f97
