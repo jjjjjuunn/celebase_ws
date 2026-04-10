@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-04-10
 agent: claude-opus-4-6
 task_id: IMPL-002
-commit_sha: TBD
+commit_sha: 9288158
 files_changed:
   - services/user-service/src/index.ts
   - services/user-service/src/types.d.ts
