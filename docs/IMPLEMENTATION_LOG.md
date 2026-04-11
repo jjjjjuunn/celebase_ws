@@ -30,6 +30,36 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-11
 agent: claude-sonnet-4-6
+task_id: IMPL-004-a
+commit_sha: 2e2626a
+files_changed:
+  - services/meal-plan-engine/main.py
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/.gitignore
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/database.py
+  - services/meal-plan-engine/src/models/meal_plan.py
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/conftest.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+verified_by: claude-sonnet-4-6
+---
+### 완료: meal-plan-engine Python FastAPI 부트스트랩 + CRUD 엔드포인트
+- TypeScript stub 완전 삭제 (index.ts, package.json, tsconfig.json)
+- Python FastAPI 서비스: main.py lifespan, asyncpg pool, pydantic-settings config
+- 6개 엔드포인트: POST /generate, GET /meal-plans, GET /:id, PATCH /:id, POST /:id/regenerate, DELETE /:id
+- JWT stub (manual base64 decode, prod에서 Cognito JWKS 교체 예정)
+- cursor pagination: id > cursor ORDER BY id ASC LIMIT limit+1
+- error envelope: {"error": {"code": ..., "message": ..., "requestId": ...}}
+- repository layer stubbed (NotImplementedError, real SQL comes in IMPL-004-b/c)
+- 8 unit tests PASS, ruff 0 errors
+### 미완료: AI 파이프라인(IMPL-004-b), SQS+WebSocket(IMPL-004-c)
+### 연관 파일: services/meal-plan-engine/src/, services/meal-plan-engine/tests/
+
+---
+date: 2026-04-11
+agent: claude-sonnet-4-6
 task_id: IMPL-003
 commit_sha: 1118314
 files_changed:
