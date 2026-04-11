@@ -81,9 +81,31 @@ importers:
       '@celebbase/service-core':
         specifier: workspace:*
         version: link:../../packages/service-core
+      '@celebbase/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      pg:
+        specifier: ^8.13.1
+        version: 8.20.0
       zod:
         specifier: ^3.24.1
         version: 3.25.76
+    devDependencies:
+      '@types/jest':
+        specifier: ^29.5.14
+        version: 29.5.14
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
+      fastify:
+        specifier: ^5.1.0
+        version: 5.8.4
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@22.19.17)
+      ts-jest:
+        specifier: ^29.2.5
+        version: 29.4.9(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(jest-util@29.7.0)(jest@29.7.0(@types/node@22.19.17))(typescript@5.9.3)
 
   services/meal-plan-engine:
     dependencies:
