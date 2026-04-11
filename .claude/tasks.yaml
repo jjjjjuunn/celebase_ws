@@ -68,3 +68,46 @@ tasks:
       - "packages/shared-types/src/entities.ts — 13개 테이블 row 타입 정의"
       - "shared-types typecheck/lint 통과"
       - "docs/IMPLEMENTATION_LOG.md 업데이트"
+
+  - id: IMPL-002
+    title: "user-service — route/repository/service 레이어 구현"
+    owner: codex
+    dependsOn:
+      - IMPL-001
+    status: done
+    definitionOfDone:
+      - "GET/PATCH/DELETE /users/me 엔드포인트 동작"
+      - "POST/GET/PATCH /users/me/bio-profile 엔드포인트 동작"
+      - "POST /users/me/bio-profile/recalculate 엔드포인트 동작"
+      - "POST /ws/ticket 엔드포인트 동작 (Redis TTL 30s)"
+      - "bio-profile 조회/수정 시 phi_access_logs 기록 (fail-closed)"
+      - "Zod 입력 검증, @celebbase/shared-types 타입 사용"
+      - "unit test 80% 커버리지, typecheck/lint 통과"
+
+  - id: IMPL-003
+    title: "content-service — celebrity/base-diet/recipe 조회 API"
+    owner: claude-sonnet-4-6
+    dependsOn:
+      - IMPL-002
+    status: done
+    definitionOfDone:
+      - "GET /celebrities, GET /celebrities/:slug 동작"
+      - "GET /celebrities/:slug/diets, GET /base-diets/:id 동작"
+      - "GET /base-diets/:id/recipes, GET /recipes/:id 동작"
+      - "GET /recipes/:id/personalized (allergen conflict detection) 동작"
+      - "cursor pagination, is_active 필터, N+1 방지 JOIN 패턴"
+      - "unit test 100% 커버리지, typecheck/lint 통과"
+
+  - id: IMPL-004
+    title: "meal-plan-engine — Python FastAPI + AI 파이프라인"
+    owner: codex
+    dependsOn:
+      - IMPL-003
+    status: todo
+    definitionOfDone:
+      - "POST /meal-plans 엔드포인트 (two-pass 비동기 생성, SQS)"
+      - "GET /meal-plans/:id, GET /meal-plans/:id/status 동작"
+      - "AI 엔진 7개 모듈 파이프라인 동작"
+      - "WebSocket 상태 push"
+      - "content-service HTTP 동기 호출 통합"
+      - "pytest 80% 커버리지, mypy/ruff 통과"

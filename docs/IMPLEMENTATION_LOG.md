@@ -28,6 +28,41 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-11
+agent: claude-sonnet-4-6
+task_id: IMPL-003
+commit_sha: 1118314
+files_changed:
+  - services/content-service/src/index.ts
+  - services/content-service/src/types.d.ts
+  - services/content-service/src/repositories/celebrity.repository.ts
+  - services/content-service/src/repositories/baseDiet.repository.ts
+  - services/content-service/src/repositories/recipe.repository.ts
+  - services/content-service/src/services/celebrity.service.ts
+  - services/content-service/src/services/baseDiet.service.ts
+  - services/content-service/src/services/recipe.service.ts
+  - services/content-service/src/routes/celebrity.routes.ts
+  - services/content-service/src/routes/baseDiet.routes.ts
+  - services/content-service/src/routes/recipe.routes.ts
+  - services/content-service/tests/unit/celebrity.service.test.ts
+  - services/content-service/tests/unit/baseDiet.service.test.ts
+  - services/content-service/tests/unit/recipe.service.test.ts
+  - services/content-service/package.json
+  - services/content-service/tsconfig.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: content-service route + repository + service 레이어
+- repositories: celebrity(findBySlug, list with cursor), baseDiet(findById, findByCelebrityId), recipe(findById with JOIN, findByBaseDietId with cursor)
+- services: getCelebrity/listCelebrities, getBaseDiet/listByCelebrity, getRecipe/listByBaseDiet/getPersonalized(allergen conflict detection)
+- routes: GET /celebrities, GET /celebrities/:slug, GET /celebrities/:slug/diets, GET /base-diets/:id, GET /base-diets/:id/recipes, GET /recipes/:id, GET /recipes/:id/personalized
+- cursor pagination: limit+1 pattern, has_next boolean, no COUNT(*), no OFFSET
+- N+1 방지: recipe + recipe_ingredients + ingredients 단일 JOIN 쿼리 + assembleRecipe() null guard
+- is_active = TRUE 모든 쿼리에 적용
+- 16 unit tests PASS, 100% line coverage, typecheck 0 errors, lint 0 errors
+### 미완료: meal-plan-engine (IMPL-004)
+### 연관 파일: services/content-service/src/, services/content-service/tests/
+
+---
 date: 2026-04-10
 agent: claude-opus-4-6
 task_id: IMPL-002
