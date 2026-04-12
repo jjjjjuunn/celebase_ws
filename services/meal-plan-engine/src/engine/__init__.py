@@ -30,6 +30,7 @@ __all__: list[str] = [
     "get_allowed_fields",
     # Dataclasses exposed by sub-modules
     "RecipeSlot",
+    "run_pipeline",
 ]
 
 # NOTE: The real implementations live in sibling modules that are imported
