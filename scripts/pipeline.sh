@@ -170,17 +170,35 @@ step_gate_implement() {
 
   log_event "gate-implement" "started" ""
 
+  # Validate that Codex actually changed files (P3: detect silent no-op)
+  local changed_count
+  changed_count=$(git -C "$WORKTREE_DIR" diff --name-only "$BASE_BRANCH"...HEAD -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$changed_count" -eq 0 ]]; then
+    echo "ERROR: No source files changed in branch. Codex may have failed silently." >&2
+    echo "{\"status\":\"fail\",\"timestamp\":\"$(timestamp)\",\"checks\":[{\"name\":\"file-changes\",\"passed\":false,\"exit_code\":1,\"output\":\"No source files changed in worktree branch\"}]}" > "$RUN_DIR/gate-implement.json"
+    log_event "gate-implement" "fail" "No files changed — Codex silent failure"
+    echo ""
+    echo "=== Gate Result ==="
+    cat "$RUN_DIR/gate-implement.json"
+    return 1
+  fi
+
+  local gate_exit=0
   "$SCRIPT_DIR/gate-check.sh" all \
     --cd "$WORKTREE_DIR" \
     --output "$RUN_DIR/gate-implement.json" \
-    2>&1 || true
+    2>&1 || gate_exit=$?
 
   # Always output result for Claude to judge
   echo ""
   echo "=== Gate Result ==="
   cat "$RUN_DIR/gate-implement.json"
 
-  log_event "gate-implement" "awaiting-judgment" "Auto checks complete, Claude must judge"
+  if [[ $gate_exit -ne 0 ]]; then
+    log_event "gate-implement" "fail" "Auto checks failed (exit $gate_exit), Claude must judge"
+  else
+    log_event "gate-implement" "awaiting-judgment" "Auto checks passed, Claude must judge"
+  fi
 }
 
 step_review() {
@@ -227,10 +245,11 @@ step_gate_review() {
 
   log_event "gate-review" "started" ""
 
+  local gate_exit=0
   "$SCRIPT_DIR/gate-check.sh" secrets \
     --cd "$WORKTREE_DIR" \
     --output "$RUN_DIR/gate-review.json" \
-    2>&1 || true
+    2>&1 || gate_exit=$?
 
   echo ""
   echo "=== Gate Result ==="
@@ -239,7 +258,11 @@ step_gate_review() {
   echo "=== Review Content ==="
   cat "$RUN_DIR/codex-review.txt" 2>/dev/null || echo "(no review output)"
 
-  log_event "gate-review" "awaiting-judgment" "Auto checks complete, Claude must judge review findings"
+  if [[ $gate_exit -ne 0 ]]; then
+    log_event "gate-review" "fail" "Secret scan failed (exit $gate_exit), Claude must judge"
+  else
+    log_event "gate-review" "awaiting-judgment" "Auto checks passed, Claude must judge review findings"
+  fi
 }
 
 step_fix() {
@@ -316,10 +339,11 @@ step_gate_qa() {
 
   log_event "gate-qa" "started" ""
 
+  local gate_exit=0
   "$SCRIPT_DIR/gate-check.sh" all \
     --cd "$WORKTREE_DIR" \
     --output "$RUN_DIR/gate-qa.json" \
-    2>&1 || true
+    2>&1 || gate_exit=$?
 
   echo ""
   echo "=== Gate Result ==="
@@ -328,7 +352,11 @@ step_gate_qa() {
   echo "=== QA Results ==="
   cat "$RUN_DIR/qa-results.txt" 2>/dev/null || echo "(no QA output)"
 
-  log_event "gate-qa" "awaiting-judgment" "Auto checks complete, Claude must judge QA results"
+  if [[ $gate_exit -ne 0 ]]; then
+    log_event "gate-qa" "fail" "Auto checks failed (exit $gate_exit), Claude must judge QA results"
+  else
+    log_event "gate-qa" "awaiting-judgment" "Auto checks passed, Claude must judge QA results"
+  fi
 }
 
 step_finalize() {

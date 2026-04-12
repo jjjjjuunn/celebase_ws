@@ -177,10 +177,14 @@ case "$CHECK" in
   secrets)
     check_secrets
     ;;
+  build)
+    run_check "build" "pnpm turbo run build --force"
+    ;;
   all)
-    run_check "typecheck" "pnpm turbo run typecheck"
-    run_check "lint" "pnpm turbo run lint"
-    run_check "test" "pnpm turbo run test"
+    run_check "typecheck" "pnpm turbo run typecheck --force"
+    run_check "lint" "pnpm turbo run lint --force"
+    run_check "build" "pnpm turbo run build --force"
+    run_check "test" "pnpm turbo run test --force"
     check_policy
     check_secrets
     ;;

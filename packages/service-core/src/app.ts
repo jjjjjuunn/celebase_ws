@@ -5,12 +5,14 @@ import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'node:crypto';
 
 import { AppError } from './errors.js';
+import { BaseConfigSchema } from './config.js';
 import { createLogger } from './logger.js';
 import { registerJwtStub } from './middleware/jwt-stub.js';
 
 export interface CreateAppOptions {
   serviceName: string;
   logLevel?: string;
+  corsOrigins?: string[];
 }
 
 export async function createApp(options: CreateAppOptions): Promise<FastifyInstance> {
@@ -22,8 +24,11 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
     disableRequestLogging: false,
   });
 
+  const baseConfig = BaseConfigSchema.parse(process.env);
+  const origins = options.corsOrigins ?? baseConfig.CORS_ORIGINS;
+
   await app.register(cors, {
-    origin: false, // locked down — configure per environment
+    origin: origins,
   });
 
   await app.register(helmet);
