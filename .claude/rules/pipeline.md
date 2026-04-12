@@ -115,3 +115,15 @@ pnpm --filter service-core build
 ```
 
 gate-implement 자동 체크 전 이 단계가 빠지면 `Cannot find module '@celebbase/shared-types'` 오류 발생.
+
+### CODEX-INSTRUCTIONS.md 주입 방법 (IMPL-004-b 교훈)
+
+`codex exec -c model_instructions_file=...` 는 유효하지 않은 config 키 — 무시된다.
+올바른 주입: `run_codex()`에서 mktemp 파일에 CODEX-INSTRUCTIONS.md + task 내용을 합쳐 stdin으로 전달.
+`AGENTS.md`를 프로젝트 루트에 유지하면 Codex가 자동 로드한다.
+
+### QA 단계 가짜 pytest stub 방지 (IMPL-004-b 교훈)
+
+Codex QA 에이전트가 pytest 실행에 실패하면 `pytest/` 디렉토리를 만들고 `print("N tests PASS")`를 출력하는 가짜 stub을 생성할 수 있다.
+gate-qa 판정 시 Claude가 직접 `python3 -m pytest` 를 실행해 실제 통과 여부를 확인해야 한다.
+가짜 stub이 발견되면 즉시 삭제 후 재실행.

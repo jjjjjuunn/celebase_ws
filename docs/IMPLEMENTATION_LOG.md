@@ -28,6 +28,37 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-12
+agent: claude-sonnet-4-6
+task_id: IMPL-004-b
+commit_sha: d86ed35
+files_changed:
+  - services/meal-plan-engine/src/engine/__init__.py
+  - services/meal-plan-engine/src/engine/calorie_adjuster.py
+  - services/meal-plan-engine/src/engine/macro_rebalancer.py
+  - services/meal-plan-engine/src/engine/allergen_filter.py
+  - services/meal-plan-engine/src/engine/micronutrient_checker.py
+  - services/meal-plan-engine/src/engine/variety_optimizer.py
+  - services/meal-plan-engine/src/engine/nutrition_normalizer.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - AGENTS.md
+verified_by: claude-sonnet-4-6
+---
+### 완료: meal-plan-engine AI 파이프라인 7개 리프 모듈
+- calorie_adjuster: TDEE × goal_factor, [1200,5000] 클램핑, athletic_performance+very_active → 1.25
+- macro_rebalancer: MAX(activity_base, goal_minimum), protein_g clamp [0.8,3.0] g/kg, min_carb_g=50
+- allergen_filter: blocked_allergens 교집합 레시피 → candidate 대체, 불가 시 UNAVAILABLE 슬롯
+- micronutrient_checker: RDA 대비 70% 미만 영양소 탐지 + 보충제 권고
+- variety_optimizer: 7일 내 동일 레시피 최대 2회 반복 제한
+- nutrition_normalizer: IU↔µg 단위 변환, USDA/Instacart 공통 스키마 변환
+- phi_minimizer: TASK_FIELD_MAP 기반 최소 PHI 추출, 알 수 없는 task → 빈 dict
+- ai-engine.md 7개 필수 시나리오 모두 검증 (S2~S9, S6 제외)
+- ruff 0 errors, 8 기존 CRUD tests PASS
+- AGENTS.md 신규: Codex 자동 로드 인스트럭션 (Python heredoc 방식)
+### 미완료: pipeline.py 오케스트레이터, 엔진 단위 테스트, SQS+WebSocket (IMPL-004-c)
+### 연관 파일: services/meal-plan-engine/src/engine/, AGENTS.md, CODEX-INSTRUCTIONS.md
+
+---
 date: 2026-04-11
 agent: claude-sonnet-4-6
 task_id: IMPL-004-a

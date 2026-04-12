@@ -98,16 +98,40 @@ tasks:
       - "cursor pagination, is_active 필터, N+1 방지 JOIN 패턴"
       - "unit test 100% 커버리지, typecheck/lint 통과"
 
-  - id: IMPL-004
-    title: "meal-plan-engine — Python FastAPI + AI 파이프라인"
+  - id: IMPL-004-a
+    title: "meal-plan-engine — Python FastAPI 부트스트랩 + CRUD 엔드포인트"
     owner: codex
     dependsOn:
       - IMPL-003
+    status: done
+    definitionOfDone:
+      - "6개 엔드포인트 (generate, list, get, patch, regenerate, delete) 구현"
+      - "JWT stub (manual base64 decode)"
+      - "cursor pagination, error envelope"
+      - "ruff 0 errors, 8 unit tests PASS"
+
+  - id: IMPL-004-b
+    title: "meal-plan-engine — AI 파이프라인 7개 리프 모듈"
+    owner: codex
+    dependsOn:
+      - IMPL-004-a
+    status: done
+    definitionOfDone:
+      - "calorie_adjuster, macro_rebalancer, allergen_filter, micronutrient_checker 구현"
+      - "variety_optimizer, nutrition_normalizer, phi_minimizer 구현"
+      - "ai-engine.md 7개 필수 시나리오 검증"
+      - "ruff 0 errors"
+
+  - id: IMPL-004-c
+    title: "meal-plan-engine — pipeline.py 오케스트레이터 + 엔진 테스트 + SQS + WebSocket"
+    owner: codex
+    dependsOn:
+      - IMPL-004-b
     status: todo
     definitionOfDone:
-      - "POST /meal-plans 엔드포인트 (two-pass 비동기 생성, SQS)"
-      - "GET /meal-plans/:id, GET /meal-plans/:id/status 동작"
-      - "AI 엔진 7개 모듈 파이프라인 동작"
+      - "pipeline.py: 7개 모듈 순차 오케스트레이션"
+      - "test_engine.py: ai-engine.md 9개 시나리오 pytest"
+      - "SQS consumer + two-pass 생성"
       - "WebSocket 상태 push"
-      - "content-service HTTP 동기 호출 통합"
-      - "pytest 80% 커버리지, mypy/ruff 통과"
+      - "content-service / user-service HTTP 클라이언트"
+      - "pytest 80% 커버리지, ruff 0 errors"

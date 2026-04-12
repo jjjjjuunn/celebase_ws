@@ -17,20 +17,28 @@
 /bin/zsh -lc "bash -lc 'apply_patch <<\"PATCH\"\n+\"content\"\nPATCH'"
 ```
 
-**파일 생성/수정 시 반드시 네이티브 도구를 사용한다:**
-1. **`apply_patch` 네이티브 도구** — bash exec 없이 직접 호출 (tool call)
-2. **`write_file` 도구** — 파일 전체 작성
-3. **`str_replace_editor` 도구** — 부분 수정
-4. **bash exec이 불가피한 경우** — Python으로 파일을 쓴다:
-   ```bash
-   python3 -c "
-   content = '''
-   # Python file content here
-   # with "double quotes" safely
-   '''
-   open('path/to/file.py', 'w').write(content)
-   "
-   ```
+**파일 생성/수정은 반드시 Python 단일따옴표 heredoc을 사용한다:**
+
+```bash
+python3 << 'PYEOF'
+content = """\
+# 파일 내용 — "이중따옴표"도 안전
+def foo():
+    logger.warning("This string is safe inside Python triple-quotes")
+"""
+with open('services/meal-plan-engine/src/engine/foo.py', 'w') as f:
+    f.write(content)
+print("Created foo.py")
+PYEOF
+```
+
+- 외부 `<< 'PYEOF'`(단일따옴표)가 shell 해석을 완전 차단
+- Python `"""..."""` 안에서 어떤 문자도 안전
+
+**절대 금지:**
+- `bash -lc "apply_patch <<"` — Python `"` 리터럴이 outer zsh `"` 를 닫아버림
+- `cat > file << EOF` — 중첩 heredoc 오류
+- 어떤 형태로든 bash를 통한 apply_patch 호출
 
 ---
 
