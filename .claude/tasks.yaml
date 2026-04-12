@@ -135,3 +135,29 @@ tasks:
       - "WebSocket 상태 push"
       - "content-service / user-service HTTP 클라이언트"
       - "pytest 80% 커버리지, ruff 0 errors"
+
+  - id: IMPL-005
+    title: "service-core — JWT 실제 구현 (Cognito JWKS 검증)"
+    owner: codex
+    dependsOn:
+      - IMPL-004-c
+    status: todo
+    definitionOfDone:
+      - "jwt-stub.ts를 jwt.ts로 교체 — JWKS 서명 + 만료 + audience 검증"
+      - "request.userId가 실제 JWT sub 값으로 세팅"
+      - "production 환경에서 stub 완전 차단"
+      - "기존 user-service, content-service 라우트 동작 유지"
+      - "unit test 80% 커버리지, typecheck/lint 통과"
+
+  - id: IMPL-006
+    title: "service-core — PHI AES-256 암호화 코덱 + bio-profile 적용"
+    owner: codex
+    dependsOn:
+      - IMPL-005
+    status: todo
+    definitionOfDone:
+      - "service-core에 encryptField/decryptField 함수 (AES-256-GCM)"
+      - "암호화 키는 환경변수(KMS ARN)에서 로드, 하드코딩 금지"
+      - "bio-profile repository: biomarkers, medical_conditions, medications 암호화 저장/복호화 조회"
+      - "기존 PHI 감사 로그와 통합 (fail-closed 유지)"
+      - "unit test + 암호화/복호화 라운드트립 테스트"

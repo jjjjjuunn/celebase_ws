@@ -59,6 +59,39 @@ verified_by: claude-sonnet-4-6
 ### 연관 파일: services/meal-plan-engine/src/engine/, AGENTS.md, CODEX-INSTRUCTIONS.md
 
 ---
+date: 2026-04-12
+agent: claude-opus-4-6 + codex-o3
+task_id: IMPL-004-c
+commit_sha: a2529a4
+files_changed:
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/api/websocket.py
+  - services/meal-plan-engine/src/clients/content_client.py
+  - services/meal-plan-engine/src/clients/user_client.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+  - services/meal-plan-engine/tests/conftest.py
+  - services/meal-plan-engine/src/api/__init__.py
+  - services/meal-plan-engine/src/clients/__init__.py
+  - services/meal-plan-engine/src/consumers/__init__.py
+  - services/meal-plan-engine/src/engine/__init__.py
+verified_by: codex-o3-review + claude-opus-4-6
+---
+### 완료: meal-plan-engine 파이프라인 오케스트레이터 + 인프라
+- pipeline.py: Two-Pass 오케스트레이터 (Pass 1: calorie+allergen 초안, Pass 2: 전체 7모듈)
+- meal_plan_repository.py: asyncpg CRUD 5함수 (create, get, list, update, archive) — parameterized query, cursor pagination
+- sqs_consumer.py: SQS polling loop (long-poll 20s, 1 auto-retry, DLQ on 2nd failure)
+- websocket.py: FastAPI WebSocket at /ws/meal-plans/{plan_id}/status — Redis 티켓 인증 (1회용, TTL 30s)
+- content_client.py: httpx async client — get_base_diet(), get_recipes_for_diet() (cursor pagination)
+- user_client.py: httpx async client — get_bio_profile() (auth token forwarding)
+- test_engine.py: 9/9 ai-engine.md 시나리오 PASS
+- 하이브리드 분업: Codex(pipeline.py + test_engine.py) + Claude(나머지 5파일)
+- gate-implement PASS, gate-review PASS (조건부), gate-qa PASS
+### 미완료: JWT 실제 구현 (IMPL-005), PHI 암호화 (IMPL-006), 통합 테스트
+### 연관 파일: services/meal-plan-engine/src/, pipeline/runs/IMPL-004-c/
+
+---
 date: 2026-04-11
 agent: claude-sonnet-4-6
 task_id: IMPL-004-a

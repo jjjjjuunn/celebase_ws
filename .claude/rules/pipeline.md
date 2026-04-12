@@ -51,13 +51,27 @@ scripts/pipeline.sh <TASK-ID> <step>
 
 ### CODEX-HANDOFF 크기 제한 (필수)
 
-**한 HANDOFF에서 생성/수정하는 파일은 최대 8개**로 제한한다.
+**한 HANDOFF에서 생성/수정하는 파일은 최대 5개**로 제한한다.
 
-- 파일 수가 8개를 초과하면 작업을 하위 태스크(TASK-ID-a, TASK-ID-b)로 분리한다
-- 판단 기준: repository × N + service × N + route × N + test × N 합산
-- 예: repository(3) + service(3) + route(3) + test(3) = 12개 → a(repo+svc) / b(route+test+index)로 분리
+- 파일 수가 5개를 초과하면 작업을 하위 태스크(TASK-ID-a, TASK-ID-b)로 분리한다
+- Python 서비스는 heredoc 오버헤드로 토큰 소비가 크므로 **4개 이하** 권장
+- 판단 기준: 신규 파일 × 1.5 + 수정 파일 × 1.0 ≤ 5
 
-이유: Codex가 ~140K 토큰에서 "can't complete in single response"로 중단하며, 이 경우 `codex exec`이 exit 0을 반환해 파이프라인이 무음 실패한다.
+이유: Codex `exec`는 단일 API completion이며 o3 기준 ~230K 토큰에서 중단된다. 8파일 HANDOFF는 반복적으로 부분 완성 후 종료됨 (IMPL-003, IMPL-004-b, IMPL-004-c에서 확인).
+
+### Claude-Codex 하이브리드 분업 (IMPL-004-c 교훈)
+
+모든 작업을 Codex에 위임하지 않는다. 역할별 최적 에이전트:
+
+| 작업 유형 | 담당 | 이유 |
+|-----------|------|------|
+| 알고리즘/도메인 로직 | **Codex** | 설계 판단이 필요한 코드에서 강점 |
+| CRUD/보일러플레이트 | **Claude 직접** | 패턴이 명확하고 Codex 토큰 낭비 |
+| 독립 코드 리뷰 | **Codex** | Claude와 다른 시각의 리뷰가 핵심 가치 |
+| QA 테스트 실행 | **Codex** | 격리 환경에서 실행 + 검증 |
+| 아키텍처 설계 | **Claude** | 컨텍스트 윈도우 + 멀티턴 대화 강점 |
+
+Codex `implement` 후 미완성 파일이 있으면 Claude가 직접 보충 → gate-implement에서 통합 검증.
 
 ## 게이트 판정 원칙
 
