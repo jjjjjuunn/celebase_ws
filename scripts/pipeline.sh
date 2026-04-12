@@ -315,20 +315,29 @@ step_qa_exec() {
 
   log_event "qa-exec" "started" ""
 
+  # Pre-install Python dependencies so Codex can run pytest in its sandbox.
+  # Without this, Codex has no PyPI access and creates fake pytest stubs.
+  local py_svc_dir="$WORKTREE_DIR/services/meal-plan-engine"
+  if [[ -f "$py_svc_dir/requirements.txt" ]]; then
+    echo "Setting up Python venv for Codex QA..."
+    python3 -m venv "$py_svc_dir/.venv" 2>/dev/null || true
+    "$py_svc_dir/.venv/bin/pip" install -q -r "$py_svc_dir/requirements.txt" 2>&1 | tail -3
+    echo "Python venv ready at: $py_svc_dir/.venv"
+  fi
+
   echo "Running Codex QA..."
 
   # Write combined prompt to file — avoids shell-expansion of QA-PLAN.md content
-  # NOTE: Codex does static analysis ONLY. Actual pytest/jest execution is done by Claude in gate-qa.
-  # This prevents Codex from creating fake pytest stub directories when it can't install packages.
   local qa_prompt="$RUN_DIR/qa-prompt.txt"
   {
-    echo "Execute the following QA plan using STATIC ANALYSIS ONLY."
+    echo "Execute the following QA plan."
     echo ""
     echo "IMPORTANT RULES:"
-    echo "- Do NOT run pytest or jest. Claude will run tests separately in gate-qa."
-    echo "- Do NOT create any pytest/ directory or test stub files."
-    echo "- Focus on: ruff check, grep-based policy checks, code review for rule violations."
-    echo "- If a check requires running tests, skip it and note 'deferred to Claude gate-qa'."
+    echo "- A Python venv with all dependencies is pre-installed at services/meal-plan-engine/.venv"
+    echo "- Run pytest using: cd services/meal-plan-engine && .venv/bin/python -m pytest tests/ -v --tb=short"
+    echo "- Do NOT create any pytest/ directory or test stub files. Dependencies are already installed."
+    echo "- Do NOT run pip install — all packages are pre-installed in the venv."
+    echo "- Also run: .venv/bin/ruff check src/ tests/ and other static checks from the QA plan."
     echo ""
     cat "$qa_plan"
   } > "$qa_prompt"

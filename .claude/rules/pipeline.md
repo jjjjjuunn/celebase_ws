@@ -136,8 +136,15 @@ gate-implement 자동 체크 전 이 단계가 빠지면 `Cannot find module '@c
 올바른 주입: `run_codex()`에서 mktemp 파일에 CODEX-INSTRUCTIONS.md + task 내용을 합쳐 stdin으로 전달.
 `AGENTS.md`를 프로젝트 루트에 유지하면 Codex가 자동 로드한다.
 
-### QA 단계 가짜 pytest stub 방지 (IMPL-004-b 교훈)
+### QA 단계 Python venv 사전 설치 (IMPL-004-c 교훈)
 
-Codex QA 에이전트가 pytest 실행에 실패하면 `pytest/` 디렉토리를 만들고 `print("N tests PASS")`를 출력하는 가짜 stub을 생성할 수 있다.
-gate-qa 판정 시 Claude가 직접 `python3 -m pytest` 를 실행해 실제 통과 여부를 확인해야 한다.
-가짜 stub이 발견되면 즉시 삭제 후 재실행.
+Codex sandbox에는 PyPI 접근이 없어 pytest 실행이 실패한다. 이를 방지하기 위해 `pipeline.sh`의 `step_qa_exec()`에서 Codex 실행 **전에** Python venv을 생성하고 의존성을 설치한다:
+
+```bash
+python3 -m venv services/meal-plan-engine/.venv
+.venv/bin/pip install -r requirements.txt
+```
+
+Codex QA 프롬프트에 `.venv/bin/python -m pytest` 경로를 명시한다. 그래도 가짜 `pytest/` 디렉토리가 생성되면 `gate-check.sh`의 `check_fake_stubs()`가 자동 탐지하여 gate FAIL 처리한다.
+
+gate-qa 판정 시 Claude가 직접 `python3 -m pytest`를 실행해 실제 통과 여부를 이중 확인한다.
