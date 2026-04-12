@@ -318,9 +318,17 @@ step_qa_exec() {
   echo "Running Codex QA..."
 
   # Write combined prompt to file — avoids shell-expansion of QA-PLAN.md content
+  # NOTE: Codex does static analysis ONLY. Actual pytest/jest execution is done by Claude in gate-qa.
+  # This prevents Codex from creating fake pytest stub directories when it can't install packages.
   local qa_prompt="$RUN_DIR/qa-prompt.txt"
   {
-    echo "Execute the following QA plan. Write any missing tests, then run all tests and report results."
+    echo "Execute the following QA plan using STATIC ANALYSIS ONLY."
+    echo ""
+    echo "IMPORTANT RULES:"
+    echo "- Do NOT run pytest or jest. Claude will run tests separately in gate-qa."
+    echo "- Do NOT create any pytest/ directory or test stub files."
+    echo "- Focus on: ruff check, grep-based policy checks, code review for rule violations."
+    echo "- If a check requires running tests, skip it and note 'deferred to Claude gate-qa'."
     echo ""
     cat "$qa_plan"
   } > "$qa_prompt"

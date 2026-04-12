@@ -113,6 +113,34 @@ check_policy() {
   RESULTS+=("{\"name\":\"policy\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
+# Fake pytest stub detection: Codex QA sometimes creates pytest/ directories
+check_fake_stubs() {
+  local exit_code=0
+  local issues=""
+
+  cd "$WORK_DIR"
+
+  # Check for pytest/ directories outside node_modules (fake stubs)
+  local fake_dirs
+  fake_dirs=$(find . -path ./node_modules -prune -o -name "pytest" -type d -print 2>/dev/null | grep -v node_modules || true)
+
+  if [[ -n "$fake_dirs" ]]; then
+    issues="Fake pytest stub directories found: $fake_dirs"
+    exit_code=1
+  fi
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(echo -e "$issues" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fake_stubs\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Secret scan: check for hardcoded secrets in changed files
 check_secrets() {
   local exit_code=0
@@ -187,6 +215,7 @@ case "$CHECK" in
     run_check "test" "pnpm turbo run test --force"
     check_policy
     check_secrets
+    check_fake_stubs
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
