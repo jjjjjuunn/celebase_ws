@@ -124,10 +124,10 @@ tasks:
 
   - id: IMPL-004-c
     title: "meal-plan-engine — pipeline.py 오케스트레이터 + 엔진 테스트 + SQS + WebSocket"
-    owner: codex
+    owner: claude-opus-4-6 + codex-o3
     dependsOn:
       - IMPL-004-b
-    status: todo
+    status: done
     definitionOfDone:
       - "pipeline.py: 7개 모듈 순차 오케스트레이션"
       - "test_engine.py: ai-engine.md 9개 시나리오 pytest"
@@ -138,10 +138,10 @@ tasks:
 
   - id: IMPL-005
     title: "service-core — JWT 실제 구현 (Cognito JWKS 검증)"
-    owner: codex
+    owner: claude-opus-4-6
     dependsOn:
       - IMPL-004-c
-    status: todo
+    status: done
     definitionOfDone:
       - "jwt-stub.ts를 jwt.ts로 교체 — JWKS 서명 + 만료 + audience 검증"
       - "request.userId가 실제 JWT sub 값으로 세팅"

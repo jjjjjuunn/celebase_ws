@@ -12,3 +12,4 @@ export { createLogger } from './logger.js';
 export { createPool } from './database.js';
 export { createRedis } from './redis.js';
 export { writePhiAuditLog, createPhiAuditHook } from './middleware/phi-audit.js';
+export { registerJwtAuth } from './middleware/jwt.js';

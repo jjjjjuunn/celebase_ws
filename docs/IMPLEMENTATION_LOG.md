@@ -260,3 +260,29 @@ verified_by: claude-opus-4-6
 - spec.md: v1.4.1 changelog 반영 확인
 ### 미완료: 없음
 ### 연관 파일: .claude/rules/security.md, .claude/rules/evaluator-runtime.md, spec.md
+
+---
+date: 2026-04-11
+agent: claude-opus-4-6
+task_id: IMPL-005
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/middleware/jwt.ts
+  - packages/service-core/src/middleware/jwt-stub.ts (deleted)
+  - packages/service-core/src/app.ts
+  - packages/service-core/src/index.ts
+  - packages/service-core/package.json
+  - packages/service-core/tests/unit/jwt.test.ts
+verified_by: claude-opus-4-6
+---
+### 완료: JWT 실제 구현 (Cognito JWKS 검증) — IMPL-005
+- jwt-stub.ts 삭제, jwt.ts 신규 생성 (jose 라이브러리 기반 JWKS 검증)
+- createRemoteJWKSet + jwtVerify로 Cognito JWT signature/expiry/issuer/audience 검증
+- stub mode: dev/test에서 JWKS_URI 미설정 시 userId='dev-user-stub' fallback
+- production에서 JWKS_URI 미설정 시 process.exit(1) (fail-closed)
+- PUBLIC_PATHS: /health, /docs, /docs/json은 JWT 검증 스킵
+- request.userId에 JWT sub claim 값 세팅
+- 8개 unit test 통과 (stub 3 + JWKS 5), 80.64% line coverage
+- user-service 18개 기존 테스트 전체 통과 확인
+### 미완료: 없음
+### 연관 파일: packages/service-core/src/middleware/jwt.ts, packages/service-core/tests/unit/jwt.test.ts
