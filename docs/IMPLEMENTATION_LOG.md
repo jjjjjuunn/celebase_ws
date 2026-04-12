@@ -291,7 +291,7 @@ verified_by: claude-opus-4-6
 date: 2026-04-11
 agent: claude-opus-4-6
 task_id: IMPL-006
-commit_sha: PENDING
+commit_sha: 8816050
 files_changed:
   - packages/service-core/src/crypto/phi-codec.ts
   - packages/service-core/src/crypto/index.ts
