@@ -132,3 +132,41 @@ Codex는 Claude-Codex 파이프라인의 **구현 에이전트**로 동작한다
 - 요구사항 범위를 벗어나는 변경(리팩토링, "개선")을 하지 않는다.
 - 구현 완료 후 Claude가 게이트 판정을 수행한다.
 - 게이트 실패 시 `fix-request-N.md`를 받아 수정한다.
+
+## 11. File Creation Rules (반드시 준수)
+
+**파일 생성/수정은 반드시 Python 단일따옴표 heredoc으로 한다.**
+
+### 이유
+
+`apply_patch`나 `cat`을 bash exec으로 실행하면 Python/TypeScript의 `"`, `'`, 백틱이 shell quoting과 충돌하여 `zsh: unmatched "` 오류가 발생한다. Python 단일따옴표 heredoc만 이 문제를 완전히 회피한다.
+
+### 유일하게 허용되는 파일 쓰기 방법
+
+```bash
+python3 << 'PYEOF'
+content = """\
+파일 내용을 여기에 작성.
+"이중따옴표"도 안전하고 'single'도 안전하고 `backtick`도 안전.
+def foo():
+    logger.warning("This is safe inside Python triple-quote string")
+"""
+with open('services/meal-plan-engine/src/engine/foo.py', 'w') as f:
+    f.write(content)
+print("Created foo.py")
+PYEOF
+```
+
+- 외부 `<< 'PYEOF'`(단일따옴표 heredoc)가 shell 해석을 완전 차단한다.
+- Python 내부 `"""\..."""`는 어떤 문자도 안전하게 포함한다.
+
+### 절대 금지
+
+```bash
+# 금지 — quoting 오류 유발
+bash -lc "apply_patch <<\"PATCH\"\n+\"content\"\nPATCH'"
+bash -lc 'apply_patch <<PATCH ... PATCH'
+cat > file << EOF  # EOF가 닫히지 않으면 오류
+```
+
+파일 수정이 필요하면: 파일 전체를 python3 heredoc으로 재작성한다.

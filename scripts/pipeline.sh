@@ -75,6 +75,18 @@ run_codex() {
   local prompt_file="$1"
   local output_file="$2"
 
+  # CODEX-INSTRUCTIONS.md를 prompt에 prepend하여 Codex가 반드시 읽도록 한다.
+  # codex exec -c model_instructions_file=... 은 유효하지 않은 config 키 — 무시됨.
+  # stdin prepend가 CODEX-INSTRUCTIONS.md를 주입하는 가장 확실한 방법이다.
+  local combined_prompt
+  combined_prompt="$(mktemp)"
+  {
+    printf "# Project Instructions (from CODEX-INSTRUCTIONS.md)\n\n"
+    cat "$PROJECT_ROOT/CODEX-INSTRUCTIONS.md"
+    printf "\n\n---\n\n# Task\n\n"
+    cat "$prompt_file"
+  } > "$combined_prompt"
+
   # Use stdin (-) so file content is never shell-expanded.
   # PIPESTATUS[0] captures codex exit code even with pipefail enabled.
   set +e
@@ -83,11 +95,12 @@ run_codex() {
     --cd "$WORKTREE_DIR" \
     -m "$CODEX_MODEL" \
     - \
-    < "$prompt_file" \
+    < "$combined_prompt" \
     2>&1 | tee "$output_file"
   local pipe_exit=("${PIPESTATUS[@]}")
   set -e
 
+  rm -f "$combined_prompt"
   return "${pipe_exit[0]}"
 }
 
