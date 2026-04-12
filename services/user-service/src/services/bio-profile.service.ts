@@ -1,6 +1,7 @@
 import type pg from 'pg';
 import type { BioProfile, MacroTargets } from '@celebbase/shared-types';
 import { NotFoundError } from '@celebbase/service-core';
+import type { PhiKeyProvider } from '@celebbase/service-core';
 import * as bioProfileRepo from '../repositories/bio-profile.repository.js';
 
 const ACTIVITY_MULTIPLIERS: Record<string, number> = {
@@ -42,8 +43,12 @@ function calcMacroTargets(targetKcal: number, primaryGoal: string): MacroTargets
   };
 }
 
-export async function getBioProfile(pool: pg.Pool, userId: string): Promise<BioProfile> {
-  const profile = await bioProfileRepo.findByUserId(pool, userId);
+export async function getBioProfile(
+  pool: pg.Pool,
+  userId: string,
+  keyProvider: PhiKeyProvider,
+): Promise<BioProfile> {
+  const profile = await bioProfileRepo.findByUserId(pool, userId, keyProvider);
   if (!profile) throw new NotFoundError('Bio profile not found');
   return profile;
 }
@@ -52,12 +57,17 @@ export async function createOrUpdateBioProfile(
   pool: pg.Pool,
   userId: string,
   data: Parameters<typeof bioProfileRepo.upsert>[2],
+  keyProvider: PhiKeyProvider,
 ): Promise<BioProfile> {
-  return bioProfileRepo.upsert(pool, userId, data);
+  return bioProfileRepo.upsert(pool, userId, data, keyProvider);
 }
 
-export async function recalculate(pool: pg.Pool, userId: string): Promise<BioProfile> {
-  const profile = await getBioProfile(pool, userId);
+export async function recalculate(
+  pool: pg.Pool,
+  userId: string,
+  keyProvider: PhiKeyProvider,
+): Promise<BioProfile> {
+  const profile = await getBioProfile(pool, userId, keyProvider);
 
   const bmr = calcBmr(profile);
   const multiplier = profile.activity_level
@@ -79,5 +89,5 @@ export async function recalculate(pool: pg.Pool, userId: string): Promise<BioPro
     tdee_kcal: tdee,
     target_kcal: targetKcal,
     macro_targets: macroTargets,
-  });
+  }, keyProvider);
 }

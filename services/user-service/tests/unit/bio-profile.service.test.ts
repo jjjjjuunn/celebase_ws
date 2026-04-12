@@ -1,5 +1,6 @@
 import { jest, describe, it, expect, test } from '@jest/globals';
 import type pg from 'pg';
+import type { PhiKeyProvider } from '@celebbase/service-core';
 
 const mockFindByUserId = jest.fn();
 const mockUpdateCalculated = jest.fn();
@@ -15,6 +16,11 @@ const { getBioProfile, recalculate } = await import('../../src/services/bio-prof
 const { NotFoundError } = await import('@celebbase/service-core');
 
 const mockPool = {} as pg.Pool;
+
+// Stub key provider — repository is mocked so no real encryption occurs
+const mockKeyProvider = {
+  getDek: jest.fn(),
+} as unknown as PhiKeyProvider;
 
 const baseProfile = {
   id: 'profile-1',
@@ -50,13 +56,13 @@ const baseProfile = {
 describe('bioProfileService.getBioProfile', () => {
   it('returns profile when found', async () => {
     mockFindByUserId.mockResolvedValueOnce(baseProfile);
-    const result = await getBioProfile(mockPool, 'user-1');
+    const result = await getBioProfile(mockPool, 'user-1', mockKeyProvider);
     expect(result).toEqual(baseProfile);
   });
 
   it('throws NotFoundError when profile does not exist', async () => {
     mockFindByUserId.mockResolvedValueOnce(null);
-    await expect(getBioProfile(mockPool, 'user-1')).rejects.toThrow(NotFoundError);
+    await expect(getBioProfile(mockPool, 'user-1', mockKeyProvider)).rejects.toThrow(NotFoundError);
   });
 });
 
@@ -75,10 +81,10 @@ describe('bioProfileService.recalculate — BMR (Mifflin-St Jeor)', () => {
       target_kcal: expectedTdee,
     });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { bmr_kcal: number; tdee_kcal: number; target_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { bmr_kcal: number; tdee_kcal: number; target_kcal: number }, unknown];
     expect(call[2].bmr_kcal).toBe(expectedBmr);
     expect(call[2].tdee_kcal).toBe(expectedTdee);
   });
@@ -97,10 +103,10 @@ describe('bioProfileService.recalculate — BMR (Mifflin-St Jeor)', () => {
       target_kcal: Math.round(expectedBmr * 1.55),
     });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { bmr_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { bmr_kcal: number }, unknown];
     expect(call[2].bmr_kcal).toBe(expectedBmr);
   });
 
@@ -119,10 +125,10 @@ describe('bioProfileService.recalculate — BMR (Mifflin-St Jeor)', () => {
       target_kcal: tdee - 500,
     });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }, unknown];
     expect(call[2].target_kcal).toBe(Math.max(1200, Math.min(5000, tdee - 500)));
   });
 
@@ -141,10 +147,10 @@ describe('bioProfileService.recalculate — BMR (Mifflin-St Jeor)', () => {
       target_kcal: tdee + 300,
     });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }, unknown];
     expect(call[2].target_kcal).toBe(Math.max(1200, Math.min(5000, tdee + 300)));
   });
 
@@ -160,10 +166,10 @@ describe('bioProfileService.recalculate — BMR (Mifflin-St Jeor)', () => {
     mockFindByUserId.mockResolvedValueOnce(heavyProfile);
     mockUpdateCalculated.mockResolvedValueOnce({ ...heavyProfile, bmr_kcal: 3000, tdee_kcal: 5700, target_kcal: 5000 });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { target_kcal: number }, unknown];
     expect(call[2].target_kcal).toBeLessThanOrEqual(5000);
     expect(call[2].target_kcal).toBeGreaterThanOrEqual(1200);
   });
@@ -188,10 +194,10 @@ describe('bioProfileService.recalculate — activity multipliers', () => {
     mockFindByUserId.mockResolvedValueOnce(profile);
     mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: bmr, tdee_kcal: expectedTdee, target_kcal: expectedTdee });
 
-    await recalculate(mockPool, 'user-1');
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
 
     const calls = mockUpdateCalculated.mock.calls;
-    const call = calls[calls.length - 1] as [unknown, unknown, { tdee_kcal: number }];
+    const call = calls[calls.length - 1] as [unknown, unknown, { tdee_kcal: number }, unknown];
     expect(call[2].tdee_kcal).toBe(expectedTdee);
   });
 });

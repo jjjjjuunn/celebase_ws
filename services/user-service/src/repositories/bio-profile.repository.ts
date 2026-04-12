@@ -1,13 +1,52 @@
 import type pg from 'pg';
-import type { BioProfile } from '@celebbase/shared-types';
+import type { BioProfile, Biomarkers } from '@celebbase/shared-types';
 import type { MacroTargets } from '@celebbase/shared-types';
+import type { PhiKeyProvider } from '@celebbase/service-core';
+import { encryptJson, decryptJson } from '@celebbase/service-core';
 
-export async function findByUserId(pool: pg.Pool, userId: string): Promise<BioProfile | null> {
-  const { rows } = await pool.query<BioProfile>(
+/** Raw DB row where PHI fields are encrypted base64 TEXT. */
+interface BioProfileRow extends Omit<BioProfile, 'biomarkers' | 'medical_conditions' | 'medications'> {
+  biomarkers: string | null;
+  medical_conditions: string | null;
+  medications: string | null;
+}
+
+async function decryptRow(
+  keyProvider: PhiKeyProvider,
+  row: BioProfileRow,
+): Promise<BioProfile> {
+  const [biomarkers, medicalConditions, medications] = await Promise.all([
+    row.biomarkers
+      ? decryptJson<Biomarkers>(keyProvider, row.user_id, row.biomarkers)
+      : ({} as Biomarkers),
+    row.medical_conditions
+      ? decryptJson<string[]>(keyProvider, row.user_id, row.medical_conditions)
+      : ([] as string[]),
+    row.medications
+      ? decryptJson<string[]>(keyProvider, row.user_id, row.medications)
+      : ([] as string[]),
+  ]);
+
+  return {
+    ...row,
+    biomarkers,
+    medical_conditions: medicalConditions,
+    medications,
+  };
+}
+
+export async function findByUserId(
+  pool: pg.Pool,
+  userId: string,
+  keyProvider: PhiKeyProvider,
+): Promise<BioProfile | null> {
+  const { rows } = await pool.query<BioProfileRow>(
     'SELECT * FROM bio_profiles WHERE user_id = $1 LIMIT 1',
     [userId],
   );
-  return rows[0] ?? null;
+  const row = rows[0];
+  if (!row) return null;
+  return decryptRow(keyProvider, row);
 }
 
 type UpsertData = {
@@ -36,8 +75,15 @@ export async function upsert(
   pool: pg.Pool,
   userId: string,
   data: UpsertData,
+  keyProvider: PhiKeyProvider,
 ): Promise<BioProfile> {
-  const { rows } = await pool.query<BioProfile>(
+  const [encMedicalConditions, encMedications, encBiomarkers] = await Promise.all([
+    encryptJson(keyProvider, userId, data.medical_conditions ?? []),
+    encryptJson(keyProvider, userId, data.medications ?? []),
+    encryptJson(keyProvider, userId, data.biomarkers ?? {}),
+  ]);
+
+  const { rows } = await pool.query<BioProfileRow>(
     `INSERT INTO bio_profiles (
        user_id, birth_year, sex, height_cm, weight_kg, waist_cm, body_fat_pct,
        activity_level, sleep_hours_avg, stress_level,
@@ -83,9 +129,9 @@ export async function upsert(
       data.stress_level ?? null,
       data.allergies ?? [],
       data.intolerances ?? [],
-      data.medical_conditions ?? [],
-      data.medications ?? [],
-      JSON.stringify(data.biomarkers ?? {}),
+      encMedicalConditions,
+      encMedications,
+      encBiomarkers,
       data.primary_goal ?? null,
       data.secondary_goals ?? [],
       data.diet_type ?? null,
@@ -95,15 +141,16 @@ export async function upsert(
   );
   const row = rows[0];
   if (!row) throw new Error('BioProfile not found after upsert');
-  return row;
+  return decryptRow(keyProvider, row);
 }
 
 export async function updateCalculated(
   pool: pg.Pool,
   userId: string,
   calculated: { bmr_kcal: number; tdee_kcal: number; target_kcal: number; macro_targets: MacroTargets },
+  keyProvider: PhiKeyProvider,
 ): Promise<BioProfile> {
-  const { rows } = await pool.query<BioProfile>(
+  const { rows } = await pool.query<BioProfileRow>(
     `UPDATE bio_profiles
      SET bmr_kcal = $2, tdee_kcal = $3, target_kcal = $4, macro_targets = $5, updated_at = NOW()
      WHERE user_id = $1
@@ -118,5 +165,5 @@ export async function updateCalculated(
   );
   const updated = rows[0];
   if (!updated) throw new Error('BioProfile not found after update');
-  return updated;
+  return decryptRow(keyProvider, updated);
 }

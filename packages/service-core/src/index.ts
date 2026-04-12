@@ -13,3 +13,11 @@ export { createPool } from './database.js';
 export { createRedis } from './redis.js';
 export { writePhiAuditLog, createPhiAuditHook } from './middleware/phi-audit.js';
 export { registerJwtAuth } from './middleware/jwt.js';
+export {
+  type PhiKeyProvider,
+  EnvPhiKeyProvider,
+  encryptField,
+  decryptField,
+  encryptJson,
+  decryptJson,
+} from './crypto/index.js';

@@ -5,6 +5,7 @@ import {
   ValidationError,
   writePhiAuditLog,
 } from '@celebbase/service-core';
+import type { PhiKeyProvider } from '@celebbase/service-core';
 import {
   ActivityLevel,
   BiomarkersSchema,
@@ -46,9 +47,9 @@ const UpdateBioProfileSchema = CreateBioProfileSchema.partial();
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function bioProfileRoutes(
   app: FastifyInstance,
-  options: { pool: pg.Pool },
+  options: { pool: pg.Pool; phiKeyProvider: PhiKeyProvider },
 ): Promise<void> {
-  const { pool } = options;
+  const { pool, phiKeyProvider } = options;
 
   app.post('/users/me/bio-profile', async (request: FastifyRequest) => {
     const parsed = CreateBioProfileSchema.safeParse(request.body);
@@ -58,7 +59,7 @@ export async function bioProfileRoutes(
         issue: e.message,
       })));
     }
-    return bioProfileService.createOrUpdateBioProfile(pool, request.userId, parsed.data);
+    return bioProfileService.createOrUpdateBioProfile(pool, request.userId, parsed.data, phiKeyProvider);
   });
 
   app.get('/users/me/bio-profile', async (request: FastifyRequest) => {
@@ -73,7 +74,7 @@ export async function bioProfileRoutes(
       ipAddress: request.ip,
     });
 
-    return bioProfileService.getBioProfile(pool, request.userId);
+    return bioProfileService.getBioProfile(pool, request.userId, phiKeyProvider);
   });
 
   app.patch('/users/me/bio-profile', async (request: FastifyRequest) => {
@@ -101,10 +102,10 @@ export async function bioProfileRoutes(
       });
     }
 
-    return bioProfileService.createOrUpdateBioProfile(pool, request.userId, parsed.data);
+    return bioProfileService.createOrUpdateBioProfile(pool, request.userId, parsed.data, phiKeyProvider);
   });
 
   app.post('/users/me/bio-profile/recalculate', async (request: FastifyRequest) => {
-    return bioProfileService.recalculate(pool, request.userId);
+    return bioProfileService.recalculate(pool, request.userId, phiKeyProvider);
   });
 }

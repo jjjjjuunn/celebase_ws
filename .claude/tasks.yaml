@@ -151,10 +151,10 @@ tasks:
 
   - id: IMPL-006
     title: "service-core — PHI AES-256 암호화 코덱 + bio-profile 적용"
-    owner: codex
+    owner: claude-opus-4-6
     dependsOn:
       - IMPL-005
-    status: todo
+    status: done
     definitionOfDone:
       - "service-core에 encryptField/decryptField 함수 (AES-256-GCM)"
       - "암호화 키는 환경변수(KMS ARN)에서 로드, 하드코딩 금지"

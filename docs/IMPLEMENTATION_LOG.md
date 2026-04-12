@@ -286,3 +286,33 @@ verified_by: claude-opus-4-6
 - user-service 18개 기존 테스트 전체 통과 확인
 ### 미완료: 없음
 ### 연관 파일: packages/service-core/src/middleware/jwt.ts, packages/service-core/tests/unit/jwt.test.ts
+
+---
+date: 2026-04-11
+agent: claude-opus-4-6
+task_id: IMPL-006
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/crypto/phi-codec.ts
+  - packages/service-core/src/crypto/index.ts
+  - packages/service-core/src/index.ts
+  - packages/service-core/tests/unit/phi-codec.test.ts
+  - db/migrations/0002_phi-encryption-columns.sql
+  - services/user-service/src/repositories/bio-profile.repository.ts
+  - services/user-service/src/services/bio-profile.service.ts
+  - services/user-service/src/routes/bio-profile.routes.ts
+  - services/user-service/src/index.ts
+  - services/user-service/tests/unit/bio-profile.service.test.ts
+verified_by: claude-opus-4-6
+---
+### 완료: PHI AES-256-GCM 암호화 코덱 + bio-profile 적용 — IMPL-006
+- phi-codec.ts: AES-256-GCM 암호화/복호화 (node:crypto, 외부 의존성 없음)
+- PhiKeyProvider 인터페이스 + EnvPhiKeyProvider (HKDF per-user DEK 파생)
+- envelope 형식: [version(1)][iv(12)][authTag(16)][ciphertext(N)] → base64
+- bio-profile repository: biomarkers, medical_conditions, medications 암호화 저장/복호화 조회
+- DB migration: 3개 PHI 칼럼 TEXT[] / JSONB → TEXT (encrypted base64)
+- service/routes에 PhiKeyProvider 전달 (fail-closed: 암호화 실패 시 요청 차단)
+- 18개 코덱 unit test (roundtrip, 변조 탐지, userId 격리, version check 등) 97.29% coverage
+- user-service 18개 기존 테스트 전체 통과 확인
+### 미완료: AWS KMS KmsPhiKeyProvider, users.email 암호화, 키 로테이션 (별도 작업)
+### 연관 파일: packages/service-core/src/crypto/phi-codec.ts, db/migrations/0002_phi-encryption-columns.sql, services/user-service/src/repositories/bio-profile.repository.ts
