@@ -10,10 +10,8 @@ from __future__ import annotations
 from typing import List
 
 import math
-import pytest
 
 from src.engine import calorie_adjuster, macro_rebalancer, allergen_filter, variety_optimizer, nutrition_normalizer
-from src.engine.micronutrient_checker import check_micronutrients, RDA
 from src.engine.allergen_filter import RecipeSlot, count_allergen_conflicts
 
 
