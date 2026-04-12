@@ -265,7 +265,7 @@ verified_by: claude-opus-4-6
 date: 2026-04-11
 agent: claude-opus-4-6
 task_id: IMPL-005
-commit_sha: PENDING
+commit_sha: e7d7b8b
 files_changed:
   - packages/service-core/src/middleware/jwt.ts
   - packages/service-core/src/middleware/jwt-stub.ts (deleted)
