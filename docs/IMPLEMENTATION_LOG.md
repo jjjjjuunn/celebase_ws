@@ -316,3 +316,73 @@ verified_by: claude-opus-4-6
 - user-service 18개 기존 테스트 전체 통과 확인
 ### 미완료: AWS KMS KmsPhiKeyProvider, users.email 암호화, 키 로테이션 (별도 작업)
 ### 연관 파일: packages/service-core/src/crypto/phi-codec.ts, db/migrations/0002_phi-encryption-columns.sql, services/user-service/src/repositories/bio-profile.repository.ts
+
+---
+date: 2026-04-13
+agent: claude-opus-4-6
+task_id: IMPL-007
+commit_sha: 679c455
+files_changed:
+  - services/user-service/src/routes/daily-log.routes.ts
+  - services/user-service/src/services/daily-log.service.ts
+  - services/user-service/src/repositories/daily-log.repository.ts
+  - services/user-service/src/index.ts
+verified_by: claude-opus-4-6
+---
+### 완료: daily tracking API (POST/GET/summary) — IMPL-007
+- POST /users/me/daily-logs, GET /users/me/daily-logs (cursor pagination), GET /users/me/daily-logs/summary
+- daily-log repository: create, findByUserIdAndDate, listByUserId, summary (7/30일 집계)
+- parameterized queries, Zod validation, ISO 8601 dates
+### 미완료: 없음
+### 연관 파일: services/user-service/src/routes/daily-log.routes.ts, services/user-service/src/repositories/daily-log.repository.ts
+
+---
+date: 2026-04-13
+agent: claude-opus-4-6
+task_id: IMPL-008
+commit_sha: d0cc06b
+files_changed:
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/index.ts
+verified_by: claude-opus-4-6
+---
+### 완료: auth service (signup/login/refresh) with dev stub — IMPL-008
+- POST /auth/signup, POST /auth/login, POST /auth/refresh
+- dev stub mode: JWT 생성 (HS256), 실 Cognito 연동은 추후
+- Zod input validation, error envelope
+### 미완료: 실 Cognito 연동 (production)
+### 연관 파일: services/user-service/src/routes/auth.routes.ts, services/user-service/src/services/auth.service.ts
+
+---
+date: 2026-04-13
+agent: claude-opus-4-6
+task_id: IMPL-009
+commit_sha: bd3bb86
+files_changed:
+  - db/seeds/types.ts
+  - db/seeds/loaders/ingredientLoader.ts
+  - db/seeds/loaders/celebrityLoader.ts
+  - db/seeds/run.ts
+  - db/seeds/data/_ingredients.json
+  - db/seeds/data/ariana-grande.json
+  - db/seeds/data/beyonce.json
+  - db/seeds/data/gwyneth-paltrow.json
+  - db/seeds/data/cristiano-ronaldo.json
+  - db/seeds/data/lebron-james.json
+  - db/seeds/data/dwayne-johnson.json
+  - db/seeds/data/natalie-portman.json
+  - db/seeds/data/joaquin-phoenix.json
+  - db/seeds/data/jennifer-aniston.json
+  - db/seeds/data/tom-brady.json
+  - db/package.json
+  - package.json
+verified_by: claude-opus-4-6
+---
+### 완료: seed data loader + 10 celebrity datasets — IMPL-009
+- TypeScript seed loader (tsx): 단일 트랜잭션, ON CONFLICT 멱등성
+- 10 celebrities × 18 recipes = 180 recipes, 237 ingredients, 1,038 recipe_ingredients
+- DB 실행 검증: 카운트 정확, 2차 실행 중복 없음 (멱등성 통과)
+- meal type 분포 균일: breakfast:4, lunch:4, dinner:4, snack:4, smoothie:2
+### 미완료: 없음
+### 연관 파일: db/seeds/, db/package.json
