@@ -6,6 +6,8 @@ import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
 import { dailyLogRoutes } from './routes/daily-log.routes.js';
+import { authRoutes } from './routes/auth.routes.js';
+import { DevAuthProvider } from './services/auth.service.js';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
@@ -23,6 +25,10 @@ const start = async (): Promise<void> => {
   await redis.connect();
 
   const app = await createApp({ serviceName: 'user-service' });
+
+  // Auth routes (public — no JWT required)
+  const authProvider = new DevAuthProvider(); // TODO: swap with CognitoAuthProvider when COGNITO_CLIENT_ID is set
+  await app.register(authRoutes, { pool, authProvider });
 
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });

@@ -48,6 +48,32 @@ export async function updateUser(
   return row;
 }
 
+export async function findByCognitoSub(pool: pg.Pool, cognitoSub: string): Promise<User | null> {
+  const { rows } = await pool.query<User>(
+    'SELECT * FROM users WHERE cognito_sub = $1 LIMIT 1',
+    [cognitoSub],
+  );
+  return rows[0] ?? null;
+}
+
+type CreateUserData = {
+  cognito_sub: string;
+  email: string;
+  display_name: string;
+};
+
+export async function create(pool: pg.Pool, data: CreateUserData): Promise<User> {
+  const { rows } = await pool.query<User>(
+    `INSERT INTO users (cognito_sub, email, display_name)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [data.cognito_sub, data.email, data.display_name],
+  );
+  const row = rows[0];
+  if (!row) throw new Error('User not found after insert');
+  return row;
+}
+
 export async function softDelete(pool: pg.Pool, id: string): Promise<void> {
   await pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [id]);
 }

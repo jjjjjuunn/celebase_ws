@@ -71,7 +71,7 @@ async function verifyToken(token: string, config: JwtConfig): Promise<JWTPayload
 }
 
 /** Public routes that skip JWT verification. */
-const PUBLIC_PATHS = new Set(['/health', '/docs', '/docs/json']);
+const PUBLIC_PATHS = new Set(['/health', '/docs', '/docs/json', '/auth/signup', '/auth/login', '/auth/refresh']);
 
 /**
  * Register JWT authentication on a Fastify instance.
@@ -96,6 +96,29 @@ export function registerJwtAuth(app: FastifyInstance): void {
     app.log.warn('JWT running in STUB mode (JWKS_URI not set) — not suitable for production');
     // eslint-disable-next-line @typescript-eslint/require-await
     app.addHook('onRequest', async (request: FastifyRequest) => {
+      // Skip public paths in dev too
+      const urlPath = request.url.split('?')[0];
+      if (urlPath !== undefined && PUBLIC_PATHS.has(urlPath)) {
+        return;
+      }
+
+      // If a Bearer token is present, decode the payload to extract sub (no signature check)
+      const token = extractToken(request);
+      if (token) {
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3 && parts[1]) {
+            const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as { sub?: string };
+            if (payload.sub) {
+              (request as FastifyRequest & { userId: string }).userId = payload.sub;
+              return;
+            }
+          }
+        } catch {
+          // Fall through to default stub
+        }
+      }
+
       (request as FastifyRequest & { userId: string }).userId = 'dev-user-stub';
     });
     return;
