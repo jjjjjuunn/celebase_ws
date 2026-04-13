@@ -1,0 +1,285 @@
+{
+  "slug": "tom-brady",
+  "display_name": "Tom Brady",
+  "short_bio": "NFL legend whose TB12 Method emphasizes anti-inflammatory eating, alkaline foods, and the avoidance of nightshades, sugar, and processed foods.",
+  "avatar_url": "https://cdn.celebbase.com/celebrities/tom-brady/avatar.webp",
+  "cover_image_url": "https://cdn.celebbase.com/celebrities/tom-brady/cover.webp",
+  "category": "general",
+  "tags": ["tb12", "anti-inflammatory", "alkaline", "performance", "longevity"],
+  "is_featured": true,
+  "sort_order": 10,
+  "base_diet": {
+    "name": "TB12 Method",
+    "description": "An anti-inflammatory, mostly plant-based diet that avoids nightshades, refined sugar, gluten, and most dairy while emphasizing organic vegetables, lean meats, and alkaline foods.",
+    "philosophy": "Tom Brady's TB12 Method, developed with trainer Alex Guerrero, is approximately 80% plant-based and 20% lean organic meats. He avoids nightshades (tomatoes, peppers, eggplant), white sugar, white flour, MSG, and caffeine.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": 2500,
+    "macro_ratio": { "protein_pct": 25, "carbs_pct": 45, "fat_pct": 30 },
+    "included_foods": ["wild salmon", "organic chicken", "brown rice", "quinoa", "avocado", "leafy greens", "sweet potato", "nuts", "seeds", "bone broth"],
+    "excluded_foods": ["nightshades", "white sugar", "white flour", "dairy", "caffeine", "MSG", "gluten", "processed foods", "fried foods"],
+    "key_supplements": ["Electrolytes", "Omega-3", "Vitamin D", "Probiotics", "Multivitamin"],
+    "source_refs": [
+      { "type": "book", "outlet": "The TB12 Method by Tom Brady", "date": "2017-09-19" },
+      { "type": "article", "outlet": "Men's Health", "date": "2019-01-20" }
+    ]
+  },
+  "recipes": [
+    { "title": "TB12 Sunrise Bowl", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 10, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 400, "protein_g": 16, "carbs_g": 52, "fat_g": 16, "fiber_g": 8, "sugar_g": 14, "sodium_mg": 120 },
+      "instructions": [
+        { "step": 1, "text": "Cook steel-cut oats in water.", "duration_min": 10 },
+        { "step": 2, "text": "Top with sliced banana, walnuts, hemp seeds, and a drizzle of maple syrup.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Steel-Cut Oats", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium", "preparation": "sliced" },
+        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
+        { "ingredient_name": "Hemp Seeds", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" }
+      ]
+    },
+    { "title": "Avocado and Egg Bowl (No Nightshades)", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 8, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 380, "protein_g": 20, "carbs_g": 18, "fat_g": 26, "fiber_g": 8, "sugar_g": 2, "sodium_mg": 380 },
+      "instructions": [
+        { "step": 1, "text": "Scramble eggs with spinach and mushrooms.", "duration_min": 6 },
+        { "step": 2, "text": "Serve with sliced avocado and a side of sweet potato.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large" },
+        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Mushrooms", "quantity": 3, "unit": "oz", "preparation": "sliced" },
+        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
+        { "ingredient_name": "Sweet Potato", "quantity": 0.5, "unit": "medium", "preparation": "steamed" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+      ]
+    },
+    { "title": "Protein Smoothie Bowl", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 360, "protein_g": 24, "carbs_g": 42, "fat_g": 12, "fiber_g": 6, "sugar_g": 18, "sodium_mg": 140 },
+      "instructions": [
+        { "step": 1, "text": "Blend frozen banana, plant protein, and almond milk into a thick consistency.", "duration_min": 2 },
+        { "step": 2, "text": "Top with granola, blueberries, and pumpkin seeds.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
+        { "ingredient_name": "Plant Protein Powder", "quantity": 1, "unit": "scoop" },
+        { "ingredient_name": "Almond Milk", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Granola", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
+        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Quinoa Porridge with Seeds", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 380, "protein_g": 14, "carbs_g": 50, "fat_g": 14, "fiber_g": 6, "sugar_g": 8, "sodium_mg": 80 },
+      "instructions": [
+        { "step": 1, "text": "Cook quinoa in almond milk until creamy.", "duration_min": 15 },
+        { "step": 2, "text": "Top with chia seeds, hemp seeds, and fresh blueberries.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Quinoa", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Hemp Seeds", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" }
+      ]
+    },
+    { "title": "Wild Salmon and Brown Rice Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
+      "nutrition": { "calories": 520, "protein_g": 36, "carbs_g": 48, "fat_g": 20, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 380 },
+      "instructions": [
+        { "step": 1, "text": "Pan-sear salmon with sea salt and olive oil.", "duration_min": 10 },
+        { "step": 2, "text": "Flake over brown rice with steamed broccoli and avocado.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Salmon Fillet", "quantity": 5, "unit": "oz" },
+        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Bone Broth and Vegetable Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "easy",
+      "nutrition": { "calories": 320, "protein_g": 18, "carbs_g": 32, "fat_g": 14, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 520 },
+      "instructions": [
+        { "step": 1, "text": "Simmer bone broth with carrot, celery, and sweet potato.", "duration_min": 15 },
+        { "step": 2, "text": "Add kale and cook until wilted.", "duration_min": 3 },
+        { "step": 3, "text": "Season with turmeric and ginger.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Bone Broth", "quantity": 4, "unit": "cup" },
+        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "sliced" },
+        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks", "preparation": "sliced" },
+        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "cubed" },
+        { "ingredient_name": "Kale", "quantity": 2, "unit": "cup", "preparation": "chopped" },
+        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Ginger", "quantity": 0.5, "unit": "tsp", "preparation": "grated" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Chicken and Quinoa Salad", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 480, "protein_g": 36, "carbs_g": 40, "fat_g": 18, "fiber_g": 6, "sugar_g": 3, "sodium_mg": 420 },
+      "instructions": [
+        { "step": 1, "text": "Grill chicken breast. Slice.", "duration_min": 14 },
+        { "step": 2, "text": "Toss quinoa with spinach, cucumber, and olive oil dressing.", "duration_min": 5 },
+        { "step": 3, "text": "Top with chicken.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Quinoa", "quantity": 0.75, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
+        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+      ]
+    },
+    { "title": "Sweet Potato and Lentil Soup", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 30, "servings": 4, "difficulty": "easy",
+      "nutrition": { "calories": 340, "protein_g": 16, "carbs_g": 52, "fat_g": 8, "fiber_g": 12, "sugar_g": 8, "sodium_mg": 440 },
+      "instructions": [
+        { "step": 1, "text": "Sauté onion, garlic, and ginger in olive oil.", "duration_min": 4 },
+        { "step": 2, "text": "Add sweet potato, lentils, cumin, and vegetable broth.", "duration_min": 3 },
+        { "step": 3, "text": "Simmer until lentils and sweet potato are tender.", "duration_min": 25 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "medium", "preparation": "cubed" },
+        { "ingredient_name": "Red Lentils", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Vegetable Broth", "quantity": 4, "unit": "cup" },
+        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
+        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
+        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
+        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Herb-Grilled Chicken with Root Vegetables", "meal_type": "dinner", "prep_time_min": 15, "cook_time_min": 30, "servings": 2, "difficulty": "medium",
+      "nutrition": { "calories": 480, "protein_g": 36, "carbs_g": 36, "fat_g": 20, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 420 },
+      "instructions": [
+        { "step": 1, "text": "Season chicken with rosemary, thyme, and olive oil.", "duration_min": 5 },
+        { "step": 2, "text": "Roast with cubed sweet potato and carrots at 400°F.", "duration_min": 28 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
+        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "cubed" },
+        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "chunked" },
+        { "ingredient_name": "Rosemary", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Baked Salmon with Steamed Greens", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 18, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 440, "protein_g": 36, "carbs_g": 12, "fat_g": 28, "fiber_g": 4, "sugar_g": 2, "sodium_mg": 360 },
+      "instructions": [
+        { "step": 1, "text": "Season salmon with lemon, dill, and olive oil. Bake at 400°F.", "duration_min": 15 },
+        { "step": 2, "text": "Steam broccoli and kale. Serve alongside.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Salmon Fillet", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Kale", "quantity": 1, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
+        { "ingredient_name": "Dill", "quantity": 1, "unit": "tbsp", "preparation": "fresh" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Quinoa-Stuffed Butternut Squash", "meal_type": "dinner", "prep_time_min": 15, "cook_time_min": 45, "servings": 2, "difficulty": "medium",
+      "nutrition": { "calories": 420, "protein_g": 14, "carbs_g": 62, "fat_g": 14, "fiber_g": 8, "sugar_g": 8, "sodium_mg": 320 },
+      "instructions": [
+        { "step": 1, "text": "Halve butternut squash. Roast cut-side down at 400°F until tender.", "duration_min": 35 },
+        { "step": 2, "text": "Mix cooked quinoa with dried cranberries, pecans, and sage.", "duration_min": 5 },
+        { "step": 3, "text": "Fill squash halves with quinoa mixture. Drizzle with olive oil.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Butternut Squash", "quantity": 1, "unit": "medium" },
+        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Dried Cranberries", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Pecans", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
+        { "ingredient_name": "Sage", "quantity": 1, "unit": "tsp", "preparation": "fresh, chopped" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Lean Chicken and Brown Rice Plate", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 18, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 480, "protein_g": 38, "carbs_g": 46, "fat_g": 14, "fiber_g": 4, "sugar_g": 3, "sodium_mg": 400 },
+      "instructions": [
+        { "step": 1, "text": "Grill chicken breast seasoned with herbs.", "duration_min": 14 },
+        { "step": 2, "text": "Serve with brown rice and steamed asparagus.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Asparagus", "quantity": 6, "unit": "spears", "preparation": "steamed" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Thyme", "quantity": 0.5, "unit": "tsp" }
+      ]
+    },
+    { "title": "TB12 Protein Bites", "meal_type": "snack", "prep_time_min": 10, "cook_time_min": 0, "servings": 8, "difficulty": "easy",
+      "nutrition": { "calories": 140, "protein_g": 6, "carbs_g": 14, "fat_g": 8, "fiber_g": 2, "sugar_g": 8, "sodium_mg": 20 },
+      "instructions": [
+        { "step": 1, "text": "Blend dates, almond butter, oats, and hemp seeds.", "duration_min": 3 },
+        { "step": 2, "text": "Roll into balls. Refrigerate.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Medjool Dates", "quantity": 6, "unit": "pieces", "preparation": "pitted" },
+        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Hemp Seeds", "quantity": 2, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Avocado and Seeds Snack", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 220, "protein_g": 4, "carbs_g": 12, "fat_g": 18, "fiber_g": 8, "sugar_g": 1, "sodium_mg": 160 },
+      "instructions": [
+        { "step": 1, "text": "Halve avocado and sprinkle with pumpkin seeds and sea salt.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole" },
+        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    { "title": "Mixed Nuts and Dried Fruit", "meal_type": "snack", "prep_time_min": 1, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 200, "protein_g": 6, "carbs_g": 18, "fat_g": 14, "fiber_g": 3, "sugar_g": 10, "sodium_mg": 10 },
+      "instructions": [
+        { "step": 1, "text": "Combine almonds, pecans, and dried cranberries.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Almonds", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Pecans", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Dried Cranberries", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    { "title": "Bone Broth Cup", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 5, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 50, "protein_g": 10, "carbs_g": 0, "fat_g": 1, "fiber_g": 0, "sugar_g": 0, "sodium_mg": 480 },
+      "instructions": [
+        { "step": 1, "text": "Heat bone broth. Season with turmeric and sea salt.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Bone Broth", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Turmeric", "quantity": 0.25, "unit": "tsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    { "title": "TB12 Performance Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 340, "protein_g": 24, "carbs_g": 42, "fat_g": 10, "fiber_g": 6, "sugar_g": 18, "sodium_mg": 120 },
+      "instructions": [
+        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
+        { "ingredient_name": "Plant Protein Powder", "quantity": 1, "unit": "scoop" },
+        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" }
+      ]
+    },
+    { "title": "Blueberry Anti-Inflammatory Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 280, "protein_g": 8, "carbs_g": 44, "fat_g": 8, "fiber_g": 7, "sugar_g": 22, "sodium_mg": 60 },
+      "instructions": [
+        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Blueberries", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
+        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Ground Flaxseed", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Ginger", "quantity": 0.25, "unit": "tsp" }
+      ]
+    }
+  ]
+}

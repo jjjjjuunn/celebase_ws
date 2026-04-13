@@ -1,0 +1,341 @@
+{
+  "slug": "cristiano-ronaldo",
+  "display_name": "Cristiano Ronaldo",
+  "short_bio": "World-class footballer known for his strict high-protein, 6-meal-a-day structure designed for peak athletic performance, recovery, and lean muscle maintenance.",
+  "avatar_url": "https://cdn.celebbase.com/celebrities/cristiano-ronaldo/avatar.webp",
+  "cover_image_url": "https://cdn.celebbase.com/celebrities/cristiano-ronaldo/cover.webp",
+  "category": "protein",
+  "tags": ["high-protein", "athlete", "6-meals", "performance", "lean-muscle"],
+  "is_featured": true,
+  "sort_order": 4,
+  "base_diet": {
+    "name": "CR7 High-Performance Diet",
+    "description": "A structured 6-meal-a-day plan focusing on lean proteins, complex carbs, and healthy fats to support elite athletic performance and rapid recovery.",
+    "philosophy": "Cristiano eats up to 6 small meals a day, prioritizing fish (especially swordfish and sea bass), chicken, and eggs alongside whole grains and vegetables. He avoids sugary drinks, fried foods, and processed snacks.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": 3200,
+    "macro_ratio": { "protein_pct": 35, "carbs_pct": 40, "fat_pct": 25 },
+    "included_foods": ["chicken breast", "fish", "eggs", "whole grains", "sweet potato", "broccoli", "salads", "olive oil", "fresh fruit"],
+    "excluded_foods": ["sugary drinks", "fried foods", "processed snacks", "alcohol", "excessive red meat"],
+    "key_supplements": ["Whey Protein", "Omega-3", "Vitamin D", "Magnesium", "Multivitamin"],
+    "source_refs": [
+      { "type": "interview", "outlet": "AS (Spanish sports daily)", "date": "2020-02-12" },
+      { "type": "article", "outlet": "Men's Health", "date": "2022-06-15" }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Egg White and Avocado Breakfast Plate",
+      "meal_type": "breakfast",
+      "prep_time_min": 5, "cook_time_min": 8, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 380, "protein_g": 28, "carbs_g": 18, "fat_g": 22, "fiber_g": 7, "sugar_g": 2, "sodium_mg": 420 },
+      "instructions": [
+        { "step": 1, "text": "Scramble egg whites in a non-stick pan with a touch of olive oil.", "duration_min": 5 },
+        { "step": 2, "text": "Serve alongside sliced avocado and whole wheat toast.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Egg Whites", "quantity": 6, "unit": "large" },
+        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
+        { "ingredient_name": "Whole Wheat Bread", "quantity": 1, "unit": "slice", "preparation": "toasted" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Protein Oatmeal with Berries",
+      "meal_type": "breakfast",
+      "prep_time_min": 5, "cook_time_min": 10, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 440, "protein_g": 32, "carbs_g": 52, "fat_g": 12, "fiber_g": 7, "sugar_g": 10, "sodium_mg": 180 },
+      "instructions": [
+        { "step": 1, "text": "Cook steel-cut oats in water.", "duration_min": 10 },
+        { "step": 2, "text": "Stir in whey protein powder once cooled slightly.", "duration_min": 1 },
+        { "step": 3, "text": "Top with blueberries, strawberries, and a drizzle of honey.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Steel-Cut Oats", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
+        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
+        { "ingredient_name": "Strawberries", "quantity": 0.25, "unit": "cup", "preparation": "sliced" },
+        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Whole Wheat Toast with Eggs and Spinach",
+      "meal_type": "breakfast",
+      "prep_time_min": 5, "cook_time_min": 10, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 400, "protein_g": 26, "carbs_g": 30, "fat_g": 20, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 480 },
+      "instructions": [
+        { "step": 1, "text": "Sauté spinach in olive oil until wilted.", "duration_min": 3 },
+        { "step": 2, "text": "Fry two eggs sunny-side up.", "duration_min": 4 },
+        { "step": 3, "text": "Serve eggs and spinach on toasted whole wheat bread.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large" },
+        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
+        { "ingredient_name": "Whole Wheat Bread", "quantity": 2, "unit": "slices", "preparation": "toasted" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Sweet Potato and Turkey Sausage Scramble",
+      "meal_type": "breakfast",
+      "prep_time_min": 10, "cook_time_min": 15, "servings": 2, "difficulty": "easy",
+      "nutrition": { "calories": 420, "protein_g": 30, "carbs_g": 36, "fat_g": 16, "fiber_g": 5, "sugar_g": 5, "sodium_mg": 520 },
+      "instructions": [
+        { "step": 1, "text": "Dice sweet potato and cook in olive oil until tender.", "duration_min": 10 },
+        { "step": 2, "text": "Add ground turkey and cook through, breaking into pieces.", "duration_min": 5 },
+        { "step": 3, "text": "Scramble in egg whites. Season with paprika and salt.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "diced" },
+        { "ingredient_name": "Ground Turkey", "quantity": 4, "unit": "oz" },
+        { "ingredient_name": "Egg Whites", "quantity": 4, "unit": "large" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Paprika", "quantity": 0.5, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Grilled Chicken and Quinoa Power Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "medium",
+      "nutrition": { "calories": 540, "protein_g": 42, "carbs_g": 48, "fat_g": 18, "fiber_g": 7, "sugar_g": 4, "sodium_mg": 480 },
+      "instructions": [
+        { "step": 1, "text": "Season chicken breast with garlic powder, paprika, and olive oil. Grill until cooked.", "duration_min": 14 },
+        { "step": 2, "text": "Slice chicken. Arrange over cooked quinoa with roasted broccoli and sweet potato.", "duration_min": 5 },
+        { "step": 3, "text": "Drizzle with olive oil and lemon juice.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Quinoa", "quantity": 0.75, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "roasted" },
+        { "ingredient_name": "Sweet Potato", "quantity": 0.5, "unit": "medium", "preparation": "roasted and cubed" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
+        { "ingredient_name": "Garlic Powder", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Paprika", "quantity": 0.5, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Tuna Steak with Brown Rice and Vegetables",
+      "meal_type": "lunch",
+      "prep_time_min": 10, "cook_time_min": 12, "servings": 1, "difficulty": "medium",
+      "nutrition": { "calories": 520, "protein_g": 44, "carbs_g": 46, "fat_g": 16, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 380 },
+      "instructions": [
+        { "step": 1, "text": "Season tuna steak with salt, pepper, and a touch of sesame oil.", "duration_min": 2 },
+        { "step": 2, "text": "Sear in a hot pan, 2-3 minutes per side for medium-rare.", "duration_min": 6 },
+        { "step": 3, "text": "Serve with brown rice and steamed asparagus.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Tuna Steak", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Asparagus", "quantity": 6, "unit": "spears", "preparation": "steamed" },
+        { "ingredient_name": "Sesame Oil", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" },
+        { "ingredient_name": "Black Pepper", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Chicken Caesar Salad (No Croutons)",
+      "meal_type": "lunch",
+      "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 440, "protein_g": 38, "carbs_g": 12, "fat_g": 28, "fiber_g": 4, "sugar_g": 3, "sodium_mg": 520 },
+      "instructions": [
+        { "step": 1, "text": "Grill chicken breast, slice into strips.", "duration_min": 14 },
+        { "step": 2, "text": "Toss romaine lettuce with olive oil, lemon juice, and parmesan.", "duration_min": 3 },
+        { "step": 3, "text": "Top with chicken strips.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz", "preparation": "grilled and sliced" },
+        { "ingredient_name": "Romaine Lettuce", "quantity": 4, "unit": "cup", "preparation": "chopped" },
+        { "ingredient_name": "Parmesan Cheese", "quantity": 2, "unit": "tbsp", "preparation": "shaved" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
+        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+      ]
+    },
+    {
+      "title": "Turkey and Sweet Potato Meal Prep Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "easy",
+      "nutrition": { "calories": 480, "protein_g": 36, "carbs_g": 44, "fat_g": 16, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 460 },
+      "instructions": [
+        { "step": 1, "text": "Cook ground turkey with garlic and onion powder.", "duration_min": 10 },
+        { "step": 2, "text": "Roast cubed sweet potato at 400°F.", "duration_min": 20 },
+        { "step": 3, "text": "Divide turkey, sweet potato, and steamed broccoli into containers.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Ground Turkey", "quantity": 10, "unit": "oz" },
+        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "medium", "preparation": "cubed" },
+        { "ingredient_name": "Broccoli", "quantity": 2, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Garlic Powder", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Onion Powder", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    {
+      "title": "Grilled Salmon with Asparagus",
+      "meal_type": "dinner",
+      "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
+      "nutrition": { "calories": 480, "protein_g": 40, "carbs_g": 12, "fat_g": 30, "fiber_g": 4, "sugar_g": 3, "sodium_mg": 360 },
+      "instructions": [
+        { "step": 1, "text": "Season salmon with lemon, dill, and olive oil.", "duration_min": 3 },
+        { "step": 2, "text": "Grill salmon for 4-5 minutes per side.", "duration_min": 10 },
+        { "step": 3, "text": "Grill asparagus alongside. Serve together.", "duration_min": 5 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Salmon Fillet", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Asparagus", "quantity": 8, "unit": "spears" },
+        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
+        { "ingredient_name": "Dill", "quantity": 1, "unit": "tbsp", "preparation": "fresh" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    {
+      "title": "Lean Beef Sirloin with Brown Rice",
+      "meal_type": "dinner",
+      "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
+      "nutrition": { "calories": 540, "protein_g": 42, "carbs_g": 48, "fat_g": 18, "fiber_g": 4, "sugar_g": 2, "sodium_mg": 380 },
+      "instructions": [
+        { "step": 1, "text": "Season sirloin with salt, pepper, and garlic powder.", "duration_min": 2 },
+        { "step": 2, "text": "Pan-sear in a hot skillet, 4 minutes per side for medium.", "duration_min": 8 },
+        { "step": 3, "text": "Rest for 5 minutes, slice, and serve with brown rice and steamed green beans.", "duration_min": 7 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Beef Sirloin", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
+        { "ingredient_name": "Green Beans", "quantity": 1, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Garlic Powder", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" },
+        { "ingredient_name": "Black Pepper", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Baked Cod with Roasted Vegetables",
+      "meal_type": "dinner",
+      "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 380, "protein_g": 36, "carbs_g": 24, "fat_g": 16, "fiber_g": 5, "sugar_g": 4, "sodium_mg": 340 },
+      "instructions": [
+        { "step": 1, "text": "Place cod on a baking sheet. Drizzle with olive oil and lemon.", "duration_min": 3 },
+        { "step": 2, "text": "Surround with cherry tomatoes, zucchini, and bell pepper.", "duration_min": 3 },
+        { "step": 3, "text": "Bake at 400°F until fish flakes easily.", "duration_min": 18 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Cod Fillet", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup" },
+        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "small", "preparation": "sliced" },
+        { "ingredient_name": "Bell Pepper", "quantity": 0.5, "unit": "medium", "preparation": "chopped" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+      ]
+    },
+    {
+      "title": "Chicken Breast with Sweet Potato Mash",
+      "meal_type": "dinner",
+      "prep_time_min": 10, "cook_time_min": 25, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 500, "protein_g": 40, "carbs_g": 42, "fat_g": 16, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 420 },
+      "instructions": [
+        { "step": 1, "text": "Boil sweet potato until soft, then mash with a touch of olive oil.", "duration_min": 15 },
+        { "step": 2, "text": "Grill chicken breast seasoned with rosemary and garlic.", "duration_min": 14 },
+        { "step": 3, "text": "Serve chicken over sweet potato mash with steamed broccoli.", "duration_min": 3 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz" },
+        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "mashed" },
+        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "steamed" },
+        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" },
+        { "ingredient_name": "Rosemary", "quantity": 0.5, "unit": "tsp" },
+        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove", "preparation": "minced" }
+      ]
+    },
+    {
+      "title": "Cottage Cheese and Fruit Bowl",
+      "meal_type": "snack",
+      "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 220, "protein_g": 20, "carbs_g": 22, "fat_g": 6, "fiber_g": 3, "sugar_g": 16, "sodium_mg": 380 },
+      "instructions": [
+        { "step": 1, "text": "Scoop cottage cheese into a bowl. Top with sliced strawberries and blueberries.", "duration_min": 2 },
+        { "step": 2, "text": "Sprinkle with pumpkin seeds.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Cottage Cheese", "quantity": 0.75, "unit": "cup" },
+        { "ingredient_name": "Strawberries", "quantity": 0.25, "unit": "cup", "preparation": "sliced" },
+        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
+        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" }
+      ]
+    },
+    {
+      "title": "Greek Yogurt with Honey and Walnuts",
+      "meal_type": "snack",
+      "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 240, "protein_g": 18, "carbs_g": 20, "fat_g": 10, "fiber_g": 1, "sugar_g": 16, "sodium_mg": 80 },
+      "instructions": [
+        { "step": 1, "text": "Top Greek yogurt with honey and crushed walnuts.", "duration_min": 1 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Greek Yogurt", "quantity": 0.75, "unit": "cup" },
+        { "ingredient_name": "Honey", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "crushed" }
+      ]
+    },
+    {
+      "title": "Hard-Boiled Eggs with Avocado",
+      "meal_type": "snack",
+      "prep_time_min": 2, "cook_time_min": 12, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 260, "protein_g": 16, "carbs_g": 6, "fat_g": 20, "fiber_g": 5, "sugar_g": 1, "sodium_mg": 310 },
+      "instructions": [
+        { "step": 1, "text": "Boil eggs for 10 minutes. Cool and peel.", "duration_min": 12 },
+        { "step": 2, "text": "Slice and serve with avocado, salt, and pepper.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large" },
+        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
+        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Protein Shake with Banana",
+      "meal_type": "snack",
+      "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 280, "protein_g": 28, "carbs_g": 30, "fat_g": 6, "fiber_g": 3, "sugar_g": 14, "sodium_mg": 160 },
+      "instructions": [
+        { "step": 1, "text": "Blend whey protein, banana, and almond milk until smooth.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
+        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium" },
+        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" }
+      ]
+    },
+    {
+      "title": "Post-Workout Recovery Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 380, "protein_g": 32, "carbs_g": 44, "fat_g": 10, "fiber_g": 4, "sugar_g": 20, "sodium_mg": 180 },
+      "instructions": [
+        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Whey Protein Powder", "quantity": 1.5, "unit": "scoops" },
+        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
+        { "ingredient_name": "Peanut Butter", "quantity": 1, "unit": "tbsp" },
+        { "ingredient_name": "Oat Milk", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+      ]
+    },
+    {
+      "title": "Berry Protein Blast",
+      "meal_type": "smoothie",
+      "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
+      "nutrition": { "calories": 320, "protein_g": 30, "carbs_g": 36, "fat_g": 6, "fiber_g": 5, "sugar_g": 16, "sodium_mg": 140 },
+      "instructions": [
+        { "step": 1, "text": "Combine all ingredients in a blender and blend until smooth.", "duration_min": 2 }
+      ],
+      "ingredients": [
+        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
+        { "ingredient_name": "Frozen Mixed Berries", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
+        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" }
+      ]
+    }
+  ]
+}

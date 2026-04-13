@@ -12,7 +12,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:migrate": "turbo run migrate --filter=db"
+    "db:migrate": "turbo run migrate --filter=db",
+    "db:seed": "turbo run seed --filter=db"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "migrate": "node-pg-migrate up --migrations-dir migrations",
-    "migrate:create": "node-pg-migrate create --migrations-dir migrations"
+    "migrate:create": "node-pg-migrate create --migrations-dir migrations",
+    "seed": "tsx seeds/run.ts"
   },
   "devDependencies": {
     "node-pg-migrate": "^7.0.0",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "tsx": "^4.19.0"
+  },
+  "dependencies": {
+    "@types/pg": "^8.11.0"
   }
 }
