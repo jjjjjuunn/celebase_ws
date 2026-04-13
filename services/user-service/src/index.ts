@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
+import { dailyLogRoutes } from './routes/daily-log.routes.js';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
@@ -26,6 +27,7 @@ const start = async (): Promise<void> => {
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
+  await app.register(dailyLogRoutes, { pool });
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });
