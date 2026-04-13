@@ -64,6 +64,7 @@ class MealPlanRow(BaseModel):
     name: str | None
     status: str
     adjustments: dict[str, Any]
+    preferences: dict[str, Any] = Field(default_factory=dict)
     start_date: date
     end_date: date
     daily_plans: list[Any]

@@ -9,6 +9,7 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch
 
@@ -18,7 +19,7 @@ from main import app
 # Patch DB init/close to no-ops so the service can start without PostgreSQL.
 
 
-@pytest.fixture(name="client")
+@pytest_asyncio.fixture(name="client")
 async def _client_fixture():  # noqa: D401
     """Provide an *httpx* AsyncClient bound to the FastAPI *app*."""
 

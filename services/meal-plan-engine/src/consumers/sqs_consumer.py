@@ -78,7 +78,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
 
     # Get plan preferences
     plan_row = await repo.get_meal_plan(pool, plan_id, user_id)
-    preferences = plan_row.get("preferences", {}) if plan_row else {}
+    preferences = (plan_row.get("preferences") or {}) if plan_row else {}
 
     # Progress callback (no-op for SQS — WebSocket layer handles real-time push)
     async def on_progress(payload: Dict[str, Any]) -> None:

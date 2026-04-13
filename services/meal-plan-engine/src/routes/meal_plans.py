@@ -113,8 +113,8 @@ async def generate_meal_plan(
         id=plan_id,
         status="queued",
         estimated_completion_sec=15,
-        poll_url=f"/meal-plans/{plan_id}",
-        ws_channel=f"meal_plan_{plan_id}",
+        poll_url=f"/v1/meal-plans/{plan_id}",
+        ws_channel=f"/ws/meal-plans/{plan_id}/status",
     )
 
     return resp
