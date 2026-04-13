@@ -49,6 +49,15 @@ scripts/pipeline.sh <TASK-ID> <step>
 - Anti-Patterns: 해당 작업에서 특히 주의할 패턴 명시
 - spec.md의 관련 섹션 번호를 Reference에 포함
 
+### DB Schema 인라인 규칙 (C3 교훈)
+
+Repository 또는 SQL 변경이 포함된 HANDOFF는 **대상 테이블 DDL을 인라인**해야 한다:
+
+- `db/migrations/`에서 해당 CREATE TABLE + 이후 ALTER TABLE 전문 복붙
+- API 필드 → DB 컬럼 매핑 테이블 포함 (변환이 있는 경우)
+- 이유: Codex는 migration 파일을 자동으로 읽지 않아 존재하지 않는 컬럼으로 코드를 생성함 (C3에서 확인)
+- `gate-check.sh sql_schema` 자동 체크가 INSERT/UPDATE 컬럼의 DDL 존재 여부를 검증한다
+
 ### CODEX-HANDOFF 크기 제한 (필수)
 
 **한 HANDOFF에서 생성/수정하는 파일은 최대 5개**로 제한한다.

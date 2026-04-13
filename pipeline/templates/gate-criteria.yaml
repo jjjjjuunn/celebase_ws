@@ -24,6 +24,9 @@ gates:
       - "절대 규칙 14개 위반이 없는가"
       - "서비스 경계를 넘어 다른 서비스 DB를 직접 쿼리하지 않는가"
       - "PHI 접근 코드에 감사 로그가 포함되어 있는가 (해당 시)"
+      - id: db_schema_alignment
+        severity: strict
+        description: "Repository SQL 컬럼이 migration DDL과 일치하는지 확인. INSERT/UPDATE 대상 컬럼이 실제 테이블에 존재해야 한다."
     max_iterations: 3
     on_max_fail: "ESCALATE_TO_HUMAN"
 

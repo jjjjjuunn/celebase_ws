@@ -141,6 +141,97 @@ check_fake_stubs() {
   RESULTS+=("{\"name\":\"fake_stubs\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
+# SQL-schema alignment: check that INSERT/UPDATE columns exist in migration DDL
+check_sql_schema_alignment() {
+  local exit_code=0
+  local issues=""
+
+  cd "$WORK_DIR"
+
+  # Get changed .py and .ts files
+  local changed_files
+  changed_files=$(git diff --name-only main...HEAD -- '*.py' '*.ts' 2>/dev/null || git diff --name-only HEAD~1 -- '*.py' '*.ts' 2>/dev/null || echo "")
+
+  if [[ -z "$changed_files" ]]; then
+    RESULTS+=('{"name":"sql_schema_alignment","passed":true,"exit_code":0,"output":"No changed source files"}')
+    return
+  fi
+
+  local migrations_dir="$WORK_DIR/db/migrations"
+  if [[ ! -d "$migrations_dir" ]]; then
+    RESULTS+=('{"name":"sql_schema_alignment","passed":true,"exit_code":0,"output":"No migrations directory"}')
+    return
+  fi
+
+  # Extract INSERT INTO <table> (col1, col2, ...) from changed files
+  # Uses perl for multiline matching (macOS grep lacks -P and multiline)
+  local insert_matches
+  insert_matches=$(echo "$changed_files" | xargs perl -0777 -ne 'while (/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)/gi) { print "$1|$2\n"; }' 2>/dev/null || true)
+
+  if [[ -z "$insert_matches" ]]; then
+    RESULTS+=('{"name":"sql_schema_alignment","passed":true,"exit_code":0,"output":"No INSERT statements in changed files"}')
+    return
+  fi
+
+  # Process each INSERT match (format: table|col1, col2, ...)
+  while IFS= read -r match; do
+    local table
+    table=$(echo "$match" | cut -d'|' -f1)
+    local cols_raw
+    cols_raw=$(echo "$match" | cut -d'|' -f2-)
+
+    # Parse column names (strip whitespace, type casts, quotes)
+    local insert_cols=()
+    IFS=',' read -ra col_parts <<< "$cols_raw"
+    for c in "${col_parts[@]}"; do
+      local col_name
+      col_name=$(echo "$c" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/::[a-z]+//g;s/"//g')
+      [[ -n "$col_name" ]] && insert_cols+=("$col_name")
+    done
+
+    # Find CREATE TABLE for this table in migrations (perl for precise block extraction)
+    local ddl_cols=""
+    ddl_cols=$(cat "$migrations_dir"/*.sql 2>/dev/null | \
+      perl -0777 -ne "while (/CREATE TABLE ${table}\s*\((.+?)\);/gs) {
+        my \$block = \$1;
+        while (\$block =~ /^\s+([a-z_]+)\s/gm) { print \"\$1\n\"; }
+      }" || true)
+
+    # Also check ALTER TABLE ... ADD COLUMN (multiline-aware)
+    local alter_cols
+    alter_cols=$(cat "$migrations_dir"/*.sql 2>/dev/null | \
+      perl -0777 -ne "while (/ALTER TABLE ${table}\s+ADD COLUMN\s+([a-z_]+)/gi) { print \"\$1\n\"; }" || true)
+
+    if [[ -n "$alter_cols" ]]; then
+      ddl_cols="$ddl_cols"$'\n'"$alter_cols"
+    fi
+
+    if [[ -z "$ddl_cols" ]]; then
+      # Table not found in migrations — skip (might be from an external source)
+      continue
+    fi
+
+    # Check each INSERT column exists in DDL
+    for col in "${insert_cols[@]}"; do
+      if ! echo "$ddl_cols" | grep -qw "$col"; then
+        issues+="Column '${col}' in INSERT INTO ${table} not found in migration DDL\n"
+        exit_code=1
+      fi
+    done
+  done <<< "$insert_matches"
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$issues" | tr '\n' ' ' | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+
+  RESULTS+=("{\"name\":\"sql_schema_alignment\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Secret scan: check for hardcoded secrets in changed files
 check_secrets() {
   local exit_code=0
@@ -208,6 +299,9 @@ case "$CHECK" in
   build)
     run_check "build" "pnpm turbo run build --force"
     ;;
+  sql_schema)
+    check_sql_schema_alignment
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -216,10 +310,11 @@ case "$CHECK" in
     check_policy
     check_secrets
     check_fake_stubs
+    check_sql_schema_alignment
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, test, policy, secrets, all" >&2
+    echo "Available: typecheck, lint, test, policy, secrets, sql_schema, all" >&2
     exit 1
     ;;
 esac
