@@ -49,3 +49,9 @@ export class AuditFailureError extends AppError {
     super(message, 503, 'AUDIT_FAILURE');
   }
 }
+
+export class SubscriptionRequiredError extends AppError {
+  public constructor(message = 'This feature requires a paid subscription') {
+    super(message, 403, 'SUBSCRIPTION_REQUIRED');
+  }
+}

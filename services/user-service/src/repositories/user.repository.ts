@@ -91,3 +91,19 @@ export async function create(pool: pg.Pool, data: CreateUserData): Promise<User 
 export async function softDelete(pool: pg.Pool, id: string): Promise<void> {
   await pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [id]);
 }
+
+/**
+ * Update only subscription_tier — kept separate from ALLOWED_USER_COLUMNS
+ * to prevent client-facing PATCH from modifying this column.
+ * Accepts Pool or PoolClient for use within transactions.
+ */
+export async function updateSubscriptionTier(
+  client: pg.Pool | pg.PoolClient,
+  userId: string,
+  tier: 'free' | 'premium' | 'elite',
+): Promise<void> {
+  await client.query(
+    'UPDATE users SET subscription_tier = $1, updated_at = NOW() WHERE id = $2',
+    [tier, userId],
+  );
+}

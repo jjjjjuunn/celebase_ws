@@ -1,12 +1,14 @@
 import { createApp, createPool, EnvPhiKeyProvider } from '@celebbase/service-core';
 import { createClient } from 'redis';
 import type { RedisClientType } from 'redis';
+import Stripe from 'stripe';
 import { z } from 'zod';
 import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
 import { dailyLogRoutes } from './routes/daily-log.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
+import { subscriptionRoutes } from './routes/subscription.routes.js';
 import { DevAuthProvider } from './services/auth.service.js';
 
 const EnvSchema = z.object({
@@ -18,6 +20,13 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   JWT_SECRET: z.string().optional(),
   COGNITO_CLIENT_ID: z.string().optional(),
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().min(1),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1),
+  STRIPE_PREMIUM_PRICE_ID: z.string().min(1),
+  STRIPE_ELITE_PRICE_ID: z.string().min(1),
+  STRIPE_SUCCESS_URL: z.string().url(),
+  STRIPE_CANCEL_URL: z.string().url(),
 });
 
 const start = async (): Promise<void> => {
@@ -40,10 +49,24 @@ const start = async (): Promise<void> => {
   const authProvider = new DevAuthProvider();
   await app.register(authRoutes, { pool, authProvider });
 
+  // Stripe client (pinned API version)
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(dailyLogRoutes, { pool });
+  await app.register(subscriptionRoutes, {
+    pool,
+    stripeConfig: {
+      stripe,
+      premiumPriceId: env.STRIPE_PREMIUM_PRICE_ID,
+      elitePriceId: env.STRIPE_ELITE_PRICE_ID,
+      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+      successUrl: env.STRIPE_SUCCESS_URL,
+      cancelUrl: env.STRIPE_CANCEL_URL,
+    },
+  });
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });

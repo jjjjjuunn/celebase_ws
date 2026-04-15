@@ -435,3 +435,21 @@ verified_by: claude-opus-4-6 + codex (2-round review)
 - Codex 2라운드 리뷰: 1차(BLOCKER 4 + WARNING 4), 2차(BLOCKER 1 + WARNING 2). ON CONFLICT → PG 23505 catch로 전환, asyncio.to_thread, lifespan task 관리, 지수 백오프 등 반영.
 ### 미완료: UpdateableUserFields 타입 중복 정리, aiobotocore 전환, 멀티인스턴스 stuck-plan lease/heartbeat, SQS consumer 단위 테스트 추가
 ### 연관 파일: services/user-service/src/repositories/user.repository.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, services/meal-plan-engine/src/config.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/api/websocket.py, services/meal-plan-engine/main.py, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/src/logging_config.py
+
+---
+
+## [2026-04-14] Feat: IMPL-012 Stripe 구독 + Webhook (Phase B)
+### 완료:
+- **4개 API 엔드포인트**: POST /subscriptions (Checkout Session), GET /subscriptions/me, POST /subscriptions/me/cancel, POST /webhooks/stripe
+- **subscription.repository.ts**: findByUserId, findByStripeSubscriptionId, updateByStripeId, syncTierTransaction (3-step 트랜잭션: expire → upsert → sync users.subscription_tier)
+- **subscription.service.ts**: Stripe Checkout Session 생성, webhook 이벤트 핸들링 (checkout.session.completed, customer.subscription.updated/deleted, invoice.payment_failed), 경량 circuit breaker (5회/60초), Stripe status → 내부 status 매핑, users.subscription_tier 동기화
+- **subscription.routes.ts**: Fastify scoped content-type parser로 webhook raw body 보존 (Stripe signature 검증), Zod input validation
+- **SubscriptionRequiredError**: service-core에 403 에러 클래스 추가
+- **user.repository.ts**: updateSubscriptionTier() 추가 (Pool|PoolClient 지원, ALLOWED_USER_COLUMNS와 분리)
+- **jwt.ts**: /webhooks/stripe를 PUBLIC_PATHS에 추가
+- **0005 migration**: stripe_subscription_id UNIQUE index, user_id index, active 구독 방지 partial unique index
+- **index.ts**: EnvSchema에 STRIPE_* 6개 필드 추가, Stripe 인스턴스 생성, subscriptionRoutes 등록
+- **16개 단위 테스트**: createCheckoutSession (4), getMySubscription (2), cancelSubscription (3), handleWebhookEvent (7)
+- Codex 2라운드 리뷰: 1차(B1 ON CONFLICT index, B2 다중 active 방지, W1 멱등키, W2 webhook-first, W3 URL allowlist), 2차(B3 CONCURRENTLY 제거, W4 path prefix, W5 webhook retrieve 금지, W6 API version pin)
+### 미완료: 구독 quota enforcement (IMPL-013), 계정 삭제 시 Stripe 해지, Stripe Customer Portal, Redis circuit breaker
+### 연관 파일: services/user-service/src/repositories/subscription.repository.ts, services/user-service/src/services/subscription.service.ts, services/user-service/src/routes/subscription.routes.ts, services/user-service/tests/unit/subscription.service.test.ts, packages/service-core/src/errors.ts, packages/service-core/src/index.ts, packages/service-core/src/middleware/jwt.ts, services/user-service/src/index.ts, services/user-service/src/repositories/user.repository.ts, db/migrations/0005_subscription-stripe-index.sql, .env.example

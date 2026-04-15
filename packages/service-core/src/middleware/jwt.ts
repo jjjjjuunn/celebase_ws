@@ -71,7 +71,8 @@ async function verifyToken(token: string, config: JwtConfig): Promise<JWTPayload
 }
 
 /** Public routes that skip JWT verification. */
-const PUBLIC_PATHS = new Set(['/health', '/docs', '/docs/json', '/auth/signup', '/auth/login', '/auth/refresh']);
+// NOTE: Webhook path must NOT be registered under a route prefix — PUBLIC_PATHS uses exact match.
+const PUBLIC_PATHS = new Set(['/health', '/docs', '/docs/json', '/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe']);
 
 /**
  * Register JWT authentication on a Fastify instance.
