@@ -43,6 +43,8 @@
 | `.claude/rules/domain/ai-engine.md` | AI 엔진 안전장치, 영양 bounds, PHI 최소화, 테스트 시나리오 |
 | `.claude/rules/domain/content.md` | 셀러브리티 데이터, 면책조항, 트렌드 규칙, 접근성 |
 | `.claude/rules/pipeline.md` | Claude-Codex 파이프라인 운용 규칙, 게이트 판정, 에스컬레이션 |
+| `.claude/rules/evaluator-runtime.md` | Evaluator 검증 순서, 브라우저 런타임 검증, 리포트 형식 |
+| `.claude/rules/spec-dod.md` | spec.md DoD 해석 규칙, 근거 유형, 3층 구조 |
 | `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
 
 ## 4. Workflow

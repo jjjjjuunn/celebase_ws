@@ -14,8 +14,11 @@ paths:
 | meal-plan-engine | meal_plans | user-service, content-service |
 | commerce-service | instacart_orders | user-service, content-service, meal-plan-engine |
 | analytics-service | daily_logs | user-service |
+| social-bot (marketing) | content_research, content_posts | content-service |
 
 각 서비스는 자신의 DB 테이블만 직접 접근. 다른 서비스 데이터는 반드시 API 호출.
+
+> **참고**: social-bot의 `celebrity_slug`는 `celebrities.slug`를 참조하지만, 서비스 경계(Rule 10)를 준수하여 FK를 두지 않는다. 값은 `topics_seed.json`에서 정적으로 주입된다.
 
 ## Inter-Service Communication
 
