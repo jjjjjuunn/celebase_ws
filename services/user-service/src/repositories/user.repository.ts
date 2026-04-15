@@ -24,12 +24,20 @@ type UpdateableUserFields = {
   timezone?: string | undefined;
 };
 
+const ALLOWED_USER_COLUMNS: ReadonlySet<string> = new Set<string>([
+  'display_name', 'avatar_url', 'locale', 'timezone',
+]);
+
 export async function updateUser(
   pool: pg.Pool,
   id: string,
   data: UpdateableUserFields,
 ): Promise<User> {
-  const fields = Object.keys(data) as Array<keyof UpdateableUserFields>;
+  const rawKeys = Object.keys(data);
+  const fields = rawKeys.filter((k) => ALLOWED_USER_COLUMNS.has(k)) as Array<keyof UpdateableUserFields>;
+  if (fields.length !== rawKeys.length) {
+    throw new Error('Unexpected column in update payload');
+  }
   if (fields.length === 0) {
     const existing = await findById(pool, id);
     if (!existing) throw new Error('User not found');
@@ -62,16 +70,22 @@ type CreateUserData = {
   display_name: string;
 };
 
-export async function create(pool: pg.Pool, data: CreateUserData): Promise<User> {
-  const { rows } = await pool.query<User>(
-    `INSERT INTO users (cognito_sub, email, display_name)
-     VALUES ($1, $2, $3)
-     RETURNING *`,
-    [data.cognito_sub, data.email, data.display_name],
-  );
-  const row = rows[0];
-  if (!row) throw new Error('User not found after insert');
-  return row;
+export async function create(pool: pg.Pool, data: CreateUserData): Promise<User | null> {
+  try {
+    const { rows } = await pool.query<User>(
+      `INSERT INTO users (cognito_sub, email, display_name)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [data.cognito_sub, data.email, data.display_name],
+    );
+    return rows[0] ?? null;
+  } catch (err: unknown) {
+    // PG unique_violation (email or cognito_sub) → null signals conflict
+    if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '23505') {
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function softDelete(pool: pg.Pool, id: string): Promise<void> {

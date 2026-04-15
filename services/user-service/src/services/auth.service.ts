@@ -139,6 +139,13 @@ export async function signup(
     display_name: input.display_name,
   });
 
+  // Atomic guard: DB unique constraint caught as null (TOCTOU race on email/cognito_sub)
+  if (!user) {
+    throw new ValidationError('Email already registered', [
+      { field: 'email', issue: 'A user with this email already exists' },
+    ]);
+  }
+
   const tokens = await provider.issueTokens(user.id);
   return { user, ...tokens };
 }

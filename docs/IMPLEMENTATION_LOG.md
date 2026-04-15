@@ -421,3 +421,17 @@ verified_by: claude-opus-4-6 + codex (2-round review)
 - Codex 2라운드 리뷰: 시크릿 계약 통일(JWT_SECRET), 실행 순서 교정(010-c→010-b), PyJWT CVE 교체
 ### 미완료: CognitoAuthProvider (Phase B), staging 시크릿 가드, JWT 키 로테이션, iss/aud claim 검증
 ### 연관 파일: services/meal-plan-engine/, services/user-service/, services/content-service/
+
+---
+
+## [2026-04-14] Fix: IMPL-011 MEDIUM 이슈 수정 (M1~M5)
+### 완료:
+- **M1 (signup TOCTOU race)**: INSERT 시 PG 23505 unique_violation catch → null 반환, auth.service.ts에서 ValidationError throw. cognito_sub UNIQUE도 커버 (Codex 2차 리뷰 반영). 기존 findByEmail 사전체크는 fast-path로 유지.
+- **M5 (updateUser SQL column allowlist)**: ALLOWED_USER_COLUMNS ReadonlySet 추가, Object.keys(data) 필터 후 불일치 시 throw. 런타임 가드로 SQL injection 방어 (기존 Zod .strict()은 API 경계만 보호).
+- **M4 (Pydantic Settings 미등록)**: config.py에 REDIS_URL, SQS_QUEUE_URL, AWS_REGION 필드 추가. websocket.py의 getattr, sqs_consumer.py의 hasattr 제거 → settings 직접 접근.
+- **M2 (SQS consumer crash → plan stuck)**: 6가지 수정 — (1) per-message retry dict (MessageId 키), (2) pre-extract plan_id/user_id, (3) startup stuck-plan recovery (generating > 5min → failed), (4) asyncio.to_thread()로 sync boto3 래핑 (event loop 블로킹 방지), (5) 지수 백오프 (최대 5분), (6) CancelledError 처리. main.py lifespan에서 consumer task 시작/셧다운 관리.
+- **M3 (Python structured logging)**: python-json-logger==2.0.7 도입, logging_config.py 신규 생성, main.py 최상단에서 configure_logging() 호출. 기존 logging.getLogger() call site 변경 불필요 (root handler 전파).
+- **M6**: IMPL-010에서 이미 해결 (python-jose → PyJWT[crypto])
+- Codex 2라운드 리뷰: 1차(BLOCKER 4 + WARNING 4), 2차(BLOCKER 1 + WARNING 2). ON CONFLICT → PG 23505 catch로 전환, asyncio.to_thread, lifespan task 관리, 지수 백오프 등 반영.
+### 미완료: UpdateableUserFields 타입 중복 정리, aiobotocore 전환, 멀티인스턴스 stuck-plan lease/heartbeat, SQS consumer 단위 테스트 추가
+### 연관 파일: services/user-service/src/repositories/user.repository.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, services/meal-plan-engine/src/config.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/api/websocket.py, services/meal-plan-engine/main.py, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/src/logging_config.py

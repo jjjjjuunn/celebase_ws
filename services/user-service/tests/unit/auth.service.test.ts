@@ -63,6 +63,18 @@ describe('authService.signup', () => {
       }),
     ).rejects.toThrow(ValidationError);
   });
+
+  it('throws ValidationError on concurrent duplicate (create returns null)', async () => {
+    mockFindByEmail.mockResolvedValueOnce(null); // pre-check passes
+    mockCreate.mockResolvedValueOnce(null); // DB unique constraint caught → null
+
+    await expect(
+      signup(mockPool, devProvider, {
+        email: 'test@example.com',
+        display_name: 'Test User',
+      }),
+    ).rejects.toThrow(ValidationError);
+  });
 });
 
 describe('authService.login', () => {

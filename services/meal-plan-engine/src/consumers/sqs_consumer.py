@@ -10,8 +10,10 @@ Retry policy (spec §4.2):
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 import boto3
@@ -26,6 +28,10 @@ from src.engine.allergen_filter import RecipeSlot
 _logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 1
+
+# Per-message retry tracking keyed by SQS MessageId.
+# Entries are removed on success or terminal failure to prevent memory growth.
+_retry_counts: dict[str, int] = {}
 
 
 async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlot]:
@@ -107,6 +113,24 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     _logger.info("plan=%s generation completed", plan_id)
 
 
+async def _recover_stuck_plans() -> None:
+    """Mark plans stuck in 'generating' for >5 min as 'failed'.
+
+    Called once at consumer startup to recover from previous crashes.
+    Limitation: assumes single-instance deployment. Multi-instance
+    requires a lease/heartbeat pattern (Phase B).
+    """
+    pool = await get_pool()
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            "UPDATE meal_plans SET status = 'failed', updated_at = NOW() "
+            "WHERE status = 'generating' AND updated_at < $1 AND deleted_at IS NULL",
+            cutoff,
+        )
+    _logger.info("Recovered stuck plans: %s", result)
+
+
 async def start_consumer(queue_url: str) -> None:
     """Long-poll SQS and process meal-plan generation messages.
 
@@ -114,56 +138,96 @@ async def start_consumer(queue_url: str) -> None:
     background task during application startup.
     """
 
-    sqs = boto3.client("sqs", region_name=settings.AWS_REGION if hasattr(settings, "AWS_REGION") else "us-east-1")
+    # NOTE: boto3 clients are not thread-safe when shared across threads.
+    # This is safe here because only one to_thread call is in flight at a time
+    # (single-loop design). Do NOT add concurrent workers without per-thread clients.
+    sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
 
     _logger.info("SQS consumer started, polling %s", queue_url)
 
+    # Recover plans stuck from previous crashes
+    await _recover_stuck_plans()
+
+    consecutive_errors = 0
+
     while True:
-        response = sqs.receive_message(
-            QueueUrl=queue_url,
-            MaxNumberOfMessages=1,
-            WaitTimeSeconds=20,  # long poll
-            VisibilityTimeout=120,  # 2 min to process
-        )
+        try:
+            response = await asyncio.to_thread(
+                sqs.receive_message,
+                QueueUrl=queue_url,
+                MaxNumberOfMessages=1,
+                WaitTimeSeconds=20,
+                VisibilityTimeout=120,
+            )
+            consecutive_errors = 0
 
-        messages = response.get("Messages", [])
-        if not messages:
-            continue
+            messages = response.get("Messages", [])
+            if not messages:
+                continue
 
-        for msg in messages:
-            receipt_handle = msg["ReceiptHandle"]
-            retries = 0
+            for msg in messages:
+                message_id = msg["MessageId"]
+                receipt_handle = msg["ReceiptHandle"]
 
-            try:
-                body = json.loads(msg["Body"])
-                await _process_message(body)
-                sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+                # Pre-extract IDs before processing (avoids re-parse in exception handler)
+                plan_id = "unknown"
+                user_id = "unknown"
 
-            except Exception:
-                retries += 1
-                _logger.exception(
-                    "Failed to process message (attempt %d/%d)",
-                    retries,
-                    _MAX_RETRIES + 1,
-                )
-
-                if retries <= _MAX_RETRIES:
-                    # Let SQS redeliver after visibility timeout expires
-                    _logger.info("Will retry after visibility timeout")
-                else:
-                    # 2 consecutive failures → message goes to DLQ via SQS redrive policy
-                    _logger.error("Max retries exceeded, message will move to DLQ")
-                    sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
-
-                # Mark plan as failed in DB
                 try:
                     body = json.loads(msg["Body"])
-                    db_pool = await get_pool()
-                    await repo.update_meal_plan(
-                        db_pool,
-                        body["plan_id"],
-                        body["user_id"],
-                        {"status": "failed"},
+                    plan_id = body.get("plan_id", "unknown")
+                    user_id = body.get("user_id", "unknown")
+
+                    await _process_message(body)
+
+                    await asyncio.to_thread(
+                        sqs.delete_message,
+                        QueueUrl=queue_url,
+                        ReceiptHandle=receipt_handle,
                     )
+                    _retry_counts.pop(message_id, None)
+
                 except Exception:
-                    _logger.exception("Failed to update plan status to failed")
+                    retries = _retry_counts.get(message_id, 0) + 1
+                    _retry_counts[message_id] = retries
+
+                    _logger.exception(
+                        "Failed to process message (attempt %d/%d), plan=%s",
+                        retries,
+                        _MAX_RETRIES + 1,
+                        plan_id,
+                    )
+
+                    if retries > _MAX_RETRIES:
+                        _logger.error(
+                            "Max retries exceeded for plan=%s, deleting message (DLQ via redrive)",
+                            plan_id,
+                        )
+                        await asyncio.to_thread(
+                            sqs.delete_message,
+                            QueueUrl=queue_url,
+                            ReceiptHandle=receipt_handle,
+                        )
+                        _retry_counts.pop(message_id, None)
+
+                    # Mark plan as failed in DB
+                    if plan_id != "unknown":
+                        try:
+                            db_pool = await get_pool()
+                            await repo.update_meal_plan(
+                                db_pool,
+                                plan_id,
+                                user_id,
+                                {"status": "failed"},
+                            )
+                        except Exception:
+                            _logger.exception("Failed to update plan status to failed")
+
+        except asyncio.CancelledError:
+            _logger.info("SQS consumer cancelled, shutting down")
+            raise
+        except Exception:
+            consecutive_errors += 1
+            backoff = min(5 * (2 ** consecutive_errors), 300)
+            _logger.exception("SQS poll error, retrying in %ds", backoff)
+            await asyncio.sleep(backoff)

@@ -32,7 +32,7 @@ _connections: Dict[str, list[WebSocket]] = {}
 async def _validate_ticket(ticket: str) -> bool:
     """Check ticket in Redis and delete it (single-use, TTL 30s)."""
 
-    redis_url = getattr(settings, "REDIS_URL", "redis://localhost:6379")
+    redis_url = settings.REDIS_URL
     r = aioredis.from_url(redis_url)
     try:
         key = f"ws_ticket:{ticket}"

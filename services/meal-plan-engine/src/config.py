@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002"
     CONTENT_SERVICE_URL: str = "http://localhost:3002"
     USER_SERVICE_URL: str = "http://localhost:3001"
+    REDIS_URL: str = "redis://localhost:6379"
+    SQS_QUEUE_URL: str = ""          # empty = consumer disabled in dev
+    AWS_REGION: str = "us-east-1"
     LOG_LEVEL: str = "INFO"
     APP_VERSION: str = "0.1.0"
 

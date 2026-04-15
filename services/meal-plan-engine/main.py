@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+# Configure structured JSON logging BEFORE any module-level getLogger() calls.
+from src.config import settings as _settings_early
+from src.logging_config import configure_logging
+configure_logging(level=_settings_early.LOG_LEVEL)
+
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from uuid import uuid4
@@ -33,7 +39,22 @@ async def lifespan(app: FastAPI):  # noqa: D401  # pylint: disable=unused-argume
         _logger.exception("Failed to connect to database: %s", exc)
         raise
 
+    # Start SQS consumer as background task if queue URL is configured
+    consumer_task: asyncio.Task[None] | None = None
+    if settings.SQS_QUEUE_URL:
+        from src.consumers.sqs_consumer import start_consumer
+        consumer_task = asyncio.create_task(start_consumer(settings.SQS_QUEUE_URL))
+        _logger.info("SQS consumer started for %s", settings.SQS_QUEUE_URL)
+
     yield
+
+    # Shutdown: cancel consumer before closing DB pool
+    if consumer_task and not consumer_task.done():
+        consumer_task.cancel()
+        try:
+            await consumer_task
+        except asyncio.CancelledError:
+            pass
 
     _logger.info("Closing DB pool …")
     await close_pool()

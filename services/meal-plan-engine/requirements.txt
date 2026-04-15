@@ -7,5 +7,6 @@ PyJWT[crypto]==2.9.0
 httpx==0.28.1
 redis==5.2.1
 boto3==1.35.99
+python-json-logger==2.0.7
 pytest==8.3.4
 pytest-asyncio==0.25.2
