@@ -8,13 +8,15 @@ tests.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, NamedTuple, Optional
 from uuid import UUID, uuid4
 
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from src.clients import user_client
 from src.config import settings
 from src.database import get_pool
 from src.models.meal_plan import (
@@ -23,6 +25,7 @@ from src.models.meal_plan import (
     PatchMealPlanRequest,
 )
 from src.repositories import meal_plan_repository as repo
+from src.services import quota_service
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +80,30 @@ async def get_current_user_id(authorization: str | None = Header(None)) -> str: 
         raise HTTPException(status_code=401, detail="UNAUTHORIZED") from exc
 
 
+class AuthInfo(NamedTuple):
+    """User ID + raw Bearer token for inter-service forwarding."""
+
+    user_id: str
+    raw_token: str
+
+
+async def get_auth_info(authorization: str | None = Header(None)) -> AuthInfo:  # noqa: D401
+    """Parse Authorization header once, returning both user_id and raw token."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="UNAUTHORIZED")
+
+    token = authorization.removeprefix("Bearer ")
+    try:
+        payload = _verify_jwt_payload(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="UNAUTHORIZED")
+        return AuthInfo(user_id=str(user_id), raw_token=token)
+    except (pyjwt.InvalidTokenError, ValueError) as exc:
+        logger.debug("JWT verification failed: %s", exc)
+        raise HTTPException(status_code=401, detail="UNAUTHORIZED") from exc
+
+
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
@@ -96,30 +123,86 @@ router = APIRouter()
 async def generate_meal_plan(
     request: Request,
     body: GenerateMealPlanRequest,
-    user_id: str = Depends(get_current_user_id),
+    auth: AuthInfo = Depends(get_auth_info),
 ):
+    request_id = await get_request_id(request)
     pool = await get_pool()
 
-    # DB persistence (stubbed in repo)
-    row = await repo.create_meal_plan(
+    # Step 1: Idempotency check (before quota — spec §4.3)
+    idem_key = quota_service.build_idempotency_key(
+        auth.user_id, str(body.base_diet_id), body.duration_days, body.preferences,
+    )
+    existing = await repo.find_recent_duplicate(pool, auth.user_id, idem_key)
+    if existing:
+        return GenerateMealPlanResponse(
+            id=UUID(str(existing["id"])),
+            status=existing["status"],
+            estimated_completion_sec=0,
+            poll_url=f"/v1/meal-plans/{existing['id']}",
+            ws_channel=f"/ws/meal-plans/{existing['id']}/status",
+        )
+
+    # Step 2: Fetch subscription from user-service
+    raw_sub = await user_client.get_subscription(auth.raw_token)
+    if raw_sub is None:
+        return JSONResponse(
+            status_code=503,
+            content={"error": {
+                "code": "SERVICE_UNAVAILABLE",
+                "message": "Unable to verify subscription. Please retry.",
+                "requestId": request_id,
+            }},
+            headers={"Retry-After": "5"},
+        )
+
+    # Step 3: Validate & compute limit
+    sub = quota_service.validate_subscription(raw_sub)
+    effective_limit = quota_service.compute_effective_limit(sub.tier, sub.quota_override)
+
+    # Step 4: Free tier → 403
+    if effective_limit == 0:
+        return _error_response(
+            "SUBSCRIPTION_REQUIRED",
+            "Meal plan generation requires a Premium or Elite subscription",
+            request_id,
+            403,
+        )
+
+    # Step 5: Atomic quota check + insert
+    allowed, count, row = await quota_service.check_quota_atomic(
         pool,
-        user_id,
+        auth.user_id,
+        effective_limit,
         str(body.base_diet_id),
         body.duration_days,
         body.preferences,
+        idem_key,
     )
 
-    plan_id = UUID(str(row["id"]))
+    if not allowed:
+        retry_after = quota_service.seconds_until_next_month(datetime.now(timezone.utc))
+        return JSONResponse(
+            status_code=429,
+            content={"error": {
+                "code": "PLAN_LIMIT_REACHED",
+                "message": f"Monthly limit of {effective_limit} plans reached ({count}/{effective_limit})",
+                "requestId": request_id,
+            }},
+            headers={"Retry-After": str(retry_after)},
+        )
 
-    resp = GenerateMealPlanResponse(
+    if not row or "id" not in row:
+        logger.error("create_meal_plan returned empty row for user %s", auth.user_id)
+        return _error_response("INTERNAL_ERROR", "Plan creation failed", request_id, 500)
+
+    plan_id = UUID(str(row["id"]))
+    return GenerateMealPlanResponse(
         id=plan_id,
         status="queued",
         estimated_completion_sec=15,
         poll_url=f"/v1/meal-plans/{plan_id}",
         ws_channel=f"/ws/meal-plans/{plan_id}/status",
     )
-
-    return resp
 
 
 # GET /meal-plans -------------------------------------------------------------

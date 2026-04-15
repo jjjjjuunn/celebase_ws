@@ -17,27 +17,31 @@ _logger = logging.getLogger(__name__)
 
 
 async def create_meal_plan(
-    pool: asyncpg.Pool,
+    pool_or_conn: asyncpg.Pool | asyncpg.Connection,
     user_id: str,
     base_diet_id: str,
     duration_days: int,
     preferences: Dict[str, Any],
+    idempotency_key: str = "",
 ) -> Dict[str, Any]:
     """Insert a new meal plan with status ``queued``.
 
     ``duration_days`` is not stored — ``start_date`` and ``end_date`` are
     computed from it.  ``daily_plans`` defaults to an empty JSON array for
     the initial *queued* state (the AI engine fills it later).
+
+    Accepts either a Pool or a Connection (for use within transactions).
     """
 
     start_date = datetime.now(timezone.utc).date()
     end_date = start_date + timedelta(days=duration_days - 1)
 
-    row = await pool.fetchrow(
+    row = await pool_or_conn.fetchrow(
         """
         INSERT INTO meal_plans
-            (user_id, base_diet_id, status, preferences, start_date, end_date, daily_plans)
-        VALUES ($1, $2, 'queued', $3::jsonb, $4, $5, '[]'::jsonb)
+            (user_id, base_diet_id, status, preferences, start_date, end_date,
+             daily_plans, idempotency_key)
+        VALUES ($1, $2, 'queued', $3::jsonb, $4, $5, '[]'::jsonb, $6)
         RETURNING *
         """,
         user_id,
@@ -45,8 +49,56 @@ async def create_meal_plan(
         json.dumps(preferences),
         start_date,
         end_date,
+        idempotency_key or None,
     )
     return dict(row) if row else {}
+
+
+async def count_plans_this_month(
+    conn: asyncpg.Pool | asyncpg.Connection,
+    user_id: str,
+) -> int:
+    """Count non-failed, non-deleted plans for *user_id* in the current UTC month."""
+
+    val = await conn.fetchval(
+        """
+        SELECT COUNT(*)
+        FROM meal_plans
+        WHERE user_id = $1
+          AND status <> 'failed'
+          AND deleted_at IS NULL
+          AND created_at >= DATE_TRUNC('month', NOW())
+          AND created_at <  DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
+        """,
+        user_id,
+    )
+    return val or 0
+
+
+async def find_recent_duplicate(
+    pool: asyncpg.Pool,
+    user_id: str,
+    idempotency_key: str,
+    within_minutes: int = 5,
+) -> Optional[Dict[str, Any]]:
+    """Find a recent plan with the same idempotency key (5-min dedup window)."""
+
+    row = await pool.fetchrow(
+        """
+        SELECT * FROM meal_plans
+        WHERE user_id = $1
+          AND idempotency_key = $2
+          AND created_at >= NOW() - ($3 * INTERVAL '1 minute')
+          AND deleted_at IS NULL
+          AND status <> 'failed'
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        user_id,
+        idempotency_key,
+        within_minutes,
+    )
+    return dict(row) if row else None
 
 
 async def get_meal_plan(

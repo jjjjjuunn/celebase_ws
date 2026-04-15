@@ -13,13 +13,39 @@ import jwt as pyjwt
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from main import app
 from src.config import settings
 
 
 # Patch DB init/close to no-ops so the service can start without PostgreSQL.
+
+
+def _make_mock_pool() -> MagicMock:
+    """Create a mock pool whose ``acquire()`` yields an AsyncMock connection."""
+    mock_conn = AsyncMock()
+
+    @asynccontextmanager
+    async def _transaction():
+        yield
+
+    mock_conn.transaction = _transaction
+
+    pool = MagicMock()
+
+    @asynccontextmanager
+    async def _acquire():
+        yield mock_conn
+
+    pool.acquire = _acquire
+    # Also support direct calls (non-transaction path)
+    pool.fetchrow = AsyncMock()
+    pool.fetch = AsyncMock()
+    pool.fetchval = AsyncMock()
+    pool.execute = AsyncMock()
+    return pool
 
 
 @pytest_asyncio.fixture(name="client")
@@ -29,7 +55,7 @@ async def _client_fixture():  # noqa: D401
     with patch("src.database.init_pool", new_callable=AsyncMock), patch(
         "src.database.close_pool", new_callable=AsyncMock
     ), patch("src.routes.meal_plans.get_pool", new_callable=AsyncMock) as mock_get_pool:
-        mock_get_pool.return_value = AsyncMock()
+        mock_get_pool.return_value = _make_mock_pool()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:  # type: ignore[arg-type]
             yield client
 
@@ -56,6 +82,11 @@ def repo_patch(path: str):  # noqa: D401
     return patch(f"src.repositories.meal_plan_repository.{path}", new_callable=AsyncMock)
 
 
+def _sub_patch(path: str):
+    """Patch in src.clients.user_client or src.services.quota_service."""
+    return patch(path, new_callable=AsyncMock)
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -63,10 +94,16 @@ def repo_patch(path: str):  # noqa: D401
 
 @pytest.mark.asyncio
 @repo_patch("create_meal_plan")
-async def test_generate_success(mock_create, client):  # type: ignore[missing-type-doc]
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_success(mock_dedup, mock_sub, mock_count, mock_create, client):  # type: ignore[missing-type-doc]
     """POST /meal-plans/generate returns 201 with queued status."""
 
     plan_id = str(uuid4())
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 0
     mock_create.return_value = {"id": plan_id}
 
     resp = await client.post(
@@ -216,3 +253,161 @@ async def test_health_check(client):
     body = resp.json()
     assert body["status"] == "ok"
     assert "version" in body
+
+
+# ---------------------------------------------------------------------------
+# Quota enforcement tests (IMPL-013)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_free_tier_403(mock_dedup, mock_sub, client):
+    """Free tier (limit=0) returns 403 SUBSCRIPTION_REQUIRED."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "free", "status": None, "quota_override": {}}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 403
+    assert resp.json()["error"]["code"] == "SUBSCRIPTION_REQUIRED"
+
+
+@pytest.mark.asyncio
+@repo_patch("create_meal_plan")
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_premium_under_limit_201(mock_dedup, mock_sub, mock_count, mock_create, client):
+    """Premium user under limit gets 201."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 3
+    plan_id = str(uuid4())
+    mock_create.return_value = {"id": plan_id}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+    assert resp.json()["status"] == "queued"
+
+
+@pytest.mark.asyncio
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_premium_at_limit_429(mock_dedup, mock_sub, mock_count, client):
+    """Premium at 4/4 gets 429 PLAN_LIMIT_REACHED with Retry-After."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 4
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 429
+    assert resp.json()["error"]["code"] == "PLAN_LIMIT_REACHED"
+    assert "retry-after" in resp.headers
+
+
+@pytest.mark.asyncio
+@repo_patch("create_meal_plan")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_elite_201_no_count(mock_dedup, mock_sub, mock_create, client):
+    """Elite tier gets 201 without count query."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "elite", "status": "active", "quota_override": {}}
+    plan_id = str(uuid4())
+    mock_create.return_value = {"id": plan_id}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+
+
+@pytest.mark.asyncio
+@repo_patch("find_recent_duplicate")
+async def test_generate_idempotent_existing(mock_dedup, client):
+    """Duplicate within 5 min returns existing plan without subscription call."""
+    plan_id = str(uuid4())
+    mock_dedup.return_value = {"id": plan_id, "status": "queued"}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+    assert resp.json()["id"] == plan_id
+
+
+@pytest.mark.asyncio
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_user_svc_down_503(mock_dedup, mock_sub, client):
+    """user-service failure returns 503 SERVICE_UNAVAILABLE."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = None  # signals failure
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 503
+    assert resp.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+    assert "retry-after" in resp.headers
+
+
+@pytest.mark.asyncio
+@repo_patch("create_meal_plan")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_quota_override_null(mock_dedup, mock_sub, mock_create, client):
+    """Premium with override=null gets unlimited (201)."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {
+        "tier": "premium", "status": "active",
+        "quota_override": {"max_plans_per_month": None},
+    }
+    mock_create.return_value = {"id": str(uuid4())}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+
+
+@pytest.mark.asyncio
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_retry_after_positive_int(mock_dedup, mock_sub, mock_count, client):
+    """429 response has a positive integer Retry-After header."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 4
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 429
+    retry_after = int(resp.headers["retry-after"])
+    assert retry_after > 0
