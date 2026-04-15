@@ -15,6 +15,9 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
   PHI_ENCRYPTION_KEY: z.string().length(64).regex(/^[0-9a-fA-F]+$/),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  JWT_SECRET: z.string().optional(),
+  COGNITO_CLIENT_ID: z.string().optional(),
 });
 
 const start = async (): Promise<void> => {
@@ -27,7 +30,14 @@ const start = async (): Promise<void> => {
   const app = await createApp({ serviceName: 'user-service' });
 
   // Auth routes (public — no JWT required)
-  const authProvider = new DevAuthProvider(); // TODO: swap with CognitoAuthProvider when COGNITO_CLIENT_ID is set
+  if (env.NODE_ENV === 'production' && !env.COGNITO_CLIENT_ID) {
+    app.log.warn('COGNITO_CLIENT_ID not set in production — using DevAuthProvider as fallback. Configure CognitoAuthProvider for production use.');
+  }
+  if (env.NODE_ENV === 'production' && (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-not-for-prod')) {
+    app.log.fatal('JWT_SECRET must be set to a non-default value in production');
+    process.exit(1);
+  }
+  const authProvider = new DevAuthProvider();
   await app.register(authRoutes, { pool, authProvider });
 
   await app.register(userRoutes, { pool });

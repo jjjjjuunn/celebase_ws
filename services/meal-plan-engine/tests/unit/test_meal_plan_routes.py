@@ -6,14 +6,17 @@ tests remain hermetic and do not require a running PostgreSQL instance.
 
 from __future__ import annotations
 
+import time
 from uuid import uuid4
 
+import jwt as pyjwt
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch
 
 from main import app
+from src.config import settings
 
 
 # Patch DB init/close to no-ops so the service can start without PostgreSQL.
@@ -32,10 +35,14 @@ async def _client_fixture():  # noqa: D401
 
 
 def _auth_header() -> dict[str, str]:
-    """Return a dummy Authorization header with *sub* claim."""
+    """Return a properly signed Authorization header with access token claims."""
 
-    dummy_token = "e30.eyJzdWIiOiJ1MSJ9.sig"  # header {}, payload {"sub":"u1"}
-    return {"Authorization": f"Bearer {dummy_token}"}
+    token = pyjwt.encode(
+        {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "access"},
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+    return {"Authorization": f"Bearer {token}"}
 
 
 # ---------------------------------------------------------------------------
@@ -141,3 +148,71 @@ async def test_regenerate_invalid_state(mock_get, client):  # type: ignore[missi
     mock_get.return_value = {"id": pid, "status": "completed"}
     resp = await client.post(f"/meal-plans/{pid}/regenerate", headers=_auth_header())
     assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# JWT negative path tests (C1 verification)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_invalid_signature_returns_401(client):
+    """A token signed with the wrong key should be rejected."""
+    token = pyjwt.encode(
+        {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "access"},
+        "wrong-secret",
+        algorithm="HS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_expired_token_returns_401(client):
+    """An expired token should be rejected."""
+    token = pyjwt.encode(
+        {"sub": "u1", "exp": int(time.time()) - 60, "token_use": "access"},
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_rejected_on_api(client):
+    """A refresh token (token_use=refresh) should not work on protected routes."""
+    token = pyjwt.encode(
+        {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "refresh"},
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_missing_token_use_returns_401(client):
+    """A token without token_use claim should be rejected."""
+    token = pyjwt.encode(
+        {"sub": "u1", "exp": int(time.time()) + 3600},
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Health & error handler tests (H4, H5)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_health_check(client):
+    """GET /health returns status ok."""
+    resp = await client.get("/health")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert "version" in body

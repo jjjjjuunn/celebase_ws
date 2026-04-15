@@ -1,5 +1,10 @@
 """Application settings loaded from environment variables using Pydantic v2."""
 
+from __future__ import annotations
+
+from typing import List
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -12,10 +17,23 @@ class Settings(BaseSettings):
     # AsyncPG DSN, e.g. postgresql://user:pass@localhost:5432/celebase
     DATABASE_URL: str
 
+    NODE_ENV: str = "development"
     JWT_SECRET: str = "dev-secret-not-for-prod"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002"
     CONTENT_SERVICE_URL: str = "http://localhost:3002"
     USER_SERVICE_URL: str = "http://localhost:3001"
     LOG_LEVEL: str = "INFO"
+    APP_VERSION: str = "0.1.0"
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
+    @model_validator(mode="after")
+    def _reject_default_secret_in_prod(self) -> Settings:
+        if self.NODE_ENV == "production" and self.JWT_SECRET == "dev-secret-not-for-prod":
+            raise ValueError("JWT_SECRET must be set to a non-default value in production")
+        return self
 
     model_config = {
         "env_file": ".env",

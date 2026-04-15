@@ -386,3 +386,38 @@ verified_by: claude-opus-4-6
 - meal type 분포 균일: breakfast:4, lunch:4, dinner:4, snack:4, smoothie:2
 ### 미완료: 없음
 ### 연관 파일: db/seeds/, db/package.json
+
+---
+date: 2026-04-14
+agent: claude-opus-4-6
+task_id: IMPL-010
+files_changed:
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/main.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/index.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/user-service/package.json
+  - services/user-service/tsconfig.build.json
+  - services/content-service/package.json
+  - services/content-service/tsconfig.build.json
+verified_by: claude-opus-4-6 + codex (2-round review)
+---
+### 완료: Critical/High 보안 패치 — IMPL-010
+- **C1**: meal-plan-engine JWT 서명 검증 (base64 → PyJWT HS256 + token_use=access 체크)
+- **C2**: DevAuthProvider production 가드 (JWT_SECRET 기본값 → process.exit, Cognito 미설정 → 경고)
+- **C3**: requirements.txt 수정 (redis, boto3 추가, httpx 중복 제거, python-jose → PyJWT[crypto] CVE 해소)
+- **H1**: DEV_SECRET 하드코딩 → loadDevSecret() + env JWT_SECRET
+- **H2**: config.py @model_validator — production에서 기본 JWT_SECRET 차단
+- **H3**: CORSMiddleware 추가 (allow_origins from env, wildcard 금지)
+- **H4**: 글로벌 에러 핸들러 (spec §4.1 에러 봉투 + requestId)
+- **H5**: GET /health 엔드포인트
+- **H6**: tsconfig.build.json + node dist/index.js 프로덕션 빌드 (user-service, content-service)
+- refreshTokens() 서명 검증 추가 (decodeJwt → jwtVerify + token_use=refresh)
+- 네거티브 테스트 5개: 잘못된 서명, 만료, refresh→API, token_use 누락, 헬스체크
+- Codex 2라운드 리뷰: 시크릿 계약 통일(JWT_SECRET), 실행 순서 교정(010-c→010-b), PyJWT CVE 교체
+### 미완료: CognitoAuthProvider (Phase B), staging 시크릿 가드, JWT 키 로테이션, iss/aud claim 검증
+### 연관 파일: services/meal-plan-engine/, services/user-service/, services/content-service/

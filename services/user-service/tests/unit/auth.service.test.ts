@@ -117,9 +117,47 @@ describe('DevAuthProvider', () => {
   it('issues tokens with sub claim matching userId', async () => {
     const tokens = await devProvider.issueTokens('user-123');
 
-    // Decode access token payload
     const parts = tokens.access_token.split('.');
-    const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { sub: string };
+    const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { sub: string; token_use: string };
     expect(payload.sub).toBe('user-123');
+    expect(payload.token_use).toBe('access');
+  });
+
+  it('issues refresh tokens with token_use=refresh', async () => {
+    const tokens = await devProvider.issueTokens('user-123');
+
+    const parts = tokens.refresh_token.split('.');
+    const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { sub: string; token_use: string };
+    expect(payload.sub).toBe('user-123');
+    expect(payload.token_use).toBe('refresh');
+  });
+
+  it('rejects access tokens used as refresh tokens', async () => {
+    const tokens = await devProvider.issueTokens('user-123');
+
+    await expect(
+      devProvider.refreshTokens(tokens.access_token),
+    ).rejects.toThrow('Invalid token: expected refresh token');
+  });
+
+  it('rejects tampered refresh tokens', async () => {
+    await expect(
+      devProvider.refreshTokens('invalid.token.here'),
+    ).rejects.toThrow('Invalid or expired refresh token');
+  });
+});
+
+describe('loadDevSecret', () => {
+  const originalEnv = process.env;
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('uses default secret in non-production', async () => {
+    const { loadDevSecret } = await import('../../src/services/auth.service.js');
+    const secret = loadDevSecret();
+    expect(secret).toBeInstanceOf(Uint8Array);
+    expect(secret.length).toBeGreaterThan(0);
   });
 });

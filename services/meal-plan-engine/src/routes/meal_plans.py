@@ -7,15 +7,15 @@ tests.
 
 from __future__ import annotations
 
-import base64
-import json
 import logging
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
+import jwt as pyjwt
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from src.config import settings
 from src.database import get_pool
 from src.models.meal_plan import (
     GenerateMealPlanRequest,
@@ -48,15 +48,17 @@ async def get_request_id(request: Request) -> str:  # noqa: D401
 # ---------------------------------------------------------------------------
 
 
-def _decode_jwt_payload(token: str) -> Dict[str, Any]:
-    """Decode JWT payload without signature verification (dev stub; swap for JWKS in prod)."""
-    parts = token.split(".")
-    if len(parts) != 3:
-        raise ValueError("Invalid JWT structure")
-    # Restore base64url padding
-    padded = parts[1] + "=" * (-len(parts[1]) % 4)
-    payload_bytes = base64.urlsafe_b64decode(padded)
-    return dict(json.loads(payload_bytes))
+def _verify_jwt_payload(token: str) -> Dict[str, Any]:
+    """Verify JWT signature and return payload using PyJWT."""
+    payload = pyjwt.decode(
+        token,
+        settings.JWT_SECRET,
+        algorithms=["HS256"],
+        options={"require": ["sub", "exp", "token_use"]},
+    )
+    if payload.get("token_use") != "access":
+        raise ValueError("Invalid token_use: expected 'access'")
+    return dict(payload)
 
 
 async def get_current_user_id(authorization: str | None = Header(None)) -> str:  # noqa: D401
@@ -65,13 +67,13 @@ async def get_current_user_id(authorization: str | None = Header(None)) -> str: 
 
     token = authorization.removeprefix("Bearer ")
     try:
-        payload = _decode_jwt_payload(token)
+        payload = _verify_jwt_payload(token)
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="UNAUTHORIZED")
         return str(user_id)
-    except Exception as exc:
-        logger.debug("JWT decode failed: %s", exc)
+    except (pyjwt.InvalidTokenError, ValueError) as exc:
+        logger.debug("JWT verification failed: %s", exc)
         raise HTTPException(status_code=401, detail="UNAUTHORIZED") from exc
 
 

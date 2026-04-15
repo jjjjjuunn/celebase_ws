@@ -1,6 +1,6 @@
 import type pg from 'pg';
 import type { User } from '@celebbase/shared-types';
-import { SignJWT, decodeJwt } from 'jose';
+import { SignJWT, jwtVerify, decodeJwt } from 'jose';
 import { randomUUID } from 'node:crypto';
 import { UnauthorizedError, ValidationError } from '@celebbase/service-core';
 import * as userRepo from '../repositories/user.repository.js';
@@ -28,12 +28,22 @@ export interface AuthProvider {
 
 // ── Dev stub provider ─────────────────────────────────────────────────────
 
-const DEV_SECRET = new TextEncoder().encode('celebbase-dev-secret-key-do-not-use-in-production');
+const DEFAULT_DEV_SECRET = 'dev-secret-not-for-prod';
+
+export function loadDevSecret(): Uint8Array {
+  const raw = process.env['JWT_SECRET'] ?? DEFAULT_DEV_SECRET;
+  const nodeEnv = process.env['NODE_ENV'] ?? 'development';
+  if (nodeEnv === 'production' && raw === DEFAULT_DEV_SECRET) {
+    throw new Error('JWT_SECRET must be set to a non-default value in production');
+  }
+  return new TextEncoder().encode(raw);
+}
+
+const DEV_SECRET = loadDevSecret();
 
 export class DevAuthProvider implements AuthProvider {
   // eslint-disable-next-line @typescript-eslint/require-await
   async verifyIdToken(idToken: string): Promise<IdTokenPayload> {
-    // In dev, id_token is optional. If provided, decode it (no signature check).
     if (idToken) {
       const payload = decodeJwt(idToken);
       if (!payload.sub || !payload.email) {
@@ -65,11 +75,21 @@ export class DevAuthProvider implements AuthProvider {
   }
 
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
-    const payload = decodeJwt(refreshToken);
-    if (!payload.sub) {
-      throw new UnauthorizedError('Invalid refresh token: missing sub');
+    try {
+      const { payload } = await jwtVerify(refreshToken, DEV_SECRET, {
+        algorithms: ['HS256'],
+      });
+      if (payload['token_use'] !== 'refresh') {
+        throw new UnauthorizedError('Invalid token: expected refresh token');
+      }
+      if (!payload.sub) {
+        throw new UnauthorizedError('Invalid refresh token: missing sub');
+      }
+      return this.issueTokens(payload.sub);
+    } catch (err) {
+      if (err instanceof UnauthorizedError) throw err;
+      throw new UnauthorizedError('Invalid or expired refresh token');
     }
-    return this.issueTokens(payload.sub);
   }
 }
 

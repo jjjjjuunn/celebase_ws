@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from src.config import settings
 from src.database import close_pool, init_pool
 from src.routes.meal_plans import router as meal_plans_router
+
+_logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -21,17 +26,16 @@ from src.routes.meal_plans import router as meal_plans_router
 async def lifespan(app: FastAPI):  # noqa: D401  # pylint: disable=unused-argument
     """Initialise and tear down shared resources (DB pool, etc.)."""
 
-    logging.getLogger(__name__).info("Initialising DB pool …")
+    _logger.info("Initialising DB pool …")
     try:
         await init_pool(settings.DATABASE_URL)
     except Exception as exc:  # pragma: no cover  # pylint: disable=broad-except
-        logging.getLogger(__name__).exception("Failed to connect to database: %s", exc)
-        # Re-raise so FastAPI will halt the application start-up.
+        _logger.exception("Failed to connect to database: %s", exc)
         raise
 
     yield
 
-    logging.getLogger(__name__).info("Closing DB pool …")
+    _logger.info("Closing DB pool …")
     await close_pool()
 
 
@@ -41,6 +45,45 @@ async def lifespan(app: FastAPI):  # noqa: D401  # pylint: disable=unused-argume
 
 
 app = FastAPI(title="meal-plan-engine", lifespan=lifespan)
+
+
+# CORS (H3) -----------------------------------------------------------------
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Global error handler (H4) -------------------------------------------------
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    request_id = request.headers.get("x-request-id", str(uuid4()))
+    _logger.exception("Unhandled exception: %s", exc, extra={"requestId": request_id})
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": "An unexpected error occurred",
+                "requestId": request_id,
+            }
+        },
+    )
+
+
+# Health check (H5) ----------------------------------------------------------
+
+
+@app.get("/health", include_in_schema=False)
+async def health_check():
+    return {"status": "ok", "version": settings.APP_VERSION}
 
 
 # Routers --------------------------------------------------------------------
