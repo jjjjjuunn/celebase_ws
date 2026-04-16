@@ -391,6 +391,7 @@ verified_by: claude-opus-4-6
 date: 2026-04-14
 agent: claude-opus-4-6
 task_id: IMPL-010
+commit_sha: f8bdb7b
 files_changed:
   - services/meal-plan-engine/requirements.txt
   - services/meal-plan-engine/src/config.py
@@ -423,9 +424,23 @@ verified_by: claude-opus-4-6 + codex (2-round review)
 ### 연관 파일: services/meal-plan-engine/, services/user-service/, services/content-service/
 
 ---
-
-## [2026-04-14] Fix: IMPL-011 MEDIUM 이슈 수정 (M1~M5)
-### 완료:
+date: 2026-04-14
+agent: claude-opus-4-6 + codex (2-round review)
+task_id: IMPL-011
+commit_sha: a7a3c5f
+files_changed:
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/api/websocket.py
+  - services/meal-plan-engine/main.py
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/src/logging_config.py
+verified_by: claude-opus-4-6 + codex-review
+---
+### 완료: MEDIUM 보안 이슈 수정 — IMPL-011 (M1~M5)
 - **M1 (signup TOCTOU race)**: INSERT 시 PG 23505 unique_violation catch → null 반환, auth.service.ts에서 ValidationError throw. cognito_sub UNIQUE도 커버 (Codex 2차 리뷰 반영). 기존 findByEmail 사전체크는 fast-path로 유지.
 - **M5 (updateUser SQL column allowlist)**: ALLOWED_USER_COLUMNS ReadonlySet 추가, Object.keys(data) 필터 후 불일치 시 throw. 런타임 가드로 SQL injection 방어 (기존 Zod .strict()은 API 경계만 보호).
 - **M4 (Pydantic Settings 미등록)**: config.py에 REDIS_URL, SQS_QUEUE_URL, AWS_REGION 필드 추가. websocket.py의 getattr, sqs_consumer.py의 hasattr 제거 → settings 직접 접근.
@@ -437,9 +452,25 @@ verified_by: claude-opus-4-6 + codex (2-round review)
 ### 연관 파일: services/user-service/src/repositories/user.repository.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, services/meal-plan-engine/src/config.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/api/websocket.py, services/meal-plan-engine/main.py, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/src/logging_config.py
 
 ---
-
-## [2026-04-14] Feat: IMPL-012 Stripe 구독 + Webhook (Phase B)
-### 완료:
+date: 2026-04-14
+agent: claude-opus-4-6 + codex (2-round review)
+task_id: IMPL-012
+commit_sha: 59ff9ef
+files_changed:
+  - services/user-service/src/repositories/subscription.repository.ts
+  - services/user-service/src/services/subscription.service.ts
+  - services/user-service/src/routes/subscription.routes.ts
+  - services/user-service/tests/unit/subscription.service.test.ts
+  - packages/service-core/src/errors.ts
+  - packages/service-core/src/index.ts
+  - packages/service-core/src/middleware/jwt.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - db/migrations/0005_subscription-stripe-index.sql
+  - .env.example
+verified_by: claude-opus-4-6 + codex-review
+---
+### 완료: Stripe 구독 + Webhook (Phase B) — IMPL-012
 - **4개 API 엔드포인트**: POST /subscriptions (Checkout Session), GET /subscriptions/me, POST /subscriptions/me/cancel, POST /webhooks/stripe
 - **subscription.repository.ts**: findByUserId, findByStripeSubscriptionId, updateByStripeId, syncTierTransaction (3-step 트랜잭션: expire → upsert → sync users.subscription_tier)
 - **subscription.service.ts**: Stripe Checkout Session 생성, webhook 이벤트 핸들링 (checkout.session.completed, customer.subscription.updated/deleted, invoice.payment_failed), 경량 circuit breaker (5회/60초), Stripe status → 내부 status 매핑, users.subscription_tier 동기화
@@ -453,3 +484,34 @@ verified_by: claude-opus-4-6 + codex (2-round review)
 - Codex 2라운드 리뷰: 1차(B1 ON CONFLICT index, B2 다중 active 방지, W1 멱등키, W2 webhook-first, W3 URL allowlist), 2차(B3 CONCURRENTLY 제거, W4 path prefix, W5 webhook retrieve 금지, W6 API version pin)
 ### 미완료: 구독 quota enforcement (IMPL-013), 계정 삭제 시 Stripe 해지, Stripe Customer Portal, Redis circuit breaker
 ### 연관 파일: services/user-service/src/repositories/subscription.repository.ts, services/user-service/src/services/subscription.service.ts, services/user-service/src/routes/subscription.routes.ts, services/user-service/tests/unit/subscription.service.test.ts, packages/service-core/src/errors.ts, packages/service-core/src/index.ts, packages/service-core/src/middleware/jwt.ts, services/user-service/src/index.ts, services/user-service/src/repositories/user.repository.ts, db/migrations/0005_subscription-stripe-index.sql, .env.example
+
+---
+date: 2026-04-14
+agent: claude-opus-4-6 + codex (adversarial review ×2)
+task_id: IMPL-013
+commit_sha: e887448
+files_changed:
+  - services/meal-plan-engine/src/services/quota_service.py
+  - services/meal-plan-engine/src/clients/user_client.py
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_quota_service.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+  - db/migrations/0006_quota-enforcement.sql
+verified_by: claude-opus-4-6 + codex-review
+---
+### 완료: 구독 Quota Enforcement (Phase B) — IMPL-013
+- **Tier 한도 강제**: POST /meal-plans/generate — Free=0 (403 SUBSCRIPTION_REQUIRED), Premium=4/month, Elite=unlimited
+- **quota_service.py (신규, 177 LOC)**: Pydantic 티어 한도 모델, atomic COUNT+INSERT with `pg_advisory_xact_lock` (TOCTOU 방지), SHA-256 idempotency key, Retry-After(sec) 계산 (다음 달 1일 UTC까지)
+- **user_client.get_subscription()**: user-service에서 tier 조회, 실패 시 503 (fail-closed — Free로 degrade하지 않음)
+- **meal_plan_repository.py**: find_recent_duplicate() (idempotency_key lookup), count_plans_this_month() 추가
+- **0006 migration**: meal_plans.idempotency_key (CHAR(64)) 컬럼 + 2개 partial index (월별 카운트용, 멱등성 lookup용)
+- **46개 단위 테스트**: quota_service 23 + meal_plan 라우트 신규 8 + 기존 15 — 모두 PASS
+- **Codex 2라운드 adversarial review 반영**:
+  - null quota_override가 기본 티어 한도보다 낮게 떨어지는 downgrade 버그 수정
+  - negative override 차단 (Pydantic `ge=0` 제약)
+  - timezone cast 일관성 (모든 month boundary를 UTC로 강제)
+  - COUNT 쿼리 empty row 가드
+  - user-service 4xx 에러를 5xx로 오인하지 않도록 분기
+### 미완료: 계정 삭제 시 Stripe 해지, Stripe Customer Portal, Redis 기반 circuit breaker (IMPL-012에서 이월), quota_override admin UI
+### 연관 파일: services/meal-plan-engine/src/services/quota_service.py, services/meal-plan-engine/src/clients/user_client.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, services/meal-plan-engine/src/routes/meal_plans.py, services/meal-plan-engine/tests/unit/test_quota_service.py, services/meal-plan-engine/tests/unit/test_meal_plan_routes.py, db/migrations/0006_quota-enforcement.sql
