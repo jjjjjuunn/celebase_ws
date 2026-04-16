@@ -53,7 +53,12 @@
 2. 구현 후 `npm test` + lint + type check를 통과해야 한다.
 3. UI 변경 시 Playwright MCP로 런타임 검증을 수행한다.
 4. 기능 완료 시 `docs/IMPLEMENTATION_LOG.md`에 기록한다.
+   - 포맷은 파일 상단 YAML front-matter 스키마 엄수. heading-only 스타일 금지.
+   - 템플릿: `pipeline/templates/IMPL-LOG-ENTRY.template.md`
+   - 2-commit 패턴: feat 커밋에 `commit_sha: PENDING`으로 포함 → `scripts/record-log-sha.sh <TASK-ID>` → `docs(log): record <TASK-ID> commit SHA` 별도 커밋
+   - 로컬 pre-commit hook (`scripts/install-hooks.sh`로 1회 설치) 가 `scripts/validate_impl_log.py`를 실행한다.
 5. 새 세션 시작 시 `docs/IMPLEMENTATION_LOG.md`를 먼저 읽는다.
+6. 첫 세션 시 (레포 clone 직후) `bash scripts/install-hooks.sh` 1회 실행 필수.
 
 ---
 

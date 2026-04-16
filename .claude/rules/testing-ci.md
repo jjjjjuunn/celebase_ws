@@ -87,14 +87,16 @@ main              <- production (보호, direct push 금지)
 
 ## Implementation Log
 
-- 기능 완료 시 `docs/IMPLEMENTATION_LOG.md`에 기록 (append-only):
-  ```markdown
-  ## [날짜] Feature: [기능명]
-  ### 완료: 구현된 모듈, 설계 결정
-  ### 미완료: 다음 세션 작업, 기술 부채
-  ### 연관 파일: 변경/생성 파일 경로
-  ```
+- 기능 완료 시 `docs/IMPLEMENTATION_LOG.md`에 기록 (append-only).
+- **포맷은 `docs/IMPLEMENTATION_LOG.md` 상단 주석의 YAML front-matter 스키마를 따른다.** 헤딩 전용 스타일(`## [날짜] Feature:`)은 사용하지 않는다.
+- 필수 필드: `date`, `agent`, `task_id`, `commit_sha`, `verified_by`. `scripts/validate_impl_log.py`가 강제한다.
+- 본문은 `### 완료`, `### 미완료`, `### 연관 파일` 세 섹션으로 구성한다.
+- 복붙 템플릿: `pipeline/templates/IMPL-LOG-ENTRY.template.md`
+- **commit_sha 수급 절차 (2-commit 패턴)**:
+  1. feat/fix 커밋 시 로그 엔트리를 포함하되 `commit_sha: PENDING`으로 기재 (validator가 top entry에만 허용)
+  2. 해당 커밋 직후 `scripts/record-log-sha.sh`로 실제 SHA 치환 → `docs(log): record <TASK-ID> commit SHA` 별도 커밋
 - 새 세션 시작 시 반드시 먼저 읽는다.
+- 커밋 전 `scripts/validate_impl_log.py`가 pre-commit hook으로 실행된다 (`scripts/install-hooks.sh`로 1회 설치).
 
 ## Definition of Done (Evaluator 승인 기준)
 

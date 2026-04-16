@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# CelebBase pre-commit hook
+# - IMPLEMENTATION_LOG.md가 staged되었을 때만 검증 실행 (빠른 feedback)
+# - validator는 PyYAML 필요. 미설치 시 명확한 에러 메시지 출력.
+#
+# 설치: scripts/install-hooks.sh
+# 우회 금지: --no-verify 사용 시 CLAUDE.md 규칙 위반 (Absolute Rule #13)
+
+set -e
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# IMPLEMENTATION_LOG.md가 staged되지 않았으면 skip
+if ! git diff --cached --name-only | grep -q "^docs/IMPLEMENTATION_LOG.md$"; then
+  exit 0
+fi
+
+# PyYAML이 있는 python 실행 파일을 찾는다.
+# 1) 시스템 python3 (PyYAML 설치된 경우)
+# 2) services/meal-plan-engine/.venv/bin/python3 (기존 프로젝트 venv)
+# 3) .venv/bin/python3 (레포 루트 venv)
+PY=""
+for candidate in \
+  "$(command -v python3 2>/dev/null)" \
+  "services/meal-plan-engine/.venv/bin/python3" \
+  ".venv/bin/python3"; do
+  if [ -x "$candidate" ] && "$candidate" -c "import yaml" >/dev/null 2>&1; then
+    PY="$candidate"
+    break
+  fi
+done
+
+if [ -z "$PY" ]; then
+  echo "❌ pre-commit: PyYAML이 설치된 python을 찾지 못함."
+  echo "   다음 중 하나로 설치하세요:"
+  echo "     brew install pipx && pipx install --include-deps ansible  # (pyyaml 딸림)"
+  echo "     python3 -m venv .venv && .venv/bin/pip install pyyaml"
+  echo "     (services/meal-plan-engine/.venv 사용 중이면 해당 venv에 pyyaml이 이미 있을 것)"
+  exit 1
+fi
+
+# validator 실행
+"$PY" scripts/validate_impl_log.py

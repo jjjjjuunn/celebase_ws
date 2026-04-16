@@ -5,6 +5,12 @@
 
 필수 필드: date, agent, task_id, commit_sha, verified_by
 
+규칙:
+- YAML front-matter 블록만 엔트리로 인정한다 (heading-only 스타일은 사용 금지).
+- `commit_sha`는 7자 이상 hex. 단, **가장 최신 엔트리 한 건**에 한해
+  `PENDING` placeholder를 허용한다 (feat 커밋 직후 SHA 치환 전 상태).
+- validator는 ## Entries 섹션 내부 ---...--- 블록만 파싱한다.
+
 사용법:
   python scripts/validate_impl_log.py
 """
@@ -16,6 +22,7 @@ import yaml
 
 IMPL_LOG_PATH = "docs/IMPLEMENTATION_LOG.md"
 REQUIRED_FIELDS = {"date", "agent", "task_id", "commit_sha", "verified_by"}
+SHA_PATTERN = re.compile(r"^[0-9a-f]{7,40}$")
 
 
 def main() -> int:
@@ -37,6 +44,7 @@ def main() -> int:
         return 0
 
     errors: list[str] = []
+    last_idx = len(blocks)  # 가장 최신 엔트리 (append-only이므로 마지막)
 
     for i, block in enumerate(blocks, 1):
         try:
@@ -46,7 +54,10 @@ def main() -> int:
             continue
 
         if not isinstance(data, dict):
-            errors.append(f"Entry #{i}: front-matter is not a mapping")
+            errors.append(
+                f"Entry #{i}: front-matter is not a mapping "
+                f"(heading-only 스타일 금지 — YAML front-matter 사용)"
+            )
             continue
 
         missing = REQUIRED_FIELDS - set(data.keys())
@@ -57,6 +68,31 @@ def main() -> int:
         verified = data.get("verified_by")
         if verified is None or (isinstance(verified, str) and not verified.strip()):
             errors.append(f"Entry #{i}: verified_by is empty or null")
+
+        # commit_sha 검증: 7자+ hex, 단 최신 엔트리는 PENDING 허용
+        # YAML이 all-digit SHA를 int로 파싱하는 경우가 있어 str로 coerce한다.
+        sha = data.get("commit_sha")
+        if sha is None:
+            pass  # already reported via missing fields
+        else:
+            if isinstance(sha, int):
+                sha_str = str(sha)
+            elif isinstance(sha, str):
+                sha_str = sha
+            else:
+                errors.append(f"Entry #{i}: commit_sha must be string or int, got {type(sha).__name__}")
+                continue
+
+            if sha_str == "PENDING":
+                if i != last_idx:
+                    errors.append(
+                        f"Entry #{i}: commit_sha=PENDING은 최신 엔트리(#"
+                        f"{last_idx})에서만 허용. feat 커밋 후 record-log-sha.sh로 치환하세요."
+                    )
+            elif not SHA_PATTERN.match(sha_str):
+                errors.append(
+                    f"Entry #{i}: commit_sha={sha_str!r} 형식 오류 (7+ hex or PENDING)"
+                )
 
     if errors:
         print("❌ IMPLEMENTATION_LOG validation FAILED:")
