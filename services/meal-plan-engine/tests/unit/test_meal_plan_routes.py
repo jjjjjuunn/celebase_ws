@@ -60,11 +60,15 @@ async def _client_fixture():  # noqa: D401
             yield client
 
 
+# Fixed UUID for test user — PlanGenerationMessage requires a valid UUID for user_id.
+_TEST_USER_ID = "11111111-1111-7111-8111-111111111111"
+
+
 def _auth_header() -> dict[str, str]:
     """Return a properly signed Authorization header with access token claims."""
 
     token = pyjwt.encode(
-        {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "access"},
+        {"sub": _TEST_USER_ID, "exp": int(time.time()) + 3600, "token_use": "access"},
         settings.JWT_SECRET,
         algorithm="HS256",
     )
@@ -93,11 +97,12 @@ def _sub_patch(path: str):
 
 
 @pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
 @repo_patch("count_plans_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_success(mock_dedup, mock_sub, mock_count, mock_create, client):  # type: ignore[missing-type-doc]
+async def test_generate_success(mock_dedup, mock_sub, mock_count, mock_create, mock_enqueue, client):  # type: ignore[missing-type-doc]
     """POST /meal-plans/generate returns 201 with queued status."""
 
     plan_id = str(uuid4())
@@ -278,11 +283,12 @@ async def test_generate_free_tier_403(mock_dedup, mock_sub, client):
 
 
 @pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
 @repo_patch("count_plans_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_premium_under_limit_201(mock_dedup, mock_sub, mock_count, mock_create, client):
+async def test_generate_premium_under_limit_201(mock_dedup, mock_sub, mock_count, mock_create, mock_enqueue, client):
     """Premium user under limit gets 201."""
     mock_dedup.return_value = None
     mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
@@ -320,10 +326,11 @@ async def test_generate_premium_at_limit_429(mock_dedup, mock_sub, mock_count, c
 
 
 @pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_elite_201_no_count(mock_dedup, mock_sub, mock_create, client):
+async def test_generate_elite_201_no_count(mock_dedup, mock_sub, mock_create, mock_enqueue, client):
     """Elite tier gets 201 without count query."""
     mock_dedup.return_value = None
     mock_sub.return_value = {"tier": "elite", "status": "active", "quota_override": {}}
@@ -373,10 +380,11 @@ async def test_generate_user_svc_down_503(mock_dedup, mock_sub, client):
 
 
 @pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_quota_override_null(mock_dedup, mock_sub, mock_create, client):
+async def test_generate_quota_override_null(mock_dedup, mock_sub, mock_create, mock_enqueue, client):
     """Premium with override=null gets unlimited (201)."""
     mock_dedup.return_value = None
     mock_sub.return_value = {
@@ -411,3 +419,154 @@ async def test_retry_after_positive_int(mock_dedup, mock_sub, mock_count, client
     assert resp.status_code == 429
     retry_after = int(resp.headers["retry-after"])
     assert retry_after > 0
+
+
+# ---------------------------------------------------------------------------
+# IMPL-014-a: SQS publisher + consumer wiring
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_plan_generation_message_envelope_required_fields():
+    """PlanGenerationMessage rejects missing fields / wrong types."""
+    from pydantic import ValidationError
+
+    from src.services.sqs_publisher import PlanGenerationMessage
+
+    with pytest.raises(ValidationError):
+        PlanGenerationMessage.model_validate({})
+
+    with pytest.raises(ValidationError):
+        PlanGenerationMessage.model_validate({
+            "plan_id": "not-a-uuid",
+            "user_id": str(uuid4()),
+            "base_diet_id": str(uuid4()),
+            "duration_days": 7,
+            "auth_token": "tok",
+            "preferences": {},
+            "idempotency_key": "k",
+        })
+
+    with pytest.raises(ValidationError):
+        PlanGenerationMessage.model_validate({
+            "plan_id": str(uuid4()),
+            "user_id": str(uuid4()),
+            "base_diet_id": str(uuid4()),
+            "duration_days": 0,  # < 1
+            "auth_token": "t",
+            "preferences": {},
+            "idempotency_key": "k",
+        })
+
+    # Happy path: full valid envelope
+    ok = PlanGenerationMessage.model_validate({
+        "plan_id": str(uuid4()),
+        "user_id": str(uuid4()),
+        "base_diet_id": str(uuid4()),
+        "duration_days": 7,
+        "auth_token": "t",
+        "preferences": {"cal": 2000},
+        "idempotency_key": "k",
+    })
+    assert ok.duration_days == 7
+
+
+@pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
+@repo_patch("create_meal_plan")
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_enqueues_to_sqs(
+    mock_dedup, mock_sub, mock_count, mock_create, mock_enqueue, client,
+):
+    """POST /generate must enqueue a typed PlanGenerationMessage on success."""
+    plan_id = str(uuid4())
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 0
+    mock_create.return_value = {"id": plan_id}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 3, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+    mock_enqueue.assert_awaited_once()
+    sent_msg = mock_enqueue.call_args[0][0]
+    assert str(sent_msg.plan_id) == plan_id
+    assert sent_msg.duration_days == 3
+    assert str(sent_msg.user_id) == _TEST_USER_ID
+
+
+@pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
+@repo_patch("update_meal_plan")
+@repo_patch("create_meal_plan")
+@repo_patch("count_plans_this_month")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_enqueue_failure_returns_503_and_marks_failed(
+    mock_dedup, mock_sub, mock_count, mock_create, mock_update, mock_enqueue, client,
+):
+    """Enqueue failure → plan marked failed + 503 SERVICE_UNAVAILABLE."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "premium", "status": "active", "quota_override": {}}
+    mock_count.return_value = 0
+    mock_create.return_value = {"id": str(uuid4())}
+    mock_enqueue.side_effect = RuntimeError("boto connection refused")
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 7, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 503
+    assert resp.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+    mock_update.assert_awaited()
+    # update_meal_plan called with (pool, plan_id_str, user_id, {"status": "failed"})
+    last_positional = mock_update.call_args[0][-1]
+    assert last_positional == {"status": "failed"}
+
+
+@pytest.mark.asyncio
+@patch("src.consumers.sqs_consumer.broadcast_progress", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.run_pipeline", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.user_client.get_bio_profile", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.content_client.get_recipes_for_diet", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.content_client.get_base_diet", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.repo.update_meal_plan", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.repo.get_meal_plan", new_callable=AsyncMock)
+@patch("src.consumers.sqs_consumer.get_pool", new_callable=AsyncMock)
+async def test_on_progress_invokes_broadcast(
+    mock_pool, mock_get, mock_upd, mock_base, mock_recipes, mock_bio,
+    mock_pipeline, mock_broadcast,
+):
+    """Consumer's on_progress callback must route payload into broadcast_progress."""
+    from src.consumers.sqs_consumer import _process_message
+
+    mock_base.return_value = {"id": "bd", "recipes": []}
+    mock_recipes.return_value = []
+    mock_bio.return_value = {}
+    mock_get.return_value = {"preferences": {}}
+
+    async def pipeline_side_effect(**kwargs):
+        await kwargs["on_progress"]({"event": "progress", "pct": 42})
+        return {"weekly_plan": [], "target_kcal": 2000, "macros": {}}
+
+    mock_pipeline.side_effect = pipeline_side_effect
+
+    plan_id = str(uuid4())
+    user_id = str(uuid4())
+    await _process_message({
+        "plan_id": plan_id,
+        "user_id": user_id,
+        "base_diet_id": str(uuid4()),
+        "duration_days": 7,
+        "auth_token": "t",
+        "preferences": {},
+        "idempotency_key": "k",
+    })
+
+    mock_broadcast.assert_awaited_with(plan_id, {"event": "progress", "pct": 42})

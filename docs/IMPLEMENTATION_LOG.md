@@ -515,3 +515,29 @@ verified_by: claude-opus-4-6 + codex-review
   - user-service 4xx 에러를 5xx로 오인하지 않도록 분기
 ### 미완료: 계정 삭제 시 Stripe 해지, Stripe Customer Portal, Redis 기반 circuit breaker (IMPL-012에서 이월), quota_override admin UI
 ### 연관 파일: services/meal-plan-engine/src/services/quota_service.py, services/meal-plan-engine/src/clients/user_client.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, services/meal-plan-engine/src/routes/meal_plans.py, services/meal-plan-engine/tests/unit/test_quota_service.py, services/meal-plan-engine/tests/unit/test_meal_plan_routes.py, db/migrations/0006_quota-enforcement.sql
+
+---
+date: 2026-04-16
+agent: claude-opus-4-7 (v2 플랜 — codex-o3 adversarial review 반영)
+task_id: IMPL-014-a
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/services/sqs_publisher.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+verified_by: claude-opus-4-7
+---
+### 완료: SQS Publisher + Consumer Wiring — IMPL-014-a
+- **배경**: IMPL-013 이후 "백엔드 MVP 완성" 오판 → 사용자 재검토 요청 → 2개 Explore 감사 + Codex adversarial review로 E2E 5곳 단절 확인 (v2 플랜). 14-a는 첫 서브태스크 (SQS publish + consumer wiring).
+- **sqs_publisher.py (신규, 58 LOC)**: `PlanGenerationMessage` Pydantic envelope (Codex #8) — 모든 필드 타입 엄격 + `duration_days: int(ge=1, le=30)`. `enqueue_plan_job()` boto3 `asyncio.to_thread` 래핑. import-time boot check로 `SQS_QUEUE_URL` 미설정 시 즉시 RuntimeError (Codex #1 — in-process fallback 차단). pytest/`NODE_ENV=test` 환경 exempt.
+- **routes/meal_plans.py**: POST /generate 플랜 생성 직후 `enqueue_plan_job` 호출. 실패 시 `repo.update_meal_plan(..., {"status": "failed"})` + 503 SERVICE_UNAVAILABLE 반환 (silent drop 금지).
+- **consumers/sqs_consumer.py**: `_process_message`가 `PlanGenerationMessage.model_validate`로 envelope 검증. `on_progress` no-op 제거 → `broadcast_progress(plan_id, payload)` 호출로 WebSocket 전파 경로 확보. `duration_days`는 local capture + TODO(IMPL-014-c) — pipeline.py 시그니처 확장 후 run_pipeline에 전달.
+- **테스트 25/25 PASS** (tests/unit/test_meal_plan_routes.py):
+  - 신규 4건: envelope 필수 필드/타입 검증, POST→SQS enqueue 성공, enqueue 실패 시 503+failed, consumer `on_progress`→`broadcast_progress` 전파.
+  - 기존 4건(`test_generate_success`, `_premium_under_limit_201`, `_elite_201_no_count`, `_quota_override_null`)에 `@patch("...enqueue_plan_job")` 추가.
+  - `_auth_header()` JWT `sub`을 `"u1"` → 유효 UUID로 교체 (PlanGenerationMessage.user_id가 UUID 검증).
+- **수동 smoke 3건 PASS**: `SQS_QUEUE_URL=""` + `NODE_ENV=development` → RuntimeError, `NODE_ENV=test` → 통과 (hermetic), `SQS_QUEUE_URL=localstack` → 통과.
+- **ruff clean** (변경 파일 4개 + 전체 59 unit tests 통과).
+### 미완료: 14-b (main.py WS 라우터 등록 + Redis key prefix `ws_ticket:` → `ws:ticket:` 통일 + user-service STRIPE 게이트), 14-c (pipeline.py weekly_template 의존 제거 + duration_days run_pipeline에 전달 + LocalStack E2E 통합 테스트), 14.5 (validate_impl_log.py 미완료 항목 hard-check 강화), 15 (docker-compose.yml LocalStack + Dockerfiles).
+### 연관 파일: services/meal-plan-engine/src/services/sqs_publisher.py, services/meal-plan-engine/src/routes/meal_plans.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/tests/unit/test_meal_plan_routes.py

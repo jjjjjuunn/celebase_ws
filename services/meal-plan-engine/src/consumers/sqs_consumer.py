@@ -18,12 +18,14 @@ from typing import Any, Dict
 
 import boto3
 
+from src.api.websocket import broadcast_progress
 from src.config import settings
 from src.database import get_pool
 from src.repositories import meal_plan_repository as repo
 from src.clients import content_client, user_client
 from src.engine.pipeline import run_pipeline
 from src.engine.allergen_filter import RecipeSlot
+from src.services.sqs_publisher import PlanGenerationMessage
 
 _logger = logging.getLogger(__name__)
 
@@ -53,10 +55,14 @@ async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlo
 async def _process_message(message_body: Dict[str, Any]) -> None:
     """Process a single SQS message: fetch data, run pipeline, update DB."""
 
-    plan_id = message_body["plan_id"]
-    user_id = message_body["user_id"]
-    base_diet_id = message_body["base_diet_id"]
-    auth_token = message_body.get("auth_token", "")
+    msg = PlanGenerationMessage.model_validate(message_body)
+    plan_id = str(msg.plan_id)
+    user_id = str(msg.user_id)
+    base_diet_id = str(msg.base_diet_id)
+    auth_token = msg.auth_token
+    # TODO(IMPL-014-c): forward duration_days to run_pipeline once pipeline.py
+    # accepts it. Captured locally for now.
+    _duration_days = msg.duration_days  # noqa: F841
 
     pool = await get_pool()
 
@@ -86,9 +92,10 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     plan_row = await repo.get_meal_plan(pool, plan_id, user_id)
     preferences = (plan_row.get("preferences") or {}) if plan_row else {}
 
-    # Progress callback (no-op for SQS — WebSocket layer handles real-time push)
+    # Progress callback → WebSocket broadcast (IMPL-014-a)
     async def on_progress(payload: Dict[str, Any]) -> None:
         _logger.info("plan=%s progress: %s", plan_id, payload)
+        await broadcast_progress(plan_id, payload)
 
     # Run engine
     result = await run_pipeline(

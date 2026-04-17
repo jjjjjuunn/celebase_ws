@@ -26,6 +26,7 @@ from src.models.meal_plan import (
 )
 from src.repositories import meal_plan_repository as repo
 from src.services import quota_service
+from src.services.sqs_publisher import PlanGenerationMessage, enqueue_plan_job
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +197,29 @@ async def generate_meal_plan(
         return _error_response("INTERNAL_ERROR", "Plan creation failed", request_id, 500)
 
     plan_id = UUID(str(row["id"]))
+
+    # Step 6: Enqueue SQS generation job (IMPL-014-a).
+    # Failure must mark the plan failed and surface 503 — no silent drops.
+    try:
+        await enqueue_plan_job(PlanGenerationMessage(
+            plan_id=plan_id,
+            user_id=UUID(auth.user_id),
+            base_diet_id=body.base_diet_id,
+            duration_days=body.duration_days,
+            auth_token=auth.raw_token,
+            preferences=body.preferences,
+            idempotency_key=idem_key,
+        ))
+    except Exception:
+        logger.exception("SQS enqueue failed, marking plan=%s as failed", plan_id)
+        await repo.update_meal_plan(pool, str(plan_id), auth.user_id, {"status": "failed"})
+        return _error_response(
+            "SERVICE_UNAVAILABLE",
+            "Queue unavailable. Plan marked failed — please retry.",
+            request_id,
+            503,
+        )
+
     return GenerateMealPlanResponse(
         id=plan_id,
         status="queued",
