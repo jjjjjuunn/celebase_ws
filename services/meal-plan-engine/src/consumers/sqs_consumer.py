@@ -60,9 +60,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     user_id = str(msg.user_id)
     base_diet_id = str(msg.base_diet_id)
     auth_token = msg.auth_token
-    # TODO(IMPL-014-c): forward duration_days to run_pipeline once pipeline.py
-    # accepts it. Captured locally for now.
-    _duration_days = msg.duration_days  # noqa: F841
+    duration_days = msg.duration_days
 
     pool = await get_pool()
 
@@ -104,6 +102,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         bio_profile=bio_profile,
         preferences=preferences,
         candidate_pool=candidate_pool,
+        duration_days=duration_days,
         on_progress=on_progress,
     )
 

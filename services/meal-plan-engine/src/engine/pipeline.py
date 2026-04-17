@@ -56,6 +56,33 @@ async def _emit(on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str
         _logger.exception("on_progress callback raised – ignoring to keep pipeline alive")
 
 
+def _build_weekly_plan(
+    safe_recipes: List[RecipeSlot],
+    duration_days: int,
+) -> List[List[RecipeSlot]]:
+    """Group allergen-safe recipes by meal_type and round-robin across days.
+
+    Returns a duration_days-long list of per-day meal slots. Deterministic
+    ordering (input order preserved) keeps the pipeline reproducible for
+    tests and for the downstream variety optimiser to reason about.
+    """
+
+    by_type: Dict[str, List[RecipeSlot]] = {}
+    for slot in safe_recipes:
+        by_type.setdefault(slot.meal_type, []).append(slot)
+
+    meal_types = ("breakfast", "lunch", "dinner", "snack")
+    plan: List[List[RecipeSlot]] = []
+    for day_idx in range(duration_days):
+        day_slots: List[RecipeSlot] = []
+        for mt in meal_types:
+            pool = by_type.get(mt, [])
+            if pool:
+                day_slots.append(pool[day_idx % len(pool)])
+        plan.append(day_slots)
+    return plan
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -67,6 +94,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     bio_profile: Dict[str, Any],
     preferences: Dict[str, Any],
     candidate_pool: List[RecipeSlot],
+    duration_days: int,
     on_progress: Callable[[Dict[str, Any]], None] | Callable[[Dict[str, Any]], Any],
 ) -> Dict[str, Any]:
     """Generate a personalised meal-plan using the Two-Pass strategy.
@@ -142,8 +170,8 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     await _emit(on_progress, {"pass": 2, "pct": 55})
 
     # Step 5 – Variety optimiser (weekly plan)
-    weekly_plan = base_diet.get("weekly_template", [])  # 2-D list of RecipeSlots
-    if weekly_plan:
+    weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
+    if weekly_plan and any(day for day in weekly_plan):
         varied_plan = variety_optimizer.optimize_variety(weekly_plan, candidate_pool)
     else:
         varied_plan = []

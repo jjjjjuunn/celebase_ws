@@ -569,3 +569,26 @@ verified_by: claude-opus-4-7
 - lint/typecheck: 신규 오류 0건. 기존 14건(subscription.service.ts, auth.service.ts)은 IMPL-012 이전부터 존재.
 ### 미완료: pipeline.py `weekly_template` 제거 + `duration_days` 수신 (IMPL-014-c), LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (IMPL-014-c), multi-worker WS Redis pub/sub (out-of-scope), WS 라우터 auth scope 조정 (out-of-scope).
 ### 연관 파일: services/meal-plan-engine/main.py, services/meal-plan-engine/src/api/websocket.py, services/user-service/src/env.ts, services/user-service/src/index.ts, services/user-service/tests/unit/env-gate.test.ts, .env.example
+
+
+---
+date: 2026-04-16
+agent: claude-opus-4-7
+task_id: IMPL-014-c
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+verified_by: claude-opus-4-7
+---
+### 완료: pipeline duration_days plumbing + weekly_template 제거 (IMPL-014-c)
+- pipeline.py: `run_pipeline` 시그니처에 `duration_days: int` **필수** 파라미터 추가 (기본값 없음 — caller 누락 시 fail-fast).
+- pipeline.py: `_build_weekly_plan(safe_recipes, duration_days)` 헬퍼 신설 — `meal_type`별로 그룹핑 후 결정론적 round-robin 배치. `base_diet["weekly_template"]` 의존 (항상 빈 리스트 반환하던 dead code) 제거.
+- pipeline.py: variety_optimizer 호출은 기존 `optimize_variety(weekly_plan, candidate_pool)` 계약 유지 — 불변식 유지(`MAX_RECIPE_REPEATS=2`).
+- sqs_consumer.py: `_duration_days = msg.duration_days  # noqa: F841` TODO 제거, `run_pipeline(..., duration_days=duration_days, ...)`로 정상 전달.
+- test_engine.py: 5건 추가 — `_build_weekly_plan` 단위 3건 (round-robin 순서 + mixed meal_type + empty pool) + `run_pipeline` async 2건 (duration=7 progress 이벤트 순서 확인, duration=3 길이 확인). 기존 `_mk_slot` 헬퍼 재사용.
+- 수동 smoke 3건 PASS: (1) `inspect.signature`로 `duration_days` required 확인, (2) consumer grep 결과 `duration_days = msg.duration_days` + `duration_days=duration_days` 2개 매치만, (3) `weekly_template` src/ 전역 0 매치.
+- 테스트: meal-plan-engine 64/64 PASS (기존 59 + 신규 5, 0.09s). ruff clean (E402 mid-file import 1회 지적 → top-level로 이동 후 재검증 통과).
+### 미완료: LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (→ IMPL-014-d, IMPL-015의 docker-compose + Dockerfile 편성 이후 실행), `requirements.txt` moto 추가 (→ 14-d 내 in-process 대안 결정), variety_optimizer swap 전략 개선 (out-of-scope), recipe.nutrition 부재 시 fallback 강화 (out-of-scope), `validate_impl_log.py` 이전 엔트리 미완료 hard-check 강화 (→ 14.5).
+### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/tests/unit/test_engine.py

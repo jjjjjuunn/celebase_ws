@@ -11,8 +11,11 @@ from typing import List
 
 import math
 
+import pytest
+
 from src.engine import calorie_adjuster, macro_rebalancer, allergen_filter, variety_optimizer, nutrition_normalizer
 from src.engine.allergen_filter import RecipeSlot, count_allergen_conflicts
+from src.engine.pipeline import _build_weekly_plan, run_pipeline
 
 
 # ---------------------------------------------------------------------------
@@ -176,3 +179,91 @@ def test_phi_minimizer_fields():  # noqa: D401
     subset = minimize_profile(full, "calorie_adjustment")
     allowed = set(get_allowed_fields("calorie_adjustment"))
     assert set(subset.keys()) <= allowed
+
+
+# ---------------------------------------------------------------------------
+# 10. Pipeline integration (IMPL-014-c) -------------------------------------
+# ---------------------------------------------------------------------------
+
+
+def test_build_weekly_plan_respects_duration_days():  # noqa: D401
+    pool = [_mk_slot(f"r{i}", "lunch") for i in range(3)]
+    plan = _build_weekly_plan(pool, duration_days=5)
+    assert len(plan) == 5
+    # Round-robin: day 0→r0, day 1→r1, day 2→r2, day 3→r0, day 4→r1
+    assert [day[0].recipe_id for day in plan] == ["r0", "r1", "r2", "r0", "r1"]
+
+
+def test_build_weekly_plan_mixed_meal_types():  # noqa: D401
+    pool = [
+        _mk_slot("b1", "breakfast"),
+        _mk_slot("l1", "lunch"),
+        _mk_slot("d1", "dinner"),
+    ]
+    plan = _build_weekly_plan(pool, duration_days=2)
+    assert len(plan) == 2
+    assert [s.recipe_id for s in plan[0]] == ["b1", "l1", "d1"]
+    assert [s.recipe_id for s in plan[1]] == ["b1", "l1", "d1"]
+
+
+def test_build_weekly_plan_empty_pool_returns_empty_days():  # noqa: D401
+    plan = _build_weekly_plan([], duration_days=3)
+    assert plan == [[], [], []]
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_produces_weekly_plan_of_duration_length():  # noqa: D401
+    candidate_pool = [_mk_slot(f"r{i}", "lunch") for i in range(4)]
+    base_diet = {"recipes": list(candidate_pool)}
+    bio_profile = {
+        "weight_kg": 70,
+        "activity_level": "moderate",
+        "tdee": 2200,
+        "primary_goal": "maintenance",
+    }
+    preferences = {"allergies": [], "intolerances": []}
+
+    events: list[dict] = []
+
+    async def _cb(payload: dict) -> None:
+        events.append(payload)
+
+    result = await run_pipeline(
+        plan_id="plan-test",
+        base_diet=base_diet,
+        bio_profile=bio_profile,
+        preferences=preferences,
+        candidate_pool=candidate_pool,
+        duration_days=7,
+        on_progress=_cb,
+    )
+
+    assert result["status"] == "completed"
+    assert len(result["weekly_plan"]) == 7
+    # Progress events fired in expected order.
+    assert events[0] == {"pass": 1, "pct": 0}
+    assert events[-1] == {"pass": 2, "pct": 100}
+
+
+@pytest.mark.asyncio
+async def test_run_pipeline_duration_three_produces_three_days():  # noqa: D401
+    candidate_pool = [_mk_slot(f"r{i}", "lunch") for i in range(2)]
+    base_diet = {"recipes": list(candidate_pool)}
+    bio_profile = {
+        "weight_kg": 60,
+        "activity_level": "sedentary",
+        "tdee": 1800,
+        "primary_goal": "weight_loss",
+    }
+    preferences = {"allergies": [], "intolerances": []}
+
+    result = await run_pipeline(
+        plan_id="plan-short",
+        base_diet=base_diet,
+        bio_profile=bio_profile,
+        preferences=preferences,
+        candidate_pool=candidate_pool,
+        duration_days=3,
+        on_progress=lambda _p: None,
+    )
+    assert len(result["weekly_plan"]) == 3
