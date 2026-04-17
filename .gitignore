@@ -42,3 +42,7 @@ pipeline/runs/
 
 # Worktrees (pipeline isolation)
 .worktrees/
+
+# Generated design tokens (rebuilt from packages/design-tokens/tokens.css)
+packages/design-tokens/src/tokens.native.ts
+packages/ui-kit/storybook-static/

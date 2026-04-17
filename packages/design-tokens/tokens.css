@@ -1,0 +1,130 @@
+/*
+ * CelebBase design tokens — source of truth consumed by apps/web and packages/ui-kit.
+ * Keep aligned with DESIGN.md §2 (color) / §3 (typography) / §6 (depth).
+ * Build script: packages/design-tokens/scripts/build.ts parses this file and emits tokens.native.ts.
+ */
+
+:root {
+  /* Brand — gold family, none of the five references use gold (DESIGN.md §2) */
+  --cb-brand-50: #FBF8F0;
+  --cb-brand-100: #F5EDDA;
+  --cb-brand-500: #C9A84C;
+  --cb-brand-600: #8B6D2F;
+  --cb-brand-700: #6B5420;
+
+  /* Neutral — warm paper scale, no --cb-neutral-800 on purpose (DESIGN.md §2) */
+  --cb-neutral-0: #FAFAF8;
+  --cb-neutral-50: #F4F3F0;
+  --cb-neutral-100: #E8E6E1;
+  --cb-neutral-200: #D0CEC8;
+  --cb-neutral-300: #A8A5A0;
+  --cb-neutral-400: #8A8780;
+  --cb-neutral-500: #6D6A64;
+  --cb-neutral-600: #5A5750;
+  --cb-neutral-700: #3D3B37;
+  --cb-neutral-900: #1A1917;
+
+  /* Semantic — contrast-verified on --cb-neutral-0 (DESIGN.md §2) */
+  --cb-success-600: #0F7438;
+  --cb-success-100: #DDF3E6;
+  --cb-warning-600: #A15900;
+  --cb-warning-100: #FDEBD5;
+  --cb-danger-600: #B4232C;
+  --cb-danger-100: #FADADD;
+  --cb-info-600: #1767B8;
+  --cb-info-100: #D9EAFB;
+
+  /* Semantic aliases used across apps/web (light-mode defaults) */
+  --cb-color-bg: var(--cb-neutral-0);
+  --cb-color-surface: var(--cb-neutral-50);
+  --cb-color-text: var(--cb-neutral-900);
+  --cb-color-text-muted: var(--cb-neutral-500);
+  --cb-color-border: var(--cb-neutral-100);
+  --cb-color-muted: var(--cb-neutral-500);
+  --cb-color-brand: var(--cb-brand-600);
+
+  /* Typography — variable fonts shipped in apps/web/public/fonts (DESIGN.md §3) */
+  --cb-font-family-display: 'Fraunces', 'Times New Roman', serif;
+  --cb-font-family-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cb-font-family-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --cb-font-size-xs: 12px;
+  --cb-font-size-sm: 14px;
+  --cb-font-size-md: 16px;
+  --cb-font-size-lg: 20px;
+  --cb-font-size-xl: 28px;
+  --cb-font-size-2xl: 40px;
+  --cb-font-size-3xl: 56px;
+
+  --cb-line-height-tight: 1.14;
+  --cb-line-height-snug: 1.35;
+  --cb-line-height-body: 1.60;
+
+  --cb-font-weight-regular: 400;
+  --cb-font-weight-medium: 500;
+  --cb-font-weight-semibold: 600;
+  --cb-font-weight-bold: 700;
+
+  /* Depth — shadow scale (DESIGN.md §6) */
+  --cb-shadow-ring: 0 0 0 1px rgba(26, 25, 23, 0.08);
+  --cb-shadow-sm: 0 1px 2px rgba(26, 25, 23, 0.06);
+  --cb-shadow-md: 0 6px 20px rgba(26, 25, 23, 0.08);
+  --cb-shadow-lg: 0 24px 48px rgba(26, 25, 23, 0.12);
+
+  /* Radius */
+  --cb-radius-sm: 4px;
+  --cb-radius-md: 8px;
+  --cb-radius-lg: 16px;
+  --cb-radius-pill: 9999px;
+
+  /* Spacing — 4px base */
+  --cb-space-1: 4px;
+  --cb-space-2: 8px;
+  --cb-space-3: 12px;
+  --cb-space-4: 16px;
+  --cb-space-6: 24px;
+  --cb-space-8: 32px;
+  --cb-space-12: 48px;
+  --cb-space-16: 64px;
+}
+
+[data-theme='dark'] {
+  --cb-brand-50: #2B2418;
+  --cb-brand-100: #3D331E;
+  --cb-brand-500: #E8C870;
+  --cb-brand-600: #D4B35E;
+  --cb-brand-700: #E8C870;
+
+  --cb-neutral-0: #141412;
+  --cb-neutral-50: #1E1D1B;
+  --cb-neutral-100: #282623;
+  --cb-neutral-200: #33312D;
+  --cb-neutral-300: #4A4742;
+  --cb-neutral-400: #6D6A64;
+  --cb-neutral-500: #A8A5A0;
+  --cb-neutral-600: #C5C2BC;
+  --cb-neutral-700: #E0DDD7;
+  --cb-neutral-900: #F2F0EB;
+
+  --cb-success-600: #3ABF6E;
+  --cb-success-100: rgba(58, 191, 110, 0.14);
+  --cb-warning-600: #E2933A;
+  --cb-warning-100: rgba(226, 147, 58, 0.14);
+  --cb-danger-600: #E8575F;
+  --cb-danger-100: rgba(232, 87, 95, 0.14);
+  --cb-info-600: #5B9EEC;
+  --cb-info-100: rgba(91, 158, 236, 0.14);
+
+  --cb-color-bg: var(--cb-neutral-0);
+  --cb-color-surface: var(--cb-neutral-50);
+  --cb-color-text: var(--cb-neutral-900);
+  --cb-color-text-muted: var(--cb-neutral-500);
+  --cb-color-border: var(--cb-neutral-200);
+  --cb-color-muted: var(--cb-neutral-500);
+  --cb-color-brand: var(--cb-brand-500);
+
+  --cb-shadow-ring: 0 0 0 1px rgba(242, 240, 235, 0.08);
+  --cb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --cb-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --cb-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.55);
+}

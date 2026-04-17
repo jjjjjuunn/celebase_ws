@@ -657,3 +657,31 @@ verified_by: claude-opus-4-7 + codex (adversarial review ×1)
 - **결과**: T1 happy path PASS(`status=='completed'`, `len(daily_plans)==7`, WS handshake OK). 유닛 회귀 64/64 PASS. 15 tables + pgmigrations 추적 테이블 확인.
 ### 미완료: T2 DLQ retry E2E (→ IMPL-014-d2), T3 WS ticket single-use reuse block (→ IMPL-014-d2), compose 기반 CI 통합 (→ IMPL-016), prod migration runner(dev-only psql 루프와 분리) (→ IMPL-017+).
 ### 연관 파일: docker-compose.yml, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/pytest.ini, services/meal-plan-engine/tests/integration/conftest.py, services/meal-plan-engine/tests/integration/test_e2e_happy_path.py, services/meal-plan-engine/src/database.py, services/meal-plan-engine/src/clients/user_client.py
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-UI-001
+commit_sha: PENDING
+files_changed:
+  - packages/design-tokens/package.json
+  - packages/design-tokens/tokens.css
+  - packages/design-tokens/scripts/build.ts
+  - packages/design-tokens/src/index.ts
+  - packages/design-tokens/tsconfig.json
+  - pnpm-workspace.yaml
+  - pnpm-lock.yaml
+  - .gitignore
+  - turbo.json
+verified_by: claude-opus-4-7
+---
+### 완료: design-tokens 패키지 + build 파이프라인 — IMPL-UI-001
+- `@celebbase/design-tokens` workspace 패키지 신설: 원천 `tokens.css` + `scripts/build.ts` 파서 + 타입 생성된 `src/tokens.native.ts` (gitignore 대상, build 산출).
+- `tokens.css`: light + `[data-theme='dark']` 블록으로 63개 `--cb-*` 커스텀 프로퍼티 — brand 50/100/500/600/700, neutral 0-900, semantic(success/warning/danger/info), color 별칭(bg/surface/text/border), typography(display/body/mono 패밀리 + xs-3xl sizes + line-heights/weights), shadow(ring/sm/md/lg), radius(sm/md/lg/pill), space 1-16.
+- `scripts/build.ts`: `:root` + `[data-theme='dark']` 블록을 파싱해 `tokens.native.ts` 로 직접 타입된 light/dark 맵 emit. tsc emit 후 `dist/` 로 `.d.ts` 까지 번들.
+- `pnpm-workspace.yaml`: `apps/*` glob 추가 — 후속 `apps/web` 을 수용할 자리.
+- `turbo.json`: `storybook` (cache:false, persistent:true) + `build-storybook` (outputs:storybook-static/**) 태스크 등록.
+- `.gitignore`: `packages/design-tokens/src/tokens.native.ts` (generated) + `packages/ui-kit/storybook-static/` 제외.
+- 이전 세션 결과 (2026-04-16) 일괄 커밋으로 trackable 화. 직접 검증은 해당 세션에서 수행 완료 — 이번 엔트리는 history 정리.
+### 미완료: CSS Modules 인프라 (→ IMPL-UI-002-P4), primitives 토큰 갭 보강 (→ IMPL-UI-002-P2).
+### 연관 파일: packages/design-tokens/, pnpm-workspace.yaml, turbo.json, .gitignore
