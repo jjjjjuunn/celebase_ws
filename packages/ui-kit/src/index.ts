@@ -28,3 +28,6 @@ export type { ButtonProps, ButtonVariant, ButtonSize } from './components/Button
 
 export { Input } from './components/Input/Input.js';
 export type { InputProps, InputState } from './components/Input/Input.js';
+
+export { Card } from './components/Card/Card.js';
+export type { CardProps, CardVariant, CardAs } from './components/Card/Card.js';

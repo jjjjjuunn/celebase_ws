@@ -1,0 +1,47 @@
+.card {
+  background: var(--cb-color-bg);
+  border: 1px solid var(--cb-color-border);
+  box-shadow: var(--cb-shadow-sm);
+  color: var(--cb-color-text);
+  font-family: var(--cb-font-family-body);
+  transition: box-shadow 160ms ease, transform 120ms ease;
+}
+
+.variantStandard {
+  border-radius: var(--cb-radius-md);
+  padding: var(--cb-space-4);
+}
+
+.variantHero {
+  border-radius: var(--cb-radius-2xl);
+  padding: var(--cb-space-8);
+}
+
+.variantLineItem {
+  border-radius: var(--cb-radius-sm);
+  padding: var(--cb-space-3) var(--cb-space-4);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.interactive {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.interactive:hover {
+  box-shadow: var(--cb-shadow-md);
+}
+
+.interactive:focus {
+  outline: none;
+}
+
+.interactive:focus-visible {
+  box-shadow: var(--cb-shadow-focus), var(--cb-shadow-sm);
+}
+
+.interactive:active {
+  transform: scale(0.995);
+}
