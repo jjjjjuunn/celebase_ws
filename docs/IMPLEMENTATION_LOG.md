@@ -690,7 +690,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-17
 agent: claude-opus-4-7 + codex (plan review ×1)
 task_id: IMPL-UI-SETUP
-commit_sha: PENDING
+commit_sha: 81f8e06
 files_changed:
   - packages/ui-kit/package.json
   - packages/ui-kit/tsconfig.json
