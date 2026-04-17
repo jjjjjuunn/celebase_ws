@@ -592,3 +592,40 @@ verified_by: claude-opus-4-7
 - 테스트: meal-plan-engine 64/64 PASS (기존 59 + 신규 5, 0.09s). ruff clean (E402 mid-file import 1회 지적 → top-level로 이동 후 재검증 통과).
 ### 미완료: LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (→ IMPL-014-d, IMPL-015의 docker-compose + Dockerfile 편성 이후 실행), `requirements.txt` moto 추가 (→ 14-d 내 in-process 대안 결정), variety_optimizer swap 전략 개선 (out-of-scope), recipe.nutrition 부재 시 fallback 강화 (out-of-scope), `validate_impl_log.py` 이전 엔트리 미완료 hard-check 강화 (→ 14.5).
 ### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/tests/unit/test_engine.py
+
+
+---
+date: 2026-04-16
+agent: claude-opus-4-7 + codex (adversarial review)
+task_id: IMPL-015
+commit_sha: PENDING
+files_changed:
+  - docker-compose.yml
+  - docker/localstack/init/01-create-sqs-queue.sh
+  - services/user-service/Dockerfile
+  - services/content-service/Dockerfile
+  - services/meal-plan-engine/Dockerfile
+  - .dockerignore
+  - .npmrc
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/services/sqs_publisher.py
+  - packages/service-core/src/app.ts
+verified_by: claude-opus-4-7
+---
+### 완료: docker-compose LocalStack + 서비스 Dockerfile 3종 (IMPL-015)
+- docker-compose.yml: LocalStack(SQS only, `localstack/localstack:3`) + user-service/content-service/meal-plan-engine 3개 서비스 추가. `depends_on.condition: service_healthy` 체인으로 부팅 순서 강제. 각 서비스 `wget`/`python urllib` healthcheck.
+- docker/localstack/init/01-create-sqs-queue.sh: LocalStack ready-hook. `awslocal sqs create-queue`로 `meal-plan-generation` 큐 자동 생성 (VisibilityTimeout=120, MessageRetentionPeriod=14d).
+- services/{user,content}-service/Dockerfile: node:22-alpine multi-stage (builder/runtime). `corepack prepare pnpm@9.12.3` + `pnpm fetch` + `pnpm install --offline --filter ...` + `pnpm deploy --prod /deploy`. non-root `app` user.
+- services/meal-plan-engine/Dockerfile: python:3.12-slim multi-stage. builder에서 `pip install --prefix=/install`, runtime은 `/install`→`/usr/local` 복사만. non-root `app` user, `PYTHONUNBUFFERED=1`.
+- .dockerignore: node_modules/dist/.venv/.env*/.worktrees/pipeline/runs/ 제외로 빌드 컨텍스트 최소화.
+- **Codex adversarial review 반영 (2 HIGH fix)**:
+  - HIGH #1 — boto3 `endpoint_url` 누락: `config.py`에 `AWS_ENDPOINT_URL: str | None = None` 추가, `sqs_consumer.py:150` + `sqs_publisher.py:53`에 `endpoint_url=settings.AWS_ENDPOINT_URL` 전달. prod에서 None → 실제 AWS, dev compose에서 LocalStack으로 라우팅.
+  - HIGH #2 — pnpm workspace 평탄화: 루트 `.npmrc`에 `inject-workspace-packages=true` 추가. `pnpm deploy --prod`가 workspace:* 의존을 실제 파일로 복사하여 stand-alone bundle 생성.
+- **smoke 검증 중 발견한 Fastify 5 호환성 fix**: `packages/service-core/src/app.ts`의 `Fastify({ logger: pinoInstance })` → `Fastify({ loggerInstance: ... })`. Fastify 5는 `logger` 옵션에 config object만 허용, pre-instantiated logger는 `loggerInstance`로 전달. 로컬 테스트는 createApp을 부팅하지 않아 탐지되지 않았던 잠복 버그.
+- **LocalStack 태그 조정**: 계획된 `stable`은 2026.x (pro 에디션, AUTH_TOKEN 필요)로 전환되어 exit 55로 기동 실패. 커뮤니티 `localstack/localstack:3`으로 변경 → 무인증 정상 기동.
+- **healthcheck IPv4 강제**: `http://localhost` → `http://127.0.0.1`. alpine busybox wget이 `localhost`를 IPv6 `::1`로 우선 해석하는데 Fastify는 IPv4 0.0.0.0에만 바인드 → Connection refused. IPv4 리터럴로 해결.
+- **수동 smoke 7/7 PASS**: (1) `.dockerignore` 효과 확인, (2) `docker compose build` 3개 이미지 빌드 성공, (3) `docker compose up -d` 6개 컨테이너 기동, (4) `docker compose ps` 전부 healthy, (5) `awslocal sqs list-queues`에 `meal-plan-generation` 표시, (6) `curl /health` 3개 전부 200, (7) meal-plan-engine 로그 "SQS consumer started, polling http://localstack:4566/...".
+- **회귀 0**: pnpm -r test 60/60 PASS, meal-plan-engine pytest 64/64 PASS.
+### 미완료: LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (→ IMPL-014-d), DB migration runner 원샷 서비스 (→ 14-d 전 별도 태스크), TS `/health` 응답에 version 필드 추가 (→ 별도 DoD 패치), compose 기반 CI 통합 (→ IMPL-016), 이미지 레지스트리 푸시 + 버전 태깅 (→ IMPL-017), hot-reload 개발 모드 (→ 별도 `docker-compose.dev.yml` override 태스크).
+### 연관 파일: docker-compose.yml, docker/localstack/init/01-create-sqs-queue.sh, services/user-service/Dockerfile, services/content-service/Dockerfile, services/meal-plan-engine/Dockerfile, .dockerignore, .npmrc, services/meal-plan-engine/src/config.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/services/sqs_publisher.py, packages/service-core/src/app.ts

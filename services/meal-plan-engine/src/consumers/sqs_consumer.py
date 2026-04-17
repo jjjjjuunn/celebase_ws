@@ -147,7 +147,11 @@ async def start_consumer(queue_url: str) -> None:
     # NOTE: boto3 clients are not thread-safe when shared across threads.
     # This is safe here because only one to_thread call is in flight at a time
     # (single-loop design). Do NOT add concurrent workers without per-thread clients.
-    sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
+    sqs = boto3.client(
+        "sqs",
+        region_name=settings.AWS_REGION,
+        endpoint_url=settings.AWS_ENDPOINT_URL,
+    )
 
     _logger.info("SQS consumer started, polling %s", queue_url)
 

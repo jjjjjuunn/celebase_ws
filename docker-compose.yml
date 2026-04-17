@@ -30,6 +30,107 @@ services:
       timeout: 3s
       retries: 5
 
+  localstack:
+    image: localstack/localstack:3
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sqs
+      DEBUG: "0"
+      PERSISTENCE: "0"
+    volumes:
+      - ./docker/localstack/init:/etc/localstack/init/ready.d:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret-not-for-prod
+      PHI_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+      STRIPE_ENABLED: "false"
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  content-service:
+    build:
+      context: .
+      dockerfile: services/content-service/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3002/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  meal-plan-engine:
+    build:
+      context: .
+      dockerfile: services/meal-plan-engine/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      REDIS_URL: redis://redis:6379
+      CONTENT_SERVICE_URL: http://content-service:3002
+      USER_SERVICE_URL: http://user-service:3001
+      SQS_QUEUE_URL: http://localstack:4566/000000000000/meal-plan-generation
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      content-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3003/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
 volumes:
   pgdata:
   redisdata:

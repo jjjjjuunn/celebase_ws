@@ -19,7 +19,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
   const logger = createLogger(options.serviceName, options.logLevel ?? 'info');
 
   const app = Fastify({
-    logger: logger as FastifyBaseLogger,
+    loggerInstance: logger as unknown as FastifyBaseLogger,
     genReqId: () => randomUUID(),
     disableRequestLogging: false,
   });

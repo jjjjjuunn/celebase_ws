@@ -50,7 +50,11 @@ async def enqueue_plan_job(msg: PlanGenerationMessage) -> None:
 
     Raises on SQS failure — caller must translate to HTTP 503 and mark plan failed.
     """
-    sqs = boto3.client("sqs", region_name=settings.AWS_REGION)
+    sqs = boto3.client(
+        "sqs",
+        region_name=settings.AWS_REGION,
+        endpoint_url=settings.AWS_ENDPOINT_URL,
+    )
     body = msg.model_dump(mode="json")  # UUID → str
     await asyncio.to_thread(
         sqs.send_message,

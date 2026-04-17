@@ -1,0 +1,33 @@
+# VCS & editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Node & pnpm
+**/node_modules
+**/dist
+**/.turbo
+**/coverage
+npm-debug.log*
+
+# Python
+**/__pycache__
+**/*.pyc
+**/.venv
+**/.pytest_cache
+**/.ruff_cache
+
+# Worktrees & pipeline artefacts
+.worktrees/
+pipeline/runs/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Docs that don't affect build (keeps build context small)
+docs/
+*.md
+!README.md

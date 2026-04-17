@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     SQS_QUEUE_URL: str = ""          # empty = consumer disabled in dev
     AWS_REGION: str = "us-east-1"
+    AWS_ENDPOINT_URL: str | None = None  # LocalStack dev override; None → real AWS in prod
     LOG_LEVEL: str = "INFO"
     APP_VERSION: str = "0.1.0"
 
