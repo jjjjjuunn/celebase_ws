@@ -35,7 +35,7 @@ async def _validate_ticket(ticket: str) -> bool:
     redis_url = settings.REDIS_URL
     r = aioredis.from_url(redis_url)
     try:
-        key = f"ws_ticket:{ticket}"
+        key = f"ws:ticket:{ticket}"
         value = await r.get(key)
         if value is None:
             return False

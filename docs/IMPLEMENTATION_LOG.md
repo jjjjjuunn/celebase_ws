@@ -541,3 +541,31 @@ verified_by: claude-opus-4-7
 - **ruff clean** (변경 파일 4개 + 전체 59 unit tests 통과).
 ### 미완료: 14-b (main.py WS 라우터 등록 + Redis key prefix `ws_ticket:` → `ws:ticket:` 통일 + user-service STRIPE 게이트), 14-c (pipeline.py weekly_template 의존 제거 + duration_days run_pipeline에 전달 + LocalStack E2E 통합 테스트), 14.5 (validate_impl_log.py 미완료 항목 hard-check 강화), 15 (docker-compose.yml LocalStack + Dockerfiles).
 ### 연관 파일: services/meal-plan-engine/src/services/sqs_publisher.py, services/meal-plan-engine/src/routes/meal_plans.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+
+
+---
+date: 2026-04-16
+agent: claude-opus-4-7
+task_id: IMPL-014-b
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/main.py
+  - services/meal-plan-engine/src/api/websocket.py
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/tests/unit/env-gate.test.ts
+  - .env.example
+verified_by: claude-opus-4-7
+---
+### 완료: WebSocket 라우터 mount + Redis 티켓 prefix 통일 + Stripe feature gate (IMPL-014-b)
+- main.py: `app.include_router(ws_router)` 추가 — OpenAPI에 `/ws/meal-plans/{plan_id}/status` 등록 확인 (smoke #3 PASS).
+- websocket.py: Redis 티켓 키를 `ws_ticket:` → `ws:ticket:`으로 수정 — spec §4.2 + user-service `ws-ticket.routes.ts`와 정본 일치 (smoke #4 grep 확인).
+- env.ts 신규: EnvSchema를 index.ts에서 분리 — import-only 재사용 경로 확보 + 테스트 커버리지 회귀 회피.
+- index.ts: STRIPE_ENABLED=true 분기에서만 Stripe 인스턴스화 + subscriptionRoutes 등록. false이면 경고 로그 후 스킵 (meal-plan-engine `user_client.get_subscription`이 404 → `{tier:"free"}` fallback으로 안전).
+- Stripe env 누락 시 `process.exit(1)` 타입 narrowing으로 `!` non-null assertion 0건 — strict-type-checked 통과.
+- env-gate.test.ts 신규: 4개 케이스 PASS (기본/플래그 true 변수없음 통과/플래그 true 변수전부 있음/PHI 길이 검증).
+- .env.example: `STRIPE_ENABLED=false`, `PHI_ENCRYPTION_KEY`(64-hex), `SQS_QUEUE_URL` 3개 누락 변수 추가.
+- 테스트: user-service 60/60 PASS (신규 4건 포함, coverage 84.95%), meal-plan-engine 59/59 PASS (회귀 없음).
+- lint/typecheck: 신규 오류 0건. 기존 14건(subscription.service.ts, auth.service.ts)은 IMPL-012 이전부터 존재.
+### 미완료: pipeline.py `weekly_template` 제거 + `duration_days` 수신 (IMPL-014-c), LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (IMPL-014-c), multi-worker WS Redis pub/sub (out-of-scope), WS 라우터 auth scope 조정 (out-of-scope).
+### 연관 파일: services/meal-plan-engine/main.py, services/meal-plan-engine/src/api/websocket.py, services/user-service/src/env.ts, services/user-service/src/index.ts, services/user-service/tests/unit/env-gate.test.ts, .env.example

@@ -2,7 +2,7 @@ import { createApp, createPool, EnvPhiKeyProvider } from '@celebbase/service-cor
 import { createClient } from 'redis';
 import type { RedisClientType } from 'redis';
 import Stripe from 'stripe';
-import { z } from 'zod';
+import { EnvSchema } from './env.js';
 import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
@@ -10,24 +10,6 @@ import { dailyLogRoutes } from './routes/daily-log.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { subscriptionRoutes } from './routes/subscription.routes.js';
 import { DevAuthProvider } from './services/auth.service.js';
-
-const EnvSchema = z.object({
-  PORT: z.coerce.number().int().min(1).max(65535).default(3001),
-  HOST: z.string().min(1).default('0.0.0.0'),
-  DATABASE_URL: z.string().min(1),
-  REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
-  PHI_ENCRYPTION_KEY: z.string().length(64).regex(/^[0-9a-fA-F]+$/),
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  JWT_SECRET: z.string().optional(),
-  COGNITO_CLIENT_ID: z.string().optional(),
-  // Stripe
-  STRIPE_SECRET_KEY: z.string().min(1),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1),
-  STRIPE_PREMIUM_PRICE_ID: z.string().min(1),
-  STRIPE_ELITE_PRICE_ID: z.string().min(1),
-  STRIPE_SUCCESS_URL: z.string().url(),
-  STRIPE_CANCEL_URL: z.string().url(),
-});
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -49,24 +31,49 @@ const start = async (): Promise<void> => {
   const authProvider = new DevAuthProvider();
   await app.register(authRoutes, { pool, authProvider });
 
-  // Stripe client (pinned API version)
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(dailyLogRoutes, { pool });
-  await app.register(subscriptionRoutes, {
-    pool,
-    stripeConfig: {
-      stripe,
-      premiumPriceId: env.STRIPE_PREMIUM_PRICE_ID,
-      elitePriceId: env.STRIPE_ELITE_PRICE_ID,
-      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      successUrl: env.STRIPE_SUCCESS_URL,
-      cancelUrl: env.STRIPE_CANCEL_URL,
-    },
-  });
+
+  // Stripe feature gate — /subscriptions/* only registers when STRIPE_ENABLED=true.
+  if (env.STRIPE_ENABLED === 'true') {
+    if (
+      !env.STRIPE_SECRET_KEY ||
+      !env.STRIPE_WEBHOOK_SECRET ||
+      !env.STRIPE_PREMIUM_PRICE_ID ||
+      !env.STRIPE_ELITE_PRICE_ID ||
+      !env.STRIPE_SUCCESS_URL ||
+      !env.STRIPE_CANCEL_URL
+    ) {
+      const missing = [
+        !env.STRIPE_SECRET_KEY && 'STRIPE_SECRET_KEY',
+        !env.STRIPE_WEBHOOK_SECRET && 'STRIPE_WEBHOOK_SECRET',
+        !env.STRIPE_PREMIUM_PRICE_ID && 'STRIPE_PREMIUM_PRICE_ID',
+        !env.STRIPE_ELITE_PRICE_ID && 'STRIPE_ELITE_PRICE_ID',
+        !env.STRIPE_SUCCESS_URL && 'STRIPE_SUCCESS_URL',
+        !env.STRIPE_CANCEL_URL && 'STRIPE_CANCEL_URL',
+      ].filter(Boolean);
+      app.log.fatal({ missing }, 'STRIPE_ENABLED=true but required Stripe env vars are missing');
+      process.exit(1);
+    }
+
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+    await app.register(subscriptionRoutes, {
+      pool,
+      stripeConfig: {
+        stripe,
+        premiumPriceId: env.STRIPE_PREMIUM_PRICE_ID,
+        elitePriceId: env.STRIPE_ELITE_PRICE_ID,
+        webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+        successUrl: env.STRIPE_SUCCESS_URL,
+        cancelUrl: env.STRIPE_CANCEL_URL,
+      },
+    });
+    app.log.info('Stripe subscriptions enabled');
+  } else {
+    app.log.warn('Stripe subscriptions disabled (STRIPE_ENABLED=false)');
+  }
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });

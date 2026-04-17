@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 
 from src.config import settings
 from src.database import close_pool, init_pool
+from src.api.websocket import router as ws_router
 from src.routes.meal_plans import router as meal_plans_router
 
 _logger = logging.getLogger(__name__)
@@ -111,6 +112,7 @@ async def health_check():
 
 
 app.include_router(meal_plans_router, prefix="/meal-plans")
+app.include_router(ws_router)  # WS path is absolute on the router — do not prefix.
 
 
 # ---------------------------------------------------------------------------
