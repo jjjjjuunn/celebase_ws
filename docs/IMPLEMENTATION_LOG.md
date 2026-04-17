@@ -796,3 +796,58 @@ verified_by: claude-opus-4-7
 - **Probe 검증**: 임시 `src/__probe__/probe.module.css` + `probe.ts` 로 빌드 실행 → `dist/__probe__/probe.module.css` 복사 확인, typecheck PASS, 제거.
 ### 미완료: IMPL-UI-002 파이프라인 init + 6 chunk HANDOFF (Stack/Text/Button/Input/Card/Badge), `/slice/primitives` 쇼케이스.
 ### 연관 파일: packages/ui-kit/src/types/css-modules.d.ts, packages/ui-kit/scripts/copy-css.mjs, packages/ui-kit/package.json
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7 + codex-o3
+task_id: IMPL-UI-002
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/Stack/Stack.tsx
+  - packages/ui-kit/src/components/Stack/Stack.module.css
+  - packages/ui-kit/src/components/Text/Text.tsx
+  - packages/ui-kit/src/components/Text/Text.module.css
+  - packages/ui-kit/src/components/Button/Button.tsx
+  - packages/ui-kit/src/components/Button/Button.module.css
+  - packages/ui-kit/src/components/Input/Input.tsx
+  - packages/ui-kit/src/components/Input/Input.module.css
+  - packages/ui-kit/src/components/Card/Card.tsx
+  - packages/ui-kit/src/components/Card/Card.module.css
+  - packages/ui-kit/src/components/Badge/Badge.tsx
+  - packages/ui-kit/src/components/Badge/Badge.module.css
+  - packages/ui-kit/stories/Stack.stories.tsx
+  - packages/ui-kit/stories/Text.stories.tsx
+  - packages/ui-kit/stories/Button.stories.tsx
+  - packages/ui-kit/stories/Input.stories.tsx
+  - packages/ui-kit/stories/Card.stories.tsx
+  - packages/ui-kit/stories/Badge.stories.tsx
+  - packages/ui-kit/src/index.ts
+  - apps/web/src/app/slice/primitives/page.tsx
+  - apps/web/src/app/slice/page.tsx
+  - apps/web/src/app/slice/layout.tsx
+  - scripts/gate-check.sh
+verified_by: claude-opus-4-7 + codex-o3-review
+---
+### 완료: 6 Primitives (Stack/Text/Button/Input/Card/Badge) + /slice/primitives 쇼케이스 — IMPL-UI-002
+- **구조**: 1 TASK-ID 단일 파이프라인 사이클, implement 단계만 6 chunk (G1-a/G1-b/G2-a/G2-b/G3-a/G3-b) 로 분할. 각 chunk 3 파일 (`<Name>.tsx` + `<Name>.module.css` + `<Name>.stories.tsx`), barrel 은 chunk 뒤 Claude 가 직접 패치. 파일 예산 3 × 1.5 = 4.5 ≤ 5 준수.
+- **CSS Modules**: `.module.css` + `styles.*` 클래스 합성. pseudo-class (`:hover`, `:active`, `:focus-visible`, `:disabled`) 로만 상태 스타일링 — 모든 focus ring 은 `:focus-visible` 한정 (키보드 only). 공용 토큰 `var(--cb-shadow-focus)` 단일 키로 모든 primitive 에 적용.
+- **a11y 기둥**:
+  - Button: `aria-busy`/`disabled`/`loading` 스피너, touch target sm=44 md=52, Space/Enter native 동작.
+  - Input: `<label htmlFor>`, `aria-invalid`/`aria-required`/`aria-describedby` error chain, required `*` 시각 표시.
+  - Card: `interactive` + `as` 미지정 시 `role="button"` + `tabIndex=0` + Enter/Space 처리, line item `min-height:44px`.
+  - Badge: toggle 패턴 — `selected` prop 존재 시 `aria-pressed="true"/"false"` 양쪽 emit (undefined 는 display-only). `onRemove` 시 내부 `<button aria-label="Remove">`. dot badge 는 `aria-label` 로 상태 설명.
+  - Stack: layout-only, `as` prop 으로 semantic element (`section`, `ul`, `main` 등) 선택 가능.
+  - Text: `as` 가 hierarchy 결정, display 계열 Fraunces, body/label Plus Jakarta, mono JetBrains.
+- **쇼케이스**: `apps/web/src/app/slice/primitives/page.tsx` — 6 섹션 (Section helper + `aria-labelledby`), Input controlled 입력 + 빈 required 상태 DOM 렌더, Badge toggle + removable tag 라이브 상태. `/slice/primitives` SSR 200.
+- **Follow-up 커밋** (`d3a6385`): `scripts/gate-check.sh` 의 `/slice/primitives` + `/slice/tokens` 를 200 필수로 전환 (Pre-Step 3 의 "200/404 허용" 과도 기간 종료).
+- **Badge a11y 수정 (`c5f4680`)**: gate-qa 검증 중 발견 — 선택되지 않은 toggle chip 이 `aria-pressed` 를 누락 (`selected=false` 일 때 attribute 생략) → `aria-pressed="false"` 명시 emit 으로 수정. Display-only Badge (consumer 가 `selected` prop 자체를 안 줬을 때) 는 attribute 생략 유지.
+- **검증 근거**:
+  - `pnpm --filter @celebbase/ui-kit typecheck/lint/build` → 0 errors / 0 warnings / `dist/` + 6 .module.css copied.
+  - `pnpm --filter web typecheck/lint` → 0 errors / "No ESLint warnings or errors".
+  - `scripts/gate-check.sh fe_token_hardcode` → passed:true.
+  - `scripts/gate-check.sh fe_slice_smoke` → passed:true (`/slice`, `/slice/tokens`, `/slice/primitives` 모두 200).
+  - Static SSR DOM assertion suite (16/16 PASS): `h1 Primitives`, Fraunces 사용, `aria-pressed="true"` ×1 + `aria-pressed="false"` ×2, `aria-invalid/required` ×1, `role="button"` ×4, `aria-label="Remove"` ×3, dot Online/Pending/Offline, `aria-busy="true"`, disabled input, `#input-required-error`, `tabindex="0"`, `var(--cb-*)` 30+ 사용.
+  - Codex o3 독립 리뷰: CRITICAL 0, HIGH 1 (FE DoD 에 unit-test 의무 없음 — out-of-scope 판정), MEDIUM 2 (pre-existing 코드 / slice preview 설계 의도 — out-of-scope), LOW 2 (이미 커버됨).
+- **Playwright MCP 런타임 시나리오 (S1~S8 시각/회귀 부분)**: 본 세션에 MCP 미바인딩 → DOM 레벨 대체 QA 로 통과 판정, 시각 회귀 (dark SSR screenshot, focus-ring 시각, hover step-up, responsive 375/768/1440, axe JSON) 는 MCP 바인딩 세션으로 이월. QA-PLAN.md S1~S8 pass criteria 그대로 재사용 가능.
+### 미완료: Playwright MCP 런타임 시각 QA 재실행 (S1/S2/S3/S4/S6/S7), gate-check.sh `policy` self-match 버그 (pre-existing, 별도 chore), `packages/design-tokens/scripts/*.ts` ESLint project-service 미커버 (pre-existing from IMPL-UI-001/P2, 별도 chore), `pipeline.sh step_review` 공백 경로 파싱 버그 (별도 chore), i18n/Sentry/Chromatic/E2E, 기능 페이지 (로그인/플랜/결제/대시보드).
+### 연관 파일: packages/ui-kit/src/components/, packages/ui-kit/stories/, packages/ui-kit/src/index.ts, apps/web/src/app/slice/primitives/page.tsx, apps/web/src/app/slice/page.tsx, apps/web/src/app/slice/layout.tsx, scripts/gate-check.sh, pipeline/runs/IMPL-UI-002/
