@@ -9,3 +9,6 @@ export type {
   ThemeProviderProps,
 } from './theme/ThemeProvider.js';
 export { ThemePrePaintScript } from './theme/ThemePrePaintScript.js';
+
+export { Stack } from './components/Stack/Stack.js';
+export type { StackProps, SpaceTokenKey } from './components/Stack/Stack.js';
