@@ -520,7 +520,7 @@ verified_by: claude-opus-4-6 + codex-review
 date: 2026-04-16
 agent: claude-opus-4-7 (v2 플랜 — codex-o3 adversarial review 반영)
 task_id: IMPL-014-a
-commit_sha: PENDING
+commit_sha: 0d67d8a
 files_changed:
   - services/meal-plan-engine/src/services/sqs_publisher.py
   - services/meal-plan-engine/src/routes/meal_plans.py
