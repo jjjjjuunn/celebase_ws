@@ -43,7 +43,7 @@ export default function SliceLayout({ children }: { children: ReactNode }) {
         </strong>
         <nav style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
           <a href="/slice/tokens">tokens</a>
-          <a href="/slice/components">components</a>
+          <a href="/slice/primitives">primitives</a>
         </nav>
         <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span>theme</span>

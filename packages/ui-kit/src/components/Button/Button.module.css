@@ -1,0 +1,113 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cb-space-2);
+  padding: var(--cb-button-pad-y) var(--cb-button-pad-x);
+  border: 1px solid transparent;
+  border-radius: var(--cb-radius-md);
+  font-family: var(--cb-font-family-body);
+  font-weight: var(--cb-font-weight-semibold);
+  font-size: var(--cb-font-size-md);
+  line-height: var(--cb-line-height-tight);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 80ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:focus {
+  outline: none;
+}
+
+.button:focus-visible {
+  box-shadow: var(--cb-shadow-focus);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sizeSm {
+  min-height: 44px;
+  padding: var(--cb-space-2) var(--cb-space-4);
+  font-size: var(--cb-font-size-sm);
+}
+
+.sizeMd {
+  min-height: 52px;
+}
+
+.variantPrimary {
+  background: var(--cb-brand-600);
+  color: var(--cb-cta-text);
+  border-color: var(--cb-brand-600);
+}
+
+.variantPrimary:hover:not(:disabled) {
+  background: var(--cb-brand-700);
+  border-color: var(--cb-brand-700);
+}
+
+.variantSecondary {
+  background: var(--cb-color-surface);
+  color: var(--cb-color-text);
+  border-color: var(--cb-color-border);
+}
+
+.variantSecondary:hover:not(:disabled) {
+  background: var(--cb-brand-50);
+  border-color: var(--cb-brand-100);
+}
+
+.variantGhost {
+  background: transparent;
+  color: var(--cb-color-text);
+  border-color: transparent;
+}
+
+.variantGhost:hover:not(:disabled) {
+  background: var(--cb-color-surface);
+}
+
+.variantDestructive {
+  background: var(--cb-danger-600);
+  color: var(--cb-cta-text);
+  border-color: var(--cb-danger-600);
+}
+
+.variantDestructive:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  line-height: inherit;
+}
+
+.loading .label {
+  opacity: 0.6;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: cb-spin 0.7s linear infinite;
+}
+
+@keyframes cb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
