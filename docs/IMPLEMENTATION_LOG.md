@@ -776,3 +776,23 @@ verified_by: claude-opus-4-7
 - Codex v2 리뷰 반영: 검증기 변경 + 기능 변경을 동일 커밋에 묶지 않기 위해 독립 커밋으로 분리.
 ### 미완료: Pre-Step 4 (CSS Modules 인프라), 6 HANDOFF 본 구현, 200 필수 전환 (G3-b 뒤 follow-up).
 ### 연관 파일: scripts/gate-check.sh
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-UI-002-P4
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/types/css-modules.d.ts
+  - packages/ui-kit/scripts/copy-css.mjs
+  - packages/ui-kit/package.json
+verified_by: claude-opus-4-7
+---
+### 완료: CSS Modules 인프라 셋업 — IMPL-UI-002-P4
+- `packages/ui-kit/src/types/css-modules.d.ts`: ambient 선언 `declare module '*.module.css' { const classes: Readonly<Record<string, string>>; export default classes; }`. tsc 가 `.module.css` import 를 `Record<string,string>` 으로 인식하도록 함.
+- `packages/ui-kit/scripts/copy-css.mjs`: `fs.readdir({ withFileTypes: true })` 재귀 walker — `src/**/*.module.css` → `dist/**/*.module.css` 복사. tsc 가 `.css` 를 emit 하지 않아 필요. Next.js(transpilePackages) 및 Vite(Storybook) 양쪽이 dist 에서 CSS Module 을 resolve 하도록 파일명 유지.
+- `packages/ui-kit/package.json` `scripts.build`: `"tsc -p tsconfig.json && node scripts/copy-css.mjs"` 체인.
+- `apps/web/next.config.ts` — 이미 `transpilePackages: ['@celebbase/ui-kit', '@celebbase/design-tokens']` 포함 확인, 변경 없음.
+- **Probe 검증**: 임시 `src/__probe__/probe.module.css` + `probe.ts` 로 빌드 실행 → `dist/__probe__/probe.module.css` 복사 확인, typecheck PASS, 제거.
+### 미완료: IMPL-UI-002 파이프라인 init + 6 chunk HANDOFF (Stack/Text/Button/Input/Card/Badge), `/slice/primitives` 쇼케이스.
+### 연관 파일: packages/ui-kit/src/types/css-modules.d.ts, packages/ui-kit/scripts/copy-css.mjs, packages/ui-kit/package.json

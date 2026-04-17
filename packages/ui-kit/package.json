@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-css.mjs",
     "build-storybook": "storybook build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src/",
