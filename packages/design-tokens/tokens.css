@@ -70,11 +70,18 @@
   --cb-shadow-sm: 0 1px 2px rgba(26, 25, 23, 0.06);
   --cb-shadow-md: 0 6px 20px rgba(26, 25, 23, 0.08);
   --cb-shadow-lg: 0 24px 48px rgba(26, 25, 23, 0.12);
+  --cb-shadow-focus: 0 0 0 3px rgba(139, 109, 47, 0.40);
+
+  /* Border — primitives (neutral-400 for ≥3:1 contrast with bg in both themes) */
+  --cb-border-strong: var(--cb-neutral-400);
+  --cb-border-focus: var(--cb-brand-600);
+  --cb-border-error: var(--cb-danger-600);
 
   /* Radius */
   --cb-radius-sm: 4px;
   --cb-radius-md: 8px;
   --cb-radius-lg: 16px;
+  --cb-radius-2xl: 32px;
   --cb-radius-pill: 9999px;
 
   /* Spacing — 4px base */
@@ -86,6 +93,12 @@
   --cb-space-8: 32px;
   --cb-space-12: 48px;
   --cb-space-16: 64px;
+
+  /* Component-level tokens (primitives) */
+  --cb-button-pad-y: 14px;
+  --cb-button-pad-x: 24px;
+  --cb-input-height: 52px;
+  --cb-cta-text: var(--cb-neutral-0);
 }
 
 [data-theme='dark'] {
@@ -127,4 +140,12 @@
   --cb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --cb-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
   --cb-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.55);
+  --cb-shadow-focus: 0 0 0 3px rgba(232, 200, 112, 0.50);
+
+  /* border-strong cascades from :root (--cb-neutral-400 = #6D6A64 in dark → 3.6:1) */
+  --cb-border-focus: var(--cb-brand-500);
+  --cb-border-error: var(--cb-danger-600);
+
+  /* cta-text in dark must be dark (brand-600 is light gold) — hard-coded to preserve legibility */
+  --cb-cta-text: #1A1917;
 }

@@ -739,3 +739,23 @@ verified_by: claude-opus-4-7
 - **검증 결과 (이전 세션 수행 완료)**: `pnpm --filter @celebbase/ui-kit typecheck/lint/build-storybook` 모두 exit 0, `pnpm turbo run typecheck` 11/11 PASS, `fe_token_hardcode` + `fe_slice_smoke` PASS, `/`/`/slice`/`/slice/tokens` 200, Storybook `index.json` 5 stories 등록, `grep "from 'next"` in ui-kit 0건.
 ### 미완료: Primitives 6 종 (Button/Input/Text/Stack/Card/Badge → IMPL-UI-002), `/slice/primitives` 쇼케이스 (→ IMPL-UI-002), CSS Modules 인프라 (→ IMPL-UI-002-P4), tokens.css 갭 (shadow-focus/border-strong/input-height/cta-text/radius-2xl → IMPL-UI-002-P2), i18n (next-intl), 관측성 (Sentry/PostHog), visual regression (Chromatic), E2E (Playwright), 기능 페이지 (로그인/플랜/결제/대시보드).
 ### 연관 파일: packages/ui-kit/, apps/web/, scripts/gate-check.sh, .claude/rules/pipeline.md, pipeline/templates/FE-CODEX-HANDOFF.template.md, DESIGN.md, DESIGN-claude.md, DESIGN-codex.md
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-UI-002-P2
+commit_sha: PENDING
+files_changed:
+  - packages/design-tokens/tokens.css
+  - packages/design-tokens/scripts/verify-contrast.ts
+  - packages/design-tokens/src/tokens.native.ts
+verified_by: claude-opus-4-7
+---
+### 완료: tokens.css 갭 보강 (Primitives 선행) — IMPL-UI-002-P2
+- 추가 토큰 (light+dark): `--cb-shadow-focus`, `--cb-border-strong/focus/error`, `--cb-button-pad-y/x`, `--cb-input-height`, `--cb-radius-2xl`, `--cb-cta-text` (총 +9, 63→72).
+- `--cb-border-strong = var(--cb-neutral-400)` 로 설정 — light 3.43:1 / dark 3.42:1 (WCAG 2.1 non-text ≥3:1).
+- `--cb-cta-text` 는 light 에서 `var(--cb-neutral-0)` (4.64:1 on brand-600), dark 에서는 brand-600 이 밝은 gold 로 뒤집히므로 `#1A1917` 하드코딩 (8.71:1).
+- `packages/design-tokens/scripts/verify-contrast.ts` 신규: WCAG 2.1 상대 휘도 공식으로 light+dark 12 쌍 × 2 테마 = 24 쌍 자동 검증. `var()` 재귀 해결 + hex→RGB→linear → contrastRatio.
+- 검증: `npx tsx scripts/verify-contrast.ts` → 24/24 pass (fail 0), `pnpm --filter @celebbase/design-tokens build` → emitted tokens.native.ts (light=72, dark=72, overrides=38), `pnpm turbo run typecheck` → 11/11 PASS.
+### 미완료: Pre-Step 3 (fe_slice_smoke `/slice/primitives` 추가), Pre-Step 4 (CSS Modules 인프라), 6 HANDOFF 본 구현 (IMPL-UI-002 main).
+### 연관 파일: packages/design-tokens/tokens.css, packages/design-tokens/scripts/verify-contrast.ts, packages/design-tokens/src/tokens.native.ts
