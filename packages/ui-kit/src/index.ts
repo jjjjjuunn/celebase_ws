@@ -25,3 +25,6 @@ export type {
 
 export { Button } from './components/Button/Button.js';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './components/Button/Button.js';
+
+export { Input } from './components/Input/Input.js';
+export type { InputProps, InputState } from './components/Input/Input.js';
