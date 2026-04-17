@@ -24,17 +24,20 @@ export function Badge(props: BadgeProps): ReactElement {
   const {
     variant = 'neutral',
     dot = false,
-    selected = false,
+    selected,
     onRemove,
     className,
     children,
     ...rest
   } = props;
 
+  const isToggle = selected !== undefined;
+  const isPressed = selected === true;
+
   const classes = [
     styles.badge,
     VARIANT_CLASS[variant],
-    selected ? styles.selected : null,
+    isPressed ? styles.selected : null,
     className,
   ]
     .filter(Boolean)
@@ -46,7 +49,7 @@ export function Badge(props: BadgeProps): ReactElement {
   };
 
   return (
-    <span {...rest} className={classes} aria-pressed={selected ? true : undefined}>
+    <span {...rest} className={classes} aria-pressed={isToggle ? isPressed : undefined}>
       {dot ? <span className={styles.dot} aria-hidden="true" /> : null}
       <span className={styles.label}>{children}</span>
       {onRemove ? (
