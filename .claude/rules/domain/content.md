@@ -49,6 +49,7 @@ paths:
 - 모든 이미지에 alt text.
 - 초기: English (en-US). i18n 프레임워크 Day 1 적용 (하드코딩 문자열 금지).
 - 숫자/단위: locale 기반 (미국 기본 lb/oz/°F, metric 전환 옵션).
+- **ARIA toggle consistency (IMPL-UI-002 교훈)**: toggle 버튼/칩 그룹의 모든 멤버는 `aria-pressed` 를 boolean 으로 항상 emit (selected=false 도 `"false"` 명시). attribute 생략은 display-only 일 때만 허용 — 스크린리더가 toggle 여부 자체를 인식하지 못하는 것을 방지한다. `:focus-visible` 로만 focus ring 제공, `:focus` 단독 사용은 마우스 클릭에도 노출되어 금지.
 
 ## Deployment & Infrastructure
 

@@ -41,6 +41,11 @@ type ApiResponse<T> =
 | DB column | snake_case | `created_at` |
 | API endpoint | kebab-case | `/bio-profile` |
 
+### tsconfig `include` 커버리지 (IMPL-UI-002 교훈)
+
+- 각 package 의 `tsconfig.json` `include` 는 실제 lint/typecheck 대상 모든 경로를 포함해야 한다. `src` 만 포함하고 `scripts/*.ts` 를 제외하면 ESLint project-service 범위 밖이 되어 monorepo turbo lint 가 fail.
+- 빌드 대상과 tool script 의 tsconfig 가 분리되어야 할 때는 `tsconfig.scripts.json` 으로 분리하고 eslint override 로 `scripts/**` 를 해당 project 에 매핑한다.
+
 ## Python (AI Engine)
 
 ```python
