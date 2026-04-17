@@ -30,6 +30,38 @@ services:
       timeout: 3s
       retries: 5
 
+  db-migrate:
+    image: postgres:16-alpine
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -eu
+        psql -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS pgmigrations (id SERIAL PRIMARY KEY, name VARCHAR(255) UNIQUE NOT NULL, run_on TIMESTAMP NOT NULL)"
+        for f in $$(ls /db/migrations/*.sql | sort); do
+          name=$$(basename "$$f" .sql)
+          exists=$$(psql -tAc "SELECT 1 FROM pgmigrations WHERE name='$$name'")
+          if [ -z "$$exists" ]; then
+            echo ">> Applying $$name"
+            psql -v ON_ERROR_STOP=1 -f "$$f"
+            psql -c "INSERT INTO pgmigrations(name, run_on) VALUES ('$$name', NOW())"
+          else
+            echo ">> Skipping $$name (already applied)"
+          fi
+        done
+        echo ">> All migrations applied."
+    volumes:
+      - ./db:/db:ro
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: celebbase
+      PGDATABASE: celebbase_dev
+      PGPASSWORD: devpw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   localstack:
     image: localstack/localstack:3
     ports:
@@ -60,13 +92,21 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-secret-not-for-prod
       PHI_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
-      STRIPE_ENABLED: "false"
+      STRIPE_ENABLED: "true"
+      STRIPE_SECRET_KEY: sk_test_dummy_not_for_real_calls
+      STRIPE_WEBHOOK_SECRET: whsec_dummy_not_for_real_calls
+      STRIPE_PREMIUM_PRICE_ID: price_dummy_premium
+      STRIPE_ELITE_PRICE_ID: price_dummy_elite
+      STRIPE_SUCCESS_URL: http://localhost:3000/checkout/success
+      STRIPE_CANCEL_URL: http://localhost:3000/checkout/cancel
       LOG_LEVEL: info
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
       interval: 10s
@@ -88,6 +128,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3002/health"]
       interval: 10s
@@ -125,6 +167,8 @@ services:
         condition: service_healthy
       content-service:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3003/health').status==200 else 1)"]
       interval: 10s

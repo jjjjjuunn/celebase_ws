@@ -629,3 +629,31 @@ verified_by: claude-opus-4-7
 - **회귀 0**: pnpm -r test 60/60 PASS, meal-plan-engine pytest 64/64 PASS.
 ### 미완료: LocalStack 기반 E2E 통합 테스트 T1/T2/T3 (→ IMPL-014-d), DB migration runner 원샷 서비스 (→ 14-d 전 별도 태스크), TS `/health` 응답에 version 필드 추가 (→ 별도 DoD 패치), compose 기반 CI 통합 (→ IMPL-016), 이미지 레지스트리 푸시 + 버전 태깅 (→ IMPL-017), hot-reload 개발 모드 (→ 별도 `docker-compose.dev.yml` override 태스크).
 ### 연관 파일: docker-compose.yml, docker/localstack/init/01-create-sqs-queue.sh, services/user-service/Dockerfile, services/content-service/Dockerfile, services/meal-plan-engine/Dockerfile, .dockerignore, .npmrc, services/meal-plan-engine/src/config.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/services/sqs_publisher.py, packages/service-core/src/app.ts
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-014-d1
+commit_sha: PENDING
+files_changed:
+  - docker-compose.yml
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/pytest.ini
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - services/meal-plan-engine/tests/integration/test_e2e_happy_path.py
+  - services/meal-plan-engine/src/database.py
+  - services/meal-plan-engine/src/clients/user_client.py
+verified_by: claude-opus-4-7 + codex (adversarial review ×1)
+---
+### 완료: compose db-migrate + T1 happy-path E2E — IMPL-014-d1
+- **db-migrate one-shot 서비스**: `postgres:16-alpine` + psql 루프 + `pgmigrations` 추적 테이블로 idempotent 멀티 마이그레이션 적용. `service_completed_successfully`로 3개 서비스(user/content/meal-plan-engine) depends_on 체인. postgres `pg_uuidv7`은 `docker/postgres/init/` 에서 미리 생성.
+- **node-pg-migrate 포기 이유**: 초기 계획(node-pg-migrate@7 + `--no-transaction`)은 `CREATE INDEX CONCURRENTLY` 가 여전히 transaction block 에서 실행되어 25001 오류 발생. psql 루프는 각 `.sql` 파일을 개별 statement 로 순차 실행하여 문제 해결. 부수 이익: npx cold-download(~15s) 제거, `npm-cache` named volume 불필요.
+- **user-service `/subscriptions/me` 404 (STRIPE_ENABLED=false)**: compose 기본값 `STRIPE_ENABLED: "false"` 로 `subscriptionRoutes` 미등록 → user_client `{tier:"free"}` fallback → 403 SUBSCRIPTION_REQUIRED. 수정: dev compose 에서 `STRIPE_ENABLED: "true"` + dummy Stripe env vars 주입. `getMySubscription` 은 DB-only 라 Stripe API 미호출.
+- **asyncpg JSONB 역직렬화 버그**: JSONB 컬럼이 기본값으로 `str` 로 디코딩되어 `preferences.get(...)` `AttributeError` 발생. `database.py` 에 `init=_register_jsonb_codec` 추가(json/jsonb 양쪽 모두 커버). encoder 는 `str` 은 그대로, dict/list 는 `json.dumps` 하여 기존 `json.dumps(x)` 호출도 안전.
+- **bio-profile 숫자 필드 타입 버그**: pg NUMERIC 은 node-postgres 기본 driver 가 `str` 반환 → `height_cm/weight_kg` 이 `"70.0"` 문자열로 도달 → `macro_rebalancer.rebalance_macros` 에서 `TypeError: '<=' not supported between str and int`. `user_client.get_bio_profile` 에 float 강제 coercion 추가.
+- **T1 테스트 설계(Codex HIGH #2/#3 반영)**: primary 완료 신호 = REST GET polling(DB `status='completed'`, 60s timeout, 1s interval). WS 는 secondary — 핸드셰이크 성공만 확인. 이유: `src/api/websocket.py` 의 `_connections` dict 는 in-memory + no replay → 구독 타이밍 race 로 event 손실. consumer 의 최종 `repo.update_meal_plan({status:"completed"})` write 는 원자적.
+- **T1 fixtures (Codex HIGH #4/#5)**: `seed_base_diet` 는 meal_type 별 recipe 4개(breakfast/lunch/dinner/snack) 삽입 — 빈 candidate_pool 에서 `weekly_plan=[]` 반환 방지. `seed_user` 는 `subscriptions` row(`tier='premium'`, `status='active'`) 삽입 — user-service `getMySubscription` 의 free tier fallback 방지.
+- **스코프 확장 근거**: 계획상 5-file cap 이었으나 실제 E2E 실행 중 발견된 3건의 잠복 버그(JSONB codec, NUMERIC coercion, STRIPE gating)를 수정하지 않으면 T1 통과 불가. 이는 "첫 real E2E 가 드러낸 production-path 버그" 로 해당 세션에서 fix-forward.
+- **결과**: T1 happy path PASS(`status=='completed'`, `len(daily_plans)==7`, WS handshake OK). 유닛 회귀 64/64 PASS. 15 tables + pgmigrations 추적 테이블 확인.
+### 미완료: T2 DLQ retry E2E (→ IMPL-014-d2), T3 WS ticket single-use reuse block (→ IMPL-014-d2), compose 기반 CI 통합 (→ IMPL-016), prod migration runner(dev-only psql 루프와 분리) (→ IMPL-017+).
+### 연관 파일: docker-compose.yml, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/pytest.ini, services/meal-plan-engine/tests/integration/conftest.py, services/meal-plan-engine/tests/integration/test_e2e_happy_path.py, services/meal-plan-engine/src/database.py, services/meal-plan-engine/src/clients/user_client.py

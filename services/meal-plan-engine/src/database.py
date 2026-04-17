@@ -7,9 +7,27 @@ should retrieve the pool via :func:`get_pool` to execute queries.
 
 from __future__ import annotations
 
+import json
+
 import asyncpg
 
 _pool: asyncpg.Pool | None = None
+
+
+def _jsonb_encoder(value: object) -> str:
+    # Accept pre-serialised strings (legacy callers pass json.dumps(...))
+    # as well as Python objects that still need to be encoded.
+    return value if isinstance(value, str) else json.dumps(value)
+
+
+async def _register_jsonb_codec(conn: asyncpg.Connection) -> None:
+    for typename in ("json", "jsonb"):
+        await conn.set_type_codec(
+            typename,
+            encoder=_jsonb_encoder,
+            decoder=json.loads,
+            schema="pg_catalog",
+        )
 
 
 async def get_pool() -> asyncpg.Pool:  # noqa: D401
@@ -38,7 +56,9 @@ async def init_pool(dsn: str) -> asyncpg.Pool:
 
     global _pool  # pylint: disable=global-statement
 
-    _pool = await asyncpg.create_pool(dsn, min_size=2, max_size=20)
+    _pool = await asyncpg.create_pool(
+        dsn, min_size=2, max_size=20, init=_register_jsonb_codec
+    )
     return _pool
 
 

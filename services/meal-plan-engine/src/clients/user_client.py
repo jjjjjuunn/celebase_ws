@@ -66,5 +66,14 @@ async def get_bio_profile(user_id: str, auth_token: str) -> Dict[str, Any]:
         resp = await client.get(url, headers=headers)
         resp.raise_for_status()
         data: Dict[str, Any] = resp.json()
+        # node-postgres serialises NUMERIC as str; engine modules require float.
+        for field in ("height_cm", "weight_kg", "waist_cm", "body_fat_pct",
+                      "sleep_hours_avg", "tdee", "bmr_kcal"):
+            val = data.get(field)
+            if isinstance(val, str):
+                try:
+                    data[field] = float(val)
+                except ValueError:
+                    pass
         _logger.info("Fetched bio-profile for user %s", user_id)
         return data
