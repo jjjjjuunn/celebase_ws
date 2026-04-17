@@ -552,10 +552,11 @@ check_fe_slice_smoke() {
     issues="dev server did not become ready on port ${port} within 45s\n$(tail -20 "$log_file")"
     exit_code=1
   else
-    for route in /slice /slice/tokens /slice/components; do
+    for route in /slice /slice/tokens /slice/components /slice/primitives; do
       local code
       code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${port}${route}" 2>/dev/null || echo "000")
-      # 200 required for /slice. /slice/tokens and /slice/components are OK if 200 OR 404 (page may not exist yet).
+      # 200 required for /slice. Others are OK if 200 OR 404 (page may not exist yet).
+      # /slice/primitives will be required to 200 after IMPL-UI-002 G3-b showcase lands (follow-up commit).
       if [[ "$route" == "/slice" ]]; then
         if [[ "$code" != "200" ]]; then
           issues+="${route} returned ${code} (expected 200)\n"

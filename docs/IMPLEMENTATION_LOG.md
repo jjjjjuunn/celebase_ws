@@ -759,3 +759,20 @@ verified_by: claude-opus-4-7
 - 검증: `npx tsx scripts/verify-contrast.ts` → 24/24 pass (fail 0), `pnpm --filter @celebbase/design-tokens build` → emitted tokens.native.ts (light=72, dark=72, overrides=38), `pnpm turbo run typecheck` → 11/11 PASS.
 ### 미완료: Pre-Step 3 (fe_slice_smoke `/slice/primitives` 추가), Pre-Step 4 (CSS Modules 인프라), 6 HANDOFF 본 구현 (IMPL-UI-002 main).
 ### 연관 파일: packages/design-tokens/tokens.css, packages/design-tokens/scripts/verify-contrast.ts, packages/design-tokens/src/tokens.native.ts
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-UI-002-P3
+commit_sha: PENDING
+files_changed:
+  - scripts/gate-check.sh
+verified_by: claude-opus-4-7
+---
+### 완료: fe_slice_smoke 라우트에 /slice/primitives 추가 — IMPL-UI-002-P3
+- `scripts/gate-check.sh check_fe_slice_smoke` 의 route 루프에 `/slice/primitives` 추가.
+- 초기 상태: 200 또는 404 허용 (쇼케이스 페이지 G3-b 이후 배치 예정).
+- Follow-up 커밋 (IMPL-UI-002 G3-b 완료 후): `/slice/primitives` 200 필수 전환.
+- Codex v2 리뷰 반영: 검증기 변경 + 기능 변경을 동일 커밋에 묶지 않기 위해 독립 커밋으로 분리.
+### 미완료: Pre-Step 4 (CSS Modules 인프라), 6 HANDOFF 본 구현, 200 필수 전환 (G3-b 뒤 follow-up).
+### 연관 파일: scripts/gate-check.sh
