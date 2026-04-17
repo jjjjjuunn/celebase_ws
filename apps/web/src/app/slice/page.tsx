@@ -10,7 +10,7 @@ export default function SliceIndex() {
           <Link href="/slice/tokens">/slice/tokens</Link> — populated by IMPL-UI-001
         </li>
         <li>
-          <Link href="/slice/components">/slice/components</Link> — populated by IMPL-UI-002
+          <Link href="/slice/primitives">/slice/primitives</Link> — populated by IMPL-UI-002
         </li>
       </ul>
     </section>
