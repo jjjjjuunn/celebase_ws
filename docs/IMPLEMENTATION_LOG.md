@@ -796,3 +796,28 @@ verified_by: claude-opus-4-7
 - **Probe 검증**: 임시 `src/__probe__/probe.module.css` + `probe.ts` 로 빌드 실행 → `dist/__probe__/probe.module.css` 복사 확인, typecheck PASS, 제거.
 ### 미완료: IMPL-UI-002 파이프라인 init + 6 chunk HANDOFF (Stack/Text/Button/Input/Card/Badge), `/slice/primitives` 쇼케이스.
 ### 연관 파일: packages/ui-kit/src/types/css-modules.d.ts, packages/ui-kit/scripts/copy-css.mjs, packages/ui-kit/package.json
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7 + codex (adversarial review ×7)
+task_id: IMPL-014-d2
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - docker-compose.yml
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - services/meal-plan-engine/tests/integration/test_dlq_retry.py
+  - services/meal-plan-engine/tests/integration/test_ws_ticket_reuse.py
+verified_by: claude-opus-4-7 + codex-review (Revision 7 GO)
+---
+### 완료: T2 DLQ retry + T3 WS ticket single-use E2E — IMPL-014-d2
+- **T2 (DLQ retry)**: `meal_plans` row 에 valid `base_diet_id`(FK 만족) 삽입 후 SQS body 에만 phantom UUID 주입 → consumer 가 `content_client.get_base_diet(phantom)` 404 로 실패 → 1회 재시도 → terminal `status='failed'` + main queue drain. 실패 vector 위치: `sqs_consumer.py:62` (body 에서 `base_diet_id` 파싱) → `:74` (`get_base_diet` 호출). FK 충돌 방지를 위해 body 의 `base_diet_id` 만 phantom, DB row 는 `seed_base_diet["diet_id"]` 유지.
+- **SQS visibility timeout 환경변수화**: `sqs_consumer.py` 모듈 스코프에 `_VISIBILITY_TIMEOUT = int(os.environ.get("SQS_VISIBILITY_TIMEOUT", "120"))` 추가, `:173` 의 하드코딩 120 을 `_VISIBILITY_TIMEOUT` 으로 교체. `docker-compose.yml` 의 meal-plan-engine 에 `SQS_VISIBILITY_TIMEOUT: "10"` 주입 → 재시도 창을 10초로 단축하여 60s 테스트 예산 안에 retry→terminal 경로 완주. 프로덕션 기본값 120 유지(Settings 에는 추가하지 않음 — 테스트 관심사 누수 방지).
+- **T2 drain 검증 (LocalStack counter lag 대응)**: 단일 `get_queue_attributes` 읽기는 counter 가 한 polling cycle 지연되어 불안정 → 3회 연속 `ApproximateNumberOfMessages="0"` + `ApproximateNumberOfMessagesNotVisible="0"` (1s 간격, 최대 15s) 요구. 이어서 `receive_message(WaitTimeSeconds=1)` 공백 확인으로 이중 검증.
+- **T3 (WS ticket single-use)**: `POST /ws/ticket` → 첫 WS connect 에서 `send("ping") → recv() → {"event":"pong"}` 2s 라운드트립 성공, 동일 ticket 재사용은 거부. `_validate_ticket` 이 Redis `GET → DEL` 순서로 ticket 을 즉시 소비(`websocket.py:32-46`) → 재사용 시 `close(code=4001)` 이 `accept()` 이전에 호출되어 Uvicorn 핸드셰이크에서 HTTP 403 매핑.
+- **T3 rejection 경로 이원화**: Path A(HTTP 403 — `InvalidStatus` / `InvalidStatusCode`) 와 Path B(accept 후 `ConnectionClosedError`) 모두 수용. `websockets` v16.0 은 `InvalidStatus` 가 modern API(`exc.response.status_code`)이고 `InvalidStatusCode`(`exc.status_code`) 는 deprecated alias — 두 클래스 모두 isinstance 검사로 방어. `OSError`/`ConnectionRefusedError` 는 재던지기(fail-fast) — 컨테이너 다운을 "예상된 거부" 로 삼키지 않음.
+- **T3 usable-session 정의 (Codex r2 Q4a)**: 첫 connect 성공은 `async with` 진입만으로는 불충분 — 명시적 pong payload 검증 필수. `recv()` 타임아웃은 usable 아님.
+- **Codex 적대적 리뷰 7 라운드**: r1(queue 단일 read 불안정 → 3연속 zero drain) → r2(`send_text` 서버 API 혼동, OSError swallow 금지, vis=5→10) → r3(값 일관성, NOT NULL 컬럼 명시, JWT 값 명시) → r4(phantom `base_diet_id` FK 위반 → DB row 는 valid, body 만 phantom) → r5(fixture key `["diet_id"]`) → r6(FK fix 잔존 2곳, GET polling auth 누락) → r7(GO).
+- **검증 결과**: 컨테이너 내 `_VISIBILITY_TIMEOUT=10` 확인, T1 regression PASS, T2+T3 PASS (14.43s), full integration 3/3, unit 64/64.
+### 미완료: compose 기반 CI 통합 (→ IMPL-016), prod migration runner 분리 (→ IMPL-017+), multi-worker `_recover_stuck_plans` lease/heartbeat 패턴 (Phase B), WS ticket 멀티워커 `GET→DEL` atomicity (`_validate_ticket` Redis race — 현재 단일 워커 가정).
+### 연관 파일: services/meal-plan-engine/src/consumers/sqs_consumer.py, docker-compose.yml, services/meal-plan-engine/tests/integration/conftest.py, services/meal-plan-engine/tests/integration/test_dlq_retry.py, services/meal-plan-engine/tests/integration/test_ws_ticket_reuse.py

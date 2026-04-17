@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
@@ -30,6 +31,8 @@ from src.services.sqs_publisher import PlanGenerationMessage
 _logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 1
+
+_VISIBILITY_TIMEOUT: int = int(os.environ.get("SQS_VISIBILITY_TIMEOUT", "120"))
 
 # Per-message retry tracking keyed by SQS MessageId.
 # Entries are removed on success or terminal failure to prevent memory growth.
@@ -167,7 +170,7 @@ async def start_consumer(queue_url: str) -> None:
                 QueueUrl=queue_url,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=20,
-                VisibilityTimeout=120,
+                VisibilityTimeout=_VISIBILITY_TIMEOUT,
             )
             consecutive_errors = 0
 

@@ -156,6 +156,7 @@ services:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       LOG_LEVEL: INFO
+      SQS_VISIBILITY_TIMEOUT: "10"
     depends_on:
       postgres:
         condition: service_healthy

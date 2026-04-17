@@ -163,6 +163,17 @@ def clear_sqs_queue() -> None:
             raise
 
 
+@pytest.fixture
+def sqs_client():
+    return boto3.client(
+        "sqs",
+        endpoint_url=SQS_ENDPOINT,
+        region_name="us-east-1",
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+    )
+
+
 @pytest_asyncio.fixture
 async def http_user_service():
     async with httpx.AsyncClient(base_url=USER_SERVICE_URL, timeout=10.0) as c:
