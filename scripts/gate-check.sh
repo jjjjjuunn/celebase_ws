@@ -6,7 +6,8 @@
 #   scripts/gate-check.sh all [--cd <worktree-path>] [--output <json-path>]
 #
 # Checks: typecheck, lint, python_lint, test, policy, secrets, sql_schema,
-#          service_boundary, phi_audit, migration_freshness, all
+#          service_boundary, phi_audit, migration_freshness,
+#          fe_token_hardcode, fe_slice_smoke, fe_axe, all
 
 set -euo pipefail
 
@@ -470,6 +471,144 @@ check_secrets() {
   RESULTS+=("{\"name\":\"secrets\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
+# FE token hardcode: scan apps/*/src/** and packages/ui-kit/src/** for raw hex colors.
+# Allowlist: packages/design-tokens/*.css and packages/design-tokens/*.ts (token source).
+check_fe_token_hardcode() {
+  local exit_code=0
+  local issues=""
+
+  cd "$WORK_DIR"
+
+  local scan_roots=()
+  for d in apps/*/src packages/ui-kit/src; do
+    [[ -d "$d" ]] && scan_roots+=("$d")
+  done
+
+  if [[ ${#scan_roots[@]} -eq 0 ]]; then
+    RESULTS+=('{"name":"fe_token_hardcode","passed":true,"exit_code":0,"output":"No FE source directories"}')
+    return
+  fi
+
+  # Match #rgb / #rrggbb / #rrggbbaa in .ts/.tsx/.css/.scss source files.
+  # Exclude comments heuristically (lines starting with // or * or #)? We keep strict — raw hex in any form is a FAIL.
+  local matches
+  matches=$(grep -rnE \
+    --include='*.ts' --include='*.tsx' --include='*.css' --include='*.scss' \
+    '#[0-9a-fA-F]{3}([0-9a-fA-F]{3}([0-9a-fA-F]{2})?)?\b' \
+    "${scan_roots[@]}" 2>/dev/null || true)
+
+  # Filter out false-positive URL fragments (#section, #!/, #ffffff-like-only-for-test)
+  # Strictly keep only 3/6/8-char hex tokens.
+  matches=$(echo "$matches" | grep -vE '#[0-9a-fA-F]{3,8}[g-zG-Z]' || true)
+
+  if [[ -n "$matches" ]]; then
+    issues="Raw hex colors forbidden in FE source (use --cb-* tokens from @celebbase/design-tokens):\n$matches"
+    exit_code=1
+  fi
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$issues" | tail -30 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_token_hardcode\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
+# FE slice smoke: boot `pnpm --filter web dev` and curl /slice and /slice/tokens for 200.
+check_fe_slice_smoke() {
+  local exit_code=0
+  local issues=""
+
+  cd "$WORK_DIR"
+
+  if [[ ! -d "apps/web" ]]; then
+    RESULTS+=('{"name":"fe_slice_smoke","passed":true,"exit_code":0,"output":"apps/web missing — skipping"}')
+    return
+  fi
+
+  local log_file
+  log_file=$(mktemp -t fe-slice-smoke-XXXXXX.log)
+  local port="${FE_SMOKE_PORT:-3000}"
+
+  # Boot dev server in background
+  (cd apps/web && PORT="$port" pnpm dev >"$log_file" 2>&1) &
+  local pid=$!
+
+  # Wait up to 45s for port to be ready
+  local ready=false
+  for _ in $(seq 1 45); do
+    if curl -sf -o /dev/null "http://localhost:${port}/slice" 2>/dev/null; then
+      ready=true
+      break
+    fi
+    sleep 1
+  done
+
+  if [[ "$ready" != "true" ]]; then
+    issues="dev server did not become ready on port ${port} within 45s\n$(tail -20 "$log_file")"
+    exit_code=1
+  else
+    for route in /slice /slice/tokens /slice/components; do
+      local code
+      code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${port}${route}" 2>/dev/null || echo "000")
+      # 200 required for /slice. /slice/tokens and /slice/components are OK if 200 OR 404 (page may not exist yet).
+      if [[ "$route" == "/slice" ]]; then
+        if [[ "$code" != "200" ]]; then
+          issues+="${route} returned ${code} (expected 200)\n"
+          exit_code=1
+        fi
+      else
+        if [[ "$code" != "200" && "$code" != "404" ]]; then
+          issues+="${route} returned ${code} (expected 200 or 404)\n"
+          exit_code=1
+        fi
+      fi
+    done
+  fi
+
+  # Cleanup dev server
+  kill "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  rm -f "$log_file"
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$issues" | tail -30 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_slice_smoke\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
+# FE axe: optional axe-core violation check. Only runs when FE_AXE=1.
+# Requires EVALUATOR_BROWSER_TOOL (playwright-mcp) to be configured externally;
+# this gate only records that the check was invoked and defers actual browser execution
+# to the evaluator runtime (.claude/rules/evaluator-runtime.md).
+check_fe_axe() {
+  if [[ "${FE_AXE:-0}" != "1" ]]; then
+    RESULTS+=('{"name":"fe_axe","passed":true,"exit_code":0,"output":"FE_AXE=0 — skipped (set FE_AXE=1 to enable)"}')
+    return
+  fi
+
+  local browser_tool="${EVALUATOR_BROWSER_TOOL:-}"
+  if [[ -z "$browser_tool" ]]; then
+    RESULTS+=('{"name":"fe_axe","passed":false,"exit_code":1,"output":"FE_AXE=1 requires EVALUATOR_BROWSER_TOOL env var"}')
+    OVERALL_PASS=false
+    return
+  fi
+
+  # This check is declarative — it signals the evaluator to run axe-core against /slice/*.
+  # The evaluator records the axe report path in pipeline/runs/<TASK-ID>/.
+  RESULTS+=("{\"name\":\"fe_axe\",\"passed\":true,\"exit_code\":0,\"output\":\"declared (browser_tool=$browser_tool) — evaluator runs actual axe injection\"}")
+}
+
 # Run requested checks
 case "$CHECK" in
   typecheck)
@@ -505,6 +644,15 @@ case "$CHECK" in
   service_boundary)
     check_service_boundary
     ;;
+  fe_token_hardcode)
+    check_fe_token_hardcode
+    ;;
+  fe_slice_smoke)
+    check_fe_slice_smoke
+    ;;
+  fe_axe)
+    check_fe_axe
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -518,10 +666,14 @@ case "$CHECK" in
     check_service_boundary
     check_phi_audit
     check_migration_freshness
+    check_fe_token_hardcode
+    check_fe_axe
+    # fe_slice_smoke is not run in 'all' — it boots a dev server. Invoke explicitly:
+    #   scripts/gate-check.sh fe_slice_smoke
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, all" >&2
     exit 1
     ;;
 esac

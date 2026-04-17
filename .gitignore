@@ -46,3 +46,6 @@ pipeline/runs/
 # Generated design tokens (rebuilt from packages/design-tokens/tokens.css)
 packages/design-tokens/src/tokens.native.ts
 packages/ui-kit/storybook-static/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

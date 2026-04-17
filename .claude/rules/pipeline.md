@@ -157,3 +157,68 @@ python3 -m venv services/meal-plan-engine/.venv
 Codex QA 프롬프트에 `.venv/bin/python -m pytest` 경로를 명시한다. 그래도 가짜 `pytest/` 디렉토리가 생성되면 `gate-check.sh`의 `check_fake_stubs()`가 자동 탐지하여 gate FAIL 처리한다.
 
 gate-qa 판정 시 Claude가 직접 `python3 -m pytest`를 실행해 실제 통과 여부를 이중 확인한다.
+
+---
+
+## FE 파이프라인 규칙 (IMPL-UI-*)
+
+> 본 섹션은 프론트엔드 (Next.js `apps/web`, `packages/ui-kit`, `packages/design-tokens`) 작업에만 적용한다.
+> BE (Python 서비스·migration·PHI) 규칙은 위 섹션들을 유지한다 — 두 규칙 세트는 독립이다.
+
+### 템플릿 분리
+
+- **FE 전용 HANDOFF**: `pipeline/templates/FE-CODEX-HANDOFF.template.md`
+- **BE HANDOFF**: `pipeline/templates/CODEX-HANDOFF.template.md` (기존 파일, 수정 금지)
+- 한 TASK-ID 는 둘 중 하나만 사용한다. 혼용 금지.
+
+### FE Task ID 규칙
+
+- `IMPL-UI-###` 또는 `IMPL-UI-###-<slug>` 형식
+- Affected Paths 는 `apps/*/src/**`, `packages/ui-kit/src/**`, `packages/design-tokens/**` 로만 제한
+- BE 경로 (`services/*`, `db/migrations/*`) 를 건드려야 하면 태스크를 분할한다
+
+### Claude / Codex 하이브리드 분업 (FE 특화)
+
+| 작업 유형 | 담당 | 이유 |
+|-----------|------|------|
+| design-tokens 파이프라인 (build 스크립트·원천 CSS·타입 정의) | **Claude** | 토큰 구조 결정은 DESIGN.md 해석 필요 |
+| ui-kit 컴포넌트 구현 (variant·state·a11y) | **Codex** | 반복 JSX 패턴 양산에 강점 |
+| `/slice/*` preview 페이지 | **Codex** | 기존 레이아웃 shell 재사용 |
+| a11y·axe 리뷰 | **Codex** | 독립 시각 검증 |
+| 토큰 네이밍·스케일 결정 | **Claude** | DESIGN.md §2·§3 해석 |
+| 브랜드 accent 선택·금지 목록 | **Claude** | DESIGN.md §13.4 Anti-Patterns 관리 |
+
+### Raw Hex 금지 (자동 검증)
+
+- `apps/*/src/**`, `packages/ui-kit/src/**` 내 `.ts/.tsx/.css/.scss` 에서 raw hex (`#[0-9a-fA-F]{3,8}`) 사용 금지
+- 화이트리스트: `packages/design-tokens/*.css`, `packages/design-tokens/*.ts` (토큰 정의 원본)
+- 자동 검증: `scripts/gate-check.sh fe_token_hardcode`
+- 신규 색 필요 시 **먼저** `packages/design-tokens/tokens.css` 확장 → 컴포넌트에서 `--cb-*` 토큰으로 참조
+
+### FE DoD 필수 근거 (gate-implement 판정 기준)
+
+- `pnpm --filter web typecheck` 로그
+- `pnpm --filter web lint` 로그
+- `scripts/gate-check.sh fe_token_hardcode` JSON (`passed:true`)
+- `scripts/gate-check.sh fe_slice_smoke` JSON (`passed:true`, `/slice` 200 기록 포함)
+- (선택) `FE_AXE=1 scripts/gate-check.sh fe_axe` — Playwright MCP 환경에서만 실행, serious/critical 0
+
+### FE Gate 체크 구성
+
+| 체크 | 기본 `all` 포함 | 언제 수동 실행 |
+|------|----------------|---------------|
+| `fe_token_hardcode` | ✅ 포함 | 항상 실행 |
+| `fe_axe` | ✅ 포함 (FE_AXE=1 일 때만 실제 검증) | UI 변경 PR 직전 |
+| `fe_slice_smoke` | ❌ 제외 (dev server 기동 필요) | gate-implement / gate-qa 단계에서 명시 호출 |
+
+### HANDOFF 크기 제한 (FE 특화)
+
+- 파일 수 판단식: 신규 × 1.5 + 수정 × 1.0 ≤ 5
+- TSX 컴포넌트 위주면 **4 이하** 권장 (JSX + type + CSS module 분산으로 토큰 소비 큼)
+- design-tokens 스크립트는 Claude 직접 구현이므로 이 제한에서 제외
+
+### 회귀 방지
+
+- `/slice` 는 모든 FE 태스크 완료 후 200 을 유지한다 (layout.tsx 삭제 금지)
+- 기존 preview route 들은 FE 태스크 완료 전후로 curl 200 이 동일해야 한다
+- DESIGN.md §2 토큰 정의와 `packages/design-tokens/tokens.css` 값 은 grep 상호 확인으로 정합성 유지

@@ -685,3 +685,57 @@ verified_by: claude-opus-4-7
 - 이전 세션 결과 (2026-04-16) 일괄 커밋으로 trackable 화. 직접 검증은 해당 세션에서 수행 완료 — 이번 엔트리는 history 정리.
 ### 미완료: CSS Modules 인프라 (→ IMPL-UI-002-P4), primitives 토큰 갭 보강 (→ IMPL-UI-002-P2).
 ### 연관 파일: packages/design-tokens/, pnpm-workspace.yaml, turbo.json, .gitignore
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7 + codex (plan review ×1)
+task_id: IMPL-UI-SETUP
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/package.json
+  - packages/ui-kit/tsconfig.json
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/src/theme/ThemeProvider.tsx
+  - packages/ui-kit/src/theme/ThemePrePaintScript.tsx
+  - packages/ui-kit/.storybook/main.ts
+  - packages/ui-kit/.storybook/preview.tsx
+  - packages/ui-kit/stories/Tokens.stories.tsx
+  - apps/web/package.json
+  - apps/web/next.config.ts
+  - apps/web/tsconfig.json
+  - apps/web/next-env.d.ts
+  - apps/web/src/app/layout.tsx
+  - apps/web/src/app/page.tsx
+  - apps/web/src/app/slice/layout.tsx
+  - apps/web/src/app/slice/page.tsx
+  - apps/web/src/app/slice/tokens/page.tsx
+  - apps/web/src/styles/globals.css
+  - apps/web/src/lib/axe-dev.ts
+  - apps/web/public/fonts/Fraunces-Variable.woff2
+  - apps/web/public/fonts/PlusJakartaSans-Variable.woff2
+  - apps/web/public/fonts/JetBrainsMono-Variable.woff2
+  - scripts/gate-check.sh
+  - .claude/rules/pipeline.md
+  - .claude/hooks/notify-done.sh
+  - .claude/hooks/post-edit-lint.sh
+  - .claude/hooks/pre-tool-safety.sh
+  - pipeline/templates/FE-CODEX-HANDOFF.template.md
+  - DESIGN.md
+  - DESIGN-claude.md
+  - DESIGN-codex.md
+  - .gitignore
+verified_by: claude-opus-4-7
+---
+### 완료: theme provider + Storybook + apps/web scaffold + FE 파이프라인 규칙 — IMPL-UI-SETUP
+- `@celebbase/ui-kit` 패키지: `ThemeProvider` (Context + `useTheme()` 훅, `{mode, resolvedTheme, setMode}`, matchMedia 구독, localStorage persist, `document.documentElement.dataset.theme` 세팅) + `ThemePrePaintScript` (RSC-safe, 하드코딩 IIFE `<script>` 로 FOUC 방지) + `THEME_STORAGE_KEY` export.
+- `packages/ui-kit/.storybook/{main,preview}.ts[x]`: Storybook 9 + `@storybook/react-vite`, `staticDirs` 로 `apps/web/public/fonts` → `/fonts`, `@font-face` 3종 (Plus Jakarta/JetBrains/Fraunces), `withThemeByDataAttribute` decorator + `addon-a11y` (WCAG2A/2AA) + viewport presets mobile(375)/tablet(768)/desktop(1440). `addon-essentials` **사용 금지** — Storybook 9 에서 해체됨.
+- `packages/ui-kit/stories/Tokens.stories.tsx`: 토큰 쇼케이스 5 named exports (Colors/Typography/Shadow/Radius/Space), `classify()` + `tokensIn()` 헬퍼 + `Swatch/TextSample/BoxSample` 포팅.
+- `apps/web`: Next.js 14 App Router 부트스트랩 — `layout.tsx` (Plus Jakarta/JetBrains/Fraunces `next/font/local` + `<html suppressHydrationWarning>` + `<head><ThemePrePaintScript/></head>` + `<ThemeProvider defaultMode="system">`), `src/app/slice/` preview shell, `src/app/slice/tokens/page.tsx` 쇼케이스 페이지.
+- `scripts/gate-check.sh`: FE 체크 3종 추가 — `fe_token_hardcode` (apps/* & ui-kit raw hex 탐지, design-tokens 화이트리스트), `fe_slice_smoke` (dev server + curl /slice /slice/tokens 200), `fe_axe` (Playwright MCP 환경에서만 `FE_AXE=1` 로 실제 검증).
+- `.claude/rules/pipeline.md`: FE 파이프라인 규칙 섹션 — 템플릿 분리(FE-CODEX-HANDOFF), TASK-ID `IMPL-UI-###` 규칙, Claude/Codex 하이브리드 분업 표(design-tokens=Claude, ui-kit primitives=Codex), Raw Hex 금지, DoD 근거 목록, HANDOFF 크기(신규×1.5+수정×1.0≤5).
+- `pipeline/templates/FE-CODEX-HANDOFF.template.md`: FE 전용 Codex HANDOFF 템플릿 — BE 템플릿과 분리, Affected Paths 제한, anti-pattern(NodeNext `.js` 확장자, `next/*` import 금지, raw hex 금지).
+- `.claude/hooks/`: pre-tool-safety + post-edit-lint + notify-done 훅 — Claude Code 작업 중 hook 기반 자동 검증.
+- 파이프라인 블로커 해결 기록: `.worktrees/*` 가 HEAD(e6dec76) 기준 생성되나 신규 패키지 untracked → `codex:codex-rescue` subagent 를 in-place 실행으로 우회 (BE 파이프라인과 구분 기록).
+- **검증 결과 (이전 세션 수행 완료)**: `pnpm --filter @celebbase/ui-kit typecheck/lint/build-storybook` 모두 exit 0, `pnpm turbo run typecheck` 11/11 PASS, `fe_token_hardcode` + `fe_slice_smoke` PASS, `/`/`/slice`/`/slice/tokens` 200, Storybook `index.json` 5 stories 등록, `grep "from 'next"` in ui-kit 0건.
+### 미완료: Primitives 6 종 (Button/Input/Text/Stack/Card/Badge → IMPL-UI-002), `/slice/primitives` 쇼케이스 (→ IMPL-UI-002), CSS Modules 인프라 (→ IMPL-UI-002-P4), tokens.css 갭 (shadow-focus/border-strong/input-height/cta-text/radius-2xl → IMPL-UI-002-P2), i18n (next-intl), 관측성 (Sentry/PostHog), visual regression (Chromatic), E2E (Playwright), 기능 페이지 (로그인/플랜/결제/대시보드).
+### 연관 파일: packages/ui-kit/, apps/web/, scripts/gate-check.sh, .claude/rules/pipeline.md, pipeline/templates/FE-CODEX-HANDOFF.template.md, DESIGN.md, DESIGN-claude.md, DESIGN-codex.md
