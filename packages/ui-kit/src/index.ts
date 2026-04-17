@@ -12,3 +12,13 @@ export { ThemePrePaintScript } from './theme/ThemePrePaintScript.js';
 
 export { Stack } from './components/Stack/Stack.js';
 export type { StackProps, SpaceTokenKey } from './components/Stack/Stack.js';
+
+export { Text } from './components/Text/Text.js';
+export type {
+  TextProps,
+  TextVariant,
+  TextSize,
+  TextWeight,
+  TextTone,
+  TextAs,
+} from './components/Text/Text.js';
