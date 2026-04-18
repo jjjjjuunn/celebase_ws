@@ -991,7 +991,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-17
 agent: claude-opus-4-7
 task_id: IMPL-APP-000b
-commit_sha: PENDING
+commit_sha: 0504f46
 files_changed:
   - scripts/gate-check.sh
   - scripts/eslint-bff.config.mjs
