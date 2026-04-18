@@ -13,7 +13,9 @@
   "dependencies": {
     "@celebbase/design-tokens": "workspace:*",
     "@celebbase/ui-kit": "workspace:*",
+    "jose": "^5",
     "next": "^15.1.0",
+    "pino": "^9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -21,6 +23,7 @@
     "@axe-core/react": "^4.10.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "eslint-config-next": "^15.1.0"
+    "eslint-config-next": "^15.1.0",
+    "pino-pretty": "^11"
   }
 }

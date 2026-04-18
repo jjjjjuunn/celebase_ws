@@ -22,6 +22,8 @@ from datetime import date, timedelta
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 POLL_TIMEOUT_S = 60.0
 POLL_INTERVAL_S = 1.0
 DRAIN_TIMEOUT_S = 15.0

@@ -73,12 +73,39 @@ check_policy() {
 
   cd "$WORK_DIR"
 
-  # Get changed files (compared to main)
+  # Determine diff base (CI-aware 5-branch fallback)
+  local base=""
+  if [[ -n "${GITHUB_BASE_REF:-}" ]] && git rev-parse --verify "origin/${GITHUB_BASE_REF}" >/dev/null 2>&1; then
+    base="origin/${GITHUB_BASE_REF}"
+  elif [[ -n "${GITHUB_EVENT_BEFORE:-}" && "${GITHUB_EVENT_BEFORE}" != "0000000000000000000000000000000000000000" ]] && git rev-parse --verify "${GITHUB_EVENT_BEFORE}" >/dev/null 2>&1; then
+    base="${GITHUB_EVENT_BEFORE}"
+  elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+    base="origin/main"
+  elif git rev-parse --verify main >/dev/null 2>&1; then
+    base="main"
+  else
+    base="HEAD~1"
+  fi
+
   local changed_files
-  changed_files=$(git diff --name-only main...HEAD -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || git diff --name-only HEAD~1 -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || echo "")
+  changed_files=$(git diff --name-only "${base}...HEAD" -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || echo "")
+
+  # Exclude self from scan to avoid self-match on the deny pattern strings
+  local SELF_EXCLUDE=("scripts/gate-check.sh")
+  local filtered=""
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    file="${file#./}"
+    local skip=0
+    for excl in "${SELF_EXCLUDE[@]}"; do
+      [[ "$file" == "$excl" ]] && { skip=1; break; }
+    done
+    [[ $skip -eq 0 ]] && filtered+="$file"$'\n'
+  done <<< "$changed_files"
+  changed_files="$filtered"
 
   if [[ -z "$changed_files" ]]; then
-    echo '{"name":"policy","passed":true,"exit_code":0,"output":"No changed files to check"}'
+    RESULTS+=('{"name":"policy","passed":true,"exit_code":0,"output":"No changed files to check"}')
     return
   fi
 
@@ -94,9 +121,22 @@ check_policy() {
     "console.log"
   )
 
+  # Test fixtures legitimately use destructive SQL for cleanup; limit those
+  # patterns to production code only.
+  local sql_destructive=("DROP TABLE" "TRUNCATE")
+
   for pattern in "${deny_patterns[@]}"; do
+    local scan_files="$changed_files"
+    local is_sql_destructive=0
+    for sqlp in "${sql_destructive[@]}"; do
+      [[ "$pattern" == "$sqlp" ]] && { is_sql_destructive=1; break; }
+    done
+    if [[ $is_sql_destructive -eq 1 ]]; then
+      scan_files=$(echo "$changed_files" | grep -v -E '(^|/)tests?/' || true)
+      [[ -z "$scan_files" ]] && continue
+    fi
     local matches
-    matches=$(echo "$changed_files" | xargs grep -l "$pattern" 2>/dev/null || true)
+    matches=$(echo "$scan_files" | xargs grep -l "$pattern" 2>/dev/null || true)
     if [[ -n "$matches" ]]; then
       issues+="DENY pattern '$pattern' found in: $matches\n"
       exit_code=1

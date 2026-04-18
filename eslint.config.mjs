@@ -22,4 +22,14 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['packages/design-tokens/scripts/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: ['./packages/design-tokens/tsconfig.scripts.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
 );

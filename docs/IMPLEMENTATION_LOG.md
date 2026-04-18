@@ -1015,3 +1015,53 @@ verified_by: claude-opus-4-7
 - **계획 근거**: `.claude/plans/adaptive-mixing-creek.md` §A9 (BFF 위반 3중 방어) / §A10 (contract drift 검증) / Sprint 0 IMPL-APP-000b DoD / Risk #16 / Risk #18.
 ### 미완료: Sprint A (IMPL-APP-001a deps+env+shared-types schemas+API client, 001b BFF route handlers, 001c providers+layouts).
 ### 연관 파일: scripts/gate-check.sh, scripts/eslint-bff.config.mjs, .semgrep.yml, apps/web/scripts/verify-api-contracts.ts
+
+---
+date: 2026-04-18
+agent: claude-opus-4-7
+task_id: CHORE-002
+commit_sha: e43f089
+files_changed:
+  - .github/workflows/ci.yml
+  - scripts/gate-check.sh
+  - packages/design-tokens/tsconfig.scripts.json
+  - packages/design-tokens/scripts/build.ts
+  - packages/design-tokens/scripts/verify-contrast.ts
+  - packages/design-tokens/package.json
+  - eslint.config.mjs
+  - services/meal-plan-engine/pytest.ini
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - services/meal-plan-engine/tests/integration/test_e2e_happy_path.py
+  - services/meal-plan-engine/tests/integration/test_dlq_retry.py
+  - services/meal-plan-engine/tests/integration/test_ws_ticket_reuse.py
+  - services/meal-plan-engine/package.json
+  - apps/web/src/app/slice/primitives/page.tsx
+  - apps/web/src/app/slice/composites/page.tsx
+  - pnpm-lock.yaml
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: agent-claude-opus-4-7 + agent-codex-r1r2r3 + agent-gemini-r1r2r3 + agent-plan-agent-r1
+---
+### 완료: CI baseline rescue — hashFiles 오용 제거, policy DRY 통합, design-tokens scripts 타입체크 복구, pytest integration marker 기본 skip, meal-plan-engine turbo test pickup
+- `.github/workflows/ci.yml` lint-typecheck / test job-level `if: hashFiles(...)` 삭제 (7개월간 0s-fail 원인). step-level line 151 유지.
+- `validate-compliance` 인라인 deny-pattern scan (28줄) → `bash scripts/gate-check.sh policy` 1줄 + `GITHUB_EVENT_BEFORE` env 주입으로 DRY 통합.
+- `scripts/gate-check.sh check_policy()` 5-branch diff base 폴백 체인 (PR → push → origin/main → main → HEAD~1) + SELF_EXCLUDE self-match 방지 + 빈 RESULTS 배열 early-return 시 unbound variable 버그 수정 + SQL-destructive 패턴 (`DROP TABLE` / `TRUNCATE`) 의 tests/ 경로 예외 (test fixture cleanup legitimate — 첫 CI 실행에서 surfaced).
+- `packages/design-tokens/tsconfig.scripts.json` (NEW) + `eslint.config.mjs` 4th entry (`projectService: false` 명시적 override) → `packages/design-tokens/scripts/*.ts` ESLint project-service 블라인드 스팟 해소.
+- scripts/*.ts의 기존 lint 에러 7건 수정 (non-null assertion 제거, template literal number 변환).
+- `services/meal-plan-engine/pytest.ini` markers 정의 (addopts `-m` 미사용 — CLI 충돌 방지) + `tests/integration/conftest.py` 모듈-레벨 `pytest.skip(allow_module_level=True)` — `LOCALSTACK_ENDPOINT` 미설정 시 통합 테스트 자동 스킵.
+- 3개 integration 테스트 파일에 `pytestmark = pytest.mark.integration` 추가.
+- `services/meal-plan-engine/package.json` (NEW) + `pnpm-lock.yaml` 재생성 → turbo가 meal-plan-engine pytest를 test pipeline에 포함.
+- CI `test` job에 Python venv setup 3-step (setup-python / pip install / GITHUB_PATH prepend) 추가 — D4 per R2 diagnostic.
+- 로컬 검증: `pnpm --filter design-tokens lint` 0 errors, `pnpm turbo run test --filter @celebbase/meal-plan-engine` 64 passed / 1 skipped, `bash scripts/gate-check.sh policy` exit 0.
+- R1/R2/R3 Codex + Gemini 적대적 리뷰 수렴: 4 BLOCKING + 2 HIGH + 6 MEDIUM + 3 LOW + 3 CORR 모두 반영.
+- 실제 CI 활성화 과정에서 surfaced 4 follow-up fix (plan 외 수정):
+  1. `scripts/gate-check.sh` SQL-destructive DENY 패턴의 tests/ 경로 예외 (첫 CI 실행에서 meal-plan-engine/tests/integration/conftest.py `TRUNCATE` false positive)
+  2. `services/meal-plan-engine/package.json` lint script — ruff 대신 `echo` (Node turbo lint job에 ruff 없음, root ruff step이 커버)
+  3. `pnpm-lock.yaml` — IMPL-APP-001a(18fdd2f) 커밋이 jose/pino/pino-pretty 추가하고 lockfile 업데이트 누락 → 재생성 (+21 packages)
+  4. `packages/design-tokens/package.json` typecheck — `tsx scripts/build.ts` 선행 (tokens.native.ts는 generated, untracked)
+  5. `apps/web/src/app/slice/{primitives,composites}/page.tsx` onChange 핸들러 4곳 — `(e: ChangeEvent<HTMLInputElement>)` 타입 명시 (@typescript-eslint/no-unsafe-argument / no-unsafe-member-access)
+- CI 최종 상태 (PR #3): 6 required checks 전부 pass (validate-docs / validate-schemas / validate-compliance / contract-tests / security-scan / require-log-entry). 3 non-required 실패 — follow-up chore로 기록:
+  - `🧹 Lint & Typecheck`: user-service의 IMPL-012 기존 에러 13건 (이전엔 hashFiles 가드로 미실행, 이번에 surfaced)
+  - `📊 Generate Progress`: 워크플로우 내 stale repo URL(`jjjjjuunn/celebase_ws` 유효) 참조 문제 — 기존 debt
+  - `⚠️ Notify on Failure`: 위 두 실패 전파
+### 미완료: Phase C (IMPL-016 rebase), Phase D (default branch 전환 + branch protection), CHORE-003 (required checks 확장, turbo.json explicit inputs), CHORE-004 (user-service IMPL-012 lint 13건 정리), CHORE-005 (LocalStack 통합 테스트 자동화)
+### 연관 파일: .github/workflows/ci.yml, scripts/gate-check.sh, packages/design-tokens/{tsconfig.scripts.json,scripts/,package.json}, eslint.config.mjs, services/meal-plan-engine/{package.json,pytest.ini,tests/integration/}, apps/web/src/app/slice/{primitives,composites}/page.tsx, pnpm-lock.yaml

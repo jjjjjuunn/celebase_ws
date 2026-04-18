@@ -15,6 +15,8 @@ from typing import Any, List
 import pytest
 import websockets
 
+pytestmark = pytest.mark.integration
+
 WS_BASE = "ws://localhost:3003"
 POLL_TIMEOUT_S = 60.0
 POLL_INTERVAL_S = 1.0

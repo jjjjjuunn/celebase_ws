@@ -52,8 +52,8 @@ function resolveVar(
   seen: Set<string> = new Set(),
 ): string {
   const match = raw.match(/^var\((--[a-z0-9-]+)\)$/i);
-  if (!match) return raw;
-  const name = match[1]!;
+  const name = match?.[1];
+  if (!name) return raw;
   if (seen.has(name)) throw new Error(`Cyclic var: ${name}`);
   seen.add(name);
   const next = map[name];
@@ -133,10 +133,10 @@ function main(): void {
 
   const failures = results.filter((r) => r.status === 'fail');
   if (failures.length > 0) {
-    process.stderr.write(`\n${failures.length} contrast failure(s).\n`);
+    process.stderr.write(`\n${String(failures.length)} contrast failure(s).\n`);
     process.exit(1);
   }
-  process.stdout.write(`\nAll ${results.length} pairs pass.\n`);
+  process.stdout.write(`\nAll ${String(results.length)} pairs pass.\n`);
 }
 
 main();
