@@ -611,6 +611,197 @@ check_fe_axe() {
   RESULTS+=("{\"name\":\"fe_axe\",\"passed\":true,\"exit_code\":0,\"output\":\"declared (browser_tool=$browser_tool) — evaluator runs actual axe injection\"}")
 }
 
+# FE BFF compliance: browser code must not reference service ports 3001/3002/3003.
+# Three-way enforcement per plan §A9:
+#   (a) ESLint no-restricted-syntax on literal URLs
+#   (b) Semgrep .semgrep.yml (no-direct-service-fetch)
+#   (c) grep -rn "localhost:300[123]" fallback catch
+# Scope: apps/web/src excluding app/api (BFF handlers are the only place these are allowed).
+check_fe_bff_compliance() {
+  if [[ ! -d "apps/web/src" ]]; then
+    RESULTS+=('{"name":"fe_bff_compliance","passed":true,"exit_code":0,"output":"skipped — apps/web/src not present"}')
+    return
+  fi
+
+  local issues=""
+  local combined_exit=0
+
+  # (a) ESLint no-restricted-syntax — matches literal URLs + template literals with
+  # localhost:3001/3002/3003. Uses a standalone flat config (scripts/eslint-bff.config.mjs)
+  # via --config so it bypasses the web workspace's main eslint setup.
+  local eslint_out
+  local eslint_exit=0
+  if [[ -f "scripts/eslint-bff.config.mjs" ]] && [[ -d "node_modules" ]]; then
+    eslint_out=$(pnpm exec eslint \
+      --config scripts/eslint-bff.config.mjs \
+      --no-error-on-unmatched-pattern \
+      'apps/web/src/**/*.ts' 'apps/web/src/**/*.tsx' \
+      'apps/web/src/**/*.js' 'apps/web/src/**/*.jsx' 2>&1) || eslint_exit=$?
+  else
+    eslint_out="[eslint] skipped — scripts/eslint-bff.config.mjs or node_modules missing"
+    eslint_exit=0
+  fi
+  if [[ $eslint_exit -ne 0 ]]; then
+    issues+=$'[eslint-no-restricted-syntax] fail\n'
+    issues+="$eslint_out"$'\n'
+    combined_exit=1
+  fi
+
+  # (b) Semgrep — only runs if semgrep binary is available; otherwise treat as advisory-skip.
+  if command -v semgrep >/dev/null 2>&1; then
+    local semgrep_out
+    local semgrep_exit=0
+    semgrep_out=$(semgrep --config .semgrep.yml --error --quiet apps/web/src 2>&1) || semgrep_exit=$?
+    if [[ $semgrep_exit -ne 0 ]]; then
+      issues+=$'[semgrep] fail\n'
+      issues+="$semgrep_out"$'\n'
+      combined_exit=1
+    fi
+  else
+    issues+=$'[semgrep] skipped — binary not installed (install via: brew install semgrep)\n'
+  fi
+
+  # (c) grep fallback — excludes BFF route handlers.
+  local grep_out
+  grep_out=$(grep -rn "localhost:300[123]" apps/web/src --exclude-dir=api 2>/dev/null || true)
+  if [[ -n "$grep_out" ]]; then
+    issues+=$'[grep] found forbidden references:\n'
+    issues+="$grep_out"$'\n'
+    combined_exit=1
+  fi
+
+  local passed="true"
+  if [[ $combined_exit -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$issues" | tail -40 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+  if [[ -z "$truncated" ]]; then
+    truncated="clean — 3-way BFF compliance check passed (eslint + semgrep + grep)"
+  fi
+
+  RESULTS+=("{\"name\":\"fe_bff_compliance\",\"passed\":$passed,\"exit_code\":$combined_exit,\"output\":\"$truncated\"}")
+}
+
+# FE BFF smoke: probe core /api/* routes. Requires Next.js dev server + backend docker-compose up.
+# Assumes server is externally started (like fe_slice_smoke pattern but without booting).
+# BASE defaults to http://localhost:3000; override with FE_BFF_BASE.
+check_fe_bff_smoke() {
+  local base="${FE_BFF_BASE:-http://localhost:3000}"
+  local nonexistent_uuid="00000000-0000-7000-8000-000000000000"
+  local issues=""
+  local combined_exit=0
+
+  if ! command -v curl >/dev/null 2>&1; then
+    RESULTS+=('{"name":"fe_bff_smoke","passed":false,"exit_code":1,"output":"curl not installed"}')
+    OVERALL_PASS=false
+    return
+  fi
+
+  # Helper: GET/POST and capture status only. On connection refused, curl still
+  # writes "000" via -w. Suppress stderr and avoid double-echo fallback.
+  probe_status() {
+    local method="$1"
+    local path="$2"
+    local body="${3:-}"
+    local url="${base}${path}"
+    local status
+    if [[ "$method" == "POST" ]]; then
+      status=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+        -H 'content-type: application/json' \
+        -d "$body" \
+        --max-time 10 "$url" 2>/dev/null)
+    else
+      status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" 2>/dev/null)
+    fi
+    [[ -z "$status" ]] && status="000"
+    echo "$status"
+  }
+
+  # /api/celebrities → 200
+  local s1
+  s1=$(probe_status GET /api/celebrities)
+  if [[ "$s1" != "200" ]]; then
+    issues+="[GET /api/celebrities] expected 200, got $s1"$'\n'
+    combined_exit=1
+  fi
+
+  # /api/users/me (unauth) → 401
+  local s2
+  s2=$(probe_status GET /api/users/me)
+  if [[ "$s2" != "401" ]]; then
+    issues+="[GET /api/users/me] expected 401, got $s2"$'\n'
+    combined_exit=1
+  fi
+
+  # POST /api/auth/login with invalid creds → 200 | 400 | 401
+  local s3
+  s3=$(probe_status POST /api/auth/login '{"email":"gate-smoke@celebbase.invalid","password":"x"}')
+  if [[ "$s3" != "200" && "$s3" != "400" && "$s3" != "401" ]]; then
+    issues+="[POST /api/auth/login] expected 200|400|401, got $s3"$'\n'
+    combined_exit=1
+  fi
+
+  # /api/meal-plans/<uuid> → 401 | 404
+  local s4
+  s4=$(probe_status GET "/api/meal-plans/${nonexistent_uuid}")
+  if [[ "$s4" != "401" && "$s4" != "404" ]]; then
+    issues+="[GET /api/meal-plans/<uuid>] expected 401|404, got $s4"$'\n'
+    combined_exit=1
+  fi
+
+  local passed="true"
+  if [[ $combined_exit -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local summary="celebrities=$s1 users/me=$s2 auth/login=$s3 meal-plans/:id=$s4"
+  local truncated
+  if [[ -n "$issues" ]]; then
+    truncated=$(printf '%s\n%s' "$summary" "$issues" | tail -20 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+  else
+    truncated="all 4 probes ok — $summary"
+  fi
+
+  RESULTS+=("{\"name\":\"fe_bff_smoke\",\"passed\":$passed,\"exit_code\":$combined_exit,\"output\":\"$truncated\"}")
+}
+
+# FE contract check: delegates to apps/web/scripts/verify-api-contracts.ts.
+# The script itself exits 0 with SKIP marker when @celebbase/shared-types schemas
+# are not yet exported (pre-IMPL-APP-001a), and enforces Zod parse afterwards.
+check_fe_contract_check() {
+  if [[ ! -f "apps/web/scripts/verify-api-contracts.ts" ]]; then
+    RESULTS+=('{"name":"fe_contract_check","passed":false,"exit_code":1,"output":"apps/web/scripts/verify-api-contracts.ts missing"}')
+    OVERALL_PASS=false
+    return
+  fi
+
+  # tsx lands as a devDep in IMPL-APP-001a. Until then, treat missing tsx as SKIP
+  # so the gate infra can be verified before Sprint A completes.
+  if ! pnpm --filter web exec sh -c 'command -v tsx' >/dev/null 2>&1; then
+    RESULTS+=('{"name":"fe_contract_check","passed":true,"exit_code":0,"output":"SKIP: tsx not yet installed. Gate infra ready; enforcement activates after IMPL-APP-001a."}')
+    return
+  fi
+
+  local out
+  local exit_code=0
+  out=$(pnpm --filter web exec tsx scripts/verify-api-contracts.ts 2>&1) || exit_code=$?
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$out" | tail -30 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_contract_check\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Run requested checks
 case "$CHECK" in
   typecheck)
@@ -655,6 +846,15 @@ case "$CHECK" in
   fe_axe)
     check_fe_axe
     ;;
+  fe_bff_compliance)
+    check_fe_bff_compliance
+    ;;
+  fe_bff_smoke)
+    check_fe_bff_smoke
+    ;;
+  fe_contract_check)
+    check_fe_contract_check
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -672,10 +872,13 @@ case "$CHECK" in
     check_fe_axe
     # fe_slice_smoke is not run in 'all' — it boots a dev server. Invoke explicitly:
     #   scripts/gate-check.sh fe_slice_smoke
+    # fe_bff_compliance / fe_bff_smoke / fe_contract_check are also out of 'all':
+    # the first needs pnpm+eslint+semgrep available, the second two need a running
+    # Next.js dev server + backend docker-compose. Invoke explicitly from CI workflow.
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, all" >&2
     exit 1
     ;;
 esac

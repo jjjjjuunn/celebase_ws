@@ -986,3 +986,32 @@ verified_by: claude-opus-4-7
 - **향후 사용처**: `apps/web/e2e/global-setup.ts` 가 `execSync('bash scripts/seed-demo-all.sh')` 로만 invoke (IMPL-APP-006). E2E 에서 multi-service DB 직접 write 금지 (plan v3 A11 enforcement).
 ### 미완료: IMPL-APP-000b (gate-check.sh fe_bff_compliance/smoke/contract + .semgrep.yml + verify-api-contracts.ts), Sprint A (001a/b/c).
 ### 연관 파일: services/user-service/scripts/, services/meal-plan-engine/scripts/, scripts/seed-demo-all.sh
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-APP-000b
+commit_sha: 0504f46
+files_changed:
+  - scripts/gate-check.sh
+  - scripts/eslint-bff.config.mjs
+  - .semgrep.yml
+  - apps/web/scripts/verify-api-contracts.ts
+verified_by: claude-opus-4-7
+---
+### 완료: FE BFF 게이트 인프라 (plan v3 A9 / A10 / R2-M3)
+- `scripts/gate-check.sh` 에 3개 gate case 추가 — `fe_bff_compliance` / `fe_bff_smoke` / `fe_contract_check`. `all` 에는 **미포함** (dev server / docker-compose / 선택 바이너리 의존).
+- **fe_bff_compliance** — 3-way 검증 aggregate: (a) ESLint 9 flat config + `--config scripts/eslint-bff.config.mjs` + `--no-error-on-unmatched-pattern` 로 `no-restricted-syntax` 적용 (Literal `http(s)://(localhost|127.0.0.1):(3001|3002|3003)` + TemplateElement 두 selector). `apps/web/src/app/api/**` 는 ignores 로 제외. (b) Semgrep `.semgrep.yml` — `generic` 언어 + `pattern-regex: 'localhost:(3001|3002|3003)'` + `paths.include`/`paths.exclude` 로 BFF 라우트 제외. semgrep 바이너리 부재 시 advisory-skip. (c) grep 폴백 `localhost:300[123]` (`--exclude-dir=api`). 어느 reporter 라도 fail → 전체 fail.
+- **scripts/eslint-bff.config.mjs** — ESLint 9 플랫 config 독립 파일. `typescript-eslint` parser + `apps/web/src/**/*.{ts,tsx,js,jsx,mjs,cjs}` 스코프. web 워크스페이스의 메인 eslint config 에 주입하지 않음 (게이트 전용 격리).
+- **.semgrep.yml** — repo 루트. `no-direct-service-fetch` 룰 (ERROR). `paths.include`: apps/web/src 의 ts/tsx/js/jsx. `paths.exclude`: apps/web/src/app/api/**.
+- **fe_bff_smoke** — curl+`%{http_code}` 로 4개 핵심 라우트 probe: `/api/celebrities` 200, `/api/users/me` 401, `POST /api/auth/login` (invalid creds) 200|400|401, `/api/meal-plans/<zero-uuid>` 401|404. dev server + backend docker-compose 외부 기동 전제 (fe_slice_smoke 패턴). `FE_BFF_BASE` env 로 base URL 오버라이드.
+- **fe_contract_check** — `apps/web/scripts/verify-api-contracts.ts` 위임. 스크립트는 `@celebbase/shared-types` dynamic import + `safeParse` 로 6개 MVP 엔드포인트 Zod 검증. tsx 미설치 또는 shared-types 미출현 시 **SKIP marker + exit 0** (IMPL-APP-001a 전에도 gate 인프라 배치 가능). shared-types 스키마가 들어오면 그 즉시 자동 enforce.
+- **DoD 검증 근거 (2026-04-17 local)**:
+  - Clean tree `fe_bff_compliance`: `{"status":"pass",…"clean — 3-way BFF compliance check passed (eslint + semgrep + grep)"}`.
+  - Synthetic violation (`apps/web/src/app/test-fake.ts` with `fetch("http://localhost:3001/users")`) → exit 1 + eslint/semgrep/grep 3 reporter 모두 감지 (각 reporter 출력 확인 후 파일 제거).
+  - `fe_contract_check` pre-001a: SKIP path 통과 (`tsx not yet installed. Gate infra ready; enforcement activates after IMPL-APP-001a`).
+  - `fe_bff_smoke` server-down: 모든 probe `000` → exit 1 (기대 동작). Sprint A BFF 핸들러 랜딩 이후 enforce.
+  - `bash -n scripts/gate-check.sh` 통과. 702→885 line diff, 3 함수 추가 + 3 case 디스패치 + Available 에러 메시지 업데이트, `all` 블록은 변경 없음 (DoD 명시: 새 3 gate 미포함).
+- **계획 근거**: `.claude/plans/adaptive-mixing-creek.md` §A9 (BFF 위반 3중 방어) / §A10 (contract drift 검증) / Sprint 0 IMPL-APP-000b DoD / Risk #16 / Risk #18.
+### 미완료: Sprint A (IMPL-APP-001a deps+env+shared-types schemas+API client, 001b BFF route handlers, 001c providers+layouts).
+### 연관 파일: scripts/gate-check.sh, scripts/eslint-bff.config.mjs, .semgrep.yml, apps/web/scripts/verify-api-contracts.ts
