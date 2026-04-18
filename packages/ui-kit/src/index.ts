@@ -49,3 +49,6 @@ export type {
   SegmentedControlProps,
   SegmentedControlOption,
 } from './components/SegmentedControl/SegmentedControl.js';
+
+export { Chip } from './components/Chip/Chip.js';
+export type { ChipProps, ChipSize } from './components/Chip/Chip.js';
