@@ -1041,7 +1041,7 @@ verified_by: agent-claude-opus-4-7 + agent-codex-r1r2r3 + agent-gemini-r1r2r3 + 
 ### 완료: CI baseline rescue — hashFiles 오용 제거, policy DRY 통합, design-tokens scripts 타입체크 복구, pytest integration marker 기본 skip, meal-plan-engine turbo test pickup
 - `.github/workflows/ci.yml` lint-typecheck / test job-level `if: hashFiles(...)` 삭제 (7개월간 0s-fail 원인). step-level line 151 유지.
 - `validate-compliance` 인라인 deny-pattern scan (28줄) → `bash scripts/gate-check.sh policy` 1줄 + `GITHUB_EVENT_BEFORE` env 주입으로 DRY 통합.
-- `scripts/gate-check.sh check_policy()` 5-branch diff base 폴백 체인 (PR → push → origin/main → main → HEAD~1) + SELF_EXCLUDE self-match 방지 + 빈 RESULTS 배열 early-return 시 unbound variable 버그 수정.
+- `scripts/gate-check.sh check_policy()` 5-branch diff base 폴백 체인 (PR → push → origin/main → main → HEAD~1) + SELF_EXCLUDE self-match 방지 + 빈 RESULTS 배열 early-return 시 unbound variable 버그 수정 + SQL-destructive 패턴 (`DROP TABLE` / `TRUNCATE`) 의 tests/ 경로 예외 (test fixture cleanup legitimate — 첫 CI 실행에서 surfaced).
 - `packages/design-tokens/tsconfig.scripts.json` (NEW) + `eslint.config.mjs` 4th entry (`projectService: false` 명시적 override) → `packages/design-tokens/scripts/*.ts` ESLint project-service 블라인드 스팟 해소.
 - scripts/*.ts의 기존 lint 에러 7건 수정 (non-null assertion 제거, template literal number 변환).
 - `services/meal-plan-engine/pytest.ini` markers 정의 (addopts `-m` 미사용 — CLI 충돌 방지) + `tests/integration/conftest.py` 모듈-레벨 `pytest.skip(allow_module_level=True)` — `LOCALSTACK_ENDPOINT` 미설정 시 통합 테스트 자동 스킵.

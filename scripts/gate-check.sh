@@ -121,9 +121,22 @@ check_policy() {
     "console.log"
   )
 
+  # Test fixtures legitimately use destructive SQL for cleanup; limit those
+  # patterns to production code only.
+  local sql_destructive=("DROP TABLE" "TRUNCATE")
+
   for pattern in "${deny_patterns[@]}"; do
+    local scan_files="$changed_files"
+    local is_sql_destructive=0
+    for sqlp in "${sql_destructive[@]}"; do
+      [[ "$pattern" == "$sqlp" ]] && { is_sql_destructive=1; break; }
+    done
+    if [[ $is_sql_destructive -eq 1 ]]; then
+      scan_files=$(echo "$changed_files" | grep -v -E '(^|/)tests?/' || true)
+      [[ -z "$scan_files" ]] && continue
+    fi
     local matches
-    matches=$(echo "$changed_files" | xargs grep -l "$pattern" 2>/dev/null || true)
+    matches=$(echo "$scan_files" | xargs grep -l "$pattern" 2>/dev/null || true)
     if [[ -n "$matches" ]]; then
       issues+="DENY pattern '$pattern' found in: $matches\n"
       exit_code=1
