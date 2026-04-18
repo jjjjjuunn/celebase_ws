@@ -37,3 +37,9 @@ export type { BadgeProps, BadgeVariant } from './components/Badge/Badge.js';
 
 export { InputField } from './components/InputField/InputField.js';
 export type { InputFieldProps } from './components/InputField/InputField.js';
+
+export { SelectField } from './components/SelectField/SelectField.js';
+export type {
+  SelectFieldProps,
+  SelectFieldOption,
+} from './components/SelectField/SelectField.js';
