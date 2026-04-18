@@ -9,6 +9,15 @@ Assumes:
 from __future__ import annotations
 
 import os
+
+import pytest
+
+if not os.getenv("LOCALSTACK_ENDPOINT"):
+    pytest.skip(
+        "integration tests require LOCALSTACK_ENDPOINT",
+        allow_module_level=True,
+    )
+
 import time
 import uuid
 from typing import Any, Dict
@@ -17,7 +26,6 @@ import asyncpg
 import boto3
 import httpx
 import jwt as pyjwt
-import pytest
 import pytest_asyncio
 from botocore.exceptions import ClientError
 

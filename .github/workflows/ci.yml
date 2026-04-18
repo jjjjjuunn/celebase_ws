@@ -106,34 +106,9 @@ jobs:
         run: pip install pyyaml
 
       - name: Check policy compliance (deny patterns in source files)
-        run: |
-          # PR diff에서 실행 파일만 검사 (*.md 제외)
-          DENY_PATTERNS=(
-            "--no-verify"
-            "rm -rf"
-            "git push --force"
-            "git reset --hard"
-            "gen_random_uuid()"
-            "console.log"
-          )
-          FILES=$(git diff --name-only origin/main...HEAD -- '*.ts' '*.py' '*.sql' '*.sh' 2>/dev/null || true)
-          if [ -z "$FILES" ]; then
-            echo "✅ No source files changed, skipping policy check"
-            exit 0
-          fi
-          FOUND=0
-          for pattern in "${DENY_PATTERNS[@]}"; do
-            while IFS= read -r file; do
-              if [ -f "$file" ] && grep -n "$pattern" "$file"; then
-                echo "❌ Denied pattern '$pattern' found in $file"
-                FOUND=1
-              fi
-            done <<< "$FILES"
-          done
-          if [ "$FOUND" -eq 1 ]; then
-            exit 1
-          fi
-          echo "✅ Policy compliance check passed"
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: bash scripts/gate-check.sh policy
 
       - name: Check evaluator-runtime.md no direct playwright reference
         run: |
@@ -157,7 +132,6 @@ jobs:
     name: "🧹 Lint & Typecheck"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -187,7 +161,6 @@ jobs:
     name: "🧪 Tests"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     services:
       postgres:
         image: postgres:16
@@ -216,6 +189,23 @@ jobs:
       REDIS_URL: redis://localhost:6379
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python (meal-plan-engine)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        working-directory: services/meal-plan-engine
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+          .venv/bin/pytest --version
+
+      - name: Expose meal-plan-engine venv
+        run: echo "$GITHUB_WORKSPACE/services/meal-plan-engine/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

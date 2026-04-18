@@ -29,6 +29,8 @@ import pytest
 import websockets
 from websockets.exceptions import ConnectionClosedError
 
+pytestmark = pytest.mark.integration
+
 try:
     from websockets.exceptions import InvalidStatus  # websockets >= 12
 except ImportError:  # pragma: no cover
