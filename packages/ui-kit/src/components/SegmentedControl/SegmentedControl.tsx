@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactElement, ReactNode } from 'react';
 import { useRovingTabIndex } from '../../hooks/useRovingTabIndex.js';
 import styles from './SegmentedControl.module.css';
