@@ -14,8 +14,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[A-Z]+-\\d{3}$",
-            "description": "태스크 ID (예: BOOT-001)"
+            "pattern": "^[A-Z]+-\\d{3}(-[a-z])?$",
+            "description": "태스크 ID (예: BOOT-001, IMPL-004-a). sub-task 분할 시 -a/-b/-c 소문자 suffix."
           },
           "title": {
             "type": "string",
@@ -24,14 +24,14 @@
           },
           "owner": {
             "type": "string",
-            "pattern": "^(agent-[a-z0-9-]+|human-[a-z0-9-]+)$",
-            "description": "소유자. agent-*이 human-*으로 설정해 크로스체크 우회 방지"
+            "pattern": "^(agent-[a-z0-9-]+|human-[a-z0-9-]+)( \\+ (agent-[a-z0-9-]+|human-[a-z0-9-]+))*$",
+            "description": "소유자. 단일 또는 복합 (예: 'agent-claude-opus-4-6 + agent-codex-o3'). agent-/human- prefix 강제 — 에이전트가 사람으로 위장해 크로스체크 우회 방지."
           },
           "dependsOn": {
             "type": "array",
             "items": {
               "type": "string",
-              "pattern": "^[A-Z]+-\\d{3}$"
+              "pattern": "^[A-Z]+-\\d{3}(-[a-z])?$"
             }
           },
           "status": {
