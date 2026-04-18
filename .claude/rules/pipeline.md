@@ -246,7 +246,25 @@ QA 중 500 이 뜨면 코드 버그 추적 전에 이 순서를 먼저 수행한
 
 `pipeline.sh` 모든 명령은 **repo 루트** 에서 실행한다. worktree 내부에서 실행하면 `WORKTREE_DIR` 이 `$PWD/.worktrees/<TASK-ID>` 로 중첩 해석되어 `step_finalize` 가 실패한다.
 
+### `'use client';` 선언 강제 (IMPL-UI-003 교훈)
+
+React hook (`useState` / `useRef` / `useEffect` / `useCallback` / `useMemo` / 이벤트 핸들러 prop 등) 을 사용하는 ui-kit 컴포넌트 또는 `/slice/*` page 는 **파일 최상단에 `'use client';` 선언 필수**. Next.js App Router 에서 누락 시 `You're importing a component that needs useState...` 빌드 실패 발생.
+
+- FE HANDOFF (component · slice page 둘 다) 의 DoD 체크박스 에 `grep -c "^'use client';" <path> === 1` 명시.
+- gate-implement 빌드 단계에서 빠르게 감지되도록 Anti-Pattern 섹션에도 중복 기재.
+- IMPL-UI-003-G3 SegmentedControl 에서 누락 → `fix(ui-kit): IMPL-UI-003-G3 — add 'use client'` 커밋 (`1f448d8`) 으로 수정. 이후 HANDOFF 는 선제 반영.
+
+### ui-kit composite test coverage 판정 기준 (IMPL-UI-002 / IMPL-UI-003 precedent)
+
+Codex review 가 "신규 React 컴포넌트에 unit/integration 테스트 없음" 을 MEDIUM/HIGH 로 리포트하는 경우, **기본적으로 out-of-scope 로 pass 판정**한다. 근거:
+
+- ui-kit composite 의 검증 레이어는 Storybook stories + `/slice/*` smoke + (optional) axe 로 정의됨.
+- spec.md / DoD 에 ui-kit 단위 unit-test 의무가 매핑되어 있지 않음.
+- `.claude/rules/pipeline.md` 게이트 판정 원칙: "DoD 매핑 없는 finding → out-of-scope".
+
+Claude 판정 시 pipeline-log.jsonl 에 "IMPL-UI-002 precedent" 인용으로 일관된 사유를 남긴다. 향후 review-prompt 에 "ui-kit test coverage is satisfied by Storybook + slice smoke" 를 명시하여 Codex 리포트 자체에서 제외하는 방향도 검토.
+
 ### 후속 chore 플래그
 
 - `scripts/gate-check.sh check_policy` 가 자기 자신을 DENY 패턴으로 self-match → scan 에서 `scripts/gate-check.sh` 제외 필요 (main HEAD 에서도 동일 실패, IMPL-UI-002 범위 밖)
-- `packages/design-tokens/scripts/*.ts` 가 ESLint project-service 범위 밖 → `tsconfig.scripts.json` 분리 or eslint override 필요 (IMPL-UI-001/P2 에서 누적, IMPL-UI-002 범위 밖)
+- `packages/design-tokens/scripts/*.ts` 가 ESLint project-service 범위 밖 → `tsconfig.scripts.json` 분리 or eslint override 필요 (IMPL-UI-001/P2 에서 누적, IMPL-UI-002·IMPL-UI-003 범위 밖)
