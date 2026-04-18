@@ -941,5 +941,21 @@ verified_by: claude-opus-4-7 + codex-o3-review
   - S7 `fe_axe`: DEFERRED (MCP unbound, 이월).
 - **gate-qa 자동 체크**: typecheck/build/test/policy/secrets/fake_stubs/sql_schema/phi_audit/migration_freshness/fe_token_hardcode/fe_axe 모두 pass. 유일한 FAIL `@celebbase/design-tokens#lint` 는 `scripts/*.ts` project-service 미커버 — IMPL-UI-001/P2 누적 pre-existing issue (IMPL-UI-002 LESSONS §안티패턴 5) → out-of-scope Claude pass 판정.
 - **Plan v3 반영**: `SlotChipGroup` wrapper 포함 (고아 radio 방지), `useRovingTabIndex` 공유 훅으로 중복 구현 제거, `'use client';` 조항 G5-b HANDOFF 내 명시, `SelectField` single-select 전용으로 scope 축소 (multi-select → IMPL-UI-004).
-### 미완료: `chore(gate): require /slice/composites 200 (IMPL-UI-003-P2 follow-up)` (별도 커밋), IMPL-UI-004 `PillMultiSelect` (allergen pill grid), axe/Playwright MCP 런타임 시각 QA (S7 이월), 기능 페이지 (로그인/플랜/결제/대시보드).
+### 미완료: IMPL-UI-004 `PillMultiSelect` (allergen pill grid, G2 scope 분리), axe/Playwright MCP 런타임 시각 QA (S7 이월), 기능 페이지 (로그인/플랜/결제/대시보드).
 ### 연관 파일: packages/ui-kit/src/components/{InputField,SelectField,SegmentedControl,Chip,SlotChip}, packages/ui-kit/src/hooks/useRovingTabIndex.ts, packages/ui-kit/src/index.ts, packages/ui-kit/stories/, apps/web/src/app/slice/composites/page.tsx, pipeline/runs/IMPL-UI-003/
+
+---
+date: 2026-04-18
+agent: claude-opus-4-7
+task_id: IMPL-UI-003-P2
+commit_sha: 5091bd7
+files_changed:
+  - scripts/gate-check.sh
+verified_by: claude-opus-4-7
+---
+### 완료: /slice/composites 200 필수 승격 (IMPL-UI-003 follow-up)
+- `check_fe_slice_smoke` 의 `/slice/composites` 를 "200 OR 404 허용" 전이 그룹에서 "200 필수" 그룹으로 이관.
+- G5-b 쇼케이스 page.tsx 가 merge 1620ce6 에 포함되어 상시 200 반환 — P1 전이 허용 종료.
+- IMPL-UI-002-P3 승격 전례 재사용 (검증기 변경과 기능 변경 분리).
+### 미완료: 없음.
+### 연관 파일: scripts/gate-check.sh
