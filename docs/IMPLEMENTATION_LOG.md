@@ -1020,7 +1020,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-18
 agent: claude-opus-4-7
 task_id: CHORE-002
-commit_sha: PENDING
+commit_sha: e43f089
 files_changed:
   - .github/workflows/ci.yml
   - scripts/gate-check.sh
