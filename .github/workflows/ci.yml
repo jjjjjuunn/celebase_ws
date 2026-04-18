@@ -157,7 +157,6 @@ jobs:
     name: "🧹 Lint & Typecheck"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -187,7 +186,6 @@ jobs:
     name: "🧪 Tests"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     services:
       postgres:
         image: postgres:16
@@ -260,8 +258,6 @@ jobs:
     # Cold path: 4 cached builds 20-25 min + compose up 7-9 min + pytest 20 min
     # + setup/teardown ~5 min ≈ 52-59 min. 60-min cap leaves ~1-8 min headroom.
     timeout-minutes: 60
-    # Include .github/workflows/** so fixes to this job's YAML don't silently skip it.
-    if: hashFiles('services/**', 'docker-compose.yml', 'docker/**', 'db/**', '.github/workflows/**') != ''
     steps:
       - uses: actions/checkout@v4
 
