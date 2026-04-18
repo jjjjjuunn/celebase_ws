@@ -43,3 +43,9 @@ export type {
   SelectFieldProps,
   SelectFieldOption,
 } from './components/SelectField/SelectField.js';
+
+export { SegmentedControl } from './components/SegmentedControl/SegmentedControl.js';
+export type {
+  SegmentedControlProps,
+  SegmentedControlOption,
+} from './components/SegmentedControl/SegmentedControl.js';
