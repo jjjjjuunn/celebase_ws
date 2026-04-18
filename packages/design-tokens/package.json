@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsx scripts/build.ts && tsc -p tsconfig.json",
     "verify": "tsx scripts/verify-contrast.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsx scripts/build.ts && tsc -p tsconfig.json --noEmit",
     "lint": "eslint src/ scripts/",
     "test": "echo 'no tests yet'"
   },

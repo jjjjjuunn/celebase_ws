@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { CSSProperties, JSX } from 'react';
+import type { ChangeEvent, CSSProperties, JSX } from 'react';
 import {
   Chip,
   InputField,
@@ -134,7 +134,7 @@ export default function CompositesPreview(): JSX.Element {
             label="Email address"
             helperText="We'll never share your email."
             value={emailValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setEmailValue(e.target.value);
             }}
           />
@@ -144,7 +144,7 @@ export default function CompositesPreview(): JSX.Element {
             required
             {...(fullNameError ? { error: fullNameError } : {})}
             value={fullNameValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setFullNameValue(e.target.value);
             }}
           />
