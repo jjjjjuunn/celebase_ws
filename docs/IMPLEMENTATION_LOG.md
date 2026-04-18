@@ -964,7 +964,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-17
 agent: claude-opus-4-7
 task_id: IMPL-APP-000a
-commit_sha: PENDING
+commit_sha: 121047f
 files_changed:
   - services/user-service/package.json
   - services/user-service/scripts/seed-demo-user.ts
