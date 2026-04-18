@@ -897,7 +897,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-17
 agent: claude-opus-4-7 + codex-o3 (adversarial review ×4)
 task_id: IMPL-016
-commit_sha: PENDING
+commit_sha: aa4e2fa
 files_changed:
   - .github/workflows/ci.yml
   - docker/docker-compose.ci.yml
