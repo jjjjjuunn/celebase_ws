@@ -34,3 +34,27 @@ export type { CardProps, CardVariant, CardAs } from './components/Card/Card.js';
 
 export { Badge } from './components/Badge/Badge.js';
 export type { BadgeProps, BadgeVariant } from './components/Badge/Badge.js';
+
+export { InputField } from './components/InputField/InputField.js';
+export type { InputFieldProps } from './components/InputField/InputField.js';
+
+export { SelectField } from './components/SelectField/SelectField.js';
+export type {
+  SelectFieldProps,
+  SelectFieldOption,
+} from './components/SelectField/SelectField.js';
+
+export { SegmentedControl } from './components/SegmentedControl/SegmentedControl.js';
+export type {
+  SegmentedControlProps,
+  SegmentedControlOption,
+} from './components/SegmentedControl/SegmentedControl.js';
+
+export { Chip } from './components/Chip/Chip.js';
+export type { ChipProps, ChipSize } from './components/Chip/Chip.js';
+
+export { SlotChip } from './components/SlotChip/SlotChip.js';
+export type { SlotChipProps } from './components/SlotChip/SlotChip.js';
+
+export { SlotChipGroup } from './components/SlotChip/SlotChipGroup.js';
+export type { SlotChipGroupProps } from './components/SlotChip/SlotChipGroup.js';
