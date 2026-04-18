@@ -34,3 +34,6 @@ export type { CardProps, CardVariant, CardAs } from './components/Card/Card.js';
 
 export { Badge } from './components/Badge/Badge.js';
 export type { BadgeProps, BadgeVariant } from './components/Badge/Badge.js';
+
+export { InputField } from './components/InputField/InputField.js';
+export type { InputFieldProps } from './components/InputField/InputField.js';
