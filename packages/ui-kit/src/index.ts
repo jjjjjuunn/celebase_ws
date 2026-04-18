@@ -52,3 +52,9 @@ export type {
 
 export { Chip } from './components/Chip/Chip.js';
 export type { ChipProps, ChipSize } from './components/Chip/Chip.js';
+
+export { SlotChip } from './components/SlotChip/SlotChip.js';
+export type { SlotChipProps } from './components/SlotChip/SlotChip.js';
+
+export { SlotChipGroup } from './components/SlotChip/SlotChipGroup.js';
+export type { SlotChipGroupProps } from './components/SlotChip/SlotChipGroup.js';
