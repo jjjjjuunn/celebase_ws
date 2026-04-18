@@ -892,3 +892,54 @@ verified_by: claude-opus-4-7
 - Pre-Step 커밋으로 검증기 변경과 기능 변경을 분리 (IMPL-UI-002 Pre-Step 3 전례).
 ### 미완료: G1~G5 composite chunks (InputField / SelectField / SegmentedControl / Chip / SlotChip), `/slice/composites/page.tsx` showcase, `chore(gate): require /slice/composites 200` follow-up.
 ### 연관 파일: scripts/gate-check.sh
+
+---
+date: 2026-04-18
+agent: claude-opus-4-7 + codex-o3
+task_id: IMPL-UI-003
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/InputField/InputField.tsx
+  - packages/ui-kit/src/components/InputField/InputField.module.css
+  - packages/ui-kit/src/components/SelectField/SelectField.tsx
+  - packages/ui-kit/src/components/SelectField/SelectField.module.css
+  - packages/ui-kit/src/components/SegmentedControl/SegmentedControl.tsx
+  - packages/ui-kit/src/components/SegmentedControl/SegmentedControl.module.css
+  - packages/ui-kit/src/components/Chip/Chip.tsx
+  - packages/ui-kit/src/components/Chip/Chip.module.css
+  - packages/ui-kit/src/components/SlotChip/SlotChip.tsx
+  - packages/ui-kit/src/components/SlotChip/SlotChip.module.css
+  - packages/ui-kit/src/components/SlotChip/SlotChipGroup.tsx
+  - packages/ui-kit/src/hooks/useRovingTabIndex.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/InputField.stories.tsx
+  - packages/ui-kit/stories/SelectField.stories.tsx
+  - packages/ui-kit/stories/SegmentedControl.stories.tsx
+  - packages/ui-kit/stories/Chip.stories.tsx
+  - packages/ui-kit/stories/SlotChip.stories.tsx
+  - apps/web/src/app/slice/composites/page.tsx
+verified_by: claude-opus-4-7 + codex-o3-review
+---
+### 완료: 5 Composites (InputField/SelectField/SegmentedControl/Chip/SlotChip) + SlotChipGroup wrapper + /slice/composites 쇼케이스 — IMPL-UI-003
+- **구조**: 1 TASK-ID 단일 파이프라인 사이클, implement 단계 5 chunk (G1/G2/G3/G4/G5-a) + 쇼케이스 (G5-b, Codex 위임). 각 chunk 2~3 파일, barrel 은 chunk 후 Claude 직접 패치. 파일 예산 준수.
+- **Primitive 재사용 원칙**: 모든 composite 는 primitive (`Stack`, `Text`, `Button`, `Input`, `Card`, `Badge`) 를 wrap — 스타일 토큰·a11y 계약 IMPL-UI-002 유지.
+- **G1 InputField**: `<label htmlFor>` + helper/error dual-span + `aria-describedby={`${id}-error ${id}-helper`}` chain + `role="alert"` + `aria-live="polite"` + required 시각 `*`. Primitive `Input` 에 wrapper 로 계약 내재화.
+- **G2 SelectField**: native `<select>` 단일 선택. placeholder = disabled option. `aria-invalid`/`aria-describedby` chain InputField 와 parity. multi-select 는 IMPL-UI-004 로 분리.
+- **G3 SegmentedControl**: `role="radiogroup"` + `<button role="radio" aria-checked="true|false">` + roving tabindex. 키보드 `←/→/↑/↓/Home/End/Space/Enter`. 공용 `useRovingTabIndex` 훅 신설 (G5-a 공유).
+- **G4 Chip**: toggle (`aria-pressed="true|false"` 양쪽 emit) + removable (`onRemove` 중첩 button with `aria-label="Remove {label}"`, stopPropagation). `min-height: 44px` (WCAG 터치 타깃).
+- **G5-a SlotChip + SlotChipGroup**: wrapper 가 `role="radiogroup"` + `aria-label` emit → `React.Children.toArray` + `isValidElement` + `child.type === SlotChip` strict 검증 → `cloneElement` 로 `selected`/`onSelect`/`tabIndex`/`ref` 주입. 비-SlotChip 자식은 dev-only `console.warn` (eslint-disable-next-line 주석) + 렌더 제외. native `disabled` 사용 금지 → `aria-disabled="true"` 로 통일. Free badge · Full 상태 시각 토큰화.
+- **`useRovingTabIndex` 공용 훅**: G3/G5-a 가 공유. 내부 `activeIndexRef` + `useEffect(value)` 로 controlled race 방지. disabled skip + wrap-around + Home/End. All-disabled 에지: `activeIndex = -1` + wrapper 에 `aria-disabled="true"` 힌트 + onKeyDown no-op. Re-entry fallback: `value 매칭 → lastActiveRef → 첫 enabled`. Barrel 에는 internal (노출 안 함).
+- **쇼케이스 (`apps/web/src/app/slice/composites/page.tsx`)**: Codex o3 구현 (pipeline.md L186 규정). `'use client';` L1 선언 (RSC client boundary 위반 방지 — plan v3 Risk #9). 6 섹션 × (InputField 4 variants / SelectField 4 variants / SegmentedControl 3 instances incl. all-disabled / Chip 4 toggle+remove / SlotChipGroup 3 groups = 10 slots). 최종 barrel 는 Claude 가 정리.
+- **검증 근거 (QA S1~S9)**:
+  - S1 `pnpm --filter @celebbase/ui-kit typecheck/lint/build` → 0 errors / 0 warnings / `[ui-kit] copied 11 .module.css file(s) to dist` + 5 composite CSS 파일 dist/components 존재.
+  - S2 `pnpm --filter web typecheck/lint/build` → 0 errors, `/slice/composites` prerendered static (4.27 kB / 111 kB).
+  - S3 `scripts/gate-check.sh fe_token_hardcode` → passed:true.
+  - S4 `scripts/gate-check.sh fe_slice_smoke` → passed:true (4 routes 200 — `/slice`, `/slice/tokens`, `/slice/primitives`, `/slice/composites`).
+  - S5 Static SSR DOM assertion (11/11 contracts): `role="radiogroup"` ×6, `role="radio"` ×24, `aria-checked="true"` ×6 / `"false"` ×18, `aria-pressed="true"` ×3 / `"false"` ×3, `aria-invalid="true"` ×2, `aria-required="true"` ×2, `aria-disabled="true"` ×7, `role="alert"` ×2, `tabindex="0"` ×5 (roving exactly-one-per-enabled-group).
+  - S6 Codex o3 독립 리뷰: CRITICAL 0, HIGH 0, MEDIUM 1 (test-coverage — IMPL-UI-002 precedent out-of-scope: Storybook + /slice/composites smoke + optional axe 커버), LOW 2 (dev-guarded console.warn, presentational magic number — accept).
+  - S8/S9 SegmentedControl/SlotChipGroup 키보드 nav: MCP unbound → S5 DOM grep fallback (roving tabindex + aria-disabled group 검증 완료), 전체 keyboard trace 이월.
+  - S7 `fe_axe`: DEFERRED (MCP unbound, 이월).
+- **gate-qa 자동 체크**: typecheck/build/test/policy/secrets/fake_stubs/sql_schema/phi_audit/migration_freshness/fe_token_hardcode/fe_axe 모두 pass. 유일한 FAIL `@celebbase/design-tokens#lint` 는 `scripts/*.ts` project-service 미커버 — IMPL-UI-001/P2 누적 pre-existing issue (IMPL-UI-002 LESSONS §안티패턴 5) → out-of-scope Claude pass 판정.
+- **Plan v3 반영**: `SlotChipGroup` wrapper 포함 (고아 radio 방지), `useRovingTabIndex` 공유 훅으로 중복 구현 제거, `'use client';` 조항 G5-b HANDOFF 내 명시, `SelectField` single-select 전용으로 scope 축소 (multi-select → IMPL-UI-004).
+### 미완료: `chore(gate): require /slice/composites 200 (IMPL-UI-003-P2 follow-up)` (별도 커밋), IMPL-UI-004 `PillMultiSelect` (allergen pill grid), axe/Playwright MCP 런타임 시각 QA (S7 이월), 기능 페이지 (로그인/플랜/결제/대시보드).
+### 연관 파일: packages/ui-kit/src/components/{InputField,SelectField,SegmentedControl,Chip,SlotChip}, packages/ui-kit/src/hooks/useRovingTabIndex.ts, packages/ui-kit/src/index.ts, packages/ui-kit/stories/, apps/web/src/app/slice/composites/page.tsx, pipeline/runs/IMPL-UI-003/
