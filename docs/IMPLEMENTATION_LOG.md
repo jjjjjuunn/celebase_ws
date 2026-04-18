@@ -964,7 +964,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-17
 agent: agent-claude-opus-4-7
 task_id: CHORE-001
-commit_sha: PENDING
+commit_sha: b178734
 files_changed:
   - .claude/tasks.yaml
   - .claude/tasks.schema.json
