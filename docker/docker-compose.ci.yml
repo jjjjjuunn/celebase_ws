@@ -1,0 +1,42 @@
+# CI override for docker-compose.yml.
+# Usage: docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml up -d --wait
+#
+# Purposes:
+#   1. Pin :ci image tags on the 4 built services so `compose up --wait` skips rebuild
+#      (we pre-build via docker/build-push-action@v5 with type=gha cache scopes).
+#   2. Suppress the inherited `build:` block via `!reset null` (compose v2.20+);
+#      a plain `build: null` does NOT suppress — compose v2 keeps the base file's
+#      build stanza and rebuilds a second time despite the pinned image tag
+#      (Codex r1 BLOCKER fix; verified against local compose v5.1.1 — only the
+#      `!reset` YAML tag actually removes the inherited key).
+#   3. Drop named volumes so CI runs leave no state across jobs.
+#      - postgres: `!override` replaces the volumes list with init-only bind mount
+#        (drops pgdata named volume).
+#      - redis: `!reset []` removes the volumes key entirely (drops redisdata).
+#
+# Notes:
+#   - SQS_VISIBILITY_TIMEOUT="10" is already in docker-compose.yml:159 (IMPL-014-d2).
+#   - PHI_ENCRYPTION_KEY at docker-compose.yml:94 is the 64-zero dev dummy.
+#     Log artifact upload double-greps the key name AND its value.
+
+services:
+  postgres:
+    image: celebbase_ws-postgres:ci
+    build: !reset null
+    volumes: !override
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+  redis:
+    volumes: !reset []
+
+  user-service:
+    image: celebbase_ws-user-service:ci
+    build: !reset null
+
+  content-service:
+    image: celebbase_ws-content-service:ci
+    build: !reset null
+
+  meal-plan-engine:
+    image: celebbase_ws-meal-plan-engine:ci
+    build: !reset null
