@@ -959,3 +959,30 @@ verified_by: claude-opus-4-7
 - IMPL-UI-002-P3 승격 전례 재사용 (검증기 변경과 기능 변경 분리).
 ### 미완료: 없음.
 ### 연관 파일: scripts/gate-check.sh
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-APP-000a
+commit_sha: PENDING
+files_changed:
+  - services/user-service/package.json
+  - services/user-service/scripts/seed-demo-user.ts
+  - services/meal-plan-engine/scripts/seed-demo-plan.py
+  - scripts/seed-demo-all.sh
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7
+---
+### 완료: 서비스 경계 준수 데모 seed 스크립트 (plan v3 A11 / CRITICAL R2-C2)
+- `services/user-service/scripts/seed-demo-user.ts` — `pg.Pool` + 트랜잭션으로 demo user (`cognito_sub='dev-demo-seed-user'`, email=`demo@celebbase.local`, tier=premium) 및 premium subscription (365일) idempotent upsert. stdout 에 `USER_ID=<uuid>` 한 줄 emit, stderr 에 진단 로그. user-service DB (users/subscriptions) 에만 write.
+- `services/meal-plan-engine/scripts/seed-demo-plan.py` — asyncpg 로 `DEMO_USER_ID` env (없으면 cognito_sub fallback) 해결 + 첫 active `base_diets` SELECT (read-only cross-service) + `meal_plans` 에 `status='completed'`, `daily_plans` 7일 (4 meal/day: breakfast/lunch/dinner/snack with totals) JSONB upsert. Python 네이티브 (meal-plan-engine 의 언어 스택) 선택 근거: user-service node_modules 를 service 경계 밖에서 건드리지 않기 위함.
+- `scripts/seed-demo-all.sh` — `set -euo pipefail` 오케스트레이터. user seed stdout 의 `USER_ID=` 파싱 → `DEMO_USER_ID` env 로 plan seed 에 전달. `PY_BIN` 자동 선택 (venv → system python3) 및 asyncpg import 가능 여부 preflight.
+- `services/user-service/package.json` devDependency `pg@^8.13.0` 추가 (기존 `@types/pg` 는 있었으나 runtime 누락 → ERR_MODULE_NOT_FOUND 해결). `pnpm install --lockfile-only` 로 lockfile 동기화.
+- **DoD 검증 근거 (2026-04-17 live postgres, celebase_ws-postgres-1)**:
+  - 1회차 `bash scripts/seed-demo-all.sh` exit 0 (user_id=`019d9f51-db82-…`, plan_id=`019d9f52-4789-…`).
+  - 2회차 동일 ID 재생성 (`ON CONFLICT` + `SELECT-before-INSERT` 로 idempotent).
+  - SQL 검증: `users` tier=premium deleted_at NULL, `subscriptions` tier=premium status=active cancel_at_period_end=false, `meal_plans` status=completed start/end 2026-04-18…24 `jsonb_array_length(daily_plans)=7`.
+  - 서비스 경계: user seed 는 users/subscriptions 만, plan seed 는 meal_plans 만 INSERT/UPDATE (base_diets 는 read-only SELECT, plan v3 A11 허용).
+- **향후 사용처**: `apps/web/e2e/global-setup.ts` 가 `execSync('bash scripts/seed-demo-all.sh')` 로만 invoke (IMPL-APP-006). E2E 에서 multi-service DB 직접 write 금지 (plan v3 A11 enforcement).
+### 미완료: IMPL-APP-000b (gate-check.sh fe_bff_compliance/smoke/contract + .semgrep.yml + verify-api-contracts.ts), Sprint A (001a/b/c).
+### 연관 파일: services/user-service/scripts/, services/meal-plan-engine/scripts/, scripts/seed-demo-all.sh
