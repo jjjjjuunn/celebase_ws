@@ -876,3 +876,19 @@ verified_by: claude-opus-4-7 + codex-o3-review
 - **Playwright MCP 런타임 시나리오 (S1~S8 시각/회귀 부분)**: 본 세션에 MCP 미바인딩 → DOM 레벨 대체 QA 로 통과 판정, 시각 회귀 (dark SSR screenshot, focus-ring 시각, hover step-up, responsive 375/768/1440, axe JSON) 는 MCP 바인딩 세션으로 이월. QA-PLAN.md S1~S8 pass criteria 그대로 재사용 가능.
 ### 미완료: Playwright MCP 런타임 시각 QA 재실행 (S1/S2/S3/S4/S6/S7), gate-check.sh `policy` self-match 버그 (pre-existing, 별도 chore), `packages/design-tokens/scripts/*.ts` ESLint project-service 미커버 (pre-existing from IMPL-UI-001/P2, 별도 chore), `pipeline.sh step_review` 공백 경로 파싱 버그 (별도 chore), i18n/Sentry/Chromatic/E2E, 기능 페이지 (로그인/플랜/결제/대시보드).
 ### 연관 파일: packages/ui-kit/src/components/, packages/ui-kit/stories/, packages/ui-kit/src/index.ts, apps/web/src/app/slice/primitives/page.tsx, apps/web/src/app/slice/page.tsx, apps/web/src/app/slice/layout.tsx, scripts/gate-check.sh, pipeline/runs/IMPL-UI-002/
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7
+task_id: IMPL-UI-003-P1
+commit_sha: PENDING
+files_changed:
+  - scripts/gate-check.sh
+verified_by: claude-opus-4-7
+---
+### 완료: /slice/composites smoke 엔트리 추가 (IMPL-UI-003 Pre-Step)
+- `scripts/gate-check.sh` `check_fe_slice_smoke` 의 route 리스트에 `/slice/composites` 추가.
+- 초기 허용: 200 OR 404 (legacy alias `/slice/components` 와 동일 그룹). G5 (SlotChip) 완료 후 showcase page.tsx 배치 + 별도 follow-up 커밋으로 200 필수 그룹으로 승격 예정.
+- Pre-Step 커밋으로 검증기 변경과 기능 변경을 분리 (IMPL-UI-002 Pre-Step 3 전례).
+### 미완료: G1~G5 composite chunks (InputField / SelectField / SegmentedControl / Chip / SlotChip), `/slice/composites/page.tsx` showcase, `chore(gate): require /slice/composites 200` follow-up.
+### 연관 파일: scripts/gate-check.sh
