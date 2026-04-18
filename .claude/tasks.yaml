@@ -71,7 +71,7 @@ tasks:
 
   - id: IMPL-002
     title: "user-service — route/repository/service 레이어 구현"
-    owner: codex
+    owner: agent-codex
     dependsOn:
       - IMPL-001
     status: done
@@ -86,7 +86,7 @@ tasks:
 
   - id: IMPL-003
     title: "content-service — celebrity/base-diet/recipe 조회 API"
-    owner: claude-sonnet-4-6
+    owner: agent-claude-sonnet-4-6
     dependsOn:
       - IMPL-002
     status: done
@@ -100,7 +100,7 @@ tasks:
 
   - id: IMPL-004-a
     title: "meal-plan-engine — Python FastAPI 부트스트랩 + CRUD 엔드포인트"
-    owner: codex
+    owner: agent-codex
     dependsOn:
       - IMPL-003
     status: done
@@ -112,7 +112,7 @@ tasks:
 
   - id: IMPL-004-b
     title: "meal-plan-engine — AI 파이프라인 7개 리프 모듈"
-    owner: codex
+    owner: agent-codex
     dependsOn:
       - IMPL-004-a
     status: done
@@ -124,7 +124,7 @@ tasks:
 
   - id: IMPL-004-c
     title: "meal-plan-engine — pipeline.py 오케스트레이터 + 엔진 테스트 + SQS + WebSocket"
-    owner: claude-opus-4-6 + codex-o3
+    owner: agent-claude-opus-4-6 + agent-codex-o3
     dependsOn:
       - IMPL-004-b
     status: done
@@ -138,7 +138,7 @@ tasks:
 
   - id: IMPL-005
     title: "service-core — JWT 실제 구현 (Cognito JWKS 검증)"
-    owner: claude-opus-4-6
+    owner: agent-claude-opus-4-6
     dependsOn:
       - IMPL-004-c
     status: done
@@ -151,7 +151,7 @@ tasks:
 
   - id: IMPL-006
     title: "service-core — PHI AES-256 암호화 코덱 + bio-profile 적용"
-    owner: claude-opus-4-6
+    owner: agent-claude-opus-4-6
     dependsOn:
       - IMPL-005
     status: done
