@@ -1417,7 +1417,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-010-e
-commit_sha: PENDING
+commit_sha: 8cb9eea
 files_changed:
   - packages/shared-types/src/schemas/auth.ts
   - services/user-service/src/routes/auth.routes.ts
