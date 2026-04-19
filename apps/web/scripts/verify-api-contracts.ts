@@ -1,172 +1,109 @@
-// Verify that /api/* route handlers produce responses matching
-// @celebbase/shared-types Zod schemas. Run against a live Next.js dev
-// server at CONTRACT_BASE_URL (default http://localhost:3000).
+#!/usr/bin/env tsx
+// FE ↔ BE contract verifier (fixture-based).
 //
-// Exit 1 on drift with diff to stdout. Exit 0 on clean match.
+// Reads live-recorded BE response fixtures under apps/web/scripts/fixtures/
+// and parses each against the matching shared-types Zod schema. Drift
+// between BE response shape and the FE schema fails the gate and blocks
+// the PR.
 //
-// Sprint scoping (plan §A10 / R2-M2):
-//   - Gate infra lands in IMPL-APP-000b (this file).
-//   - Zod schemas land in IMPL-APP-001a (@celebbase/shared-types/schemas).
-//   - BFF route handlers land in IMPL-APP-001b.
-// Until shared-types schemas resolve, this script exits 0 with a SKIP
-// marker so CI wiring works today and starts enforcing post-001a.
+// SKIP semantics (plan R15 — Round-3 finding):
+//   When the fixture directory is empty or missing, the script exits 0 with
+//   a SKIP marker so the gate-activation PR isn't self-blocking before
+//   fixtures exist. The same PR that ships this infra is expected to
+//   commit live-recorded fixtures (via record-fixtures.sh); post-merge,
+//   every subsequent chunk's blocking fe_contract_check enforces z.parse.
+//
+// Re-recording: `pnpm --filter web record:fixtures` against the local
+// dev BE stack. Hand-editing fixtures is forbidden per plan D25.
 
-const BASE = process.env.CONTRACT_BASE_URL ?? "http://localhost:3000";
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { schemas } from '@celebbase/shared-types';
+import type { ZodTypeAny } from 'zod';
 
-type ExpectedStatus = number | readonly number[];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const FIXTURE_DIR = resolve(__dirname, 'fixtures');
 
-type ContractCheck = {
-  readonly name: string;
-  readonly path: string;
-  readonly method: "GET" | "POST";
-  readonly body?: unknown;
-  readonly expectedStatus: ExpectedStatus;
-  readonly schemaName?: string;
-};
-
-type ZodSafeParseResult = {
-  readonly success: boolean;
-  readonly error?: { readonly issues: unknown };
-};
-
-type ZodLikeSchema = {
-  readonly safeParse: (input: unknown) => ZodSafeParseResult;
-};
-
-type SchemasModule = Readonly<Record<string, ZodLikeSchema | undefined>>;
-
-async function loadSchemas(): Promise<SchemasModule | null> {
-  try {
-    const mod = (await import("@celebbase/shared-types")) as unknown as SchemasModule;
-    return mod;
-  } catch {
-    return null;
-  }
+interface FixtureBinding {
+  readonly file: string;
+  readonly schema: ZodTypeAny;
+  readonly description: string;
 }
 
-function statusAllowed(status: number, expected: ExpectedStatus): boolean {
-  return Array.isArray(expected) ? expected.includes(status) : status === expected;
+// 8 live-recorded fixtures — domain-keyed. Every fixture is a BE success-
+// path response body. Keep this list in lockstep with record-fixtures.sh.
+const BINDINGS: readonly FixtureBinding[] = [
+  { file: 'auth.json', schema: schemas.LoginResponseSchema, description: 'POST /auth/login (user-service)' },
+  { file: 'users.json', schema: schemas.MeResponseSchema, description: 'GET /users/me (user-service)' },
+  { file: 'bio-profiles.json', schema: schemas.BioProfileResponseSchema, description: 'GET /users/me/bio-profile (user-service)' },
+  { file: 'celebrities.json', schema: schemas.CelebrityListResponseSchema, description: 'GET /celebrities (content-service)' },
+  { file: 'base-diets.json', schema: schemas.BaseDietDetailResponseSchema, description: 'GET /base-diets/:id (content-service)' },
+  { file: 'recipes.json', schema: schemas.RecipeListResponseSchema, description: 'GET /recipes (content-service)' },
+  { file: 'meal-plans.json', schema: schemas.MealPlanListResponseSchema, description: 'GET /meal-plans (meal-plan-engine)' },
+  { file: 'ws-ticket.json', schema: schemas.WsTicketResponseSchema, description: 'POST /ws/ticket (meal-plan-engine)' },
+];
+
+function listFixtureFiles(): readonly string[] {
+  if (!existsSync(FIXTURE_DIR)) return [];
+  return readdirSync(FIXTURE_DIR).filter((f) => f.endsWith('.json'));
 }
 
-function describeStatus(expected: ExpectedStatus): string {
-  return Array.isArray(expected) ? expected.join(" or ") : String(expected);
-}
-
-function validateBody(
-  schemas: SchemasModule,
-  schemaName: string,
-  body: unknown,
-): string | null {
-  const schema = schemas[schemaName];
-  if (schema === undefined) {
-    return `schema ${schemaName} not exported from @celebbase/shared-types`;
-  }
-  const result = schema.safeParse(body);
-  if (result.success) return null;
-  return `schema ${schemaName} mismatch: ${JSON.stringify(result.error?.issues)}`;
-}
-
-async function runCheck(
-  check: ContractCheck,
-  schemas: SchemasModule,
-): Promise<{ readonly ok: boolean; readonly reason?: string }> {
-  const url = `${BASE}${check.path}`;
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: check.method,
-      headers: check.body ? { "content-type": "application/json" } : undefined,
-      body: check.body ? JSON.stringify(check.body) : undefined,
-    });
-  } catch (err) {
-    return { ok: false, reason: `fetch failed: ${String(err)}` };
-  }
-
-  if (!statusAllowed(res.status, check.expectedStatus)) {
-    return {
-      ok: false,
-      reason: `status ${res.status} (expected ${describeStatus(check.expectedStatus)})`,
-    };
-  }
-
-  if (check.schemaName !== undefined) {
-    let parsed: unknown = null;
-    try {
-      parsed = await res.json();
-    } catch {
-      return { ok: false, reason: "response body is not valid JSON" };
-    }
-    const mismatch = validateBody(schemas, check.schemaName, parsed);
-    if (mismatch !== null) {
-      return { ok: false, reason: mismatch };
-    }
-  }
-
-  return { ok: true };
-}
-
-function buildChecks(): readonly ContractCheck[] {
-  const nonexistentUuid = "00000000-0000-7000-8000-000000000000";
-  return [
-    {
-      name: "GET /api/celebrities",
-      path: "/api/celebrities",
-      method: "GET",
-      expectedStatus: 200,
-      schemaName: "CelebrityListResponseSchema",
-    },
-    {
-      name: "GET /api/users/me (unauth)",
-      path: "/api/users/me",
-      method: "GET",
-      expectedStatus: 401,
-    },
-    {
-      name: "POST /api/auth/login (rejected credentials)",
-      path: "/api/auth/login",
-      method: "POST",
-      body: { email: "contract-check@celebbase.invalid", password: "x" },
-      expectedStatus: [200, 400, 401],
-    },
-    {
-      name: `GET /api/meal-plans/${nonexistentUuid}`,
-      path: `/api/meal-plans/${nonexistentUuid}`,
-      method: "GET",
-      expectedStatus: [401, 404],
-    },
-  ];
-}
-
-async function main(): Promise<void> {
-  const schemas = await loadSchemas();
-  if (schemas === null) {
+function main(): number {
+  const present = listFixtureFiles();
+  if (present.length === 0) {
     process.stdout.write(
-      "SKIP: @celebbase/shared-types schemas not yet exported. " +
-        "Gate infra is in place; enforcement activates after IMPL-APP-001a.\n",
+      'SKIP: no fixtures recorded. Run `pnpm --filter web record:fixtures` ' +
+        'against the dev BE stack, commit the JSON files under ' +
+        'apps/web/scripts/fixtures/, and re-run.\n',
     );
-    process.exit(0);
+    return 0;
   }
 
-  const checks = buildChecks();
   let failed = 0;
-  for (const check of checks) {
-    const result = await runCheck(check, schemas);
-    if (result.ok) {
-      process.stdout.write(`[ok] ${check.name}\n`);
-    } else {
-      process.stdout.write(`[fail] ${check.name}: ${result.reason ?? "unknown"}\n`);
-      failed += 1;
+  let checked = 0;
+  const missing: string[] = [];
+
+  for (const binding of BINDINGS) {
+    const path = join(FIXTURE_DIR, binding.file);
+    if (!existsSync(path)) {
+      missing.push(binding.file);
+      continue;
     }
+    checked += 1;
+    let payload: unknown;
+    try {
+      payload = JSON.parse(readFileSync(path, 'utf-8')) as unknown;
+    } catch (err) {
+      failed += 1;
+      const msg = err instanceof Error ? err.message : String(err);
+      process.stderr.write(`FAIL ${binding.file} (${binding.description}): invalid JSON — ${msg}\n`);
+      continue;
+    }
+    const result = binding.schema.safeParse(payload);
+    if (!result.success) {
+      failed += 1;
+      process.stderr.write(`FAIL ${binding.file} (${binding.description}):\n`);
+      for (const issue of result.error.issues) {
+        const path = issue.path.join('.') || '<root>';
+        process.stderr.write(`  - path=${path} code=${issue.code} msg=${issue.message}\n`);
+      }
+      continue;
+    }
+    process.stdout.write(`OK   ${binding.file} (${binding.description})\n`);
   }
 
-  if (failed > 0) {
-    process.stderr.write(`verify-api-contracts: ${failed} mismatch(es)\n`);
-    process.exit(1);
+  if (missing.length > 0) {
+    process.stderr.write(`\nMissing fixtures (re-run record:fixtures): ${missing.join(', ')}\n`);
   }
-  process.stdout.write(`verify-api-contracts: all ${checks.length} checks passed\n`);
+
+  process.stdout.write(
+    `\nverify-api-contracts: ${checked}/${BINDINGS.length} fixtures parsed, ` +
+      `${failed} failed, ${missing.length} missing.\n`,
+  );
+
+  return failed > 0 || missing.length > 0 ? 1 : 0;
 }
 
-void main().catch((err: unknown) => {
-  process.stderr.write(`verify-api-contracts: fatal: ${String(err)}\n`);
-  process.exit(1);
-});
+process.exit(main());

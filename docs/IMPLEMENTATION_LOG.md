@@ -1482,3 +1482,27 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass, `gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 미완료: `/onboarding` PROTECTED_PATHS 추가는 002-2b로 이연(페이지 랜딩 전 추가하면 redirect 루프).
 ### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/_lib/session.ts, apps/web/middleware.ts, .claude/rules/security.md
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0b
+commit_sha: PENDING
+files_changed:
+  - apps/web/scripts/verify-api-contracts.ts
+  - apps/web/scripts/record-fixtures.sh
+  - scripts/gate-check.sh
+  - scripts/verify-be-endpoint.sh
+  - apps/web/package.json
+  - pnpm-lock.yaml
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0b — fe_contract_check 활성화 + fe_be_probe gate + fixture recorder
+- verify-api-contracts.ts: `@celebbase/shared-types` 스키마 로드 후 `scripts/fixtures/*.json` parse via `z.parse`. fixture 없으면 `SKIP` (exit 0) — chicken-and-egg 방지(D25). 실패 시 exit 1.
+- record-fixtures.sh (NEW): BE dev stack 대상 8개 엔드포인트 호출 → `scripts/fixtures/<domain>.json` 기록. 도메인: auth, users, bio-profiles, celebrities, base-diets, recipes, meal-plans, ws-ticket.
+- gate-check.sh: `fe_contract_check` `SKIP: tsx not installed` 단락 제거 → `pnpm --filter web verify:contracts` 실행. `fe_be_probe` 게이트 추가(advisory) — `scripts/verify-be-endpoint.sh <SERVICE> <METHOD> <PATH> [--body JSON]` 호출.
+- verify-be-endpoint.sh (NEW): 실행 중 dev 인스턴스 프로브 + 응답 shape를 shared-types 스키마로 검증. `--body` 플래그로 PATCH 요청 body 수락 여부 확인(D26 A7 PATCH probe 선행요건).
+- apps/web/package.json: `tsx@^4` devDep 추가, `verify:contracts` + `record:fixtures` 스크립트.
+- 검증: `pnpm --filter web typecheck` pass, `gate-check.sh fe_contract_check` `{passed:true, note:"SKIP - no fixtures"}`.
+### 미완료: fixture 실제 기록은 BE dev stack 부팅 후 `pnpm --filter web record:fixtures` 실행 필요 (D25 in-chunk action — BE 미기동 환경에서는 SKIP 상태 유지).
+### 연관 파일: apps/web/scripts/verify-api-contracts.ts, apps/web/scripts/record-fixtures.sh, scripts/gate-check.sh, scripts/verify-be-endpoint.sh, apps/web/package.json

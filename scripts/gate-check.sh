@@ -810,8 +810,10 @@ check_fe_bff_smoke() {
 }
 
 # FE contract check: delegates to apps/web/scripts/verify-api-contracts.ts.
-# The script itself exits 0 with SKIP marker when @celebbase/shared-types schemas
-# are not yet exported (pre-IMPL-APP-001a), and enforces Zod parse afterwards.
+# The script itself exits 0 with SKIP marker when no fixtures have been
+# recorded yet (apps/web/scripts/fixtures/ empty or missing). Once fixtures
+# are committed, Zod z.parse enforces per-schema; mismatches fail the gate.
+# Activated by IMPL-APP-002-0b (Sprint B gate infra).
 check_fe_contract_check() {
   if [[ ! -f "apps/web/scripts/verify-api-contracts.ts" ]]; then
     RESULTS+=('{"name":"fe_contract_check","passed":false,"exit_code":1,"output":"apps/web/scripts/verify-api-contracts.ts missing"}')
@@ -819,16 +821,9 @@ check_fe_contract_check() {
     return
   fi
 
-  # tsx lands as a devDep in IMPL-APP-001a. Until then, treat missing tsx as SKIP
-  # so the gate infra can be verified before Sprint A completes.
-  if ! pnpm --filter web exec sh -c 'command -v tsx' >/dev/null 2>&1; then
-    RESULTS+=('{"name":"fe_contract_check","passed":true,"exit_code":0,"output":"SKIP: tsx not yet installed. Gate infra ready; enforcement activates after IMPL-APP-001a."}')
-    return
-  fi
-
   local out
   local exit_code=0
-  out=$(pnpm --filter web exec tsx scripts/verify-api-contracts.ts 2>&1) || exit_code=$?
+  out=$(pnpm --filter web run verify:contracts 2>&1) || exit_code=$?
 
   local passed="true"
   if [[ $exit_code -ne 0 ]]; then
@@ -840,6 +835,44 @@ check_fe_contract_check() {
   truncated=$(printf '%s' "$out" | tail -30 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
 
   RESULTS+=("{\"name\":\"fe_contract_check\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
+# FE BE probe: advisory gate (plan D26) — probes a live BE endpoint with
+# optional request body to close request-shape ambiguity before the BFF
+# chunk writes code. Does nothing useful in CI without a booted BE stack;
+# intended to be invoked from a developer workstation or an integration
+# runner. Requires scripts/verify-be-endpoint.sh arguments via FE_BE_PROBE_ARGS
+# (space-separated). Example:
+#   FE_BE_PROBE_ARGS='meal-plan PATCH /meal-plans/00000000-0000-7000-8000-000000000000 --body {"status":"active"} --expect 200,204,401,404,422' \
+#     scripts/gate-check.sh fe_be_probe
+check_fe_be_probe() {
+  if [[ ! -f "scripts/verify-be-endpoint.sh" ]]; then
+    RESULTS+=('{"name":"fe_be_probe","passed":false,"exit_code":1,"output":"scripts/verify-be-endpoint.sh missing"}')
+    OVERALL_PASS=false
+    return
+  fi
+  if [[ -z "${FE_BE_PROBE_ARGS:-}" ]]; then
+    # Advisory SKIP when no target specified — lets the 'all' wiring stay safe.
+    RESULTS+=('{"name":"fe_be_probe","passed":true,"exit_code":0,"output":"SKIP: set FE_BE_PROBE_ARGS to invoke verify-be-endpoint.sh (see D26)."}')
+    return
+  fi
+
+  local out
+  local exit_code=0
+  # Intentional word-splitting: args delivered by caller.
+  # shellcheck disable=SC2086
+  out=$(bash scripts/verify-be-endpoint.sh ${FE_BE_PROBE_ARGS} 2>&1) || exit_code=$?
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    # Advisory: don't flip OVERALL_PASS — BE stack availability is environmental.
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$out" | tail -10 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_be_probe\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
 # Run requested checks
@@ -895,6 +928,9 @@ case "$CHECK" in
   fe_contract_check)
     check_fe_contract_check
     ;;
+  fe_be_probe)
+    check_fe_be_probe
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -918,7 +954,7 @@ case "$CHECK" in
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, all" >&2
     exit 1
     ;;
 esac
