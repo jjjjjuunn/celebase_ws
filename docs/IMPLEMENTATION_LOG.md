@@ -28,6 +28,27 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-18
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-001b-1a
+commit_sha: cd3ad9f
+files_changed:
+  - apps/web/src/app/api/_lib/error.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/package.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF 기초 공사 — error/session/bff-fetch (IMPL-APP-001b-1a)
+- error.ts: BffError 인터페이스, PHI_REDACT_PATHS(19개), Pino logger, toBffErrorResponse (allowlist 필터 + ZodError 502 + INTERNAL_ERROR 500)
+- session.ts: Cognito RS256 JWKS 검증, createProtectedRoute/createPublicRoute factory, JWTExpired → X-Token-Expired header
+- bff-fetch.ts: 절대 throw 없는 Result<T> 반환, 1MB 응답 cap, 토큰 버킷 rate limit (public 60/min, auth 20/min), Zod safeParse 502 위임
+- Codex heredoc 실패 → Claude 직접 구현 (pipeline.md 하이브리드 분업 규칙)
+- zod@^3.24.1 apps/web 의존성 추가 (HANDOFF 누락분)
+### 미완료: session/error 단위 테스트, ESLint protected-route-factory 룰 (→ IMPL-APP-001b-1b)
+### 연관 파일: apps/web/src/app/api/_lib/error.ts, session.ts, bff-fetch.ts
+
+---
 date: 2026-04-12
 agent: claude-sonnet-4-6
 task_id: IMPL-004-b
