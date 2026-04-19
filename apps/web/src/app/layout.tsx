@@ -4,6 +4,11 @@ import localFont from 'next/font/local';
 import { ThemeProvider, ThemePrePaintScript } from '@celebbase/ui-kit';
 import '@/styles/globals.css';
 import { AxeDevInit } from '@/lib/axe-dev';
+import { Providers } from '@/providers';
+import enMessages from '@/i18n/en.json';
+
+const DEFAULT_LOCALE = 'en';
+const DEFAULT_TIME_ZONE = 'UTC';
 
 const fraunces = localFont({
   src: '../../public/fonts/Fraunces-Variable.woff2',
@@ -34,7 +39,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
-      lang="en"
+      lang={DEFAULT_LOCALE}
       className={`${fraunces.variable} ${jakarta.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
@@ -43,8 +48,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <ThemeProvider defaultMode="system">
-          <AxeDevInit />
-          {children}
+          <Providers
+            locale={DEFAULT_LOCALE}
+            messages={enMessages}
+            timeZone={DEFAULT_TIME_ZONE}
+          >
+            <AxeDevInit />
+            {children}
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
