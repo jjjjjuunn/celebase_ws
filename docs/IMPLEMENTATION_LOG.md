@@ -1359,7 +1359,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001c-4
-commit_sha: PENDING
+commit_sha: 676c302
 files_changed:
   - apps/web/middleware.ts
   - apps/web/.env.example
