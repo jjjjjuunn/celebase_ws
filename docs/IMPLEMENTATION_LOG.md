@@ -1378,7 +1378,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001-integration
-commit_sha: PENDING
+commit_sha: 1705a4b
 files_changed:
   - apps/web/src/app/api/_lib/bff-error.ts
   - apps/web/src/app/api/_lib/__tests__/bff-error.test.ts
