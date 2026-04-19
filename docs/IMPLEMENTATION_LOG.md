@@ -1459,3 +1459,26 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass.
 ### 미완료: 없음 (002-0a-2에서 bff-fetch SessionExpiredError + CSP 이어서 진행).
 ### 연관 파일: apps/web/src/app/api/_lib/session.ts, apps/web/.env.example, docs/runbooks/internal-jwt-rotation.md
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0a-2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/bff-error.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/middleware.ts
+  - .claude/rules/security.md
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0a-2 — baseline CSP + RSC+route 401 handler + security.md PHI trigger
+- bff-fetch.ts: 서버사이드 path에서 BE 401 응답 시 `SessionExpiredError` throw. `redirectOnSessionExpired(err)` 헬퍼 export — RSC 전용, next/navigation `redirect('/login?returnTo=...')` 호출. D29 catch-specificity 규칙 주석 포함(`NEXT_REDIRECT` 삼킴 방지).
+- session.ts: `createProtectedRoute`가 `SessionExpiredError` catch → 401 JSON 반환 (redirect() 금지 — API route에서 NEXT_REDIRECT throw는 307이 아닌 500으로 처리됨). `createPublicRoute`는 catch 후 re-throw.
+- middleware.ts: 모든 응답에 baseline CSP 헤더 추가. prod: `wss://${NEXT_PUBLIC_WS_HOST}` 인터폴레이션 + `form-action https://${COGNITO_HOSTED_UI_DOMAIN}`. dev: `wss: ws:` 허용. bare 와일드카드 미사용(D28).
+- .claude/rules/security.md: PHI 감사 트리거 표에 `POST /users/me/bio-profile` 생성 이벤트 추가(D27).
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass, `gate-check.sh fe_bff_compliance` `{passed:true}`.
+### 미완료: `/onboarding` PROTECTED_PATHS 추가는 002-2b로 이연(페이지 랜딩 전 추가하면 redirect 루프).
+### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/_lib/session.ts, apps/web/middleware.ts, .claude/rules/security.md

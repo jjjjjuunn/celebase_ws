@@ -43,11 +43,14 @@ paths:
 - **암호화**: `bio_profiles`의 `biomarkers`, `medical_conditions`, `medications` → application-level AES-256.
 - **감사 로그 필수 트리거**:
   - `GET /users/me/bio-profile` → READ
+  - `POST /users/me/bio-profile` (온보딩 생성 시) → WRITE
   - `PATCH /users/me/bio-profile` (PHI 변경 시) → WRITE
   - `POST /meal-plans/generate` → READ (phi_minimizer 추출 시)
   - `DELETE /users/me` → DELETE (파기 시작 시)
   - 관리자 건강 데이터 조회 → READ + 관리자 이메일 기록
-- **fail-closed**: 감사 로그 기록 실패 → 원래 요청도 500 반환.
+- **fail-closed**: 감사 로그 기록 실패 → 원래 요청도 500 반환. BFF는
+  `pickUpstreamError` 로 BE 의 `{error:{code:'AUDIT_LOG_FAILURE'}}` 500 을
+  그대로 전달한다 (별도 코드 변경 없음).
 
 ## 계정 삭제 (Right to Deletion)
 

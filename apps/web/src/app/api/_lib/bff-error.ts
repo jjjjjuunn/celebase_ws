@@ -1,5 +1,20 @@
 import { ZodError } from 'zod';
 
+// Thrown by fetchBff on server-side BE 401 (RSC or API-route-handler
+// context). See redirectOnSessionExpired() in bff-fetch.ts + catch logic in
+// session.ts (createProtectedRoute returns 401 JSON, RSCs call the helper to
+// redirect). Lives in bff-error.ts to break the session.ts ↔ bff-fetch.ts
+// import cycle.
+export class SessionExpiredError extends Error {
+  public readonly code = 'SESSION_EXPIRED' as const;
+  public readonly returnTo: string | undefined;
+  constructor(returnTo?: string) {
+    super('Session expired');
+    this.name = 'SessionExpiredError';
+    this.returnTo = returnTo;
+  }
+}
+
 export interface BffErrorDetail {
   field?: string;
   issue: string;

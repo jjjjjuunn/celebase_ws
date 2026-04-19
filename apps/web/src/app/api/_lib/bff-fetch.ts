@@ -1,8 +1,36 @@
 import type { ZodType } from 'zod';
-import { createLogger, type BffError } from './bff-error.js';
+import { redirect } from 'next/navigation';
+import {
+  createLogger,
+  SessionExpiredError,
+  type BffError,
+} from './bff-error.js';
 import { readEnv } from './session.js';
 
+export { SessionExpiredError } from './bff-error.js';
+
 export type BffTarget = 'user' | 'content' | 'meal-plan';
+
+// D29: Use this helper ONLY in Server Components after awaiting fetchBff.
+// RSCs MUST pattern-match the error specifically — NEVER a bare `catch`
+// that could swallow Next.js's internal NEXT_REDIRECT throw.
+//
+//   try { await fetchBff(...) } catch (err) {
+//     if (err instanceof SessionExpiredError) redirectOnSessionExpired(err);
+//     throw err;
+//   }
+//
+// API route handlers wrapped in createProtectedRoute must NOT call this;
+// createProtectedRoute catches SessionExpiredError and returns 401 JSON.
+// redirect() inside an API route throws NEXT_REDIRECT which Next.js converts
+// to a 307 with Location — wrong for JSON APIs.
+export function redirectOnSessionExpired(err: unknown): never {
+  if (err instanceof SessionExpiredError) {
+    const returnTo = err.returnTo ?? '/dashboard';
+    redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+  }
+  throw err;
+}
 
 export type Result<T> =
   | { ok: true; data: T }
@@ -225,6 +253,9 @@ export async function fetchBff<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new SessionExpiredError();
+    }
     const picked = pickUpstreamError(parsedBody);
     return {
       ok: false,
