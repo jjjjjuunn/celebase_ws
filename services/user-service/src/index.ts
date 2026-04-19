@@ -9,7 +9,9 @@ import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
 import { dailyLogRoutes } from './routes/daily-log.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { subscriptionRoutes } from './routes/subscription.routes.js';
+import type { AuthProvider } from './services/auth.service.js';
 import { DevAuthProvider } from './services/auth.service.js';
+import { CognitoAuthProvider } from './services/cognito-auth.provider.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -26,7 +28,31 @@ const start = async (): Promise<void> => {
     app.log.fatal('AUTH_PROVIDER must be "cognito" in production');
     process.exit(1);
   }
-  const authProvider = new DevAuthProvider();
+  let authProvider: AuthProvider;
+  if (env.AUTH_PROVIDER === 'cognito') {
+    // superRefine guarantees these fields are non-empty when AUTH_PROVIDER=cognito.
+    if (
+      !env.COGNITO_USER_POOL_ID ||
+      !env.COGNITO_CLIENT_ID ||
+      !env.AWS_REGION ||
+      !env.COGNITO_JWKS_URI ||
+      !env.COGNITO_ISSUER
+    ) {
+      app.log.fatal('Cognito config missing after env validation — should not happen');
+      process.exit(1);
+    }
+    authProvider = new CognitoAuthProvider({
+      userPoolId: env.COGNITO_USER_POOL_ID,
+      clientId: env.COGNITO_CLIENT_ID,
+      region: env.AWS_REGION,
+      jwksUri: env.COGNITO_JWKS_URI,
+      issuer: env.COGNITO_ISSUER,
+    });
+    app.log.info('Auth provider: cognito');
+  } else {
+    authProvider = new DevAuthProvider();
+    app.log.info('Auth provider: dev');
+  }
   await app.register(authRoutes, { pool, authProvider });
 
   await app.register(userRoutes, { pool });

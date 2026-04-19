@@ -3,12 +3,14 @@ import type pg from 'pg';
 
 const mockFindByEmail = jest.fn();
 const mockFindByCognitoSub = jest.fn();
+const mockFindAndUpdateCognitoSubByEmail = jest.fn();
 const mockCreate = jest.fn();
 
 jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
   findById: jest.fn(),
   findByEmail: mockFindByEmail,
   findByCognitoSub: mockFindByCognitoSub,
+  findAndUpdateCognitoSubByEmail: mockFindAndUpdateCognitoSubByEmail,
   create: mockCreate,
   updateUser: jest.fn(),
   softDelete: jest.fn(),
@@ -77,6 +79,115 @@ describe('authService.signup', () => {
   });
 });
 
+describe('authService.signup email-bridge', () => {
+  class FakeCognitoProvider {
+    async verifyIdToken(idToken: string): Promise<{ sub: string; email: string }> {
+      return Promise.resolve({
+        sub: 'cognito-real-sub',
+        email: 'legacy@example.com',
+      });
+    }
+    async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+    async refreshTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+  }
+
+  it('merges a dev-seeded user on first Cognito signup via email-bridge', async () => {
+    const legacyUser = {
+      ...baseUser,
+      email: 'legacy@example.com',
+      cognito_sub: 'dev-legacy',
+    };
+    mockFindByEmail.mockResolvedValueOnce(legacyUser);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce({
+      ...legacyUser,
+      cognito_sub: 'cognito-real-sub',
+    });
+
+    const result = await signup(mockPool, new FakeCognitoProvider(), {
+      email: 'legacy@example.com',
+      display_name: 'Legacy User',
+      id_token: 'fake.id.token',
+    });
+
+    expect(result.user.cognito_sub).toBe('cognito-real-sub');
+    expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
+      mockPool,
+      'legacy@example.com',
+      'cognito-real-sub',
+    );
+  });
+
+  it('rejects conflict when existing user already has a real cognito_sub', async () => {
+    mockFindByEmail.mockResolvedValueOnce({
+      ...baseUser,
+      email: 'legacy@example.com',
+      cognito_sub: 'cognito-already-set',
+    });
+
+    await expect(
+      signup(mockPool, new FakeCognitoProvider(), {
+        email: 'legacy@example.com',
+        display_name: 'x',
+        id_token: 'fake.id.token',
+      }),
+    ).rejects.toThrow(ValidationError);
+  });
+});
+
+describe('authService.login email-bridge', () => {
+  class FakeCognitoProvider {
+    async verifyIdToken(): Promise<{ sub: string; email: string }> {
+      return Promise.resolve({
+        sub: 'cognito-real-sub',
+        email: 'legacy@example.com',
+      });
+    }
+    async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+    async refreshTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+  }
+
+  it('falls back to email lookup when cognito_sub is unknown (legacy user)', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce({
+      ...baseUser,
+      email: 'legacy@example.com',
+      cognito_sub: 'cognito-real-sub',
+    });
+
+    const result = await login(mockPool, new FakeCognitoProvider(), {
+      email: 'legacy@example.com',
+      id_token: 'fake.id.token',
+    });
+
+    expect(result.user.cognito_sub).toBe('cognito-real-sub');
+    expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
+      mockPool,
+      'legacy@example.com',
+      'cognito-real-sub',
+    );
+  });
+
+  it('throws UnauthorizedError if neither cognito_sub nor email match', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
+
+    await expect(
+      login(mockPool, new FakeCognitoProvider(), {
+        email: 'ghost@example.com',
+        id_token: 'fake.id.token',
+      }),
+    ).rejects.toThrow(UnauthorizedError);
+  });
+});
+
 describe('authService.login', () => {
   it('returns user and tokens for existing user', async () => {
     mockFindByEmail.mockResolvedValueOnce(baseUser);
@@ -127,7 +238,11 @@ describe('authService.refresh', () => {
 
 describe('DevAuthProvider', () => {
   it('issues tokens with sub claim matching userId', async () => {
-    const tokens = await devProvider.issueTokens('user-123');
+    const tokens = await devProvider.issueTokens({
+      sub: 'user-123',
+      email: 'dev@example.com',
+      cognito_sub: 'dev-fake',
+    });
 
     const parts = tokens.access_token.split('.');
     const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { sub: string; token_use: string };
@@ -136,7 +251,11 @@ describe('DevAuthProvider', () => {
   });
 
   it('issues refresh tokens with token_use=refresh', async () => {
-    const tokens = await devProvider.issueTokens('user-123');
+    const tokens = await devProvider.issueTokens({
+      sub: 'user-123',
+      email: 'dev@example.com',
+      cognito_sub: 'dev-fake',
+    });
 
     const parts = tokens.refresh_token.split('.');
     const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { sub: string; token_use: string };
@@ -145,7 +264,11 @@ describe('DevAuthProvider', () => {
   });
 
   it('rejects access tokens used as refresh tokens', async () => {
-    const tokens = await devProvider.issueTokens('user-123');
+    const tokens = await devProvider.issueTokens({
+      sub: 'user-123',
+      email: 'dev@example.com',
+      cognito_sub: 'dev-fake',
+    });
 
     await expect(
       devProvider.refreshTokens(tokens.access_token),

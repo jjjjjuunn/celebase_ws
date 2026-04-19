@@ -64,6 +64,35 @@ export async function findByCognitoSub(pool: pg.Pool, cognitoSub: string): Promi
   return rows[0] ?? null;
 }
 
+/**
+ * Email-bridge for day-1 Cognito cutover: atomically replace a dev-seeded
+ * cognito_sub (`dev-%`) with the real Cognito sub keyed on email.
+ * Returns null if no matching dev-seeded row exists (concurrent race safe —
+ * only one caller wins the UPDATE).
+ */
+export async function findAndUpdateCognitoSubByEmail(
+  pool: pg.Pool,
+  email: string,
+  cognitoSub: string,
+): Promise<User | null> {
+  try {
+    const { rows } = await pool.query<User>(
+      `UPDATE users
+         SET cognito_sub = $1, updated_at = NOW()
+       WHERE email = $2 AND cognito_sub LIKE 'dev-%'
+       RETURNING *`,
+      [cognitoSub, email],
+    );
+    return rows[0] ?? null;
+  } catch (err: unknown) {
+    // PG unique_violation on cognito_sub — another row already claimed this sub
+    if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '23505') {
+      return null;
+    }
+    throw err;
+  }
+}
+
 type CreateUserData = {
   cognito_sub: string;
   email: string;

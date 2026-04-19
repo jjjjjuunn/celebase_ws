@@ -1247,3 +1247,32 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass (기존 logout route `_req` 경고만 carry-over) / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
 ### 미완료: 없음 (001b-7: regenerate + ws-ticket 진행)
 ### 연관 파일: apps/web/src/app/api/meal-plans/
+
+---
+date: 2026-04-18
+agent: claude-opus-4-7
+task_id: IMPL-010-d
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/index.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/user-service/tests/unit/cognito-auth.provider.test.ts
+  - services/user-service/tests/unit/user.repository.test.ts
+  - packages/service-core/tests/helpers/mock-jwks-server.ts
+verified_by: claude-opus-4-7
+---
+### 완료: IMPL-010-d — CognitoAuthProvider + email-bridge (dormant build)
+- CognitoAuthProvider: jose `createRemoteJWKSet` RS256 검증, issuer/audience pin, `algorithms: ['RS256']` (alg confusion 방어), `clockTolerance: 60`, `token_use === 'id'` 강제, sub/email claim non-empty 확인; jose 에러 → 통일된 `UnauthorizedError('Invalid or expired id token')` (user enumeration 방어)
+- auth.service.ts 리팩터: `AuthTokenSubject {sub, email, cognito_sub}` 인터페이스 도입, `issueInternalTokens` / `verifyInternalRefresh` 공용 헬퍼로 DevAuthProvider/CognitoAuthProvider 모두 내부 HS256 JWT 발급; issuer 기본값 `celebbase-user-service` (BFF session.ts 기대값과 정합)
+- Email-bridge (D9): signup/login 에서 `findByCognitoSub` miss → `findAndUpdateCognitoSubByEmail` 로 기존 dev-<uuid> 유저 cognito_sub 원자 업데이트; `cognito_sub LIKE 'dev-%'` SQL 조건으로 이미 Cognito sub 설정된 유저는 건너뜀; unique_violation (23505) → null 반환 (race 방어)
+- user.repository.ts: `findAndUpdateCognitoSubByEmail(pool, email, cognito_sub)` 추가 — atomic UPDATE + RETURNING
+- index.ts: `AUTH_PROVIDER=cognito` 시 CognitoAuthProvider 인스턴스화, 5-field non-empty 가드 + `NODE_ENV=production && AUTH_PROVIDER !== 'cognito'` fatal exit (3-layer: superRefine + runtime fatal + loadDevSecret)
+- Mock JWKS server: `packages/service-core/tests/helpers/mock-jwks-server.ts` (test-only, dist 미포함) — `node:http` + jose RS256 keypair + `mintIdToken({sub, email, token_use, issuer, audience, expiresIn, kid})`
+- 테스트: 82 user-service unit tests pass (coverage 80.89% — 신규 `user.repository.test.ts` 로 80% 문턱 확보), Cognito provider 9-case (valid/wrong-aud/wrong-iss/access-token/expired/unknown-kid/garbage/missing-email/refresh 보존), email-bridge 4-case (signup merge/login fallback/conflict/404)
+- Scope: Phase B 는 서버 dormant build — CLIENT-COGNITO-001 + CHORE-006 완료 전까지 staging/prod `AUTH_PROVIDER=dev` 유지. `@aws-sdk/client-cognito-identity-provider` 미추가 (Hosted UI/Amplify 가 클라이언트사이드 signup 처리)
+### 미완료: IMPL-010-e (rate-limit per-route + /auth/logout + structured auth logs)
+### 연관 파일: services/user-service/src/services/, services/user-service/src/repositories/user.repository.ts, packages/service-core/tests/helpers/
+
