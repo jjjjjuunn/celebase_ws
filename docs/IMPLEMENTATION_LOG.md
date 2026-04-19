@@ -1141,7 +1141,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: IMPL-010-c
-commit_sha: PENDING
+commit_sha: 3972f90
 files_changed:
   - .env.example
   - services/user-service/src/env.ts
@@ -1169,3 +1169,23 @@ verified_by: claude-sonnet-4-6
 - pytest unit 64 pass, web jest 22 pass, gate-check policy pass
 ### 미완료: IMPL-010-d (CognitoAuthProvider + email-bridge), IMPL-010-e (rate-limit + logout + 관찰성)
 ### 연관 파일: services/user-service/src/env.ts, services/meal-plan-engine/src/config.py, apps/web/src/app/api/_lib/session.ts
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-001b-3
+commit_sha: 079926e
+files_changed:
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/users/me/route.ts
+  - apps/web/src/app/api/users/me/bio-profile/route.ts
+  - apps/web/eslint.config.mjs
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF logout + users/me + bio-profile 라우트 (IMPL-APP-001b-3)
+- logout/route.ts: POST /api/auth/logout → cb_access(Max-Age=0)/cb_refresh(Max-Age=0) 쿠키 클리어; 204 반환; createPublicRoute 래핑
+- users/me/route.ts: GET /api/users/me → MeResponseSchema 검증; PATCH /api/users/me → UpdateMeRequestSchema 검증 후 전달; createProtectedRoute 래핑
+- users/me/bio-profile/route.ts: GET/POST/PATCH/DELETE 4메서드; 각 PHI 감사 컨텍스트(x-forwarded-for, userId) fetchBff에 전달; POST 201 / GET+PATCH 200; createProtectedRoute 래핑
+- eslint.config.mjs: CJS→ESM interop 수정 (_celebbasePlugin.default ?? _celebbasePlugin) — Node.js native ESM은 __esModule을 무시하므로 .default 언래핑 필수
+### 미완료: 없음 (001b-4: celebrities public routes 진행)
+### 연관 파일: apps/web/src/app/api/auth/logout/, apps/web/src/app/api/users/, apps/web/eslint.config.mjs
