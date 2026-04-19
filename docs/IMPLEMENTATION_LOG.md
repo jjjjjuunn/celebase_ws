@@ -1293,3 +1293,25 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 미완료: 없음 (IMPL-APP-001b 8 chunks 전부 완료 — 001c 시작).
 ### 연관 파일: apps/web/src/app/api/meal-plans/[id]/regenerate/, apps/web/src/app/api/ws-ticket/
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001c-1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/lib/fetcher.ts
+  - apps/web/src/lib/query-client.ts
+  - apps/web/src/providers.tsx
+  - apps/web/package.json
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7
+---
+### 완료: 코어 프로바이더 — TanStack Query + next-intl + toast (IMPL-APP-001c-1)
+- `lib/fetcher.ts`: 브라우저 side fetch 래퍼로 same-origin `/api/*` 강제(path prefix assertion) — `credentials: 'same-origin'`, `X-Request-Id` 자동 생성(crypto.randomUUID fallback), 204 no-body 처리, JSON parse 실패 시 `INVALID_JSON` FetcherError. BFF 에러 envelope `{error:{code,message,requestId,details}}` unwrap 하여 `FetcherError(status, code, message, requestId, tokenExpired, details)` throw. 옵션 `schema` 지정 시 응답 Zod safeParse(미통과 → `CLIENT_CONTRACT_VIOLATION` 502). `postJson`/`patchJson` sugar helpers.
+- `lib/query-client.ts`: `createQueryClient()` factory — `staleTime: 60_000`, query/mutation retry policy(401+`X-Token-Expired:true` 만 1회 retry → 내부적으로 `/api/auth/refresh` 호출, 4xx non-expired 는 no-retry). `refreshTokens()` 가 동시 다중 401 → 단일 refresh promise 공유(race 방지).
+- `providers.tsx`: `'use client'` + `QueryClientProvider` + `NextIntlClientProvider`(locale/messages/timeZone props) + `<Toaster position="top-right" />` 조합. `useState(() => createQueryClient())` 로 서버/클라이언트 boundary 에서 QueryClient 단일 인스턴스 유지(Next.js RSC + streaming 패턴).
+- 의존성: `@tanstack/react-query@^5`, `next-intl@^3`, `react-hot-toast@^2` 추가(apps/web dependencies). lockfile 재생성.
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: 001c-2 (i18n scaffold: en.json + ko.json + layout.tsx wrap), 001c-3 (route groups), 001c-4 (middleware + env + security headers). providers.tsx 는 001c-2 에서 layout.tsx 가 실제로 import 할 때 활성화됨.
+### 연관 파일: apps/web/src/lib/, apps/web/src/providers.tsx, apps/web/package.json
