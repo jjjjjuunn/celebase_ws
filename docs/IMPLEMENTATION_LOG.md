@@ -1136,3 +1136,23 @@ verified_by: claude-sonnet-4-6
 - 모든 라우트 createPublicRoute 래핑, fetchBff Result<T> 패턴, LoginResponseSchema/SignupResponseSchema/RefreshResponseSchema Zod 검증
 ### 미완료: 없음 (001b-3: logout+users/me+bio-profile 진행)
 ### 연관 파일: apps/web/src/app/api/auth/, apps/web/package.json
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-001b-3
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/users/me/route.ts
+  - apps/web/src/app/api/users/me/bio-profile/route.ts
+  - apps/web/eslint.config.mjs
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF logout + users/me + bio-profile 라우트 (IMPL-APP-001b-3)
+- logout/route.ts: POST /api/auth/logout → cb_access(Max-Age=0)/cb_refresh(Max-Age=0) 쿠키 클리어; 204 반환; createPublicRoute 래핑
+- users/me/route.ts: GET /api/users/me → MeResponseSchema 검증; PATCH /api/users/me → UpdateMeRequestSchema 검증 후 전달; createProtectedRoute 래핑
+- users/me/bio-profile/route.ts: GET/POST/PATCH/DELETE 4메서드; 각 PHI 감사 컨텍스트(x-forwarded-for, userId) fetchBff에 전달; POST 201 / GET+PATCH 200; createProtectedRoute 래핑
+- eslint.config.mjs: CJS→ESM interop 수정 (_celebbasePlugin.default ?? _celebbasePlugin) — Node.js native ESM은 __esModule을 무시하므로 .default 언래핑 필수
+### 미완료: 없음 (001b-4: celebrities public routes 진행)
+### 연관 파일: apps/web/src/app/api/auth/logout/, apps/web/src/app/api/users/, apps/web/eslint.config.mjs
