@@ -1320,7 +1320,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001c-2
-commit_sha: PENDING
+commit_sha: bc574c5
 files_changed:
   - apps/web/src/i18n/en.json
   - apps/web/src/i18n/ko.json
