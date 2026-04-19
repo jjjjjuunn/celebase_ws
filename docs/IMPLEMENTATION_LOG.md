@@ -1298,7 +1298,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001c-1
-commit_sha: PENDING
+commit_sha: bde0902
 files_changed:
   - apps/web/src/lib/fetcher.ts
   - apps/web/src/lib/query-client.ts
