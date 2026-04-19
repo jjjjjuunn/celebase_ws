@@ -1,4 +1,3 @@
-import 'server-only';
 import { type NextRequest } from 'next/server';
 import { createPublicRoute } from '../../_lib/session.js';
 

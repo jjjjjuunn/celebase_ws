@@ -1373,3 +1373,42 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: Sprint A 통합 게이트(fe_bff_smoke 4-probe 실행, fe_slice_smoke 회귀, fe_contract_check 실시간 검증). Sprint B: nonce CSP, RSC silent refresh(Server Action 또는 middleware-based), middleware locale routing, 라우트 그룹 page.tsx.
 ### 연관 파일: apps/web/middleware.ts, apps/web/.env.example, apps/web/next.config.ts
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001-integration
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/bff-error.ts
+  - apps/web/src/app/api/_lib/__tests__/bff-error.test.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/auth/login/route.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/src/app/api/auth/signup/route.ts
+  - apps/web/src/app/api/base-diets/[id]/route.ts
+  - apps/web/src/app/api/celebrities/route.ts
+  - apps/web/src/app/api/celebrities/[slug]/route.ts
+  - apps/web/src/app/api/celebrities/[slug]/diets/route.ts
+  - apps/web/src/app/api/meal-plans/route.ts
+  - apps/web/src/app/api/meal-plans/[id]/route.ts
+  - apps/web/src/app/api/meal-plans/[id]/regenerate/route.ts
+  - apps/web/src/app/api/recipes/route.ts
+  - apps/web/src/app/api/recipes/[id]/route.ts
+  - apps/web/src/app/api/users/me/route.ts
+  - apps/web/src/app/api/users/me/bio-profile/route.ts
+  - apps/web/src/app/api/ws-ticket/route.ts
+  - apps/web/next.config.ts
+  - apps/web/package.json
+verified_by: claude-opus-4-7
+---
+### 완료: Sprint A 통합 빌드 핫픽스 + 게이트 실행 (IMPL-APP-001-integration)
+- **파일명 충돌 수정**: `apps/web/src/app/api/_lib/error.ts` → `bff-error.ts` rename. Next.js 15.5.15 는 `app/**/error.ts` 를 route-level error boundary 로 자동 인식하고 `'use client'` 를 요구 — `api/_lib/` 하위에 있어도 파일명만으로 RSC 컴파일러가 클라이언트 컴포넌트로 오분류하여 `must be a Client Component` 빌드 실패. 20개 import 경로 일괄 업데이트(`./error.js` → `./bff-error.js`), 테스트 파일 rename(`error.test.ts` → `bff-error.test.ts`).
+- **`server-only` import 제거**: Codex 가 001b-1a/b/2~7 각 route + _lib 파일 19개 에 `import 'server-only';` 를 넣었으나 해당 패키지가 설치되지 않아 Next.js 가 임포트 그래프 분석 중 실패하고 "must be a Client Component" 를 잘못 리포트. 모든 19 파일에서 server-only import 제거(route handler 는 정의상 server-only 라 이 선언 없어도 안전).
+- **Pino 제거**: `bff-error.ts` 의 `createLogger` 를 Pino → `console.error|warn|log(JSON.stringify(record))` 기반으로 재작성. PHI redactor 는 유지, 출력 JSON shape 동일. Next.js 15 + Pino 조합에서 `serverExternalPackages: ['pino']` 지정해도 RSC 컴파일러가 module 을 클라이언트 쪽으로 분류하는 버그 회피. `apps/web/package.json` dependencies 에서 `pino` + devDependencies 에서 `pino-pretty` 삭제, `next.config.ts` `serverExternalPackages` 제거.
+- **Webpack extensionAlias 보강**: `next.config.ts` webpack config 에 `resolve.extensionAlias = { '.js': ['.ts', '.tsx', '.js'], '.jsx': ['.tsx', '.jsx'] }` 추가 — BFF 내부 import 가 NodeNext ESM 관례로 `./foo.js` 로 선언되어 있으나 실제 파일은 `foo.ts` 이므로 Next.js 기본 resolver 로는 해결 불가. Turbopack 은 이 alias 를 무시하므로 webpack 경로 유지.
+- **검증**: `pnpm --filter web build` pass(18 routes static/dynamic split 정상) / `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(warning 2개 non-blocking) / `pnpm --filter web test -- api/_lib/__tests__` → 22/22 pass / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `fe_token_hardcode` `{passed:true}` / `fe_contract_check` `{passed:true}` (SKIP — tsx 미설치 상태로 gate infra 활성 대기) / `fe_slice_smoke` `{passed:true}` / `fe_bff_smoke` 4 probe 중 2개 pass(`/api/users/me` 401, `/api/meal-plans/<uuid>` 401 — 인증 계층 정상), 2개는 502(BE services 3001/3002/3003 미기동 — BFF 자체는 정상, 라이브 BE 스모크는 서비스 부팅 후 별도 실행).
+### 미완료: `fe_bff_smoke` 200/400 probe 는 BE stack(user-service/content-service/meal-plan-engine) 실제 부팅 필요 — Sprint A 코드는 완성, 라이브 E2E 스모크는 운영 단계에서 확인. `fe_contract_check` 의 tsx 활성화는 별도 infra PR.
+### 연관 파일: apps/web/src/app/api/_lib/, apps/web/src/app/api/**/route.ts, apps/web/next.config.ts, apps/web/package.json

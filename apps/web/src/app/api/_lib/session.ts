@@ -1,11 +1,10 @@
-import 'server-only';
 import type { NextRequest } from 'next/server';
 import { errors as joseErrors, jwtVerify } from 'jose';
 import {
   createLogger,
   toBffErrorResponse,
   type BffError,
-} from './error.js';
+} from './bff-error.js';
 
 export interface Session {
   user_id: string;
