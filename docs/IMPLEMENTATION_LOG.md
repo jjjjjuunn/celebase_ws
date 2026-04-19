@@ -1229,3 +1229,21 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass (기존 logout route `_req` 경고만 carry-over) / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
 ### 미완료: 없음 (001b-6: meal-plans core protected routes 진행)
 ### 연관 파일: apps/web/src/app/api/base-diets/, apps/web/src/app/api/recipes/
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001b-6
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/meal-plans/route.ts
+  - apps/web/src/app/api/meal-plans/[id]/route.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF meal-plans core protected 라우트 (IMPL-APP-001b-6)
+- meal-plans/route.ts: GET /api/meal-plans → meal-plan-engine /meal-plans{search} (cursor pagination 투명 pass-through, MealPlanListResponseSchema 검증); POST /api/meal-plans → meal-plan-engine /meal-plans/generate (GenerateMealPlanRequestSchema 입력 검증, GenerateMealPlanResponseSchema 출력 검증, 30s timeout — generation은 RS256 JWT + 쿼터 + SQS enqueue로 5s 초과 가능)
+- meal-plans/[id]/route.ts: GET /api/meal-plans/:id → meal-plan-engine /meal-plans/{id} (MealPlanDetailResponseSchema 검증); DELETE /api/meal-plans/:id → meal-plan-engine /meal-plans/{id} (BE 204 응답을 EmptyBodySchema=z.object({}).passthrough()로 통과시킨 뒤 BFF도 204 No Content 반환); Next.js 15 dynamic route 패턴(params: Promise<{id}>, await 후 createProtectedRoute 인라인 호출)
+- 모든 라우트: createProtectedRoute 래핑(jose RS256 JWT 검증), session.user_id를 fetchBff userId로 전달(per-user rate-limit + PHI audit propagation), x-request-id/x-forwarded-for 전파
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass (기존 logout route `_req` 경고만 carry-over) / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
+### 미완료: 없음 (001b-7: regenerate + ws-ticket 진행)
+### 연관 파일: apps/web/src/app/api/meal-plans/
