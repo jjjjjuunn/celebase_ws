@@ -1086,3 +1086,32 @@ verified_by: agent-claude-opus-4-7 + agent-codex-r1r2r3 + agent-gemini-r1r2r3 + 
   - `⚠️ Notify on Failure`: 위 두 실패 전파
 ### 미완료: Phase C (IMPL-016 rebase), Phase D (default branch 전환 + branch protection), CHORE-003 (required checks 확장, turbo.json explicit inputs), CHORE-004 (user-service IMPL-012 lint 13건 정리), CHORE-005 (LocalStack 통합 테스트 자동화)
 ### 연관 파일: .github/workflows/ci.yml, scripts/gate-check.sh, packages/design-tokens/{tsconfig.scripts.json,scripts/,package.json}, eslint.config.mjs, services/meal-plan-engine/{package.json,pytest.ini,tests/integration/}, apps/web/src/app/slice/{primitives,composites}/page.tsx, pnpm-lock.yaml
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-001b-1b
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/_lib/__tests__/error.test.ts
+  - apps/web/jest.config.cjs
+  - apps/web/jest.setup.ts
+  - apps/web/eslint.config.mjs
+  - apps/web/package.json
+  - apps/web/tsconfig.test.json
+  - packages/eslint-plugin-celebbase/src/index.ts
+  - packages/eslint-plugin-celebbase/src/rules/protected-route-factory.ts
+  - packages/eslint-plugin-celebbase/package.json
+  - packages/eslint-plugin-celebbase/tsconfig.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF 단위 테스트 + ESLint 보호 규칙 (IMPL-APP-001b-1b)
+- session.test.ts (11 tests): cookie 부재 401, JWTExpired X-Token-Expired header, 유효 토큰 session 주입, x-request-id 전파/생성, handler throw → 500
+- error.test.ts (11 tests): BffError allowlist 필터, stack 드롭, retryable/retry_after 통과, PHI(biomarkers/medical_conditions) meta 차단, ZodError → 502, Error → 500, X-Request-Id 항상 포함
+- jest.config.cjs + tsconfig.test.json: ts-jest CJS 모드, moduleResolution:node, server-only mock, .js 확장자 스트립
+- jest.setup.ts: setupFiles로 module-scope readEnv() 호출 전 env 변수 설정
+- eslint.config.mjs: ESLint v9 flat config, FlatCompat(next/core-web-vitals), @celebbase/eslint-plugin-celebbase
+- packages/eslint-plugin-celebbase: AST 기반 protected-route-factory 규칙 (users/meal-plans/ws-ticket 경로에 createProtectedRoute 강제)
+### 미완료: 없음 (001b-2부터 BFF 라우트 청크 진행)
+### 연관 파일: apps/web/src/app/api/_lib/__tests__/, apps/web/eslint.config.mjs, packages/eslint-plugin-celebbase/
