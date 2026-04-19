@@ -1334,3 +1334,23 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: 001c-3 (route groups: marketing/auth/app layouts), 001c-4 (middleware + env.example + security headers). 실제 ko 지원(locale detection + middleware routing)은 Sprint B 범위.
 ### 연관 파일: apps/web/src/i18n/, apps/web/src/app/layout.tsx
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001c-3
+commit_sha: 30340dc
+files_changed:
+  - apps/web/src/app/(marketing)/layout.tsx
+  - apps/web/src/app/(auth)/layout.tsx
+  - apps/web/src/app/(app)/layout.tsx
+verified_by: claude-opus-4-7
+---
+### 완료: 라우트 그룹 레이아웃 셸 — marketing / auth / app (IMPL-APP-001c-3)
+- `(marketing)/layout.tsx`: 상단 sticky 네비 + 하단 main, 좌측 브랜드(`tApp('name')`) + 우측 nav(home/celebrities/recipes/account). RSC 서버 컴포넌트 + `useTranslations`(next-intl v3 RSC 지원). 모든 색상/보더는 `--cb-color-{bg,fg,border}` 토큰 참조 — raw hex 0건.
+- `(auth)/layout.tsx`: viewport center 카드(max-width 400px) — 로그인/가입 폼이 입주할 컨테이너. 카드 boxShadow/radius 는 `--cb-shadow-md` / `--cb-radius-lg` 토큰 fallback 체인(`var(--token, default)`)으로 안전 노출.
+- `(app)/layout.tsx`: 좌측 240px sidebar(`grid-template-columns: 240px 1fr`) + 우측 메인. nav: dashboard/plans/account. **인증 게이트는 본 레이아웃에 없음** — D4 per Sprint A 는 `getSessionOrRedirect` 헬퍼를 만들지 않고, 미들웨어(001c-4) 가 cb_access 쿠키 부재 시 `/login?from=...` 로 redirect 한다(edge runtime, jose 검증 없음 — 단순 cookie presence 체크).
+- 라우트 그룹 `(name)` 은 URL 에 노출되지 않음(예: `/dashboard` 는 `(app)/dashboard/page.tsx`). 따라서 미들웨어 matcher 는 그룹명이 아닌 pathname prefix(`/dashboard|/plans|/account`) 기반으로 동작해야 함 — 001c-4 에서 `PROTECTED_PATHS` 배열로 구현 예정.
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: 001c-4 (middleware + .env.example + next.config.ts security headers). 라우트 그룹 내부 page.tsx (login/signup/dashboard 등) 는 Sprint B 범위.
+### 연관 파일: apps/web/src/app/(marketing)/, apps/web/src/app/(auth)/, apps/web/src/app/(app)/
