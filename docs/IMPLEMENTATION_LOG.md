@@ -1276,3 +1276,20 @@ verified_by: claude-opus-4-7
 ### 미완료: IMPL-010-e (rate-limit per-route + /auth/logout + structured auth logs)
 ### 연관 파일: services/user-service/src/services/, services/user-service/src/repositories/user.repository.ts, packages/service-core/tests/helpers/
 
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001b-7
+commit_sha: 7f5d5c1
+files_changed:
+  - apps/web/src/app/api/meal-plans/[id]/regenerate/route.ts
+  - apps/web/src/app/api/ws-ticket/route.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF regenerate + ws-ticket protected 라우트 (IMPL-APP-001b-7)
+- meal-plans/[id]/regenerate/route.ts: POST → meal-plan-engine `/meal-plans/{id}/regenerate` (RegenerateMealPlanRequestSchema passthrough 입력 검증, RegenerateMealPlanResponseSchema `{id, status}` 출력 검증). 202 Accepted 반환(큐잉 시맨틱). Next.js 15 dynamic route params `Promise<{id}>` await 후 createProtectedRoute 인라인 호출.
+- ws-ticket/route.ts: POST → user-service `/ws/ticket` (BE 응답 `{ticket, expires_in_sec}`을 intermediate schema로 먼저 검증). BFF가 D6 per `meal_plan_id`(request body)와 `ws_url`(`NEXT_PUBLIC_WS_URL`+`/ws/meal-plans/{id}/status`), `expires_at`(ISO datetime = now + expires_in_sec)을 조합해 WsTicketResponseSchema 4-필드 형태 구성. 최종 응답도 safeParse로 이중 검증.
+- 모든 라우트: createProtectedRoute 래핑(jose RS256 JWT), session.user_id → fetchBff userId(rate-limit + PHI audit), x-request-id/x-forwarded-for 전파, VALIDATION_ERROR 400 + BFF_CONTRACT_VIOLATION 502 명시적 처리.
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}`.
+### 미완료: 없음 (IMPL-APP-001b 8 chunks 전부 완료 — 001c 시작).
+### 연관 파일: apps/web/src/app/api/meal-plans/[id]/regenerate/, apps/web/src/app/api/ws-ticket/
