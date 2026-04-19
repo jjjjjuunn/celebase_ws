@@ -1487,7 +1487,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-0b
-commit_sha: PENDING
+commit_sha: 5118740
 files_changed:
   - apps/web/scripts/verify-api-contracts.ts
   - apps/web/scripts/record-fixtures.sh
