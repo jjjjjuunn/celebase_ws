@@ -1252,7 +1252,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-18
 agent: claude-opus-4-7
 task_id: IMPL-010-d
-commit_sha: PENDING
+commit_sha: 1371ddf
 files_changed:
   - services/user-service/src/services/cognito-auth.provider.ts
   - services/user-service/src/services/auth.service.ts
