@@ -1464,7 +1464,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-0a-2
-commit_sha: PENDING
+commit_sha: fec1798
 files_changed:
   - apps/web/src/app/api/_lib/bff-fetch.ts
   - apps/web/src/app/api/_lib/bff-error.ts
