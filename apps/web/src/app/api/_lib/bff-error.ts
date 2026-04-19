@@ -1,4 +1,3 @@
-import pino from 'pino';
 import { ZodError } from 'zod';
 
 export interface BffErrorDetail {
@@ -39,21 +38,36 @@ export const PHI_REDACT_PATHS: readonly string[] = [
   '*.id_token',
 ];
 
-export function createLogger(moduleName: string): pino.Logger {
-  const isDev = process.env['NODE_ENV'] !== 'production';
-  const base: pino.LoggerOptions = {
+export interface BffLogger {
+  info: (payload: Record<string, unknown>, msg?: string) => void;
+  warn: (payload: Record<string, unknown>, msg?: string) => void;
+  error: (payload: Record<string, unknown>, msg?: string) => void;
+}
+
+function emit(
+  level: 'info' | 'warn' | 'error',
+  moduleName: string,
+  payload: Record<string, unknown>,
+  msg?: string,
+): void {
+  const record = {
+    level,
+    time: new Date().toISOString(),
     name: moduleName,
-    level: process.env['LOG_LEVEL'] ?? 'info',
-    redact: { paths: [...PHI_REDACT_PATHS], censor: '[REDACTED]' },
-    serializers: { err: pino.stdSerializers.err },
+    msg: msg ?? '',
+    ...redactPhi(payload),
   };
-  if (isDev) {
-    return pino({
-      ...base,
-      transport: { target: 'pino-pretty' },
-    });
-  }
-  return pino(base);
+  // eslint-disable-next-line no-console
+  const sink = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+  sink(JSON.stringify(record));
+}
+
+export function createLogger(moduleName: string): BffLogger {
+  return {
+    info: (payload, msg) => emit('info', moduleName, payload, msg),
+    warn: (payload, msg) => emit('warn', moduleName, payload, msg),
+    error: (payload, msg) => emit('error', moduleName, payload, msg),
+  };
 }
 
 export function isBffError(value: unknown): value is BffError {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toBffErrorResponse, type BffError } from '../error';
+import { toBffErrorResponse, type BffError } from '../bff-error';
 
 async function parseResponse(res: Response): Promise<unknown> {
   return res.json();

@@ -37,6 +37,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
+  webpack: (config) => {
+    // Allow `import './foo.js'` to resolve to `./foo.ts` / `./foo.tsx`
+    // (NodeNext ESM convention used across the BFF routes + libs).
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js'],
+      '.jsx': ['.tsx', '.jsx'],
+    };
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -1,10 +1,9 @@
-import 'server-only';
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/error.js';
+import { toBffErrorResponse } from '../../_lib/bff-error.js';
 
 const EmptyBodySchema = z.object({}).passthrough();
 

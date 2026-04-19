@@ -1,9 +1,8 @@
-import 'server-only';
 import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createPublicRoute } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/error.js';
+import { toBffErrorResponse } from '../../_lib/bff-error.js';
 
 function sessionCookies(accessToken: string, refreshToken: string): string[] {
   const secure = process.env['NODE_ENV'] === 'production' ? '; Secure' : '';

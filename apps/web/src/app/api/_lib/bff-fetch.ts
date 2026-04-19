@@ -1,6 +1,5 @@
-import 'server-only';
 import type { ZodType } from 'zod';
-import { createLogger, type BffError } from './error.js';
+import { createLogger, type BffError } from './bff-error.js';
 import { readEnv } from './session.js';
 
 export type BffTarget = 'user' | 'content' | 'meal-plan';

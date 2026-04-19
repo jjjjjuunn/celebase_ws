@@ -1,9 +1,8 @@
-import 'server-only';
 import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../../_lib/session.js';
-import { toBffErrorResponse } from '../../../_lib/error.js';
+import { toBffErrorResponse } from '../../../_lib/bff-error.js';
 
 export const GET = createProtectedRoute(async (req: NextRequest, session: Session) => {
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
