@@ -1234,7 +1234,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001b-6
-commit_sha: PENDING
+commit_sha: f3d719a
 files_changed:
   - apps/web/src/app/api/meal-plans/route.ts
   - apps/web/src/app/api/meal-plans/[id]/route.ts
