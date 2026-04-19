@@ -1194,7 +1194,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001b-4
-commit_sha: PENDING
+commit_sha: 81a47a3
 files_changed:
   - apps/web/src/app/api/celebrities/route.ts
   - apps/web/src/app/api/celebrities/[slug]/route.ts
