@@ -1120,7 +1120,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-001b-2
-commit_sha: PENDING
+commit_sha: 59e26fc
 files_changed:
   - apps/web/src/app/api/auth/login/route.ts
   - apps/web/src/app/api/auth/signup/route.ts
