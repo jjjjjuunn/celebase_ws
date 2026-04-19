@@ -1209,3 +1209,23 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
 ### 미완료: 없음 (001b-5: base-diets + recipes public routes 진행)
 ### 연관 파일: apps/web/src/app/api/celebrities/
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001b-5
+commit_sha: ce5f78a
+files_changed:
+  - apps/web/src/app/api/base-diets/[id]/route.ts
+  - apps/web/src/app/api/recipes/route.ts
+  - apps/web/src/app/api/recipes/[id]/route.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF base-diets + recipes public 라우트 (IMPL-APP-001b-5)
+- base-diets/[id]/route.ts: GET /api/base-diets/:id → content-service /base-diets/{id}; BaseDietDetailResponseSchema 검증; Next.js 15 dynamic route 패턴
+- recipes/route.ts: GET /api/recipes → content-service /recipes{search} (query-string 투명 pass-through); RecipeListResponseSchema 검증
+- recipes/[id]/route.ts: GET /api/recipes/:id → content-service /recipes/{id}; RecipeDetailResponseSchema 검증; 동적 라우트
+- 모든 라우트: createPublicRoute 래핑, fetchBff Result<T> 패턴, x-request-id/x-forwarded-for 전파, 인증 없음
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass (기존 logout route `_req` 경고만 carry-over) / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
+### 미완료: 없음 (001b-6: meal-plans core protected routes 진행)
+### 연관 파일: apps/web/src/app/api/base-diets/, apps/web/src/app/api/recipes/
