@@ -32,6 +32,9 @@ importers:
       '@celebbase/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@celebbase/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       '@celebbase/ui-kit':
         specifier: workspace:*
         version: link:../../packages/ui-kit

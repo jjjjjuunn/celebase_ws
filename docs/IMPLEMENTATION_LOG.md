@@ -1115,3 +1115,24 @@ verified_by: claude-sonnet-4-6
 - packages/eslint-plugin-celebbase: AST 기반 protected-route-factory 규칙 (users/meal-plans/ws-ticket 경로에 createProtectedRoute 강제)
 ### 미완료: 없음 (001b-2부터 BFF 라우트 청크 진행)
 ### 연관 파일: apps/web/src/app/api/_lib/__tests__/, apps/web/eslint.config.mjs, packages/eslint-plugin-celebbase/
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-001b-2
+commit_sha: 59e26fc
+files_changed:
+  - apps/web/src/app/api/auth/login/route.ts
+  - apps/web/src/app/api/auth/signup/route.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/package.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF 인증 라우트 — login/signup/refresh (IMPL-APP-001b-2)
+- login/route.ts: POST /api/auth/login → user-service /auth/login; cb_access(900s)/cb_refresh(30d) httpOnly SameSite=Lax 쿠키 설정; body: { user }
+- signup/route.ts: POST /api/auth/signup → user-service /auth/signup; 동일 쿠키 플로우; 201 반환
+- refresh/route.ts: POST /api/auth/refresh → cb_refresh 쿠키 읽어 user-service /auth/refresh 호출; 401/403 시 쿠키 클리어; 성공 시 양 쿠키 교체
+- apps/web/package.json: @celebbase/shared-types workspace:* 의존성 추가 (auth/users 스키마 임포트 필수)
+- 모든 라우트 createPublicRoute 래핑, fetchBff Result<T> 패턴, LoginResponseSchema/SignupResponseSchema/RefreshResponseSchema Zod 검증
+### 미완료: 없음 (001b-3: logout+users/me+bio-profile 진행)
+### 연관 파일: apps/web/src/app/api/auth/, apps/web/package.json
