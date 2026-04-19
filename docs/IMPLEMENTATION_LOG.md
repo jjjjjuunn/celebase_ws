@@ -1506,3 +1506,24 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `gate-check.sh fe_contract_check` `{passed:true, note:"SKIP - no fixtures"}`.
 ### 미완료: fixture 실제 기록은 BE dev stack 부팅 후 `pnpm --filter web record:fixtures` 실행 필요 (D25 in-chunk action — BE 미기동 환경에서는 SKIP 상태 유지).
 ### 연관 파일: apps/web/scripts/verify-api-contracts.ts, apps/web/scripts/record-fixtures.sh, scripts/gate-check.sh, scripts/verify-be-endpoint.sh, apps/web/package.json
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0c
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/daily-logs.ts
+  - apps/web/src/app/api/daily-logs/route.ts
+  - apps/web/src/app/api/daily-logs/summary/route.ts
+  - packages/shared-types/src/schemas/index.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0c — daily-logs BFF + schema (barrel 선점)
+- packages/shared-types/src/schemas/daily-logs.ts (NEW): `DailyLogWireSchema` (id/user_id UuidV7, log_date IsoDate regex, MealsCompleted JSONB, Rating1To5 union literal), `CreateDailyLogRequestSchema`, `DailyLogListResponseSchema {data, has_next}`, `DailyLogSummaryResponseSchema` (avg aggregates + completion_rate). Wire↔Row parity guard via `satisfies` clause.
+- apps/web/src/app/api/daily-logs/route.ts (NEW): GET list (`createProtectedRoute`, `req.nextUrl.search` cursor 패스스루) + POST create (`CreateDailyLogRequestSchema` 검증, 201 반환).
+- apps/web/src/app/api/daily-logs/summary/route.ts (NEW): GET summary (`createProtectedRoute`, search 패스스루).
+- packages/shared-types/src/schemas/index.ts: `export * from './daily-logs.js'` 추가 (barrel 선점 — 002-0d subscriptions는 이 뒤에 append).
+- 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass, `gate-check.sh fe_bff_compliance` `{passed:true}`.
+### 미완료: 002-0d에서 subscriptions barrel append 이어서 진행.
+### 연관 파일: packages/shared-types/src/schemas/daily-logs.ts, apps/web/src/app/api/daily-logs/, packages/shared-types/src/schemas/index.ts
