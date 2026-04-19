@@ -161,3 +161,280 @@ tasks:
       - "bio-profile repository: biomarkers, medical_conditions, medications 암호화 저장/복호화 조회"
       - "기존 PHI 감사 로그와 통합 (fail-closed 유지)"
       - "unit test + 암호화/복호화 라운드트립 테스트"
+
+  # ── Backfill: IMPL-007 ~ IMPL-015, IMPL-010-c/d/e, CHORE-002 ─────────────
+  # IMPL-014-d1, IMPL-014-d2 는 ID regex 미스매치로 제외 (IMPL_LOG 추적 유지)
+  # IMPL-UI-*, IMPL-APP-* 는 FE 세션 스코프 — 이 파일에 미등록
+
+  - id: IMPL-007
+    title: "user-service — daily tracking API (POST/GET/summary)"
+    owner: agent-claude-opus-4-6
+    dependsOn:
+      - IMPL-006
+    status: done
+    definitionOfDone:
+      - "POST /users/me/daily-logs, GET /users/me/daily-logs (cursor pagination), GET /users/me/daily-logs/summary 구현"
+      - "parameterized queries, Zod validation, ISO 8601 dates"
+      - "commit_sha: 679c455"
+
+  - id: IMPL-008
+    title: "user-service — auth service (signup/login/refresh) with dev stub"
+    owner: agent-claude-opus-4-6
+    dependsOn:
+      - IMPL-007
+    status: done
+    definitionOfDone:
+      - "POST /auth/signup, POST /auth/login, POST /auth/refresh 구현"
+      - "JWT 생성 (HS256), Zod input validation, error envelope"
+      - "commit_sha: d0cc06b"
+
+  - id: IMPL-009
+    title: "DB — seed data loader + 10 celebrity datasets (180 recipes)"
+    owner: agent-claude-opus-4-6
+    dependsOn:
+      - IMPL-003
+    status: done
+    definitionOfDone:
+      - "TypeScript seed loader: 단일 트랜잭션, ON CONFLICT 멱등성"
+      - "10 celebrities × 18 recipes = 180 recipes, 237 ingredients 검증 통과"
+      - "commit_sha: bd3bb86"
+
+  - id: IMPL-010
+    title: "보안 패치 — Critical/High (JWT 서명 검증, CORS, DevAuthProvider guard)"
+    owner: agent-claude-opus-4-6
+    dependsOn:
+      - IMPL-008
+      - IMPL-004-c
+    status: done
+    definitionOfDone:
+      - "meal-plan-engine PyJWT HS256 서명 검증 (CVE 해소)"
+      - "DevAuthProvider production 가드 + CORSMiddleware + 글로벌 에러 핸들러"
+      - "refreshTokens() 서명 검증, tsconfig.build.json 프로덕션 빌드"
+      - "commit_sha: f8bdb7b"
+
+  - id: IMPL-011
+    title: "보안 패치 — Medium (signup TOCTOU, updateUser SQL allowlist, SQS consumer crash 방어)"
+    owner: agent-claude-opus-4-6 + agent-codex
+    dependsOn:
+      - IMPL-010
+    status: done
+    definitionOfDone:
+      - "M1 signup TOCTOU: PG 23505 catch + cognito_sub UNIQUE 커버"
+      - "M5 updateUser ALLOWED_USER_COLUMNS ReadonlySet SQL injection 방어"
+      - "M2 SQS consumer: per-message retry + stuck-plan recovery + 지수 백오프"
+      - "M4 Pydantic Settings 필드 추가, M3 Python structured logging"
+      - "commit_sha: a7a3c5f"
+
+  - id: IMPL-012
+    title: "user-service — Stripe 구독 + Webhook (Phase B)"
+    owner: agent-claude-opus-4-6 + agent-codex
+    dependsOn:
+      - IMPL-011
+    status: done
+    definitionOfDone:
+      - "POST /subscriptions, GET /subscriptions/me, POST /subscriptions/me/cancel, POST /webhooks/stripe"
+      - "syncTierTransaction 3-step, Stripe status → 내부 status 매핑"
+      - "0005 migration: stripe_subscription_id UNIQUE index, active 구독 방지 partial index"
+      - "16개 단위 테스트 통과"
+      - "commit_sha: 59ff9ef"
+
+  - id: IMPL-013
+    title: "meal-plan-engine — 구독 Quota Enforcement (Free=0, Premium=4/month, Elite=unlimited)"
+    owner: agent-claude-opus-4-6 + agent-codex
+    dependsOn:
+      - IMPL-012
+    status: done
+    definitionOfDone:
+      - "pg_advisory_xact_lock TOCTOU 방지 + SHA-256 idempotency key"
+      - "0006 migration: meal_plans.idempotency_key + 2개 partial index"
+      - "46개 단위 테스트 통과 (quota_service 23 + 라우트 23)"
+      - "commit_sha: e887448"
+
+  - id: IMPL-014-a
+    title: "meal-plan-engine — SQS Publisher + Consumer Wiring"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-013
+    status: done
+    definitionOfDone:
+      - "sqs_publisher.py: PlanGenerationMessage Pydantic envelope + enqueue_plan_job"
+      - "routes/meal_plans.py: POST /generate 직후 enqueue, 실패 시 503 + status=failed"
+      - "consumer: PlanGenerationMessage.model_validate + broadcast_progress 호출"
+      - "25/25 tests PASS"
+      - "commit_sha: 0d67d8a"
+
+  - id: IMPL-014-b
+    title: "meal-plan-engine — WebSocket 라우터 mount + Redis 티켓 prefix 통일 + Stripe feature gate"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-014-a
+    status: done
+    definitionOfDone:
+      - "main.py app.include_router(ws_router) — OpenAPI /ws/meal-plans/{plan_id}/status 등록"
+      - "websocket.py Redis 티켓 키 ws_ticket: → ws:ticket: 통일"
+      - "STRIPE_ENABLED 환경 분기 + env.ts 분리 + env-gate.test.ts 4케이스"
+      - "60/60 user-service + 59/59 meal-plan-engine PASS"
+      - "commit_sha: 78bf1d4"
+
+  - id: IMPL-014-c
+    title: "meal-plan-engine — pipeline duration_days plumbing + weekly_template 제거"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-014-b
+    status: done
+    definitionOfDone:
+      - "run_pipeline에 duration_days: int 필수 파라미터 추가 (기본값 없음)"
+      - "_build_weekly_plan 헬퍼 신설, weekly_template dead code 제거"
+      - "64/64 tests PASS"
+      - "commit_sha: f5c22fb"
+
+  - id: IMPL-015
+    title: "docker-compose LocalStack + 서비스 Dockerfile 3종 (user/content/meal-plan-engine)"
+    owner: agent-claude-opus-4-7 + agent-codex
+    dependsOn:
+      - IMPL-014-c
+    status: done
+    definitionOfDone:
+      - "docker-compose.yml: LocalStack(SQS) + 3 서비스 healthcheck chain"
+      - "Dockerfile multi-stage: node:22-alpine (TS) + python:3.12-slim, non-root app user"
+      - "AWS endpoint_url 환경변수 지원 (LocalStack/real AWS 분기)"
+      - "smoke 7/7 PASS: build + up + healthy + awslocal sqs + /health 200"
+      - "commit_sha: d1a9913"
+
+  - id: IMPL-010-c
+    title: "auth — Env 계약 통일 (JWT_SECRET → INTERNAL_JWT_SECRET) + BFF 내부 JWT 회귀 수정"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-010
+    status: done
+    definitionOfDone:
+      - "JWT_SECRET → INTERNAL_JWT_SECRET 전수 rename (user-service, meal-plan-engine, BFF, CI)"
+      - "env.ts Zod superRefine — AUTH_PROVIDER=cognito 시 Cognito vars 필수, prod dev 금지"
+      - "session.ts: JWKS RS256 회귀 → 내부 HS256"
+      - "64 pytest + 22 jest PASS"
+      - "commit_sha: 3972f90"
+
+  - id: IMPL-010-d
+    title: "auth — CognitoAuthProvider + email-bridge (dormant build, AUTH_PROVIDER=dev 유지)"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-010-c
+    status: done
+    definitionOfDone:
+      - "CognitoAuthProvider: jose RS256 검증, issuer/audience pin, alg confusion 방어"
+      - "email-bridge: cognito_sub 원자 업데이트 (dev→cognito 이관)"
+      - "Mock JWKS server (service-core/tests/helpers/) + 82 user-service unit tests PASS"
+      - "coverage 80.89% (>=80% 문턱 확보)"
+      - "commit_sha: 1371ddf"
+
+  - id: IMPL-010-e
+    title: "auth — per-route rate-limit + /auth/logout + structured auth logs (Phase B 완성)"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-010-d
+    status: done
+    definitionOfDone:
+      - "signup 3/min, login 5/min, refresh 20/min (sha256 키 + IP)"
+      - "POST /auth/logout — stateless, auth.logout 이벤트 emit (user_id_hash 8자)"
+      - "Rule #8 준수: raw token/email 로그 0건"
+      - "90/90 tests PASS, coverage 82.58%"
+      - "commit_sha: 8cb9eea"
+
+  - id: CHORE-002
+    title: "CI baseline rescue — hashFiles 오용 제거, policy DRY, design-tokens 타입체크 복구"
+    owner: agent-claude-opus-4-7
+    dependsOn:
+      - IMPL-015
+      - BOOT-004
+    status: done
+    definitionOfDone:
+      - "ci.yml job-level hashFiles 제거 → 7개월간 0s-fail 해소"
+      - "validate-compliance → gate-check.sh policy 1줄 DRY 통합"
+      - "design-tokens tsconfig.scripts.json + eslint override 복구"
+      - "meal-plan-engine turbo test pipeline 포함 (package.json 신규)"
+      - "CI 6 required checks 전부 pass"
+      - "commit_sha: e43f089"
+
+  # ── Pending: 백엔드 로드맵 Phase 1 완성 + Phase 2 ────────────────────────
+
+  - id: IMPL-010-f
+    title: "auth — jti blacklist + refresh_tokens 테이블 (Phase C stateful token revocation)"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-010-e
+    status: pending
+    definitionOfDone:
+      - "refresh_tokens 테이블 migration (jti, user_id, expires_at, revoked_at)"
+      - "POST /auth/refresh: jti 소비 + 신규 발급 (rotation)"
+      - "POST /auth/logout: refresh jti revoke"
+      - "토큰 무효화 후 재사용 시 401 확인 (integration test)"
+
+  - id: CHORE-003
+    title: "CI — required checks 확장 + turbo.json explicit inputs"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - CHORE-002
+    status: pending
+    definitionOfDone:
+      - "turbo.json 각 pipeline task에 explicit inputs 필드 추가"
+      - "CI required checks에 lint + typecheck + test 3종 모두 포함"
+      - "non-required failure (Lint & Typecheck) 해소"
+
+  - id: CHORE-004
+    title: "CI — user-service IMPL-012 lint debt 13건 정리"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - CHORE-002
+    status: pending
+    definitionOfDone:
+      - "subscription.service.ts + auth.service.ts TypeScript strict 에러 0건"
+      - "pnpm --filter user-service lint/typecheck 전부 pass"
+
+  - id: CHORE-005
+    title: "테스트 — LocalStack 기반 E2E 통합 테스트 T1/T2/T3 자동화"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-015
+    status: pending
+    definitionOfDone:
+      - "T1: POST /generate → SQS enqueue → consumer → WebSocket push E2E"
+      - "T2: DLQ retry (처리 실패 메시지 dead-letter 이동 확인)"
+      - "T3: ws_ticket 재사용 방지 (Redis TTL 기반)"
+      - "docker compose up 기반 CI step에서 LOCALSTACK_ENDPOINT 세팅 후 자동 실행"
+
+  - id: CHORE-006
+    title: "인프라 — Cognito 실 활성화 (AUTH_PROVIDER=dev → cognito flip)"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-010-d
+    status: pending
+    definitionOfDone:
+      - "스테이징 환경에서 AUTH_PROVIDER=cognito + Cognito User Pool 실제 생성"
+      - "Hosted UI signup/login 플로우 smoke 통과"
+      - "CognitoAuthProvider E2E 검증 (mock JWKS server → 실 JWKS)"
+
+  - id: IMPL-016
+    title: "commerce-service 분리 — Stripe + Instacart 서비스 경계 분리"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-010-f
+      - CHORE-006
+    status: pending
+    definitionOfDone:
+      - "commerce-service 신규 FastAPI 서비스 스캐폴드 (services/commerce-service/)"
+      - "Stripe 구독 로직 user-service → commerce-service 이전"
+      - "Instacart cart creation API 구현 (spec §5.3)"
+      - "user-service에서 commerce-service HTTP 클라이언트로 교체"
+      - "commerce-service Dockerfile + docker-compose 통합"
+
+  - id: IMPL-017
+    title: "analytics-service 분리 — daily-log 집계/리포팅 서비스"
+    owner: agent-claude-sonnet-4-6
+    dependsOn:
+      - IMPL-015
+    status: pending
+    definitionOfDone:
+      - "analytics-service 신규 스캐폴드 (services/analytics-service/)"
+      - "daily-log 데이터 집계 API (7일/30일 요약)"
+      - "user-service daily-log → analytics-service 이전 또는 이벤트 소비"
+      - "Dockerfile + docker-compose 통합"
