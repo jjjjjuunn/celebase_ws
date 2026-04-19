@@ -1252,7 +1252,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001b-7
-commit_sha: PENDING
+commit_sha: 7f5d5c1
 files_changed:
   - apps/web/src/app/api/meal-plans/[id]/regenerate/route.ts
   - apps/web/src/app/api/ws-ticket/route.ts
