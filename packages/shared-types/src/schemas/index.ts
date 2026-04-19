@@ -9,3 +9,4 @@ export * from './celebrities.js';
 export * from './recipes.js';
 export * from './meal-plans.js';
 export * from './daily-logs.js';
+export * from './subscriptions.js';

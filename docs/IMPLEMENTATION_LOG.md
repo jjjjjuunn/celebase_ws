@@ -1527,3 +1527,26 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass, `gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 미완료: 002-0d에서 subscriptions barrel append 이어서 진행.
 ### 연관 파일: packages/shared-types/src/schemas/daily-logs.ts, apps/web/src/app/api/daily-logs/, packages/shared-types/src/schemas/index.ts
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0d
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - packages/shared-types/src/schemas/index.ts
+  - apps/web/src/app/api/subscriptions/route.ts
+  - apps/web/src/app/api/subscriptions/me/route.ts
+  - apps/web/src/app/api/subscriptions/me/cancel/route.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0d — subscriptions BFF + schema (barrel-serial after 0c)
+- packages/shared-types/src/schemas/subscriptions.ts (NEW): `SubscriptionWireSchema` (id/user_id UuidV7, PaidTier = SubscriptionTier.exclude(['free']), SubscriptionStatus, nullable Stripe fields, QuotaOverrideSchema JSONB). `CreateSubscriptionRequestSchema {tier}`, `CreateSubscriptionResponseSchema {checkout_url}` (Stripe Checkout Session URL), `GetMySubscriptionResponseSchema {subscription: nullable}` (null = free tier), `CancelSubscriptionResponseSchema {subscription}`. Wire↔Row parity guard via `satisfies`.
+- packages/shared-types/src/schemas/index.ts: `export * from './subscriptions.js'` 추가 (barrel append).
+- apps/web/src/app/api/subscriptions/route.ts (NEW): POST start-subscription (`createProtectedRoute`, `CreateSubscriptionRequestSchema` 검증, 201).
+- apps/web/src/app/api/subscriptions/me/route.ts (NEW): GET my-subscription (`createProtectedRoute`, `GetMySubscriptionResponseSchema`).
+- apps/web/src/app/api/subscriptions/me/cancel/route.ts (NEW): POST cancel (`createProtectedRoute`, `CancelSubscriptionResponseSchema`).
+- Stripe webhook + actual Stripe SDK integration은 002-0e에서 처리.
+- 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web lint` warnings 0 (pre-existing bff-error.ts warning only), `gate-check.sh fe_bff_compliance` `{passed:true}`, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_contract_check` `{passed:true}`.
+### 연관 파일: packages/shared-types/src/schemas/subscriptions.ts, apps/web/src/app/api/subscriptions/
