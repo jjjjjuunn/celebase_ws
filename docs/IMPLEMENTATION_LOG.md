@@ -1189,3 +1189,23 @@ verified_by: claude-sonnet-4-6
 - eslint.config.mjs: CJS→ESM interop 수정 (_celebbasePlugin.default ?? _celebbasePlugin) — Node.js native ESM은 __esModule을 무시하므로 .default 언래핑 필수
 ### 미완료: 없음 (001b-4: celebrities public routes 진행)
 ### 연관 파일: apps/web/src/app/api/auth/logout/, apps/web/src/app/api/users/, apps/web/eslint.config.mjs
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001b-4
+commit_sha: 81a47a3
+files_changed:
+  - apps/web/src/app/api/celebrities/route.ts
+  - apps/web/src/app/api/celebrities/[slug]/route.ts
+  - apps/web/src/app/api/celebrities/[slug]/diets/route.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF celebrities public 라우트 (IMPL-APP-001b-4)
+- celebrities/route.ts: GET /api/celebrities → content-service /celebrities{search} (query-string 투명 pass-through); CelebrityListResponseSchema 검증; createPublicRoute 래핑
+- celebrities/[slug]/route.ts: GET /api/celebrities/:slug → content-service /celebrities/{slug}; CelebrityDetailResponseSchema 검증; Next.js 15 dynamic route 패턴(params: Promise<{slug}>, await 후 createPublicRoute 인라인 호출)
+- celebrities/[slug]/diets/route.ts: GET /api/celebrities/:slug/diets → content-service /celebrities/{slug}/diets; CelebrityDietsResponseSchema 검증; 동일 동적 라우트 패턴
+- 모든 라우트: x-request-id/x-forwarded-for 전파, fetchBff Result<T> 패턴, 인증 없음 (content-service 공개 엔드포인트)
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass / `scripts/gate-check.sh fe_bff_compliance` {passed:true}
+### 미완료: 없음 (001b-5: base-diets + recipes public routes 진행)
+### 연관 파일: apps/web/src/app/api/celebrities/
