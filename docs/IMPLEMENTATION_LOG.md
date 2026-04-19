@@ -1315,3 +1315,22 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: 001c-2 (i18n scaffold: en.json + ko.json + layout.tsx wrap), 001c-3 (route groups), 001c-4 (middleware + env + security headers). providers.tsx 는 001c-2 에서 layout.tsx 가 실제로 import 할 때 활성화됨.
 ### 연관 파일: apps/web/src/lib/, apps/web/src/providers.tsx, apps/web/package.json
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001c-2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/i18n/en.json
+  - apps/web/src/i18n/ko.json
+  - apps/web/src/app/layout.tsx
+verified_by: claude-opus-4-7
+---
+### 완료: i18n 스캐폴드 — en/ko 메시지 + Providers 활성화 (IMPL-APP-001c-2)
+- `i18n/en.json` / `i18n/ko.json`: Sprint A 스텁 (~20 keys) — `app.{name,tagline}`, `nav.*`, `auth.{login,signup,errors,logoutSuccess}`, `common.*`. 하드코딩 문자열 Day-1 금지 규칙(`.claude/rules/domain/content.md` i18n 섹션)에 따라 모든 UI 문자열은 이 키셋을 통해 접근. 미들웨어 locale routing 은 D9 per Sprint B 로 지연.
+- `app/layout.tsx` 수정: `<Providers locale="en" messages={enMessages} timeZone="UTC">` 로 wrap — ThemeProvider 안쪽, AxeDevInit 과 children 을 감싸는 구조. Sprint A 는 locale = 'en' 고정(DEFAULT_LOCALE/DEFAULT_TIME_ZONE 상수). `resolveJsonModule` 이 이미 tsconfig 에 켜져 있어 JSON import 는 별도 설정 불필요. `lang={DEFAULT_LOCALE}` html 속성도 상수 참조로 일원화.
+- next-intl client provider 는 001c-1 `providers.tsx` 에 이미 포함되어 있어, 본 PR 은 데이터 공급만 추가(로직 변경 없음). `NextIntlClientProvider` 가 server message → client context 로 hydrate 하도록 RSC → client component boundary 에서 hydration 경계 일치.
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: 001c-3 (route groups: marketing/auth/app layouts), 001c-4 (middleware + env.example + security headers). 실제 ko 지원(locale detection + middleware routing)은 Sprint B 범위.
+### 연관 파일: apps/web/src/i18n/, apps/web/src/app/layout.tsx

@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "CelebBase Wellness",
+    "tagline": "셀러브리티의 건강 루틴을 만나보는 프리미엄 웰니스 플랫폼"
+  },
+  "nav": {
+    "home": "홈",
+    "celebrities": "셀러브리티",
+    "recipes": "레시피",
+    "dashboard": "대시보드",
+    "plans": "식단 플랜",
+    "account": "계정",
+    "logout": "로그아웃"
+  },
+  "auth": {
+    "login": {
+      "title": "로그인",
+      "subtitle": "계정에 로그인하여 계속하세요.",
+      "emailLabel": "이메일",
+      "submit": "로그인",
+      "pending": "로그인 중…",
+      "switchToSignup": "계정이 없으신가요? 가입하기"
+    },
+    "signup": {
+      "title": "계정 만들기",
+      "subtitle": "셀러브리티 웰니스 루틴을 탐색해 보세요.",
+      "emailLabel": "이메일",
+      "displayNameLabel": "표시 이름",
+      "submit": "가입하기",
+      "pending": "계정을 생성 중…",
+      "switchToLogin": "이미 계정이 있으신가요? 로그인"
+    },
+    "errors": {
+      "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
+      "tokenExpired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+      "networkError": "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요."
+    },
+    "logoutSuccess": "로그아웃되었습니다."
+  },
+  "common": {
+    "loading": "불러오는 중…",
+    "retry": "다시 시도",
+    "cancel": "취소",
+    "save": "저장",
+    "unexpectedError": "문제가 발생했습니다. 다시 시도해 주세요."
+  }
+}
