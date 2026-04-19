@@ -1412,3 +1412,31 @@ verified_by: claude-opus-4-7
 - **검증**: `pnpm --filter web build` pass(18 routes static/dynamic split 정상) / `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(warning 2개 non-blocking) / `pnpm --filter web test -- api/_lib/__tests__` → 22/22 pass / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `fe_token_hardcode` `{passed:true}` / `fe_contract_check` `{passed:true}` (SKIP — tsx 미설치 상태로 gate infra 활성 대기) / `fe_slice_smoke` `{passed:true}` / `fe_bff_smoke` 4 probe 중 2개 pass(`/api/users/me` 401, `/api/meal-plans/<uuid>` 401 — 인증 계층 정상), 2개는 502(BE services 3001/3002/3003 미기동 — BFF 자체는 정상, 라이브 BE 스모크는 서비스 부팅 후 별도 실행).
 ### 미완료: `fe_bff_smoke` 200/400 probe 는 BE stack(user-service/content-service/meal-plan-engine) 실제 부팅 필요 — Sprint A 코드는 완성, 라이브 E2E 스모크는 운영 단계에서 확인. `fe_contract_check` 의 tsx 활성화는 별도 infra PR.
 ### 연관 파일: apps/web/src/app/api/_lib/, apps/web/src/app/api/**/route.ts, apps/web/next.config.ts, apps/web/package.json
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-010-e
+commit_sha: 8cb9eea
+files_changed:
+  - packages/shared-types/src/schemas/auth.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/package.json
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - services/user-service/tests/integration/logout.test.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+verified_by: claude-opus-4-7
+---
+### 완료: IMPL-010-e Phase B — per-route rate-limit + /auth/logout + structured auth logs
+- packages/shared-types/src/schemas/auth.ts: `LogoutRequestSchema` (`refresh_token` optional, Phase B 는 body 비어도 허용), `LogoutResponseSchema = z.object({}).strict()` (204 no-content 계약 명시)
+- services/user-service/src/lib/auth-log.ts (NEW): 구조화 이벤트 emit 헬퍼 + `hashId` (sha256 prefix 8). 이벤트 4종 — `auth.cognito.verify`, `auth.internal_token.issued`, `auth.email_bridge.applied`, `auth.logout`. 이벤트별 필드 contract 타입으로 고정. Rule #8: raw token/email/password 로그 금지.
+- services/user-service/src/routes/auth.routes.ts: per-route `config.rateLimit` — signup 3/min, login 5/min, refresh 20/min (`hook: 'preHandler'` + `keyGenerator` sha256(refresh_token) prefix 16 + IP). `@fastify/rate-limit@10` 은 `skip` 미지원 → `allowList: () => NODE_ENV==='test'` 로 테스트 bypass. 신규 `POST /auth/logout` 핸들러: 인증 필수 (`/auth/logout` 은 PUBLIC_PATHS 제외), optional refresh_token body 스키마 검증, `emitAuthLog('auth.logout', { user_id_hash, requestId })` → 204. Stateless (refresh_tokens 테이블 없음, TODO: IMPL-010-f jti blacklist).
+- apps/web/src/app/api/auth/logout/route.ts: best-effort `POST ${USER_SERVICE_URL}/auth/logout` forward with `Authorization: Bearer cb_access` + `X-Request-Id`. 2 s AbortSignal timeout, 실패(네트워크/401/5xx) 시 warn 로그 + 쿠키 클리어로 진행 — logout UX fail-closed 방지.
+- services/user-service/package.json: `@fastify/rate-limit@^10.0.0` 를 devDependency 로 명시(전엔 service-core transitive).
+- 신규 integration 테스트 2종 (R6 가이드: Fastify `app.inject()` 필수):
+  - rate-limit.test.ts: `jest.unstable_mockModule` (ESM namespace 불변) 로 auth.service 스텁. NODE_ENV=integration 에서 4번째 signup/6번째 login/21번째 refresh → 429. 동일 IP+다른 refresh_token → 독립 버킷. NODE_ENV=test 시 allowList bypass → 10연속 200.
+  - logout.test.ts: Fastify child logger 구조로 인해 post-hoc monkey-patch 불가 → minimal capture logger (level/info/child/...) 주입. 204 + `auth.logout` emit + `user_id_hash` 8자 + raw userId 미노출 검증. `requireAuth=true` hook → 401, auth.logout 미emit. malformed body → 400. `disableRequestLogging: true` 로 Fastify 내장 req/res 로그(raw body 포함)와 assertion 충돌 회피.
+- 검증: user-service 90 tests pass, coverage 82.58% (>=80%). typecheck/lint(clean for IMPL-010-e files) pass. web typecheck pass.
+### 미완료: refresh_tokens 테이블 + jti blacklist (→ IMPL-010-f Phase C). hmac-email 이중 레이어 rate-limit (→ Phase C, Cognito Advanced Security 와 묶음). dev JWT middleware stub hardening (→ Phase C).
+### 연관 파일: packages/shared-types/src/schemas/auth.ts, services/user-service/src/{routes/auth.routes.ts, lib/auth-log.ts}, services/user-service/tests/integration/, apps/web/src/app/api/auth/logout/route.ts
