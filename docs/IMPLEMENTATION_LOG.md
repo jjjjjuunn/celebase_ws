@@ -1440,3 +1440,22 @@ verified_by: claude-opus-4-7
 - 검증: user-service 90 tests pass, coverage 82.58% (>=80%). typecheck/lint(clean for IMPL-010-e files) pass. web typecheck pass.
 ### 미완료: refresh_tokens 테이블 + jti blacklist (→ IMPL-010-f Phase C). hmac-email 이중 레이어 rate-limit (→ Phase C, Cognito Advanced Security 와 묶음). dev JWT middleware stub hardening (→ Phase C).
 ### 연관 파일: packages/shared-types/src/schemas/auth.ts, services/user-service/src/{routes/auth.routes.ts, lib/auth-log.ts}, services/user-service/tests/integration/, apps/web/src/app/api/auth/logout/route.ts
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0a-1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/.env.example
+  - docs/runbooks/internal-jwt-rotation.md
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0a-1 — session prod-only fail-fast + rotation runbook + env docs
+- session.ts: `NODE_ENV === 'production'` 가드로 fail-fast 분기 — prod에서 `INTERNAL_JWT_SECRET` 미설정 시 즉시 throw, dev는 `DEFAULT_DEV_SECRET` 유지. `INTERNAL_JWT_SECRET_NEXT` 옵션 수락(rotation overlap — NEXT 먼저, CURRENT 폴백). D18 결정 완전 구현.
+- docs/runbooks/internal-jwt-rotation.md (NEW): 듀얼 키 overlap 절차. session TTL 1h 기준 overlap 창 ≥1h, NEXT 키 배포 → overlap 창 경과 → OLD 제거 → 롤오버 완료. prod-only fail-fast 해설 포함.
+- apps/web/.env.example: `INTERNAL_JWT_SECRET`, `INTERNAL_JWT_SECRET_NEXT`, `COGNITO_HOSTED_UI_DOMAIN`, `COGNITO_CLIENT_ID`, `COGNITO_CLIENT_SECRET`, `COGNITO_TOKEN_ENDPOINT`, `COGNITO_REDIRECT_URI`, `NEXT_PUBLIC_WS_HOST` 추가. `COGNITO_JWKS_URL` / `COGNITO_AUDIENCE` 제거.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass.
+### 미완료: 없음 (002-0a-2에서 bff-fetch SessionExpiredError + CSP 이어서 진행).
+### 연관 파일: apps/web/src/app/api/_lib/session.ts, apps/web/.env.example, docs/runbooks/internal-jwt-rotation.md
