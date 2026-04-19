@@ -31,10 +31,10 @@ export interface AuthProvider {
 const DEFAULT_DEV_SECRET = 'dev-secret-not-for-prod';
 
 export function loadDevSecret(): Uint8Array {
-  const raw = process.env['JWT_SECRET'] ?? DEFAULT_DEV_SECRET;
+  const raw = process.env['INTERNAL_JWT_SECRET'] ?? DEFAULT_DEV_SECRET;
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
   if (nodeEnv === 'production' && raw === DEFAULT_DEV_SECRET) {
-    throw new Error('JWT_SECRET must be set to a non-default value in production');
+    throw new Error('INTERNAL_JWT_SECRET must be set to a non-default value in production');
   }
   return new TextEncoder().encode(raw);
 }

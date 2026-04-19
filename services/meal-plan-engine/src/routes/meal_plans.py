@@ -56,7 +56,7 @@ def _verify_jwt_payload(token: str) -> Dict[str, Any]:
     """Verify JWT signature and return payload using PyJWT."""
     payload = pyjwt.decode(
         token,
-        settings.JWT_SECRET,
+        settings.INTERNAL_JWT_SECRET,
         algorithms=["HS256"],
         options={"require": ["sub", "exp", "token_use"]},
     )

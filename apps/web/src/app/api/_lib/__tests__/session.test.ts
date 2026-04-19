@@ -8,7 +8,6 @@ jest.mock('jose', () => {
     }
   }
   return {
-    createRemoteJWKSet: jest.fn(() => Symbol('mock-jwks')),
     jwtVerify: jest.fn(),
     errors: { JWTExpired },
   };
@@ -40,6 +39,7 @@ function makeRequest(opts?: { cookie?: string; requestId?: string }): Parameters
 const VALID_PAYLOAD = {
   sub: 'user-abc-123',
   email: 'test@example.com',
+  cognito_sub: 'cognito-sub-xyz',
   iat: Math.floor(Date.now() / 1000),
   exp: Math.floor(Date.now() / 1000) + 900,
 };
@@ -108,7 +108,7 @@ describe('createProtectedRoute', () => {
     expect(handler).toHaveBeenCalledTimes(1);
     const [, session] = handler.mock.calls[0] as [unknown, { user_id: string; email: string; cognito_sub: string }];
     expect(session.user_id).toBe('user-abc-123');
-    expect(session.cognito_sub).toBe('user-abc-123');
+    expect(session.cognito_sub).toBe('cognito-sub-xyz');
     expect(session.email).toBe('test@example.com');
   });
 

@@ -33,7 +33,7 @@ TEST_DB_URL = os.environ.get(
     "INTEGRATION_DATABASE_URL",
     "postgresql://celebbase:devpw@localhost:5432/celebbase_dev",
 )
-TEST_JWT_SECRET = os.environ.get("INTEGRATION_JWT_SECRET", "dev-secret-not-for-prod")
+TEST_JWT_SECRET = os.environ.get("INTERNAL_JWT_SECRET", "dev-secret-not-for-prod")
 USER_SERVICE_URL = os.environ.get("INTEGRATION_USER_SVC_URL", "http://localhost:3001")
 MPE_URL = os.environ.get("INTEGRATION_MPE_URL", "http://localhost:3003")
 SQS_ENDPOINT = os.environ.get("INTEGRATION_SQS_ENDPOINT", "http://localhost:4566")

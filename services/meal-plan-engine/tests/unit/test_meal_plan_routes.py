@@ -69,7 +69,7 @@ def _auth_header() -> dict[str, str]:
 
     token = pyjwt.encode(
         {"sub": _TEST_USER_ID, "exp": int(time.time()) + 3600, "token_use": "access"},
-        settings.JWT_SECRET,
+        settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
     return {"Authorization": f"Bearer {token}"}
@@ -214,7 +214,7 @@ async def test_expired_token_returns_401(client):
     """An expired token should be rejected."""
     token = pyjwt.encode(
         {"sub": "u1", "exp": int(time.time()) - 60, "token_use": "access"},
-        settings.JWT_SECRET,
+        settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
     resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
@@ -226,7 +226,7 @@ async def test_refresh_token_rejected_on_api(client):
     """A refresh token (token_use=refresh) should not work on protected routes."""
     token = pyjwt.encode(
         {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "refresh"},
-        settings.JWT_SECRET,
+        settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
     resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
@@ -238,7 +238,7 @@ async def test_missing_token_use_returns_401(client):
     """A token without token_use claim should be rejected."""
     token = pyjwt.encode(
         {"sub": "u1", "exp": int(time.time()) + 3600},
-        settings.JWT_SECRET,
+        settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
     resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})

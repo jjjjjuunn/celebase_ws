@@ -1,11 +1,6 @@
 import 'server-only';
 import type { NextRequest } from 'next/server';
-import {
-  createRemoteJWKSet,
-  errors as joseErrors,
-  jwtVerify,
-  type JWTPayload,
-} from 'jose';
+import { errors as joseErrors, jwtVerify } from 'jose';
 import {
   createLogger,
   toBffErrorResponse,
@@ -33,33 +28,29 @@ export function readEnv(name: string): string {
   return value;
 }
 
-const JWKS_URI = readEnv('JWKS_URI');
-const JWT_ISSUER = readEnv('JWT_ISSUER');
-const JWT_AUDIENCE = process.env['JWT_AUDIENCE'];
-const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
+const DEFAULT_DEV_SECRET = 'dev-secret-not-for-prod';
+const rawSecret = process.env['INTERNAL_JWT_SECRET'] ?? DEFAULT_DEV_SECRET;
+const INTERNAL_SECRET = new TextEncoder().encode(rawSecret);
+const INTERNAL_ISSUER =
+  process.env['INTERNAL_JWT_ISSUER'] ?? 'celebbase-user-service';
+
 const log = createLogger('bff-session');
 
+// BFF verifies internal HS256 JWTs issued by user-service.
+// Cognito id_tokens never reach the BFF directly — user-service exchanges them
+// for internal tokens before issuing the cb_access cookie.
+// Phase C will upgrade to RS256 when user-service exposes a JWKS endpoint.
 export async function verifyAccessToken(token: string): Promise<Session> {
-  const verifyOpts: Parameters<typeof jwtVerify>[2] = {
-    issuer: JWT_ISSUER,
-    ...(JWT_AUDIENCE !== undefined && JWT_AUDIENCE !== ''
-      ? { audience: JWT_AUDIENCE }
-      : {}),
-  };
-  const { payload }: { payload: JWTPayload } = await jwtVerify(
-    token,
-    JWKS,
-    verifyOpts,
-  );
-  const sub = payload.sub;
-  if (typeof sub !== 'string' || sub === '') {
-    throw new Error('Token missing sub claim');
-  }
-  const email = typeof payload['email'] === 'string' ? payload['email'] : '';
+  const { payload } = await jwtVerify(token, INTERNAL_SECRET, {
+    issuer: INTERNAL_ISSUER,
+    algorithms: ['HS256'],
+    clockTolerance: 60,
+  });
   return {
-    user_id: sub,
-    email,
-    cognito_sub: sub,
+    user_id: String(payload.sub ?? ''),
+    email: typeof payload['email'] === 'string' ? payload['email'] : '',
+    cognito_sub:
+      typeof payload['cognito_sub'] === 'string' ? payload['cognito_sub'] : '',
   };
 }
 
@@ -110,6 +101,8 @@ export function createProtectedRoute(
       session = await verifyAccessToken(token);
     } catch (err) {
       if (err instanceof joseErrors.JWTExpired) {
+        // Client should clear cookie locally and re-login via Cognito.
+        // TODO(Phase C): attempt silent refresh before returning 401.
         return unauthorizedResponse(
           requestId,
           'TOKEN_EXPIRED',

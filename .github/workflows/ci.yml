@@ -187,6 +187,9 @@ jobs:
     env:
       DATABASE_URL: postgresql://celebbase:testpw@localhost:5432/celebbase_test
       REDIS_URL: redis://localhost:6379
+      AUTH_PROVIDER: dev
+      INTERNAL_JWT_SECRET: ci-dev-secret-not-for-prod
+      INTERNAL_JWT_ISSUER: celebbase-user-service
     steps:
       - uses: actions/checkout@v4
 

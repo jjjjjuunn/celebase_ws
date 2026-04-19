@@ -21,11 +21,9 @@ const start = async (): Promise<void> => {
   const app = await createApp({ serviceName: 'user-service' });
 
   // Auth routes (public — no JWT required)
-  if (env.NODE_ENV === 'production' && !env.COGNITO_CLIENT_ID) {
-    app.log.warn('COGNITO_CLIENT_ID not set in production — using DevAuthProvider as fallback. Configure CognitoAuthProvider for production use.');
-  }
-  if (env.NODE_ENV === 'production' && (!env.JWT_SECRET || env.JWT_SECRET === 'dev-secret-not-for-prod')) {
-    app.log.fatal('JWT_SECRET must be set to a non-default value in production');
+  // Prod guards are enforced by EnvSchema.superRefine at startup; these are belt-and-suspenders.
+  if (env.NODE_ENV === 'production' && env.AUTH_PROVIDER !== 'cognito') {
+    app.log.fatal('AUTH_PROVIDER must be "cognito" in production');
     process.exit(1);
   }
   const authProvider = new DevAuthProvider();

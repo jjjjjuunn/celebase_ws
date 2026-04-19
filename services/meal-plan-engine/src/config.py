@@ -18,7 +18,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     NODE_ENV: str = "development"
-    JWT_SECRET: str = "dev-secret-not-for-prod"
+    AUTH_PROVIDER: str = "dev"
+    # Internal JWT secret — must match INTERNAL_JWT_SECRET in user-service
+    INTERNAL_JWT_SECRET: str = "dev-secret-not-for-prod"
+    INTERNAL_JWT_ISSUER: str = "celebbase-user-service"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002"
     CONTENT_SERVICE_URL: str = "http://localhost:3002"
     USER_SERVICE_URL: str = "http://localhost:3001"
@@ -35,8 +38,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _reject_default_secret_in_prod(self) -> Settings:
-        if self.NODE_ENV == "production" and self.JWT_SECRET == "dev-secret-not-for-prod":
-            raise ValueError("JWT_SECRET must be set to a non-default value in production")
+        if self.NODE_ENV == "production" and self.INTERNAL_JWT_SECRET == "dev-secret-not-for-prod":
+            raise ValueError("INTERNAL_JWT_SECRET must be set to a non-default value in production")
         return self
 
     model_config = {

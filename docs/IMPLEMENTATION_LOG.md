@@ -1136,3 +1136,36 @@ verified_by: claude-sonnet-4-6
 - 모든 라우트 createPublicRoute 래핑, fetchBff Result<T> 패턴, LoginResponseSchema/SignupResponseSchema/RefreshResponseSchema Zod 검증
 ### 미완료: 없음 (001b-3: logout+users/me+bio-profile 진행)
 ### 연관 파일: apps/web/src/app/api/auth/, apps/web/package.json
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-010-c
+commit_sha: PENDING
+files_changed:
+  - .env.example
+  - services/user-service/src/env.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/index.ts
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/jest.setup.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - .github/workflows/ci.yml
+  - docker-compose.yml
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+  - services/meal-plan-engine/tests/integration/conftest.py
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-010-c — Env 계약 통일 + BFF 내부 JWT 회귀
+- JWT_SECRET → INTERNAL_JWT_SECRET 전수 rename (user-service, meal-plan-engine, BFF, docker-compose, CI)
+- .env.example: AUTH_PROVIDER=dev, COGNITO_* 네이밍 통일, INTERNAL_JWT_SECRET/ISSUER 추가
+- env.ts: Zod superRefine — AUTH_PROVIDER=cognito 시 Cognito 5개 vars 필수, prod에서 AUTH_PROVIDER=dev 금지, COGNITO_JWKS_URI regex allowlist
+- config.py: JWT_SECRET → INTERNAL_JWT_SECRET, AUTH_PROVIDER 추가, model_validator 업데이트
+- session.ts: JWKS RS256 회귀 → 내부 HS256 (IMPL-005 premature revert), module-load throw 제거
+- session.test.ts: createRemoteJWKSet mock 제거, cognito_sub payload 픽스처 업데이트 (22 tests pass)
+- CI job env: AUTH_PROVIDER=dev + INTERNAL_JWT_SECRET 주입
+- pytest unit 64 pass, web jest 22 pass, gate-check policy pass
+### 미완료: IMPL-010-d (CognitoAuthProvider + email-bridge), IMPL-010-e (rate-limit + logout + 관찰성)
+### 연관 파일: services/user-service/src/env.ts, services/meal-plan-engine/src/config.py, apps/web/src/app/api/_lib/session.ts
