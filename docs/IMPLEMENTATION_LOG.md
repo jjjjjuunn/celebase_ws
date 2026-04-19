@@ -1339,7 +1339,7 @@ verified_by: claude-opus-4-7
 date: 2026-04-19
 agent: claude-opus-4-7
 task_id: IMPL-APP-001c-3
-commit_sha: PENDING
+commit_sha: 30340dc
 files_changed:
   - apps/web/src/app/(marketing)/layout.tsx
   - apps/web/src/app/(auth)/layout.tsx
