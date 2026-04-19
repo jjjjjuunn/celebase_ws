@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@celebbase/design-tokens": "workspace:*",
+    "@celebbase/shared-types": "workspace:*",
     "@celebbase/ui-kit": "workspace:*",
     "jose": "^5",
     "next": "^15.1.0",
