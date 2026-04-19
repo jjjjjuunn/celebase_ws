@@ -1354,3 +1354,22 @@ verified_by: claude-opus-4-7
 - 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: 001c-4 (middleware + .env.example + next.config.ts security headers). 라우트 그룹 내부 page.tsx (login/signup/dashboard 등) 는 Sprint B 범위.
 ### 연관 파일: apps/web/src/app/(marketing)/, apps/web/src/app/(auth)/, apps/web/src/app/(app)/
+
+---
+date: 2026-04-19
+agent: claude-opus-4-7
+task_id: IMPL-APP-001c-4
+commit_sha: PENDING
+files_changed:
+  - apps/web/middleware.ts
+  - apps/web/.env.example
+  - apps/web/next.config.ts
+verified_by: claude-opus-4-7
+---
+### 완료: 미들웨어 + .env.example + 보안 헤더 (IMPL-APP-001c-4)
+- `middleware.ts`: edge runtime 기본(D17) — `cb_access` 쿠키 presence-only 체크(JWT 검증 X — 그건 route handler 의 `createProtectedRoute` 책임). `PROTECTED_PATHS = ['/dashboard', '/plans', '/account']` prefix 매칭 시 쿠키 부재면 `/login?from=<encoded original>` 로 302 redirect. 모든 요청에 `x-request-id` 채번/전파(없으면 `crypto.randomUUID` 생성, `NextResponse.next({request: {headers}})` 패턴으로 다운스트림 RSC/route handler 가 동일 ID 관찰). matcher 는 `/api`, `_next/static|_next/image`, `favicon.ico`, `slice` 제외 — slice preview 는 dev 도구라 인증 게이트 적용 안 함. Pino/jsonwebtoken 미사용(edge 호환성, D17 준수).
+- `.env.example`: Sprint A 환경 변수 템플릿 — Cognito 3종(`COGNITO_JWKS_URL`/`COGNITO_ISSUER`/`COGNITO_AUDIENCE`, D15), BE 3종(`USER_SERVICE_URL`/`CONTENT_SERVICE_URL`/`MEAL_PLAN_URL`), `NEXT_PUBLIC_WS_URL`(D6 — 클라이언트 노출 의도적). `JWT_SECRET` 미포함(D15 가 HS256 path 제거). 각 변수 위에 의도/사용처 주석.
+- `next.config.ts`: `headers()` 추가 — `Content-Security-Policy`(env 분기: dev 는 `unsafe-inline 'unsafe-eval'` for Next.js HMR, prod 는 strict; `connect-src 'self' ${NEXT_PUBLIC_WS_URL}` 로 WS 허용), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`. **Sprint B TODO 주석**: prod 는 nonce-based strict CSP 로 교체 필요(현재는 dev/prod 모두 동일 정적 정책).
+- 검증: `pnpm --filter web typecheck` pass / `pnpm --filter web lint` pass(logout carry-over 경고만) / `scripts/gate-check.sh fe_bff_compliance` `{passed:true}` / `scripts/gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: Sprint A 통합 게이트(fe_bff_smoke 4-probe 실행, fe_slice_smoke 회귀, fe_contract_check 실시간 검증). Sprint B: nonce CSP, RSC silent refresh(Server Action 또는 middleware-based), middleware locale routing, 라우트 그룹 page.tsx.
+### 연관 파일: apps/web/middleware.ts, apps/web/.env.example, apps/web/next.config.ts
