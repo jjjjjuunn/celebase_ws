@@ -10,6 +10,7 @@
     "dashboard": "Dashboard",
     "plans": "Meal Plans",
     "account": "Account",
+    "track": "Track",
     "logout": "Log out"
   },
   "auth": {
@@ -49,5 +50,10 @@
     "cancel": "Cancel",
     "save": "Save",
     "unexpectedError": "Something went wrong. Please try again."
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "goToDashboard": "Go to Dashboard",
+    "goToLogin": "Back to Login"
   }
 }

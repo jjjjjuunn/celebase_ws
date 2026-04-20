@@ -14,6 +14,7 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
     requestId,
     forwardedFor,
     userId: session.user_id,
+    authToken: session.raw_token,
   });
   if (!result.ok) {
     return toBffErrorResponse(result.error, requestId);

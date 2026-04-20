@@ -21,6 +21,7 @@ export async function GET(
         requestId,
         forwardedFor,
         userId: session.user_id,
+        authToken: session.raw_token,
       },
     );
     if (!result.ok) {

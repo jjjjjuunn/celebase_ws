@@ -11,6 +11,7 @@ export interface Session {
   user_id: string;
   email: string;
   cognito_sub: string;
+  raw_token: string;
 }
 
 export type ProtectedHandler = (
@@ -71,6 +72,7 @@ export async function verifyAccessToken(token: string): Promise<Session> {
           typeof payload['cognito_sub'] === 'string'
             ? payload['cognito_sub']
             : '',
+        raw_token: token,
       };
     } catch (err) {
       lastErr = err;

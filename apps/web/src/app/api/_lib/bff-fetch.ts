@@ -40,6 +40,7 @@ export interface BffFetchOptions<T> extends Omit<RequestInit, 'signal'> {
   schema: ZodType<T>;
   requestId: string;
   userId?: string;
+  authToken?: string;
   timeoutMs?: number;
   forwardedFor?: string;
 }
@@ -152,7 +153,7 @@ export async function fetchBff<T>(
   path: string,
   opts: BffFetchOptions<T>,
 ): Promise<Result<T>> {
-  const { schema, requestId, userId, timeoutMs, forwardedFor, ...rest } = opts;
+  const { schema, requestId, userId, authToken, timeoutMs, forwardedFor, ...rest } = opts;
   const rateKey = userId ?? forwardedFor ?? 'anon';
   const capacity = path.startsWith('/auth/')
     ? RATE_AUTH_PER_MIN
@@ -171,6 +172,9 @@ export async function fetchBff<T>(
   if (hasBody) extraHeaders['Content-Type'] = 'application/json';
   if (forwardedFor !== undefined && forwardedFor !== '') {
     extraHeaders['X-Forwarded-For'] = forwardedFor;
+  }
+  if (authToken !== undefined && authToken !== '') {
+    extraHeaders['Authorization'] = `Bearer ${authToken}`;
   }
   const headers = mergeHeaders(rest.headers, extraHeaders);
 

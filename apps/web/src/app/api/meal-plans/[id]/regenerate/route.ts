@@ -41,6 +41,7 @@ export async function POST(
         requestId,
         forwardedFor,
         userId: session.user_id,
+        authToken: session.raw_token,
         timeoutMs: 30_000,
       },
     );

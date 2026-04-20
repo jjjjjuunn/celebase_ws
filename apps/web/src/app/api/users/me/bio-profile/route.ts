@@ -13,6 +13,7 @@ export const GET = createProtectedRoute(async (req: NextRequest, session: Sessio
     requestId,
     forwardedFor,
     userId: session.user_id,
+    authToken: session.raw_token,
   });
   if (!result.ok) {
     return toBffErrorResponse(result.error, requestId);
@@ -41,6 +42,7 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
     requestId,
     forwardedFor,
     userId: session.user_id,
+    authToken: session.raw_token,
   });
   if (!result.ok) {
     return toBffErrorResponse(result.error, requestId);
@@ -69,6 +71,7 @@ export const PATCH = createProtectedRoute(async (req: NextRequest, session: Sess
     requestId,
     forwardedFor,
     userId: session.user_id,
+    authToken: session.raw_token,
   });
   if (!result.ok) {
     return toBffErrorResponse(result.error, requestId);
@@ -88,6 +91,7 @@ export const DELETE = createProtectedRoute(async (req: NextRequest, session: Ses
     requestId,
     forwardedFor,
     userId: session.user_id,
+    authToken: session.raw_token,
   });
   if (!result.ok) {
     return toBffErrorResponse(result.error, requestId);

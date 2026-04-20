@@ -9,6 +9,7 @@
     "recipes": "레시피",
     "dashboard": "대시보드",
     "plans": "식단 플랜",
+    "track": "트래킹",
     "account": "계정",
     "logout": "로그아웃"
   },
@@ -49,5 +50,10 @@
     "cancel": "취소",
     "save": "저장",
     "unexpectedError": "문제가 발생했습니다. 다시 시도해 주세요."
+  },
+  "errors": {
+    "somethingWentWrong": "문제가 발생했습니다",
+    "goToDashboard": "대시보드로 이동",
+    "goToLogin": "로그인으로 돌아가기"
   }
 }

@@ -22,6 +22,7 @@ export async function GET(
       requestId,
       forwardedFor,
       userId: session.user_id,
+      authToken: session.raw_token,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
@@ -56,6 +57,7 @@ export async function PATCH(
       requestId,
       forwardedFor,
       userId: session.user_id,
+      authToken: session.raw_token,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
@@ -81,6 +83,7 @@ export async function DELETE(
       requestId,
       forwardedFor,
       userId: session.user_id,
+      authToken: session.raw_token,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
