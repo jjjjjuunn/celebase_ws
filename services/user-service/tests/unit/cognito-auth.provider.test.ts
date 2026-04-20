@@ -1,14 +1,29 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import {
-  startMockJwksServer,
-  type MockJwksHandle,
-} from '../../../../packages/service-core/tests/helpers/mock-jwks-server.js';
-import { CognitoAuthProvider } from '../../src/services/cognito-auth.provider.js';
-import { UnauthorizedError } from '@celebbase/service-core';
+import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import type pg from 'pg';
+
+// Phase C: issueInternalTokens calls refreshTokenRepo.insert — mock to avoid real DB
+jest.unstable_mockModule('../../src/repositories/refresh-token.repository.js', () => ({
+  insert: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+  revokeForRotation: jest.fn(),
+  findMetadata: jest.fn(),
+  revokeForLogout: jest.fn(),
+  revokeChainForLogout: jest.fn(),
+  revokeAllByUser: jest.fn(),
+}));
+
+const { startMockJwksServer } = await import(
+  '../../../../packages/service-core/tests/helpers/mock-jwks-server.js'
+) as typeof import('../../../../packages/service-core/tests/helpers/mock-jwks-server.js');
+const { CognitoAuthProvider } = await import('../../src/services/cognito-auth.provider.js');
+const { UnauthorizedError } = await import('@celebbase/service-core');
+
+type MockJwksHandle = Awaited<ReturnType<typeof startMockJwksServer>>;
+
+const mockPool = {} as pg.Pool;
 
 describe('CognitoAuthProvider.verifyIdToken', () => {
   let jwks: MockJwksHandle;
-  let provider: CognitoAuthProvider;
+  let provider: InstanceType<typeof CognitoAuthProvider>;
 
   beforeAll(async () => {
     jwks = await startMockJwksServer();
@@ -26,10 +41,7 @@ describe('CognitoAuthProvider.verifyIdToken', () => {
   });
 
   it('accepts a valid id_token and returns sub + email', async () => {
-    const token = await jwks.mintIdToken({
-      sub: 'cognito-abc',
-      email: 'user@example.com',
-    });
+    const token = await jwks.mintIdToken({ sub: 'cognito-abc', email: 'user@example.com' });
 
     const payload = await provider.verifyIdToken(token);
 
@@ -41,15 +53,11 @@ describe('CognitoAuthProvider.verifyIdToken', () => {
     const token = await jwks.mintIdToken({ audience: 'other-client' });
 
     await expect(provider.verifyIdToken(token)).rejects.toThrow(UnauthorizedError);
-    await expect(provider.verifyIdToken(token)).rejects.toThrow(
-      'Invalid or expired id token',
-    );
+    await expect(provider.verifyIdToken(token)).rejects.toThrow('Invalid or expired id token');
   });
 
   it('rejects a token with wrong issuer', async () => {
-    const token = await jwks.mintIdToken({
-      issuer: 'https://evil.example.com/',
-    });
+    const token = await jwks.mintIdToken({ issuer: 'https://evil.example.com/' });
     await expect(provider.verifyIdToken(token)).rejects.toThrow(UnauthorizedError);
   });
 
@@ -69,21 +77,18 @@ describe('CognitoAuthProvider.verifyIdToken', () => {
   });
 
   it('rejects a garbage string', async () => {
-    await expect(provider.verifyIdToken('not.a.jwt')).rejects.toThrow(
-      UnauthorizedError,
-    );
+    await expect(provider.verifyIdToken('not.a.jwt')).rejects.toThrow(UnauthorizedError);
   });
 
   it('rejects a token missing the email claim', async () => {
-    // Mint with empty email — our helper forces a string, so we go via malformed path
     const token = await jwks.mintIdToken({ email: '' });
     await expect(provider.verifyIdToken(token)).rejects.toThrow('Missing email claim');
   });
 });
 
-describe('CognitoAuthProvider.issueTokens / refreshTokens', () => {
+describe('CognitoAuthProvider.issueTokens', () => {
   let jwks: MockJwksHandle;
-  let provider: CognitoAuthProvider;
+  let provider: InstanceType<typeof CognitoAuthProvider>;
 
   beforeAll(async () => {
     jwks = await startMockJwksServer();
@@ -101,7 +106,7 @@ describe('CognitoAuthProvider.issueTokens / refreshTokens', () => {
   });
 
   it('issues internal HS256 tokens carrying sub + email + cognito_sub', async () => {
-    const tokens = await provider.issueTokens({
+    const tokens = await provider.issueTokens(mockPool, {
       sub: 'user-uuid-1',
       email: 'alice@example.com',
       cognito_sub: 'cognito-abc',
@@ -118,30 +123,36 @@ describe('CognitoAuthProvider.issueTokens / refreshTokens', () => {
     expect(payload.token_use).toBe('access');
   });
 
-  it('refreshTokens preserves the subject across rotation', async () => {
-    const initial = await provider.issueTokens({
+  it('refresh token contains jti claim (Phase C)', async () => {
+    const tokens = await provider.issueTokens(mockPool, {
       sub: 'user-uuid-2',
       email: 'bob@example.com',
       cognito_sub: 'cognito-xyz',
     });
 
-    const rotated = await provider.refreshTokens(initial.refresh_token);
+    const parts = tokens.refresh_token.split('.');
     const payload = JSON.parse(
-      Buffer.from(rotated.access_token.split('.')[1]!, 'base64url').toString(),
-    ) as { sub: string; email: string };
+      Buffer.from(parts[1]!, 'base64url').toString(),
+    ) as { jti?: string; token_use: string };
 
-    expect(payload.sub).toBe('user-uuid-2');
-    expect(payload.email).toBe('bob@example.com');
+    expect(payload.token_use).toBe('refresh');
+    expect(typeof payload.jti).toBe('string');
+    expect(payload.jti!.length).toBeGreaterThan(0);
   });
 
-  it('refreshTokens rejects an access token', async () => {
-    const tokens = await provider.issueTokens({
+  it('access token TTL is 15m (Phase C)', async () => {
+    const tokens = await provider.issueTokens(mockPool, {
       sub: 'user-uuid-3',
       email: 'c@example.com',
       cognito_sub: 'cognito-3',
     });
-    await expect(provider.refreshTokens(tokens.access_token)).rejects.toThrow(
-      'Invalid token: expected refresh token',
-    );
+
+    const parts = tokens.access_token.split('.');
+    const payload = JSON.parse(
+      Buffer.from(parts[1]!, 'base64url').toString(),
+    ) as { exp: number; iat: number };
+    const ttl = payload.exp - payload.iat;
+    expect(ttl).toBeLessThanOrEqual(15 * 60 + 5);
+    expect(ttl).toBeGreaterThan(0);
   });
 });

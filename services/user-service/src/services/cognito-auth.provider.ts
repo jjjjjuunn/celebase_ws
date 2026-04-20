@@ -1,3 +1,4 @@
+import type pg from 'pg';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { UnauthorizedError } from '@celebbase/service-core';
 import type {
@@ -6,7 +7,9 @@ import type {
   AuthTokenSubject,
   IdTokenPayload,
 } from './auth.service.js';
-import { issueInternalTokens, verifyInternalRefresh } from './auth.service.js';
+import { issueInternalTokens } from './auth.service.js';
+
+type DbClient = pg.Pool | pg.PoolClient;
 
 export interface CognitoConfig {
   userPoolId: string;
@@ -59,12 +62,7 @@ export class CognitoAuthProvider implements AuthProvider {
     }
   }
 
-  async issueTokens(subject: AuthTokenSubject): Promise<AuthTokens> {
-    return issueInternalTokens(subject);
-  }
-
-  async refreshTokens(refreshToken: string): Promise<AuthTokens> {
-    const subject = await verifyInternalRefresh(refreshToken);
-    return issueInternalTokens(subject);
+  async issueTokens(client: DbClient, subject: AuthTokenSubject): Promise<AuthTokens> {
+    return issueInternalTokens(client, subject);
   }
 }

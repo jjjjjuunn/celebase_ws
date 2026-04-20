@@ -30,7 +30,7 @@ const mockRefresh = jest.fn();
 jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
   signup: mockSignup,
   login: mockLogin,
-  refresh: mockRefresh,
+  performRotation: mockRefresh,
   DevAuthProvider: class {
     verifyIdToken(): Promise<{ sub: string; email: string }> {
       return Promise.resolve({ sub: 'stub', email: 'stub@example.com' });
@@ -38,15 +38,12 @@ jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
     issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
       return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
     }
-    refreshTokens(): Promise<{ access_token: string; refresh_token: string }> {
-      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
-    }
   },
   loadDevSecret: (): Uint8Array => new TextEncoder().encode('test-secret-32-bytes-xxxxxxxxxxxx'),
   issueInternalTokens: (): Promise<{ access_token: string; refresh_token: string }> =>
     Promise.resolve({ access_token: 'a', refresh_token: 'r' }),
-  verifyInternalRefresh: (): Promise<{ sub: string; email: string }> =>
-    Promise.resolve({ sub: 'stub', email: 'stub@example.com' }),
+  verifyInternalRefresh: (): Promise<{ sub: string; email: string; cognito_sub: string; jti: string }> =>
+    Promise.resolve({ sub: 'stub', email: 'stub@example.com', cognito_sub: 'stub', jti: 'stub-jti' }),
 }));
 
 const { authRoutes } = await import('../../src/routes/auth.routes.js');
