@@ -395,7 +395,7 @@ tasks:
     owner: agent-claude-sonnet-4-6
     dependsOn:
       - IMPL-015
-    status: pending
+    status: done
     definitionOfDone:
       - "T1: POST /generate → SQS enqueue → consumer → WebSocket push E2E"
       - "T2: DLQ retry (처리 실패 메시지 dead-letter 이동 확인)"

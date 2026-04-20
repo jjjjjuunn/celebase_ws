@@ -1891,3 +1891,20 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new errors (no-img-element Warning 기존), `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: next/image 도입 (next.config 도메인 화이트리스트 필요) — 003-* 트랙. /plans/new 페이지 — 002-4b.
 ### 연관 파일: apps/web/src/app/(app)/celebrities/[slug]/
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: CHORE-005
+commit_sha: PENDING
+files_changed:
+  - .github/workflows/ci.yml
+verified_by: claude-sonnet-4-6
+---
+### 완료: LocalStack E2E 통합 테스트 CI job 추가 (CHORE-005)
+- `e2e-integration` job 추가 — infrastructure(postgres/redis/localstack) → db-migrate → app services(user/content/meal-plan-engine) → pytest tests/integration/ -m integration.
+- T1(test_e2e_happy_path.py), T2(test_dlq_retry.py), T3(test_ws_ticket_reuse.py) 파일이 이미 존재하여 CI job 추가만으로 DoD 충족.
+- `notify-on-failure` needs 리스트에 `e2e-integration` 포함.
+- `LOCALSTACK_ENDPOINT` 환경변수로 conftest.py auto-skip 게이트 통과.
+### 미완료: 없음
+### 연관 파일: .github/workflows/ci.yml
