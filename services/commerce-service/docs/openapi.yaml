@@ -1,0 +1,292 @@
+openapi: "3.1.0"
+info:
+  title: Commerce Service API
+  version: "0.1.0"
+  description: |
+    CelebBase commerce-service — handles Stripe subscriptions, Instacart cart creation,
+    and inter-service tier synchronization (internal JWT only).
+
+    Full endpoint specs are filled in IMPL-016-b2 (checkout/webhooks) and IMPL-016-c1 (cart).
+
+servers:
+  - url: http://localhost:3002
+    description: Local development
+  - url: https://api.celebbase.com/commerce
+    description: Production (BFF-proxied)
+
+tags:
+  - name: health
+    description: Liveness and readiness probes
+  - name: checkout
+    description: Stripe checkout session creation
+  - name: webhooks
+    description: Stripe webhook receiver
+  - name: cart
+    description: Instacart cart creation with fallback cascade
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness probe (shallow)
+      operationId: getHealth
+      security: []
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+
+  /ready:
+    get:
+      tags: [health]
+      summary: Readiness probe (deep — DB + Stripe SDK)
+      operationId: getReady
+      security: []
+      responses:
+        "200":
+          description: All dependencies reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: One or more dependencies not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+  /checkout/session:
+    post:
+      tags: [checkout]
+      summary: Create a Stripe Checkout session
+      operationId: createCheckoutSession
+      description: |
+        Creates a Stripe Checkout session for tier upgrade.
+        Rate-limited to 5 req/min per IP (spec §10.4).
+        Full spec added in IMPL-016-b2.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+      responses:
+        "201":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCheckoutSessionResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /webhooks/stripe:
+    post:
+      tags: [webhooks]
+      summary: Stripe webhook receiver
+      operationId: handleStripeWebhook
+      description: |
+        Receives Stripe events. Verifies Stripe-Signature header.
+        Idempotent — duplicate events are deduped via processed_events table.
+        Raw body required for signature verification (not JSON-parsed).
+        Full spec added in IMPL-016-b2.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Event accepted (or already processed)
+        "400":
+          description: Invalid signature
+        "409":
+          description: Overlap dedup — event already claimed by another service instance
+
+  /cart:
+    post:
+      tags: [cart]
+      summary: Create Instacart cart from meal plan
+      operationId: createCart
+      description: |
+        Creates an Instacart cart URL from a meal plan's ingredients.
+        Falls back to Amazon Fresh → regional affiliate → interactive checklist on failure.
+        Full spec added in IMPL-016-c1.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCartRequest"
+      responses:
+        "200":
+          description: Cart URL or fallback result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCartResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/SubscriptionRequired"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [ok, fail]
+          example:
+            db: ok
+            stripe: ok
+
+    CreateCheckoutSessionRequest:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: string
+          enum: [premium, elite]
+          description: Tier to upgrade to
+
+    CreateCheckoutSessionResponse:
+      type: object
+      required: [url, sessionId]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Stripe Checkout redirect URL
+        sessionId:
+          type: string
+          description: Stripe session ID (cs_...)
+
+    CreateCartRequest:
+      type: object
+      required: [mealPlanId]
+      properties:
+        mealPlanId:
+          type: string
+          format: uuid
+          description: UUID of the meal plan to build a shopping cart from
+
+    CreateCartResponse:
+      type: object
+      required: [provider, result]
+      properties:
+        provider:
+          type: string
+          enum: [instacart, amazon_fresh, regional, checklist]
+          description: Which provider fulfilled the request
+        result:
+          oneOf:
+            - type: object
+              description: Cart URL (instacart / amazon_fresh / regional)
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+            - type: object
+              description: Interactive checklist fallback
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: string
+
+    ApiError:
+      type: object
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+
+  responses:
+    ValidationError:
+      description: Input validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                $ref: "#/components/schemas/ApiError"
+
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                $ref: "#/components/schemas/ApiError"
+
+    SubscriptionRequired:
+      description: Feature requires active subscription
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                $ref: "#/components/schemas/ApiError"
+
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                $ref: "#/components/schemas/ApiError"
