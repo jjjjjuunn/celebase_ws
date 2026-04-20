@@ -242,6 +242,184 @@
   flex-shrink: 0;
 }
 
+.renewalMeta {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+}
+
+.cancelNotice {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-warning-600);
+}
+
+/* Upgrade cards */
+.upgradeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--cb-space-4);
+  margin-top: var(--cb-space-2);
+}
+
+.upgradeCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+  padding: var(--cb-space-5);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-lg);
+  background: var(--cb-color-bg);
+}
+
+.upgradeCardElite {
+  border-color: var(--cb-brand-400);
+  background: var(--cb-brand-50);
+}
+
+.upgradeCardBadge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px var(--cb-space-2);
+  border-radius: var(--cb-radius-pill);
+  background: var(--cb-brand-100);
+  color: var(--cb-brand-700);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-semibold);
+}
+
+.upgradeCardName {
+  margin: 0;
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-font-size-lg);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+}
+
+.upgradeCardPrice {
+  margin: 0;
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-md);
+  font-weight: var(--cb-font-weight-bold);
+  color: var(--cb-color-text);
+}
+
+.upgradeCardFeatures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-1);
+  flex: 1;
+}
+
+.upgradeCardFeature {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+  display: flex;
+  gap: var(--cb-space-2);
+}
+
+.upgradeCardBtn {
+  width: 100%;
+  padding: var(--cb-space-2) var(--cb-space-4);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-cta-text);
+  background: var(--cb-color-brand);
+  border: none;
+  border-radius: var(--cb-radius-md);
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+  margin-top: auto;
+}
+
+.upgradeCardBtn:hover {
+  opacity: 0.88;
+}
+
+.upgradeCardBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Cancel flow */
+.cancelSection {
+  padding-top: var(--cb-space-4);
+  border-top: 1px solid var(--cb-color-border);
+}
+
+.cancelLink {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cancelLink:hover {
+  color: var(--cb-danger-600);
+}
+
+.cancelConfirmBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+  padding: var(--cb-space-4);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-md);
+}
+
+.cancelConfirmText {
+  margin: 0;
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+}
+
+.cancelConfirmActions {
+  display: flex;
+  gap: var(--cb-space-2);
+}
+
+.cancelConfirmBtn {
+  padding: var(--cb-space-2) var(--cb-space-4);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-cta-text);
+  background: var(--cb-danger-600);
+  border: none;
+  border-radius: var(--cb-radius-sm);
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+
+.cancelConfirmBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cancelDismissBtn {
+  padding: var(--cb-space-2) var(--cb-space-4);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+  background: none;
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+  cursor: pointer;
+}
+
 .loadingText,
 .errorText {
   margin: 0;
