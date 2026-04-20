@@ -20,6 +20,53 @@ paths:
   ```
 - **보안 정적 분석**: CI에 Semgrep 포함. `critical` 또는 `high` 발견 시 빌드 실패.
 
+### Stateful Token Rotation (IMPL-010-f 교훈)
+
+Refresh token rotation은 단일 트랜잭션 + UPDATE rowcount로 winner를 결정한다:
+
+```typescript
+// ❌ SELECT-then-UPDATE (race condition 허용)
+const row = await pool.query('SELECT ... WHERE jti=$1 AND revoked_at IS NULL');
+if (row) await pool.query('UPDATE ... SET revoked_at=now()');  // concurrent 통과 가능
+
+// ✅ Atomic UPDATE rowcount (winner-takes-all)
+await client.query('BEGIN');
+await issueInternalTokens(client, subject);  // INSERT new jti (tx 내부)
+const consumed = await revokeForRotation(client, { oldJti, newJti, userId });
+if (consumed) { await client.query('COMMIT'); }
+else { await client.query('ROLLBACK'); /* 401 분기 */ }
+// finally: client.release()
+```
+
+### Timing-Safe JWT Verify (IMPL-010-f 교훈)
+
+미검증 refresh token으로 DB 조회를 허용하면 토큰 존재 여부가 응답 타이밍으로 누출된다:
+
+```typescript
+// ❌ DB 조회 후 JWT 검증 — timing side-channel
+const row = await db.query('SELECT ... WHERE jti=$1');
+await jwtVerify(token, secret);  // 늦음
+
+// ✅ JWT 검증 먼저, DB 조회는 검증 성공 후에만
+try {
+  await jwtVerify(token, secret, { clockTolerance: 2 });
+} catch {
+  throw new UnauthorizedError('Invalid or expired');
+}
+// DB 접근은 이 아래에서만
+```
+
+### Audit Log Before Throw (IMPL-010-f 교훈)
+
+401을 throw하기 전에 감사 로그를 emit해야 한다. throw 이후의 코드는 실행되지 않는다:
+
+```typescript
+// ✅ emit BEFORE throw
+emitAuthLog(log, 'auth.token.reuse_detected', { ... }, 'warn');
+await revokeAllByUser(pool, { userId, reason: 'reuse_detected' });
+throw new UnauthorizedError('Token reuse detected');  // emit 완료 후 throw
+```
+
 ## 시크릿 하드코딩 금지
 
 코드, 설정 파일, 커밋에 다음 패턴이 포함되면 CI에서 차단한다:
