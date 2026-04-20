@@ -2100,5 +2100,24 @@ verified_by: codex-review
 - index.ts barrel: CircuitBreaker, createInternalClient, JwtAuthOptions export 추가.
 - package.json: `uuidv7@^1.0.2` 의존성 추가.
 - 검증: typecheck 0 error, lint 0 warning, Codex review 1회 pass (SSRF guard 추가 후). gate-implement/review/qa 모두 pass.
-### 미완료: IMPL-016-a3 (user-service + content-service publicPaths 인젝션) 후속 필요
+### 미완료: IMPL-016-a3 (user-service + content-service publicPaths 인젝션) 후속 완료됨
 ### 연관 파일: packages/service-core/src/middleware/jwt.ts, packages/service-core/src/lib/circuit-breaker.ts, packages/service-core/src/lib/internal-http-client.ts, packages/service-core/src/index.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-a3
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/app.ts
+  - services/user-service/src/index.ts
+  - services/content-service/src/index.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: per-service JWT publicPaths 인젝션 (IMPL-016-a3)
+- app.ts: `createApp` 에서 `registerJwtAuth(app)` 자동 호출 제거 — 서비스별 명시 인젝션으로 이관
+- user-service/index.ts: `registerJwtAuth(app, { publicPaths: ['/auth/signup','/auth/login','/auth/refresh','/webhooks/stripe'] })` 명시 호출 추가. STRIPE_LEGACY_MODE overlap 기간 동안 `/webhooks/stripe` 포함.
+- content-service/index.ts: `registerJwtAuth(app)` 기본값으로 호출 (현재 추가 public paths 없음 — `/preview/*` 는 라우트 미구현으로 보류)
+- 검증: user-service typecheck 0 error, lint 0 warning; content-service typecheck 0 error, lint 0 warning
+### 미완료: Gemini arch review 1 (scope: a1+a2+a3 전체)
+### 연관 파일: packages/service-core/src/app.ts, services/user-service/src/index.ts, services/content-service/src/index.ts
