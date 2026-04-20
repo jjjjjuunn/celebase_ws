@@ -2119,5 +2119,27 @@ verified_by: claude-sonnet-4-6
 - user-service/index.ts: `registerJwtAuth(app, { publicPaths: ['/auth/signup','/auth/login','/auth/refresh','/webhooks/stripe'] })` 명시 호출 추가. STRIPE_LEGACY_MODE overlap 기간 동안 `/webhooks/stripe` 포함.
 - content-service/index.ts: `registerJwtAuth(app)` 기본값으로 호출 (현재 추가 public paths 없음 — `/preview/*` 는 라우트 미구현으로 보류)
 - 검증: user-service typecheck 0 error, lint 0 warning; content-service typecheck 0 error, lint 0 warning
-### 미완료: Gemini arch review 1 (scope: a1+a2+a3 전체)
+### 미완료: (완료됨 — Gemini arch review 1 PASS, commit 3625b39)
 ### 연관 파일: packages/service-core/src/app.ts, services/user-service/src/index.ts, services/content-service/src/index.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-b1
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0008_processed-events.sql
+  - services/commerce-service/src/repositories/processed-events.repository.ts
+  - services/commerce-service/src/repositories/subscription.repository.ts
+  - services/commerce-service/tests/fixtures/stripe-events.ts
+verified_by: codex-review
+---
+### 완료: processed_events idempotency migration + commerce-service repositories (IMPL-016-b1)
+- 0008_processed-events.sql: Stripe webhook 멱등성 ledger (UNIQUE stripe_event_id + ON CONFLICT DO NOTHING + 2개 index)
+- processed-events.repository.ts: markProcessed (inserted:bool winner-takes-all) + findByEventId
+- subscription.repository.ts: upsertSubscription tx (subscriptions 테이블만, users 테이블 접근 없음), findByUserId, findByStripeSubscriptionId
+- stripe-events.ts: checkout.session.completed / subscription.updated / invoice.payment_failed fixtures
+- Codex shell-quoting 실패 → Claude 직접 보충 (SQL 문자열 + CHECK 따옴표 수정)
+- Codex review: PASS (CRITICAL/HIGH 없음, MEDIUM findings 모두 non-prod 범위)
+### 미완료: IMPL-016-b2 (Stripe webhook + service layer), IMPL-016-b3 (internal tier endpoint)
+### 연관 파일: db/migrations/0008_processed-events.sql, services/commerce-service/src/repositories/
