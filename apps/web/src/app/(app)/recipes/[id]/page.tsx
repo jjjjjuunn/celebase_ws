@@ -5,7 +5,89 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../../lib/fetcher.js';
+import { TierGate } from '../../../../components/TierGate.js';
 import styles from './recipe-detail.module.css';
+
+type PersonalizedData = schemas.PersonalizedRecipeResponse['personalization'];
+
+function PersonalizedSection({ recipeId }: { recipeId: string }): React.ReactElement {
+  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
+  const [data, setData] = useState<PersonalizedData | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetcher(`/api/recipes/${encodeURIComponent(recipeId)}/personalized`, {
+      schema: schemas.PersonalizedRecipeResponseSchema,
+    })
+      .then((res) => {
+        if (!cancelled) {
+          setData(res.personalization);
+          setStatus('success');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('error');
+      });
+    return () => { cancelled = true; };
+  }, [recipeId]);
+
+  if (status === 'loading') {
+    return (
+      <div className={styles.personalizedSection} aria-busy="true">
+        <p className={styles.personalizedHeading}>Loading personalized data…</p>
+      </div>
+    );
+  }
+
+  if (status === 'error' || data === null) {
+    return (
+      <div className={styles.personalizedSection}>
+        <p className={styles.personalizedHeading}>Personalized data unavailable.</p>
+      </div>
+    );
+  }
+
+  const { scaling_factor, adjusted_nutrition, adjusted_servings } = data;
+
+  return (
+    <div className={styles.personalizedSection} aria-labelledby="personalized-heading">
+      <div className={styles.personalizedHeader}>
+        <span className={styles.personalizedTag} aria-label="Premium feature">Premium</span>
+        <h2 id="personalized-heading" className={styles.personalizedHeading}>
+          Personalized for you
+        </h2>
+      </div>
+      <div className={styles.scalingMeta}>
+        <div className={styles.scalingItem}>
+          <span className={styles.scalingValue}>{adjusted_servings}</span>
+          <span className={styles.scalingLabel}>Your servings</span>
+        </div>
+        <div className={styles.scalingItem}>
+          <span className={styles.scalingValue}>×{scaling_factor.toFixed(2)}</span>
+          <span className={styles.scalingLabel}>Scaling factor</span>
+        </div>
+      </div>
+      <div className={styles.personalizedNutritionGrid}>
+        <div className={styles.nutrient}>
+          <span className={styles.nutrientValue}>{String(adjusted_nutrition.calories)}</span>
+          <span className={styles.nutrientLabel}>kcal</span>
+        </div>
+        <div className={styles.nutrient}>
+          <span className={styles.nutrientValue}>{adjusted_nutrition.protein_g.toFixed(1)}g</span>
+          <span className={styles.nutrientLabel}>Protein</span>
+        </div>
+        <div className={styles.nutrient}>
+          <span className={styles.nutrientValue}>{adjusted_nutrition.carbs_g.toFixed(1)}g</span>
+          <span className={styles.nutrientLabel}>Carbs</span>
+        </div>
+        <div className={styles.nutrient}>
+          <span className={styles.nutrientValue}>{adjusted_nutrition.fat_g.toFixed(1)}g</span>
+          <span className={styles.nutrientLabel}>Fat</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type Recipe = schemas.RecipeWire;
 
@@ -144,6 +226,10 @@ export default function RecipeDetailPage(): React.ReactElement {
           </div>
         </div>
       </section>
+
+      <TierGate requiredTier="premium">
+        <PersonalizedSection recipeId={id} />
+      </TierGate>
 
       {recipe.instructions.length > 0 && (
         <section aria-labelledby="instructions-heading">

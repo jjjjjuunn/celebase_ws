@@ -44,7 +44,7 @@
   font-family: var(--cb-font-family-body);
   font-size: var(--cb-font-size-sm);
   font-weight: var(--cb-font-weight-semibold);
-  color: var(--cb-cta-text, #fff);
+  color: var(--cb-cta-text);
   background: var(--cb-color-brand);
   border: none;
   border-radius: var(--cb-radius-md);
