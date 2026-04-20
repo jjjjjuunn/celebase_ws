@@ -138,6 +138,40 @@ services:
       timeout: 3s
       retries: 5
 
+  commerce-service:
+    build:
+      context: .
+      dockerfile: services/commerce-service/Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      STRIPE_ENABLED: "false"
+      COMMERCE_WEBHOOK_ENABLED: "false"
+      STRIPE_SECRET_KEY: sk_test_dummy_not_for_real_calls
+      STRIPE_WEBHOOK_SECRET: whsec_dummy_not_for_real_calls
+      STRIPE_PREMIUM_PRICE_ID: price_dummy_premium
+      STRIPE_ELITE_PRICE_ID: price_dummy_elite
+      STRIPE_SUCCESS_URL: http://localhost:3000/checkout/success
+      STRIPE_CANCEL_URL: http://localhost:3000/checkout/cancel
+      INSTACART_API_KEY: instacart_dummy_key
+      INTERNAL_JWT_SECRET: dev-secret-not-for-prod
+      USER_SERVICE_URL: http://user-service:3001
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3004/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   meal-plan-engine:
     build:
       context: .

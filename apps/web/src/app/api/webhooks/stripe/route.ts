@@ -2,16 +2,16 @@ import { type NextRequest } from 'next/server';
 import { readEnv } from '../../_lib/session.js';
 
 // Stripe webhook endpoint — no Cognito JWT auth. Stripe authenticates via the
-// Stripe-Signature header; the user-service verifies the signature using the
+// Stripe-Signature header; commerce-service verifies the signature using the
 // webhook secret. The BFF's sole job is:
 //   1. Read raw body as string (signature verification requires the exact bytes)
-//   2. Forward Stripe-Signature + raw body to user-service
-//   3. Return user-service's response
+//   2. Forward Stripe-Signature + raw body to commerce-service
+//   3. Return commerce-service's response
 //
-// SSRF note: target is resolved from USER_SERVICE_URL env var (internal allowlist).
+// SSRF note: target is resolved from COMMERCE_SERVICE_URL env var (internal allowlist).
 // No user-controlled URL is used here.
 
-const USER_SERVICE_URL = readEnv('USER_SERVICE_URL');
+const COMMERCE_SERVICE_URL = readEnv('COMMERCE_SERVICE_URL');
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   const signal = AbortSignal.timeout(WEBHOOK_TIMEOUT_MS);
-  const response = await fetch(`${USER_SERVICE_URL}/webhooks/stripe`, {
+  const response = await fetch(`${COMMERCE_SERVICE_URL}/webhooks/stripe`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const status = response.__err === 'timeout' ? 504 : 502;
     const code = response.__err === 'timeout' ? 'UPSTREAM_TIMEOUT' : 'UPSTREAM_UNREACHABLE';
     return new Response(
-      JSON.stringify({ error: { code, message: 'User service unavailable', requestId } }),
+      JSON.stringify({ error: { code, message: 'Commerce service unavailable', requestId } }),
       { status, headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId } },
     );
   }
