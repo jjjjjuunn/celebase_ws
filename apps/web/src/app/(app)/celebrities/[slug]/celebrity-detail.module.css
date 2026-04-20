@@ -1,0 +1,164 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-6);
+  max-width: 760px;
+}
+
+.backLink {
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-brand);
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.hero {
+  position: relative;
+  border-radius: var(--cb-radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background-color: var(--cb-color-surface);
+}
+
+.heroImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--cb-space-2);
+  padding: var(--cb-space-6);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%);
+}
+
+.heroName {
+  margin: 0;
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-font-size-2xl);
+  font-weight: var(--cb-font-weight-bold);
+  color: var(--cb-neutral-0);
+  line-height: 1.15;
+}
+
+.heroBio {
+  margin: 0;
+  font-size: var(--cb-font-size-md);
+  color: rgba(250, 250, 248, 0.85);
+  max-width: 520px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-2);
+}
+
+.dietSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-4);
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: var(--cb-font-size-lg);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+}
+
+.dietDescription,
+.dietPhilosophy {
+  margin: 0;
+  font-size: var(--cb-font-size-md);
+  color: var(--cb-color-text-muted);
+  line-height: 1.6;
+}
+
+.macroRow {
+  display: flex;
+  gap: var(--cb-space-6);
+  flex-wrap: wrap;
+}
+
+.macroItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cb-space-1);
+}
+
+.macroValue {
+  font-size: var(--cb-font-size-lg);
+  font-weight: var(--cb-font-weight-bold);
+  color: var(--cb-color-text);
+}
+
+.macroLabel {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.foodSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-2);
+}
+
+.foodHeading {
+  margin: 0;
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.foodList {
+  margin: 0;
+  padding-left: var(--cb-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-1);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+}
+
+.disclaimer {
+  padding: var(--cb-space-3) var(--cb-space-4);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+  line-height: 1.5;
+}
+
+.disclaimer p {
+  margin: 0;
+}
+
+.cta {
+  display: flex;
+}
+
+.loadingText,
+.errorText {
+  font-size: var(--cb-font-size-md);
+  color: var(--cb-color-text-muted);
+}
+
+.errorText {
+  color: var(--cb-danger-600);
+}

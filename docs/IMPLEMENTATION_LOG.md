@@ -1874,3 +1874,20 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: /celebrities/[slug] 상세 페이지 — 002-3c.
 ### 연관 파일: apps/web/src/app/(app)/celebrities/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-3c
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/celebrities/[slug]/page.tsx
+  - apps/web/src/app/(app)/celebrities/[slug]/celebrity-detail.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-3c — /celebrities/[slug] + base-diet detail
+- apps/web/src/app/(app)/celebrities/[slug]/page.tsx (NEW): `'use client'`. `useParams()` 로 slug 획득. Promise.all로 `/api/celebrities/${slug}` (CelebrityDetailResponseSchema) + `/api/celebrities/${slug}/diets` (CelebrityDietsResponseSchema) 병렬 fetch. Hero section: cover_image_url 우선 (없으면 avatar_url), 어두운 gradient overlay + category Badge + display_name + short_bio. tags Badge row. Diet section: primaryDiet의 name/description/philosophy/macroRow (protein/carbs/fat %% + avg_daily_kcal)/included_foods/excluded_foods. 건강 면책 문구. "Generate My Plan" CTA → `/plans/new?celebrity=&diet=`.
+- apps/web/src/app/(app)/celebrities/[slug]/celebrity-detail.module.css (NEW): 16:9 hero aspect-ratio, gradient overlay (rgba). 탭형 macroRow. food list. disclaimer 박스. 모든 색상은 --cb-* 토큰 (gradient rgba는 불가피한 예외).
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new errors (no-img-element Warning 기존), `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: next/image 도입 (next.config 도메인 화이트리스트 필요) — 003-* 트랙. /plans/new 페이지 — 002-4b.
+### 연관 파일: apps/web/src/app/(app)/celebrities/[slug]/
