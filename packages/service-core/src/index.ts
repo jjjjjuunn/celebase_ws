@@ -22,3 +22,6 @@ export {
   encryptJson,
   decryptJson,
 } from './crypto/index.js';
+export { CircuitBreaker, type CircuitBreakerOptions, type BreakerState } from "./lib/circuit-breaker.js";
+export { createInternalClient, type InternalClientOptions, type InternalClient } from "./lib/internal-http-client.js";
+export { type JwtAuthOptions } from "./middleware/jwt.js";
