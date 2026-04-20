@@ -2060,3 +2060,22 @@ verified_by: claude-sonnet-4-6
 - 검증: typecheck pass, lint pass, fe_token_hardcode pass (3회 확인)
 ### 미완료: 003-0a locale URL routing (D24 defer), 003-4a/4b BioProfileWizard steps 5-9 (OCR/AI 의존)
 ### 연관 파일: apps/web/src/middleware.ts, apps/web/src/lib/nonce.ts, apps/web/src/app/(app)/track/TrackClient.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-003-batch3
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/account/AccountClient.tsx
+  - apps/web/src/app/(app)/account/account.module.css
+  - apps/web/src/app/(app)/dashboard/page.tsx
+  - apps/web/src/app/(app)/dashboard/dashboard.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint C 003-2a/003-5a — subscription UI + dashboard data integration
+- 003-2a: AccountClient에 /api/subscriptions/me 병렬 조회 추가, 업그레이드 카드(free→premium+elite, premium→elite), Stripe checkout redirect, 취소 플로우(inline confirm → /api/subscriptions/me/cancel), 갱신일/취소예정일 표시
+- 003-5a: Dashboard에 useUser() 개인화 인사(Good morning/afternoon/evening + firstName), 7일 DailyLog summary 카드(days logged, meal adherence, avg energy/mood/weight), 빈 상태 → /track CTA
+- 검증: typecheck pass, lint pass, fe_token_hardcode pass
+### 미완료: 003-0a locale URL routing (D24 defer), 003-4a/4b BioProfileWizard steps 5-9 (OCR/AI 의존)
+### 연관 파일: apps/web/src/app/(app)/account/AccountClient.tsx, apps/web/src/app/(app)/dashboard/page.tsx
