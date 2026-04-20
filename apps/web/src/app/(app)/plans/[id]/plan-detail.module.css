@@ -179,3 +179,14 @@
 .mealKcal {
   font-variant-numeric: tabular-nums;
 }
+
+.recipeLink {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-brand);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.recipeLink:hover {
+  text-decoration: underline;
+}

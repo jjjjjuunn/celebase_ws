@@ -40,3 +40,20 @@
 .switchLink a:hover {
   text-decoration: underline;
 }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-3);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cb-color-border);
+}

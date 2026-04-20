@@ -86,6 +86,11 @@ export async function fetcher<T = unknown>(
   if (!response.ok) {
     const envelope = payload as BffErrorEnvelope | undefined;
     const err = envelope?.error;
+    if (response.status === 401 && typeof window !== 'undefined') {
+      void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).finally(() => {
+        window.location.href = '/login?reason=session_expired';
+      });
+    }
     throw new FetcherError(
       response.status,
       err?.code ?? 'UNKNOWN_ERROR',

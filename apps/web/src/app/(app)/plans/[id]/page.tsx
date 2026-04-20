@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../../lib/fetcher.js';
 import { ConfirmPlan } from './ConfirmPlan.js';
+import { DisclaimerBanner } from '../../_components/DisclaimerBanner.js';
 import styles from './plan-detail.module.css';
 
 type Plan = schemas.MealPlanDetailResponse;
@@ -113,6 +114,12 @@ export default function PlanDetailPage(): React.ReactElement {
                         {String(meal.adjusted_nutrition.calories)} kcal
                       </span>
                     ) : null}
+                    <Link
+                      href={`/recipes/${meal.recipe_id}`}
+                      className={styles.recipeLink}
+                    >
+                      View recipe →
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -120,6 +127,8 @@ export default function PlanDetailPage(): React.ReactElement {
           ))}
         </ol>
       </section>
+
+      <DisclaimerBanner />
     </div>
   );
 }
