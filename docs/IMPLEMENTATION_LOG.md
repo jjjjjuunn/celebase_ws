@@ -1931,3 +1931,29 @@ verified_by: claude-sonnet-4-6
 - 검증: 50/50 tests pass, `pnpm --filter web typecheck` clean, `pnpm --filter web lint` 0 errors (pre-existing warnings only), `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: WsStatusBanner + /plans/new 페이지 — 002-4b.
 ### 연관 파일: apps/web/src/lib/, apps/web/src/app/api/meal-plans/ws-ticket/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-4b
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.tsx
+  - packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.module.css
+  - packages/ui-kit/src/components/WsStatusBanner/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/WsStatusBanner.stories.tsx
+  - apps/web/src/app/(app)/plans/new/page.tsx
+  - apps/web/src/app/(app)/plans/new/plans-new.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-4b — WsStatusBanner composite + /plans/new page
+- packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.tsx (NEW): `'use client'`. `WsStreamStatus = 'idle'|'connecting'|'streaming'|'success'|'error'`. idle/success는 null 반환. connecting: spinner row. streaming: spinner + message + pct% label + `role="progressbar"` progress bar with `aria-valuenow`. error: ⚠ icon + message + optional Retry button. `settle()` 패턴 없음 — 순수 display. `aria-live="polite"` + `aria-atomic="true"` on root.
+- packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.module.css (NEW): CSS modules. spinner @keyframes. fill transition: width 0.3s ease. retryBtn focus-visible outline. 모든 색상은 --cb-* 토큰.
+- packages/ui-kit/src/index.ts (MOD): WsStatusBanner + WsStreamStatus barrel 추가.
+- packages/ui-kit/stories/WsStatusBanner.stories.tsx (NEW): Connecting / Streaming / StreamingStart / StreamingComplete / Error / ErrorNoRetry / Idle / Success 8개 story.
+- apps/web/src/app/(app)/plans/new/page.tsx (NEW): `'use client'`. useSearchParams()로 `diet` (base_diet_id) + `celebrity` 획득. useEffect + didPost ref로 POST `/api/meal-plans` 1회 실행. 반환된 id를 useMealPlanStream에 주입. completedMealPlanId 확인 시 `router.replace('/plans/{id}')`. WsStatusBanner에 wsStatus/progressPct/message/error/onRetry 전달. Retry: didPost.current=false reset → 재시도.
+- apps/web/src/app/(app)/plans/new/plans-new.module.css (NEW): 560px centered column layout. 모든 색상 --cb-* 토큰.
+- 검증: `pnpm --filter ui-kit typecheck` pass, `pnpm --filter ui-kit lint` 0 errors, `pnpm --filter ui-kit build` 17 CSS files copied. `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0, `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: /plans, /plans/[id], Confirm Plan island — 002-4c.
+### 연관 파일: packages/ui-kit/src/components/WsStatusBanner/, apps/web/src/app/(app)/plans/new/
