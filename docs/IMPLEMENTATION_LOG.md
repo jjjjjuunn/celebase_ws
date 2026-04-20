@@ -1677,7 +1677,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-2a
-commit_sha: PENDING
+commit_sha: 1565c1e
 files_changed:
   - packages/ui-kit/src/components/WizardShell/WizardShell.tsx
   - packages/ui-kit/src/components/WizardShell/WizardShell.module.css
