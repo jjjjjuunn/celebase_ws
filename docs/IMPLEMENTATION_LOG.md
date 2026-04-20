@@ -1532,7 +1532,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-010-f
-commit_sha: PENDING
+commit_sha: d22b135
 files_changed:
   - db/migrations/0007_refresh-tokens.sql
   - services/user-service/package.json
