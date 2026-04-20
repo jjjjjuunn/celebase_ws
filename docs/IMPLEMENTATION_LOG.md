@@ -1825,3 +1825,35 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter ui-kit build` pass (16 CSS 복사), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` 0 errors, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: /celebrities 페이지 — 002-3b.
 ### 연관 파일: packages/ui-kit/src/components/CategoryTabs/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/CategoryTabs.stories.tsx
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: CHORE-003
+commit_sha: 0a3e82a
+files_changed:
+  - turbo.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: turbo.json explicit inputs 추가 (CHORE-003)
+- build/lint/typecheck/test/build-storybook 5개 task에 inputs 배열 추가 → 소스 변경 없을 때 Turbo 캐시 재사용 가능.
+- CI yaml 확인: lint-typecheck / test 잡이 이미 required checks로 등록되어 있어 추가 변경 불필요.
+### 미완료: 없음
+### 연관 파일: turbo.json
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: CHORE-004
+commit_sha: 0a3e82a
+files_changed:
+  - services/user-service/src/services/subscription.service.ts
+  - services/user-service/src/routes/subscription.routes.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: user-service lint debt 정리 (CHORE-004)
+- subscription.service.ts: non-null assertion 제거(stripeSubId 추출), unused param → _config, 불필요한 optional chain 2건 제거, as 타입 단언 7건 auto-fix.
+- subscription.routes.ts: Fastify register 콜백 불필요한 async 제거.
+- `pnpm --filter user-service lint` 0 errors 확인.
+### 미완료: 없음
+### 연관 파일: services/user-service/src/services/subscription.service.ts, services/user-service/src/routes/subscription.routes.ts

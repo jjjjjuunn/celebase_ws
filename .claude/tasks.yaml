@@ -362,7 +362,7 @@ tasks:
     owner: agent-claude-sonnet-4-6
     dependsOn:
       - IMPL-010-e
-    status: pending
+    status: done
     definitionOfDone:
       - "refresh_tokens 테이블 migration (jti, user_id, expires_at, revoked_at)"
       - "POST /auth/refresh: jti 소비 + 신규 발급 (rotation)"
@@ -374,7 +374,7 @@ tasks:
     owner: agent-claude-sonnet-4-6
     dependsOn:
       - CHORE-002
-    status: pending
+    status: done
     definitionOfDone:
       - "turbo.json 각 pipeline task에 explicit inputs 필드 추가"
       - "CI required checks에 lint + typecheck + test 3종 모두 포함"
@@ -385,7 +385,7 @@ tasks:
     owner: agent-claude-sonnet-4-6
     dependsOn:
       - CHORE-002
-    status: pending
+    status: done
     definitionOfDone:
       - "subscription.service.ts + auth.service.ts TypeScript strict 에러 0건"
       - "pnpm --filter user-service lint/typecheck 전부 pass"
