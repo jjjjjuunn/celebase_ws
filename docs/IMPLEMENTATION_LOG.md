@@ -1527,3 +1527,36 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web test` 25/25 pass, `gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 미완료: 002-0d에서 subscriptions barrel append 이어서 진행.
 ### 연관 파일: packages/shared-types/src/schemas/daily-logs.ts, apps/web/src/app/api/daily-logs/, packages/shared-types/src/schemas/index.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-010-f
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0007_refresh-tokens.sql
+  - services/user-service/package.json
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/src/repositories/refresh-token.repository.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/tests/integration/logout.test.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/user-service/tests/unit/cognito-auth.provider.test.ts
+  - services/user-service/tests/unit/refresh-token.repository.test.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-010-f — Phase C jti blacklist + refresh_tokens rotation
+- db/migrations/0007_refresh-tokens.sql (NEW): refresh_tokens 테이블 (jti UUID PK, user_id FK, expires_at, revoked_at, revoked_reason, rotated_to_jti self-ref FK, created_at). CONCURRENTLY 인덱스 2개 (user_active, expires).
+- refresh-token.repository.ts (NEW): insert / revokeForRotation (atomic UPDATE rowcount) / revokeForLogout (atomic UPDATE RETURNING rotated_to_jti) / revokeChainForLogout (WITH RECURSIVE CTE) / revokeAllByUser / findMetadata.
+- auth.service.ts: issueInternalTokens — jti uuidv7 생성 + refresh JWT에 포함 + DB insert; access TTL 1h→15m; clockTolerance 60s→2s. performRotation (신규) — JWT verify 선수행 → 단일 tx(INSERT new+UPDATE old) → rowcount=0 분기(expired/rotated/logout). refresh() 함수 제거.
+- cognito-auth.provider.ts: issueTokens 시그니처 (client: DbClient, subject) 로 업데이트; refreshTokens 제거.
+- auth.routes.ts: LogoutSchema.refresh_token REQUIRED (min(1)); /auth/refresh→performRotation; /auth/logout 전면 재작성 — JWT verify 선수행, atomic revokeForLogout, forward chain walk.
+- auth-log.ts: AuthLogger에 warn 추가; emitAuthLog level 파라미터; 신규 이벤트 타입(rotated/expired_or_missing/reuse_detected).
+- 테스트: refresh-rotation.test.ts (NEW) 7케이스 — rotation 성공/parallel race/reuse_detected/expired/logout→refresh/TTL 15m/invalid body 400. logout.test.ts Phase C 전환. rate-limit.test.ts performRotation 모킹. auth.service.test.ts / cognito-auth.provider.test.ts Phase C 시그니처 업데이트.
+- 검증: typecheck 0 error, 118/118 tests pass, coverage 81.97% ≥ 80%.
+### 미완료: Codex review 2회 + Gemini adversarial 1회 (L3 rubric) 미완료 — review 단계에서 진행 예정. access token full blacklist (IMPL-010-g 후보). refresh_tokens GC chore.
+### 연관 파일: db/migrations/0007_refresh-tokens.sql, services/user-service/src/repositories/refresh-token.repository.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/routes/auth.routes.ts
