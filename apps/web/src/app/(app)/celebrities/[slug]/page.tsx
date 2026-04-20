@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Badge, Button } from '@celebbase/ui-kit';
 import { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../../lib/fetcher.js';
+import { DisclaimerBanner } from '../../_components/DisclaimerBanner.js';
 import styles from './celebrity-detail.module.css';
 
 type Celebrity = schemas.CelebrityDetailResponse['celebrity'];
@@ -17,10 +18,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   vegetarian: 'Vegetarian',
   general: 'General',
 };
-
-const HEALTH_DISCLAIMER =
-  'This plan is for educational purposes only and is not intended as medical advice. ' +
-  'Plans are reviewed by registered dietitians. Consult your healthcare provider before starting any new diet.';
 
 export default function CelebrityDetailPage(): React.ReactElement {
   const params = useParams<{ slug: string }>();
@@ -170,9 +167,7 @@ export default function CelebrityDetailPage(): React.ReactElement {
         </section>
       ) : null}
 
-      <div className={styles.disclaimer} role="note">
-        <p>{HEALTH_DISCLAIMER}</p>
-      </div>
+      <DisclaimerBanner />
 
       {primaryDiet !== null ? (
         <div className={styles.cta}>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { fetcher, postJson, FetcherError } from '@/lib/fetcher.js';
 import { schemas } from '@celebbase/shared-types';
 import type { z } from 'zod';
+import { DisclaimerBanner } from '../_components/DisclaimerBanner.js';
 import styles from './track.module.css';
 
 type DailyLogSummaryResponse = z.infer<typeof schemas.DailyLogSummaryResponseSchema>;
@@ -271,6 +272,7 @@ export function TrackClient(): React.ReactElement {
           )}
         </section>
       </div>
+      <DisclaimerBanner />
     </div>
   );
 }

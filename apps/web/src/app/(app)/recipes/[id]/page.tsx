@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../../lib/fetcher.js';
 import { TierGate } from '../../../../components/TierGate.js';
+import { DisclaimerBanner } from '../../_components/DisclaimerBanner.js';
 import styles from './recipe-detail.module.css';
 
 type PersonalizedData = schemas.PersonalizedRecipeResponse['personalization'];
@@ -103,10 +104,6 @@ const MEAL_TYPE_LABEL: Record<string, string> = {
   dinner: 'Dinner',
   snack: 'Snack',
 };
-
-const HEALTH_DISCLAIMER =
-  'This recipe is for educational purposes only and is not intended as medical advice. ' +
-  'Consult your healthcare provider before making significant dietary changes.';
 
 export default function RecipeDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
@@ -255,9 +252,7 @@ export default function RecipeDetailPage(): React.ReactElement {
         </section>
       )}
 
-      <div className={styles.disclaimer} role="note">
-        <p>{HEALTH_DISCLAIMER}</p>
-      </div>
+      <DisclaimerBanner />
     </div>
   );
 }
