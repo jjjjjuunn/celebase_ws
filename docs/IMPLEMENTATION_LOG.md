@@ -1857,3 +1857,20 @@ verified_by: claude-sonnet-4-6
 - `pnpm --filter user-service lint` 0 errors 확인.
 ### 미완료: 없음
 ### 연관 파일: services/user-service/src/services/subscription.service.ts, services/user-service/src/routes/subscription.routes.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-3b
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/celebrities/page.tsx
+  - apps/web/src/app/(app)/celebrities/celebrities.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-3b — /celebrities list page
+- apps/web/src/app/(app)/celebrities/page.tsx (NEW): `'use client'`. `CelebrityItem` 타입을 `schemas.CelebrityListResponse['items'][number]`에서 유도. `useEffect`로 `/api/celebrities` 비동기 fetch (CelebrityListResponseSchema 검증). status: 'loading'|'error'|'success' 상태. `CategoryTabs`로 category 클라이언트 필터 ('', 'diet', 'protein', 'vegetarian', 'general'). 각 탭 count 동적 계산. `<ul role="list">` + `CelebrityCard` 그리드. 카드 클릭 시 `router.push('/celebrities/[slug]')`. empty/error/loading 상태 표시.
+- apps/web/src/app/(app)/celebrities/celebrities.module.css (NEW): Fraunces 폰트 heading. `auto-fill minmax(240px, 1fr)` 반응형 grid. --cb-* 토큰 전용.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: /celebrities/[slug] 상세 페이지 — 002-3c.
+### 연관 파일: apps/web/src/app/(app)/celebrities/
