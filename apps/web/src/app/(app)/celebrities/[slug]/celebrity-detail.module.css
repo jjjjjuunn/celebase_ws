@@ -20,8 +20,15 @@
   position: relative;
   border-radius: var(--cb-radius-lg);
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 7;
+  min-height: 220px;
   background-color: var(--cb-color-surface);
+}
+
+.heroPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--cb-color-brand) 0%, var(--cb-color-neutral-200) 100%);
 }
 
 .heroImg {
@@ -40,6 +47,24 @@
   gap: var(--cb-space-2);
   padding: var(--cb-space-6);
   background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%);
+}
+
+.heroStats {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-2);
+  flex-wrap: wrap;
+}
+
+.heroStatPill {
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-neutral-0);
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--cb-space-1) var(--cb-space-2);
+  border-radius: var(--cb-radius-sm);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .heroName {

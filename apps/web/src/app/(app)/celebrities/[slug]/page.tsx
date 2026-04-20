@@ -90,9 +90,20 @@ export default function CelebrityDetailPage(): React.ReactElement {
       </Link>
 
       <div className={styles.hero}>
-        <img src={heroSrc} alt={celebrity.display_name} className={styles.heroImg} />
+        {heroSrc !== null && heroSrc !== undefined ? (
+          <img src={heroSrc} alt={celebrity.display_name} className={styles.heroImg} />
+        ) : (
+          <div className={styles.heroPlaceholder} aria-hidden="true" />
+        )}
         <div className={styles.heroOverlay}>
-          <Badge variant="brand">{CATEGORY_LABELS[celebrity.category] ?? celebrity.category}</Badge>
+          <div className={styles.heroStats}>
+            <Badge variant="brand">{CATEGORY_LABELS[celebrity.category] ?? celebrity.category}</Badge>
+            {diets.length > 0 && (
+              <span className={styles.heroStatPill}>
+                {diets.length} {diets.length === 1 ? 'diet plan' : 'diet plans'}
+              </span>
+            )}
+          </div>
           <h1 className={styles.heroName}>{celebrity.display_name}</h1>
           {celebrity.short_bio ? (
             <p className={styles.heroBio}>{celebrity.short_bio}</p>
