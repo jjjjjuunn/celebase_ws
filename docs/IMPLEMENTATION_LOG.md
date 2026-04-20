@@ -2168,3 +2168,54 @@ verified_by: codex-review
 - Codex review CRITICAL/HIGH: commerce-service subscriptions cross-service (설계 의도, d2에서 doc 업데이트), 테스트 부재(c2 범위) → out-of-scope PASS
 ### 미완료: IMPL-016-c (Instacart adapter + BFF proxy), IMPL-016-d (Stripe decommission)
 ### 연관 파일: db/migrations/0009_tier-sync-idempotency.sql, services/user-service/src/middleware/internal-jwt.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-c1
+commit_sha: 8f19481
+files_changed:
+  - services/commerce-service/src/adapters/instacart.adapter.ts
+  - services/commerce-service/src/adapters/amazon-fresh.adapter.ts
+  - services/commerce-service/src/services/cart-fallback.service.ts
+  - services/commerce-service/src/routes/cart.routes.ts
+  - services/commerce-service/src/types/cart.ts
+verified_by: codex-review
+---
+### 완료: Instacart adapter + fallback cascade (IMPL-016-c1)
+- instacart.adapter.ts: CircuitBreaker(threshold=5, cooldown=30s) + AbortController timeout 3s. `override cause/name` on InstacartUnavailableError (ES2022 lib). pino log.warn obj-first. `() => { controller.abort(); }` (no-confusing-void-expression 수정).
+- amazon-fresh.adapter.ts: affiliate URL 생성. `affiliateTag: string | undefined` (exactOptionalPropertyTypes — 옵셔널 프로퍼티 금지).
+- cart-fallback.service.ts: 4단계 cascade (instacart → amazon_fresh → regional → checklist). `InstacartUnavailableError` value import (import type 는 런타임에 지워지므로 instanceof 불가).
+- cart.routes.ts: POST /cart. Idempotency-Key 헤더 검증. Zod 입력 검증. `ON CONFLICT DO NOTHING` 제거 (instacart_orders에 UNIQUE constraint 없음). `async (scope)` → `(scope)` (require-await 수정).
+- types/cart.ts: CartItem, InstacartCartResult, CartResult, CartFallbackResult 타입.
+- gate-review PASS: Codex CRITICAL(subscription.repository.ts)은 b1 코드, HIGH(tests missing)는 c2에 위임 — 모두 out-of-scope.
+### 미완료: IMPL-016-c2 (integration tests + Pact contract), IMPL-016-c3 (BFF proxy + compose)
+### 연관 파일: services/commerce-service/src/adapters/, services/commerce-service/src/services/cart-fallback.service.ts, services/commerce-service/src/routes/cart.routes.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-c2
+commit_sha: c896995
+files_changed:
+  - services/commerce-service/src/repositories/instacart-orders.repository.ts
+  - services/commerce-service/tests/integration/cart.integration.test.ts
+  - services/commerce-service/tests/integration/webhook.integration.test.ts
+  - services/commerce-service/tests/integration/tier-sync.integration.test.ts
+  - services/commerce-service/tests/contract/tier-sync.pact.test.ts
+  - services/commerce-service/tests/unit/instacart-adapter.unit.test.ts
+  - services/commerce-service/package.json
+verified_by: jest-coverage
+---
+### 완료: instacart-orders repository + integration/contract/unit tests (IMPL-016-c2)
+- instacart-orders.repository.ts: CRUD (createOrder, updateOrder, findByUserId, findById). ON CONFLICT 없음 (instacart_orders에 UNIQUE constraint 없음). user_id nullable 선언 (계정 삭제 미래 지원).
+- cart.integration.test.ts: createCart 4 시나리오 (instacart 성공, amazon fallback, checklist fallback, regional fallback). jest.fn() + `import { jest } from '@jest/globals'` (ESM 모드 필수).
+- webhook.integration.test.ts: markProcessed 멱등성 (rowCount 1→inserted:true, 0→false), findByEventId (null/row), 4가지 webhook dispatch 시나리오. module-level jest.mock() 대신 inline mock pool.
+- tier-sync.integration.test.ts: UserServiceClient.syncTier (경로/본문/JWT 검증, 401 재시도 없음, aud assertion). jest.spyOn(globalThis, 'fetch').
+- tier-sync.pact.test.ts: PactV3 consumer contract — POST /internal/users/:userId/tier, response: {userId, tier, updated} with like() matchers.
+- instacart-adapter.unit.test.ts: 어댑터 유닛 테스트 (성공/4xx에러/empty-items/network failure) — fetch mock으로 커버리지 96% 달성.
+- @pact-foundation/pact@^12.5.0 devDependencies 추가.
+- 전체: 5 suites 21 tests PASS, lines 96.42% (threshold 80% ✅).
+- ESM jest 교훈: jest.mock() at module level 불가 → inline mock / jest.fn() 패턴으로 대체.
+### 미완료: IMPL-016-c3 (BFF proxy + docker-compose), IMPL-016-d (Stripe decommission)
+### 연관 파일: services/commerce-service/tests/, services/commerce-service/src/repositories/instacart-orders.repository.ts

@@ -1,0 +1,90 @@
+{
+  "consumer": {
+    "name": "commerce-service"
+  },
+  "interactions": [
+    {
+      "description": "a tier sync request for premium",
+      "providerStates": [
+        {
+          "name": "user user-fixture-uuid-0001 exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "tier": "premium"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/internal/users/user-fixture-uuid-0001/tier"
+      },
+      "response": {
+        "body": {
+          "tier": "premium",
+          "updated": true,
+          "userId": "user-fixture-uuid-0001"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.tier": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.updated": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.userId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "status": {}
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "12.5.2"
+    },
+    "pactRust": {
+      "ffi": "0.4.20",
+      "models": "1.2.0"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "user-service"
+  }
+}
