@@ -2004,3 +2004,37 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0 (no errors), `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: Sprint B 002-4d 완료 — IMPL-APP-002 (Sprint B) 전체 22개 청크 완료.
 ### 연관 파일: apps/web/src/app/(app)/recipes/[id]/, apps/web/src/app/(app)/dashboard/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6 + codex-o3 (review ×2) + gemini-adversarial ×1
+task_id: CHORE-006
+commit_sha: PENDING
+files_changed:
+  - infra/cognito/main.tf
+  - infra/cognito/variables.tf
+  - infra/cognito/outputs.tf
+  - infra/cognito/README.md
+  - services/user-service/src/env.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/integration/auth.cognito.integration.test.ts
+  - scripts/smoke/cognito-hosted-ui.ts
+  - scripts/seed/cognito-staging-users.sh
+  - services/user-service/.env.staging.example
+  - apps/web/.env.staging.example
+verified_by: claude-sonnet-4-6 + codex-review ×2 + gemini-adversarial
+---
+### 완료: AWS Cognito Staging Activation (CHORE-006)
+- infra/cognito/main.tf (NEW): Terraform 1.7+ 모듈. User Pool (email 식별자, NIST 800-63B 패스워드 정책, MFA staging=OFF/prod=OPTIONAL). Hosted UI 도메인. BFF confidential client (generate_secret=true, OAuth code flow only). Smoke public client (generate_secret=false, ADMIN_USER_PASSWORD_AUTH, enable_smoke_client var-gate + lifecycle.precondition으로 prod 환경 배포 차단).
+- infra/cognito/variables.tf + outputs.tf (NEW): environment, callback_urls, logout_urls, enable_smoke_client, hosted_ui_prefix 변수. user_pool_id, client_id, client_secret(sensitive), smoke_client_id, issuer, jwks_uri, hosted_ui_domain 출력.
+- infra/cognito/README.md (NEW): single-operator lock 규칙, terraform apply 절차, CHORE-007 S3 backend 이관 TODO.
+- services/user-service/src/env.ts (MOD): COGNITO_ISSUER Zod regex (`^https://cognito-idp\.[a-z0-9-]+\.amazonaws\.com/[a-z0-9-]+_[A-Za-z0-9]+$`, trailing slash 금지). JWKS_URI === ISSUER + '/.well-known/jwks.json' cross-check. INTERNAL_JWT_SECRET prod min(32) 강제. DEV_INTERNAL_JWT_SECRET import (drift 제거). COGNITO_LIVE_JWKS 가드: `=== 'staging'` exact match (bypass 방지).
+- services/user-service/src/services/auth.service.ts (MOD): DEV_INTERNAL_JWT_SECRET export 1줄 추가.
+- tests/integration/auth.cognito.integration.test.ts (NEW): LocalCognitoTestProvider (createLocalJWKSet, RS256). T1 valid id_token → 200 + access_token + refresh_token. T2 access_token tokenUse → 401. T3 expired 200s → 401. T4 wrong issuer → 401. T5 kid rotation (kidA+kidB 각 200). T6 clockTolerance boundary (30s → 200, 70s → 401). ESM mock singleton 패턴 (jest.fn() 팩토리 외부 선언 + dynamic import).
+- scripts/smoke/cognito-hosted-ui.ts (NEW): Phase A (Hosted UI /oauth2/authorize → 302 검증). Phase B (AdminCreateUser → AdminSetUserPasswordCommand → AdminInitiateAuth ADMIN_USER_PASSWORD_AUTH → /auth/login POST → 200 + token 검증). finally AdminDeleteUser cleanup. process.stdout.write 전용 (console.log 금지 준수).
+- scripts/seed/cognito-staging-users.sh (NEW): dev-seed 이메일을 Cognito staging pool에 등록. admin-get-user 멱등성 체크.
+- .env.staging.example (user-service, web): AUTH_PROVIDER=cognito + Cognito 5 vars placeholder.
+- Codex review R1: PASS (any 타입 makeCaptureLogger — testing-ci.md prescribed pattern, out-of-scope). Codex review R2: PASS after fixes (staging guard exact match + Terraform precondition). Gemini adversarial: PASS (모든 attack vector 검증).
+- 검증: jest 124/124 tests pass (13 suites). tsc --noEmit 0 errors. policy scan CLEAN. L3 rubric 충족 (Codex 2 + Gemini 1).
+### 미완료: CHORE-006-a (refresh token 절대 수명 cap 14d). CHORE-006-b (staging MFA 스모크). CHORE-007 (런타임 배포 + S3 backend 이관). CHORE-008 (Playwright Hosted UI E2E). DoD #2 층B (HTML 폼 실제 제출).
+### 연관 파일: infra/cognito/, services/user-service/src/env.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/integration/auth.cognito.integration.test.ts, scripts/smoke/cognito-hosted-ui.ts, scripts/seed/cognito-staging-users.sh
