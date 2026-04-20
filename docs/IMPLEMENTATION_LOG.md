@@ -1908,3 +1908,26 @@ verified_by: claude-sonnet-4-6
 - `LOCALSTACK_ENDPOINT` 환경변수로 conftest.py auto-skip 게이트 통과.
 ### 미완료: 없음
 ### 연관 파일: .github/workflows/ci.yml
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-4a
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/meal-plans/ws-ticket/route.ts
+  - apps/web/src/lib/useMealPlanStream.ts
+  - apps/web/src/lib/__tests__/useMealPlanStream.test.ts
+  - apps/web/jest.config.cjs
+  - apps/web/tsconfig.test.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-4a — useMealPlanStream hook + ws-ticket BFF + test
+- apps/web/src/app/api/meal-plans/ws-ticket/route.ts (NEW): `createProtectedRoute` 감싸는 POST 핸들러. `WsTicketRequestSchema` 입력 검증 → `fetchBff('meal-plan', '/meal-plans/ws-ticket', ...)` → `WsTicketResponseSchema` 파싱 반환. 기존 meal-plans BFF 패턴 준수.
+- apps/web/src/lib/useMealPlanStream.ts (NEW): `'use client'`. `useMealPlanStream(mealPlanId)` React hook. 상태: `idle | connecting | streaming | success | error`. `openMealPlanStream()` (exported) 분리: AbortController signal 수용 → `/api/meal-plans/ws-ticket` POST → WS 연결 → `progress/complete/error` 이벤트 처리. `settle()` 패턴으로 onComplete/onError 중복 방지. 로컬 `WsStreamEvent` 타입 정의 (shared-types 외부).
+- apps/web/src/lib/__tests__/useMealPlanStream.test.ts (NEW): `ControllableWebSocket` mock (static _instances 패턴, this-alias 없음). `openMealPlanStream` 12개 테스트: onConnecting 즉시 호출, onStreaming(WS open), onProgress, onComplete+close, onError(WS error/unexpected close/server error), 성공 후 clean close 중복 방지, fetch 실패, abort signal.
+- apps/web/jest.config.cjs (MOD): `moduleNameMapper`에 `@celebbase/shared-types` → source TypeScript 경로 추가.
+- apps/web/tsconfig.test.json (MOD): `paths`에 `@celebbase/shared-types` → source TypeScript 경로 추가 (moduleResolution: node CJS 테스트 환경 호환).
+- 검증: 50/50 tests pass, `pnpm --filter web typecheck` clean, `pnpm --filter web lint` 0 errors (pre-existing warnings only), `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: WsStatusBanner + /plans/new 페이지 — 002-4b.
+### 연관 파일: apps/web/src/lib/, apps/web/src/app/api/meal-plans/ws-ticket/

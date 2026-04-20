@@ -5,6 +5,7 @@ const config = {
   extensionsToTreatAsEsm: [],
   moduleNameMapper: {
     '^server-only$': '<rootDir>/src/__mocks__/server-only.ts',
+    '^@celebbase/shared-types$': '<rootDir>/../../packages/shared-types/src/index.ts',
     '^(\\.\\.?/.*)\\.js$': '$1',
   },
   transform: {

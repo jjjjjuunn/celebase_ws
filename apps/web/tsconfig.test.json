@@ -4,6 +4,10 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "noEmit": true,
-    "isolatedModules": false
+    "isolatedModules": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@celebbase/shared-types": ["../../packages/shared-types/src/index.ts"]
+    }
   }
 }
