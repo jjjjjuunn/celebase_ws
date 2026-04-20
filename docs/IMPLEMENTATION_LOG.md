@@ -1590,7 +1590,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-0f-2
-commit_sha: PENDING
+commit_sha: 1bb501f
 files_changed:
   - apps/web/src/lib/useAuth.ts
   - apps/web/jest.setup.ts
