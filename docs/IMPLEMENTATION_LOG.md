@@ -1568,3 +1568,20 @@ verified_by: claude-sonnet-4-6
 - apps/web/src/app/api/webhooks/stripe/route.ts (NEW): POST, 인증 없음(Stripe 시그니처 방식). raw body 보존(`req.text()`) + `Stripe-Signature` 헤더 포워딩 → user-service 직접 fetch (fetchBff 우회). `USER_SERVICE_URL` env allowlist 사용 (SSRF 방지). Stripe 시그니처 검증은 BE(user-service) 책임. 10초 타임아웃.
 - 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web lint` warnings 0, `gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 연관 파일: packages/shared-types/src/schemas/recipes.ts, apps/web/src/app/api/recipes/[id]/personalized/, apps/web/src/app/api/webhooks/stripe/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0f-1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/auth/authorize-url/route.ts
+  - apps/web/src/app/api/auth/callback/route.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0f-1 — authorize-url + callback routes (critical path gate)
+- apps/web/src/app/api/auth/authorize-url/route.ts (NEW): GET, `createPublicRoute`. PKCE 생성 (48-byte random → 64-char base64url `code_verifier`, SHA-256 `code_challenge`). Cognito Hosted UI 인증 URL 빌드 (`COGNITO_HOSTED_UI_DOMAIN` / `COGNITO_CLIENT_ID` / `COGNITO_REDIRECT_URI` env). state(UUID) + `code_verifier` + `return_to` → `cb_oauth_state` / `cb_oauth_verifier` / `cb_return_to` cookies (HttpOnly, SameSite=Lax, Path=/api/auth/callback, Max-Age=300). `return_to` open-redirect 방지: `/` 시작 상대경로만 허용. 응답: `{ authorize_url: string }`.
+- apps/web/src/app/api/auth/callback/route.ts (NEW): GET, `createPublicRoute`. `?code=&state=` 검증 → `cb_oauth_state` 쿠키와 state 비교(CSRF guard) → Cognito token endpoint에서 code 교환(Basic auth, PKCE `code_verifier` 포함, `client_secret_basic`) → id_token 클레임 디코딩(서명 검증은 user-service 책임) → email 추출 → `fetchBff('user', '/auth/login', {email, id_token})` → `cb_access`(900s) + `cb_refresh`(30d) 쿠키 세팅 → OAuth 쿠키 클리어 → `returnTo` 302 리다이렉트. 실패 케이스(state mismatch, token exchange failure, AUTH_FAILED)는 `/login?error=<CODE>`로 리다이렉트. `SessionExpiredError` 캐치 후 AUTH_FAILED 처리.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_bff_compliance` `{passed:true}`, `gate-check.sh fe_contract_check` `{passed:true}`.
+### 미완료: 002-0f-2 (useAuth hook + jest polyfills) 이후 실제 브라우저 OAuth 플로우 E2E 검증.
+### 연관 파일: apps/web/src/app/api/auth/authorize-url/route.ts, apps/web/src/app/api/auth/callback/route.ts
