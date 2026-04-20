@@ -30,7 +30,7 @@ export async function cartRoutes(
 ): Promise<void> {
   const { pool, instacartAdapter, amazonFreshAdapter } = opts;
 
-  await app.register(async (scope) => {
+  await app.register((scope) => {
     scope.post('/cart', async (request: FastifyRequest, reply: FastifyReply) => {
       const idempotencyKeyHeader = request.headers['idempotency-key'];
       if (typeof idempotencyKeyHeader !== 'string' || idempotencyKeyHeader.length === 0) {

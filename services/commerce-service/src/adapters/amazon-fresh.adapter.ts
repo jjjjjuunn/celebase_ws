@@ -5,7 +5,7 @@ interface AmazonFreshAdapterOpts {
 }
 
 export class AmazonFreshAdapter {
-  private readonly affiliateTag?: string;
+  private readonly affiliateTag: string | undefined;
 
   constructor(opts: AmazonFreshAdapterOpts = {}) {
     this.affiliateTag = opts.affiliateTag;

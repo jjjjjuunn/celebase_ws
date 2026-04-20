@@ -3,10 +3,10 @@ import { createLogger } from '@celebbase/service-core';
 import type { CartItem, InstacartCartResult } from '../types/cart.js';
 
 export class InstacartUnavailableError extends Error {
-  public readonly cause?: unknown;
+  override readonly cause?: unknown;
+  override name = 'InstacartUnavailableError';
   constructor(message: string, cause?: unknown) {
     super(message);
-    this.name = 'InstacartUnavailableError';
     this.cause = cause;
   }
 }
@@ -45,7 +45,7 @@ export class InstacartAdapter {
     try {
       return await this.breaker.execute(async () => {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+        const timer = setTimeout(() => { controller.abort(); }, this.timeoutMs);
         try {
           const url = `${this.baseUrl}/v2/carts`;
           const response = await fetch(url, {
@@ -60,10 +60,10 @@ export class InstacartAdapter {
 
           if (!response.ok) {
             const bodyText = await response.text();
-            this.log.warn('instacart.cart.error', {
+            this.log.warn({
               status: response.status,
               body: bodyText.slice(0, 200),
-            });
+            }, 'instacart.cart.error');
             throw new Error(`Instacart API error: ${String(response.status)}`);
           }
 
@@ -75,11 +75,11 @@ export class InstacartAdapter {
       });
     } catch (err) {
       if ((err as Error).message.startsWith('circuit breaker open')) {
-        this.log.warn('instacart.breaker.open', {
+        this.log.warn({
           failureCount: 5,
           threshold: 5,
           cooldownUntil: Date.now() + 30_000,
-        });
+        }, 'instacart.breaker.open');
       }
       throw new InstacartUnavailableError('Instacart unavailable', err);
     }
