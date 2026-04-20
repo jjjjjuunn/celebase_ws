@@ -72,6 +72,9 @@ export function createInternalClient(opts: InternalClientOptions): InternalClien
     body: unknown,
     extraHeaders: Record<string, string>,
   ): Promise<T> {
+    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(path)) {
+      throw new Error('InternalClientError: absolute URLs are not allowed in path');
+    }
     const url = new URL(path, opts.baseUrl);
     const attemptMax = retries + 1;
     let attempt = 0;
