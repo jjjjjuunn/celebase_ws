@@ -2148,7 +2148,7 @@ verified_by: codex-review
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-b3
-commit_sha: PENDING
+commit_sha: a295a79
 files_changed:
   - db/migrations/0009_tier-sync-idempotency.sql
   - packages/service-core/src/middleware/jwt.ts
