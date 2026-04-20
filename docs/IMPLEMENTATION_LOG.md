@@ -1807,7 +1807,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-3a-2
-commit_sha: PENDING
+commit_sha: 14f1e0e
 files_changed:
   - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx
   - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.module.css
