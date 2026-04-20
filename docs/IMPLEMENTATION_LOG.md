@@ -1936,7 +1936,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-4b
-commit_sha: PENDING
+commit_sha: dcfbf1c
 files_changed:
   - packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.tsx
   - packages/ui-kit/src/components/WsStatusBanner/WsStatusBanner.module.css
