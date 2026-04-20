@@ -7,6 +7,12 @@
   gap: var(--cb-space-8);
 }
 
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-1);
+}
+
 .heading {
   margin: 0;
   font-size: var(--cb-font-size-2xl);
@@ -47,6 +53,47 @@
 .hint {
   color: var(--cb-color-text-subtle);
   font-size: var(--cb-font-size-sm);
+}
+
+/* 7-day summary stats */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--cb-space-3);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cb-space-1);
+  padding: var(--cb-space-4) var(--cb-space-3);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-md);
+  text-align: center;
+}
+
+.statValue {
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-font-size-xl);
+  font-weight: var(--cb-font-weight-bold);
+  color: var(--cb-color-text);
+  line-height: 1;
+}
+
+.statUnit {
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-text-muted);
+}
+
+.statLabel {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .emptyCard {
