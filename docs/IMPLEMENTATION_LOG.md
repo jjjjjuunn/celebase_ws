@@ -1983,3 +1983,24 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0, `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: recipe detail + dashboard — 002-4d.
 ### 연관 파일: apps/web/src/app/(app)/plans/, apps/web/src/app/api/meal-plans/[id]/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-4d
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/recipes/[id]/page.tsx
+  - apps/web/src/app/(app)/recipes/[id]/recipe-detail.module.css
+  - apps/web/src/app/(app)/dashboard/page.tsx
+  - apps/web/src/app/(app)/dashboard/dashboard.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-4d — recipe detail + dashboard
+- apps/web/src/app/(app)/recipes/[id]/page.tsx (NEW): `'use client'`. `useParams<{id:string}>()`. `fetcher('/api/recipes/{id}', {schema: RecipeDetailResponseSchema})`. 로딩/에러/성공 상태. image_url(nullable) 조건부 렌더 (`<img>`). 헤더: meal_type 태그 + difficulty 태그 + title h1 + description. 통계 행: prep_time_min/cook_time_min/total time/servings (모두 `String()` 래핑). 영양 섹션: kcal/protein_g/carbs_g/fat_g. Instructions `<ol>`: step num + text + optional duration_min. Tips 섹션(nullable). HEALTH_DISCLAIMER footer note.
+- apps/web/src/app/(app)/recipes/[id]/recipe-detail.module.css (NEW): 720px container. imageWrapper(border-radius+overflow:hidden, max-height:360px). statsRow(flex-wrap, surface card). nutritionGrid(4-col → 2-col @max-width:480px). instructionStep(grid 3-col: stepNum + text + time). stepNum(circle, brand bg, cta-text color). tips(left border brand). disclaimer(neutral-100 bg). 모든 색상 --cb-* 토큰.
+- apps/web/src/app/(app)/dashboard/page.tsx (NEW): `'use client'`. `fetcher('/api/meal-plans', {schema: MealPlanListResponseSchema})`. `data.items.slice(0, 3)` 최근 3개. 로딩/empty/목록 상태. Recent Plans 섹션 + "View all" /plans 링크. Explore 섹션: "Celebrity Diets" + "Generate a Plan" → /celebrities 링크.
+- apps/web/src/app/(app)/dashboard/dashboard.module.css (NEW): 720px container. sectionHeader(space-between). planCard(hover brand border + focus-visible). exploreGrid(auto-fill minmax(240px, 1fr)). 모든 색상 --cb-* 토큰.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0 (no errors), `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: Sprint B 002-4d 완료 — IMPL-APP-002 (Sprint B) 전체 22개 청크 완료.
+### 연관 파일: apps/web/src/app/(app)/recipes/[id]/, apps/web/src/app/(app)/dashboard/

@@ -1,0 +1,177 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { schemas } from '@celebbase/shared-types';
+import { fetcher } from '../../../../lib/fetcher.js';
+import styles from './recipe-detail.module.css';
+
+type Recipe = schemas.RecipeWire;
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard',
+};
+
+const MEAL_TYPE_LABEL: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
+};
+
+const HEALTH_DISCLAIMER =
+  'This recipe is for educational purposes only and is not intended as medical advice. ' +
+  'Consult your healthcare provider before making significant dietary changes.';
+
+export default function RecipeDetailPage(): React.ReactElement {
+  const { id } = useParams<{ id: string }>();
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'error' | 'success'>('loading');
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetcher(`/api/recipes/${encodeURIComponent(id)}`, {
+      schema: schemas.RecipeDetailResponseSchema,
+    })
+      .then((data) => {
+        if (!cancelled) {
+          setRecipe(data.recipe);
+          setLoadStatus('success');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (loadStatus === 'loading') {
+    return (
+      <div className={styles.page}>
+        <Link href="/plans" className={styles.backLink}>← Plans</Link>
+        <p className={styles.hint}>Loading…</p>
+      </div>
+    );
+  }
+
+  if (loadStatus === 'error' || recipe === null) {
+    return (
+      <div className={styles.page}>
+        <Link href="/plans" className={styles.backLink}>← Plans</Link>
+        <p role="alert" className={styles.errorText}>Recipe not found or failed to load.</p>
+      </div>
+    );
+  }
+
+  const totalTimeMin =
+    (recipe.prep_time_min ?? 0) + (recipe.cook_time_min ?? 0);
+
+  return (
+    <div className={styles.page}>
+      <Link href="/plans" className={styles.backLink}>← Plans</Link>
+
+      {recipe.image_url !== null && (
+        <div className={styles.imageWrapper}>
+          <img src={recipe.image_url} alt={recipe.title} className={styles.image} />
+        </div>
+      )}
+
+      <div className={styles.header}>
+        <div className={styles.meta}>
+          <span className={styles.tag}>
+            {MEAL_TYPE_LABEL[recipe.meal_type] ?? recipe.meal_type}
+          </span>
+          {recipe.difficulty !== null && (
+            <span className={styles.tag}>
+              {DIFFICULTY_LABEL[recipe.difficulty] ?? recipe.difficulty}
+            </span>
+          )}
+        </div>
+        <h1 className={styles.title}>{recipe.title}</h1>
+        {recipe.description !== null && (
+          <p className={styles.description}>{recipe.description}</p>
+        )}
+      </div>
+
+      <div className={styles.statsRow}>
+        {recipe.prep_time_min !== null && (
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{String(recipe.prep_time_min)} min</span>
+            <span className={styles.statLabel}>Prep</span>
+          </div>
+        )}
+        {recipe.cook_time_min !== null && (
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{String(recipe.cook_time_min)} min</span>
+            <span className={styles.statLabel}>Cook</span>
+          </div>
+        )}
+        {totalTimeMin > 0 && (
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{String(totalTimeMin)} min</span>
+            <span className={styles.statLabel}>Total</span>
+          </div>
+        )}
+        <div className={styles.stat}>
+          <span className={styles.statValue}>{String(recipe.servings)}</span>
+          <span className={styles.statLabel}>Servings</span>
+        </div>
+      </div>
+
+      <section className={styles.nutritionSection} aria-labelledby="nutrition-heading">
+        <h2 id="nutrition-heading" className={styles.sectionHeading}>Nutrition per serving</h2>
+        <div className={styles.nutritionGrid}>
+          <div className={styles.nutrient}>
+            <span className={styles.nutrientValue}>{String(recipe.nutrition.calories)}</span>
+            <span className={styles.nutrientLabel}>kcal</span>
+          </div>
+          <div className={styles.nutrient}>
+            <span className={styles.nutrientValue}>{String(recipe.nutrition.protein_g)}g</span>
+            <span className={styles.nutrientLabel}>Protein</span>
+          </div>
+          <div className={styles.nutrient}>
+            <span className={styles.nutrientValue}>{String(recipe.nutrition.carbs_g)}g</span>
+            <span className={styles.nutrientLabel}>Carbs</span>
+          </div>
+          <div className={styles.nutrient}>
+            <span className={styles.nutrientValue}>{String(recipe.nutrition.fat_g)}g</span>
+            <span className={styles.nutrientLabel}>Fat</span>
+          </div>
+        </div>
+      </section>
+
+      {recipe.instructions.length > 0 && (
+        <section aria-labelledby="instructions-heading">
+          <h2 id="instructions-heading" className={styles.sectionHeading}>Instructions</h2>
+          <ol className={styles.instructionList}>
+            {recipe.instructions.map((step) => (
+              <li key={step.step} className={styles.instructionStep}>
+                <span className={styles.stepNum}>{String(step.step)}</span>
+                <span className={styles.stepText}>{step.text}</span>
+                {step.duration_min !== null && step.duration_min !== undefined && (
+                  <span className={styles.stepTime}>{String(step.duration_min)} min</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {recipe.tips !== null && (
+        <section aria-labelledby="tips-heading">
+          <h2 id="tips-heading" className={styles.sectionHeading}>Tips</h2>
+          <p className={styles.tips}>{recipe.tips}</p>
+        </section>
+      )}
+
+      <div className={styles.disclaimer} role="note">
+        <p>{HEALTH_DISCLAIMER}</p>
+      </div>
+    </div>
+  );
+}
