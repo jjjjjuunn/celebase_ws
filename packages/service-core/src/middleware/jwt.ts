@@ -1,24 +1,21 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
-import { UnauthorizedError } from '../errors.js';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import { UnauthorizedError } from "../errors.js";
 
-/**
- * JWT configuration loaded from environment variables.
- *
- * - JWKS_URI: Cognito JWKS endpoint (e.g. https://cognito-idp.{region}.amazonaws.com/{poolId}/.well-known/jwks.json)
- * - JWT_ISSUER: Expected `iss` claim (e.g. https://cognito-idp.{region}.amazonaws.com/{poolId})
- * - JWT_AUDIENCE: Expected `aud` claim (Cognito app client ID). Optional — Cognito ID tokens use `aud`, access tokens don't.
- */
+export interface JwtAuthOptions {
+  /** Additional public paths for this service (exact match). */
+  readonly publicPaths?: readonly string[];
+}
+
 interface JwtConfig {
   jwksUri: string;
   issuer: string;
   audience?: string;
 }
 
-/** Cached JWKS fetcher — jose handles key rotation + caching internally. */
 let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
-function getJwks(jwksUri: string): ReturnType<typeof createRemoteJWKSet> {
+function getJwks(jwksUri: string) {
   if (!_jwks) {
     _jwks = createRemoteJWKSet(new URL(jwksUri));
   }
@@ -26,133 +23,88 @@ function getJwks(jwksUri: string): ReturnType<typeof createRemoteJWKSet> {
 }
 
 function loadJwtConfig(): JwtConfig | null {
-  const jwksUri = process.env['JWKS_URI'];
-  const issuer = process.env['JWT_ISSUER'];
-
-  if (!jwksUri || !issuer) {
-    return null;
-  }
-
-  const audience = process.env['JWT_AUDIENCE'];
-  const config: JwtConfig = { jwksUri, issuer };
-  if (audience) {
-    config.audience = audience;
-  }
-  return config;
+  const jwksUri = process.env["JWKS_URI"];
+  const issuer = process.env["JWT_ISSUER"];
+  if (!jwksUri || !issuer) return null;
+  const audience = process.env["JWT_AUDIENCE"];
+  return audience ? { jwksUri, issuer, audience } : { jwksUri, issuer };
 }
 
-/**
- * Extract Bearer token from Authorization header.
- */
 function extractToken(request: FastifyRequest): string | null {
   const auth = request.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return null;
-  }
+  if (!auth || !auth.startsWith("Bearer ")) return null;
   return auth.slice(7);
 }
 
-/**
- * Verify a JWT against the JWKS endpoint.
- * Returns the payload on success, throws UnauthorizedError on failure.
- */
 async function verifyToken(token: string, config: JwtConfig): Promise<JWTPayload> {
   const jwks = getJwks(config.jwksUri);
-
-  const verifyOptions: { issuer: string; audience?: string } = {
-    issuer: config.issuer,
-  };
-  if (config.audience) {
-    verifyOptions.audience = config.audience;
-  }
-
-  const { payload } = await jwtVerify(token, jwks, verifyOptions);
+  const verifyOpts: { issuer: string; audience?: string } = { issuer: config.issuer };
+  if (config.audience) verifyOpts.audience = config.audience;
+  const { payload } = await jwtVerify(token, jwks, verifyOpts);
   return payload;
 }
 
-/** Public routes that skip JWT verification. */
-// NOTE: Webhook path must NOT be registered under a route prefix — PUBLIC_PATHS uses exact match.
-const PUBLIC_PATHS = new Set(['/health', '/docs', '/docs/json', '/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe']);
+const DEFAULT_PUBLIC_PATHS = ["/health", "/ready", "/docs", "/docs/json"] as const;
 
-/**
- * Register JWT authentication on a Fastify instance.
- *
- * - In **development/test** without JWKS_URI: falls back to stub mode (warns, sets userId to 'dev-user-stub').
- * - In **production** without JWKS_URI: fatal error, process exits.
- * - With JWKS_URI configured: verifies every non-public request via Cognito JWKS.
- */
-export function registerJwtAuth(app: FastifyInstance): void {
+export function registerJwtAuth(app: FastifyInstance, opts?: JwtAuthOptions): void {
+  const publicPaths = new Set<string>([...DEFAULT_PUBLIC_PATHS, ...(opts?.publicPaths ?? [])]);
   const config = loadJwtConfig();
 
   if (!config) {
-    // No JWKS configured
-    const nodeEnv = process.env['NODE_ENV'] ?? 'development';
-
-    if (nodeEnv === 'production') {
-      app.log.fatal('JWKS_URI and JWT_ISSUER must be set in production. Cannot start with JWT stub.');
+    const nodeEnv = process.env["NODE_ENV"] ?? "development";
+    if (nodeEnv === "production") {
+      app.log.fatal(
+        "JWKS_URI and JWT_ISSUER must be set in production. Cannot start with JWT stub.",
+      );
       process.exit(1);
     }
 
-    // Dev/test stub mode
-    app.log.warn('JWT running in STUB mode (JWKS_URI not set) — not suitable for production');
+    app.log.warn("JWT running in STUB mode (JWKS_URI not set) — not suitable for production");
     // eslint-disable-next-line @typescript-eslint/require-await
-    app.addHook('onRequest', async (request: FastifyRequest) => {
-      // Skip public paths in dev too
-      const urlPath = request.url.split('?')[0];
-      if (urlPath !== undefined && PUBLIC_PATHS.has(urlPath)) {
-        return;
-      }
+    app.addHook("onRequest", async (request: FastifyRequest) => {
+      const urlPath = request.url.split("?")[0];
+      if (urlPath !== undefined && publicPaths.has(urlPath)) return;
 
-      // If a Bearer token is present, decode the payload to extract sub (no signature check)
       const token = extractToken(request);
       if (token) {
         try {
-          const parts = token.split('.');
+          const parts = token.split(".");
           if (parts.length === 3 && parts[1]) {
-            const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as { sub?: string };
+            const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString()) as {
+              sub?: string;
+            };
             if (payload.sub) {
               (request as FastifyRequest & { userId: string }).userId = payload.sub;
               return;
             }
           }
         } catch {
-          // Fall through to default stub
+          // fallthrough to stub
         }
       }
-
-      (request as FastifyRequest & { userId: string }).userId = 'dev-user-stub';
+      (request as FastifyRequest & { userId: string }).userId = "dev-user-stub";
     });
     return;
   }
 
-  app.log.info('JWT verification enabled via JWKS: %s', config.jwksUri);
+  app.log.info("JWT verification enabled via JWKS: %s", config.jwksUri);
 
-  app.addHook('onRequest', async (request: FastifyRequest, _reply: FastifyReply) => {
-    // Skip public paths
-    const urlPath = request.url.split('?')[0];
-    if (urlPath !== undefined && PUBLIC_PATHS.has(urlPath)) {
-      return;
-    }
+  app.addHook("onRequest", async (request: FastifyRequest, _reply: FastifyReply) => {
+    const urlPath = request.url.split("?")[0];
+    if (urlPath !== undefined && publicPaths.has(urlPath)) return;
 
     const token = extractToken(request);
-    if (!token) {
-      throw new UnauthorizedError('Missing or malformed Authorization header');
-    }
+    if (!token) throw new UnauthorizedError("Missing or malformed Authorization header");
 
     try {
       const payload = await verifyToken(token, config);
       const sub = payload.sub;
-      if (!sub) {
-        throw new UnauthorizedError('JWT missing sub claim');
-      }
+      if (!sub) throw new UnauthorizedError("JWT missing sub claim");
       (request as FastifyRequest & { userId: string }).userId = sub;
     } catch (err) {
-      if (err instanceof UnauthorizedError) {
-        throw err;
-      }
-      // jose throws JOSEError subtypes for expired, invalid signature, etc.
-      const message = err instanceof Error ? err.message : 'Token verification failed';
-      throw new UnauthorizedError(message);
+      if (err instanceof UnauthorizedError) throw err;
+      const msg = err instanceof Error ? err.message : "Token verification failed";
+      throw new UnauthorizedError(msg);
     }
   });
 }
