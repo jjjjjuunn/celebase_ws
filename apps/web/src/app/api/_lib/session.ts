@@ -83,6 +83,19 @@ export async function verifyAccessToken(token: string): Promise<Session> {
   throw lastErr;
 }
 
+// Minimum latency for authenticated handler responses.
+// Ensures 200/404/403 responses are indistinguishable by timing, preventing
+// enumeration of valid resource IDs (IDOR via timing side-channel).
+const MIN_HANDLER_LATENCY_MS = 100;
+
+async function padToMinLatency(startMs: number): Promise<void> {
+  const elapsed = performance.now() - startMs;
+  const remaining = MIN_HANDLER_LATENCY_MS - elapsed;
+  if (remaining > 0) {
+    await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+  }
+}
+
 function ensureRequestId(req: NextRequest): string {
   const existing = req.headers.get('x-request-id');
   if (existing !== null && existing !== '') return existing;
@@ -147,24 +160,28 @@ export function createProtectedRoute(
         false,
       );
     }
+    const handlerStart = performance.now();
+    let handlerRes: Response;
     try {
-      const res = await handler(req, session);
-      return withRequestId(res, requestId);
+      handlerRes = withRequestId(await handler(req, session), requestId);
     } catch (err) {
       // D29: fetchBff from an API route handler throws SessionExpiredError
       // on BE 401. API routes must return 401 JSON (not redirect) — clients
       // expect a JSON body + X-Token-Expired for the query-client refresh
       // interceptor, not a 307 Location.
       if (err instanceof SessionExpiredError) {
-        return unauthorizedResponse(
+        handlerRes = unauthorizedResponse(
           requestId,
           'TOKEN_EXPIRED',
           'Access token expired',
           true,
         );
+      } else {
+        handlerRes = withRequestId(toBffErrorResponse(err, requestId), requestId);
       }
-      return withRequestId(toBffErrorResponse(err, requestId), requestId);
     }
+    await padToMinLatency(handlerStart);
+    return handlerRes;
   };
 }
 
