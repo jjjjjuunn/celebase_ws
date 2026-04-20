@@ -56,6 +56,97 @@ function RatingGroup({ label, value, onChange }: RatingGroupProps): React.ReactE
   );
 }
 
+interface QuickLogDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  onLogged: () => void;
+}
+
+function QuickLogDrawer({ open, onClose, onLogged }: QuickLogDrawerProps): React.ReactElement | null {
+  const today = toIsoDate(new Date());
+  const [energy, setEnergy] = useState<Rating | null>(null);
+  const [mood, setMood] = useState<Rating | null>(null);
+  const [sleep, setSleep] = useState<Rating | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setEnergy(null);
+      setMood(null);
+      setSleep(null);
+      setSaved(false);
+      setError(null);
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleSubmit = async (): Promise<void> => {
+    setSaving(true);
+    setError(null);
+    try {
+      await postJson('/api/daily-logs', {
+        date: today,
+        ...(energy !== null ? { energy_level: energy } : {}),
+        ...(mood !== null ? { mood } : {}),
+        ...(sleep !== null ? { sleep_quality: sleep } : {}),
+      });
+      setSaved(true);
+      onLogged();
+      setTimeout(onClose, 1000);
+    } catch (err) {
+      const msg = err instanceof FetcherError ? err.message : 'Failed to save. Try again.';
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className={styles.drawerBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quick log"
+      onClick={handleBackdrop}
+    >
+      <div className={styles.drawer}>
+        <div className={styles.drawerHeader}>
+          <h2 className={styles.drawerTitle}>Quick log</h2>
+          <button
+            type="button"
+            className={styles.drawerClose}
+            aria-label="Close quick log"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+        <p className={styles.drawerDate}>{formatDate(today)}</p>
+        <RatingGroup label="Energy level" value={energy} onChange={setEnergy} />
+        <RatingGroup label="Mood" value={mood} onChange={setMood} />
+        <RatingGroup label="Sleep quality" value={sleep} onChange={setSleep} />
+        {error !== null && <p role="alert" className={styles.errorBanner}>{error}</p>}
+        {saved && <p className={styles.drawerSuccess}>Logged!</p>}
+        <button
+          type="button"
+          className={styles.drawerSaveBtn}
+          disabled={saving || saved || (energy === null && mood === null && sleep === null)}
+          onClick={() => void handleSubmit()}
+        >
+          {saving ? 'Saving…' : 'Save log'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function TrackClient(): React.ReactElement {
   const today = toIsoDate(new Date());
   const weekStart = nDaysAgo(6);
@@ -71,6 +162,7 @@ export function TrackClient(): React.ReactElement {
   const [saved, setSaved] = useState(false);
   const [summary, setSummary] = useState<DailyLogSummaryResponse | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const loadTodayLog = useCallback(async () => {
     try {
@@ -273,6 +365,19 @@ export function TrackClient(): React.ReactElement {
         </section>
       </div>
       <DisclaimerBanner />
+      <button
+        type="button"
+        className={styles.fab}
+        aria-label="Quick log for today"
+        onClick={() => setDrawerOpen(true)}
+      >
+        +
+      </button>
+      <QuickLogDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onLogged={() => void loadSummary()}
+      />
     </div>
   );
 }
