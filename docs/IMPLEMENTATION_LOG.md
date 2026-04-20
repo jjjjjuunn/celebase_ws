@@ -2009,7 +2009,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6 + codex-o3 (review ×2) + gemini-adversarial ×1
 task_id: CHORE-006
-commit_sha: PENDING
+commit_sha: 9e71056
 files_changed:
   - infra/cognito/main.tf
   - infra/cognito/variables.tf
