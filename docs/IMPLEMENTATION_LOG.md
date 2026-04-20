@@ -1625,3 +1625,24 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter ui-kit build` pass (12 CSS files copied), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: Storybook 서버 기동 후 시각 확인 (002-1b 페이지 구현 후 실제 사용처에서 검증 예정).
 ### 연관 파일: packages/ui-kit/src/components/AuthCard/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/AuthCard.stories.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-1a-2
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/SSOButton/SSOButton.tsx
+  - packages/ui-kit/src/components/SSOButton/SSOButton.module.css
+  - packages/ui-kit/src/components/SSOButton/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/SSOButton.stories.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-1a-2 — SSOButton ui-kit composite
+- packages/ui-kit/src/components/SSOButton/SSOButton.tsx (NEW): OAuth provider 버튼 복합 컴포넌트. Props: `provider: 'google' | 'apple'`, `loading?: boolean`, `disabled?: boolean`, 나머지 ButtonHTMLAttributes. 'use client' 불필요(훅 없음). 인라인 단색 SVG 아이콘(currentColor, 브랜드 hex 미사용). loading 시 spinner, disabled 시 opacity 0.38. `aria-disabled`, `aria-busy` 스크린리더 지원.
+- packages/ui-kit/src/components/SSOButton/SSOButton.module.css (NEW): variantSecondary 패턴 준용. hover: --cb-brand-50 배경 + --cb-brand-100 테두리. focus-visible: --cb-shadow-focus. raw hex 0, --cb-* 토큰만 사용.
+- packages/ui-kit/src/index.ts: SSOButton + SSOButtonProps + SSOProvider 배럴 추가.
+- packages/ui-kit/stories/SSOButton.stories.tsx (NEW): Google / Apple / GoogleLoading / AppleLoading / GoogleDisabled / BothProviders 6개 스토리.
+- 검증: `pnpm --filter ui-kit build` pass (13 CSS copied), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 연관 파일: packages/ui-kit/src/components/SSOButton/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/SSOButton.stories.tsx

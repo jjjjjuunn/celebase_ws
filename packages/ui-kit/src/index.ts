@@ -61,3 +61,6 @@ export type { SlotChipGroupProps } from './components/SlotChip/SlotChipGroup.js'
 
 export { AuthCard } from './components/AuthCard/AuthCard.js';
 export type { AuthCardProps } from './components/AuthCard/AuthCard.js';
+
+export { SSOButton } from './components/SSOButton/SSOButton.js';
+export type { SSOButtonProps, SSOProvider } from './components/SSOButton/SSOButton.js';
