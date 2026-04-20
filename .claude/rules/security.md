@@ -67,6 +67,20 @@ await revokeAllByUser(pool, { userId, reason: 'reuse_detected' });
 throw new UnauthorizedError('Token reuse detected');  // emit 완료 후 throw
 ```
 
+### Internal HTTP Client SSRF Guard (IMPL-016-a2 교훈)
+
+`new URL(path, baseUrl)` 은 `path` 에 scheme 이 있으면 `baseUrl` 을 **무시**하고 절대 URL 로 해석한다. 내부 HTTP 클라이언트에서 `path` 를 외부 입력이 오염할 수 있다면 반드시 scheme 선두 정규식으로 먼저 거부해야 한다:
+
+```typescript
+// ✅ scheme 선두 탐지 → 절대 URL 주입 차단
+if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(path)) {
+  throw new Error('InternalClientError: absolute URLs are not allowed in path');
+}
+const url = new URL(path, opts.baseUrl);
+```
+
+적용 위치: `packages/service-core/src/lib/internal-http-client.ts` `doRequest()` 진입부.
+
 ## 시크릿 하드코딩 금지
 
 코드, 설정 파일, 커밋에 다음 패턴이 포함되면 CI에서 차단한다:

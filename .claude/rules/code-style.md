@@ -46,6 +46,44 @@ type ApiResponse<T> =
 - 각 package 의 `tsconfig.json` `include` 는 실제 lint/typecheck 대상 모든 경로를 포함해야 한다. `src` 만 포함하고 `scripts/*.ts` 를 제외하면 ESLint project-service 범위 밖이 되어 monorepo turbo lint 가 fail.
 - 빌드 대상과 tool script 의 tsconfig 가 분리되어야 할 때는 `tsconfig.scripts.json` 으로 분리하고 eslint override 로 `scripts/**` 를 해당 project 에 매핑한다.
 
+### `exactOptionalPropertyTypes` 조건부 spread (IMPL-016-a2 교훈)
+
+`tsconfig.json` 에 `exactOptionalPropertyTypes: true` 가 설정된 경우, optional 프로퍼티에 `undefined` 를 직접 할당하면 컴파일 실패한다. `RequestInit.body` 등 optional 필드는 조건부 spread 로 처리한다:
+
+```typescript
+// ❌ exactOptionalPropertyTypes 위반
+const init: RequestInit = { body: value ?? undefined };
+
+// ✅ 조건부 spread
+const init: RequestInit = {
+  ...(value !== undefined ? { body: JSON.stringify(value) } : {}),
+};
+```
+
+### `restrict-template-expressions` — number 변환 (IMPL-016-a2 교훈)
+
+ESLint `@typescript-eslint/restrict-template-expressions` 규칙은 template literal 에 `number` 타입을 직접 삽입하는 것을 금지한다. `String()` 으로 명시적 변환한다:
+
+```typescript
+// ❌ lint 실패
+throw new Error(`status: ${response.status} ${path}`);
+
+// ✅
+throw new Error(`status: ${String(response.status)} ${path}`);
+```
+
+### Node.js tsconfig 에서 `RequestInfo` 미존재 (IMPL-016-a2 교훈)
+
+`lib: ["ES2022"]` 만 포함된 Node.js tsconfig 에는 브라우저 전용 `RequestInfo` 타입이 없다. `fetch` 래퍼 함수를 작성할 때 파라미터를 `URL` 단일 타입으로 한정한다:
+
+```typescript
+// ❌ RequestInfo 는 브라우저 전역 타입
+async function fetchWithTimeout(input: RequestInfo | URL, ...): Promise<Response>
+
+// ✅ Node.js 환경에서는 URL 로 충분
+async function fetchWithTimeout(input: URL, ...): Promise<Response>
+```
+
 ## Python (AI Engine)
 
 ```python

@@ -2079,3 +2079,26 @@ verified_by: claude-sonnet-4-6
 - 검증: typecheck pass, lint pass, fe_token_hardcode pass
 ### 미완료: 003-0a locale URL routing (D24 defer), 003-4a/4b BioProfileWizard steps 5-9 (OCR/AI 의존)
 ### 연관 파일: apps/web/src/app/(app)/account/AccountClient.tsx, apps/web/src/app/(app)/dashboard/page.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-a2
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/middleware/jwt.ts
+  - packages/service-core/src/lib/circuit-breaker.ts
+  - packages/service-core/src/lib/internal-http-client.ts
+  - packages/service-core/src/index.ts
+  - packages/service-core/package.json
+verified_by: codex-review
+---
+### 완료: service-core 확장 — JWT publicPaths 인젝션 + CircuitBreaker + InternalHttpClient (IMPL-016-a2)
+- jwt.ts: `JwtAuthOptions` 인터페이스 추가, `registerJwtAuth(app, opts?)` 시그니처 변경. DEFAULT_PUBLIC_PATHS = ['/health','/ready','/docs','/docs/json'] 로 축소. `opts.publicPaths` 는 Set merge (기본 ∪ 추가). `/auth/*`, `/webhooks/stripe` 는 기본 세트에서 제거 — 서비스별 inject 로 이관.
+- circuit-breaker.ts (NEW): closed/open/half_open 상태 기계. threshold 초과 → open, timeoutMs 경과 → half_open, 성공 → closed, 실패 → open 재진입. `execute<T>(fn)` API.
+- internal-http-client.ts (NEW): `createInternalClient` factory. HS256 JWT 자동 발급 (iss/aud/iat/nbf/exp:60s/jti:uuidv7), 지수 백오프 retry (3s+6s), SSRF guard (`/^[a-zA-Z][a-zA-Z0-9+\-.]*:/` — absolute URL 거부), AbortController timeout, CircuitBreaker 통합.
+- index.ts barrel: CircuitBreaker, createInternalClient, JwtAuthOptions export 추가.
+- package.json: `uuidv7@^1.0.2` 의존성 추가.
+- 검증: typecheck 0 error, lint 0 warning, Codex review 1회 pass (SSRF guard 추가 후). gate-implement/review/qa 모두 pass.
+### 미완료: IMPL-016-a3 (user-service + content-service publicPaths 인젝션) 후속 필요
+### 연관 파일: packages/service-core/src/middleware/jwt.ts, packages/service-core/src/lib/circuit-breaker.ts, packages/service-core/src/lib/internal-http-client.ts, packages/service-core/src/index.ts
