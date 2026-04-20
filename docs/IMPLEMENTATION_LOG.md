@@ -2723,7 +2723,7 @@ verified_by: codex-review
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-c1
-commit_sha: PENDING
+commit_sha: 8f19481
 files_changed:
   - services/commerce-service/src/adapters/instacart.adapter.ts
   - services/commerce-service/src/adapters/amazon-fresh.adapter.ts
