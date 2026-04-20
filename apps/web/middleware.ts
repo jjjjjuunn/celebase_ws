@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-// /onboarding is added in 002-2b when the page lands. Adding it here before
-// the page exists would cause a redirect loop (authed user → /onboarding → 404).
-const PROTECTED_PATHS = ['/dashboard', '/plans', '/account'] as const;
+const PROTECTED_PATHS = ['/dashboard', '/plans', '/account', '/onboarding'] as const;
 const SESSION_COOKIE = 'cb_access';
 const REQUEST_ID_HEADER = 'x-request-id';
 

@@ -1700,3 +1700,59 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter ui-kit build` pass (14 CSS), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: 실제 폼 필드는 002-2b (steps 1+2) / 002-2c (steps 3+4)에서 구현. middleware PROTECTED_PATHS(/onboarding 보호)는 002-2b.
 ### 연관 파일: packages/ui-kit/src/components/WizardShell/, apps/web/src/app/(onboarding)/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-010-f
+commit_sha: d22b135
+files_changed:
+  - db/migrations/0007_refresh-tokens.sql
+  - services/user-service/package.json
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/src/repositories/refresh-token.repository.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/tests/integration/logout.test.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/user-service/tests/unit/cognito-auth.provider.test.ts
+  - services/user-service/tests/unit/refresh-token.repository.test.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-010-f — Phase C jti blacklist + refresh_tokens rotation
+- db/migrations/0007_refresh-tokens.sql (NEW): refresh_tokens 테이블 (jti UUID PK, user_id FK, expires_at, revoked_at, revoked_reason, rotated_to_jti self-ref FK, created_at). CONCURRENTLY 인덱스 2개 (user_active, expires).
+- refresh-token.repository.ts (NEW): insert / revokeForRotation (atomic UPDATE rowcount) / revokeForLogout (atomic UPDATE RETURNING rotated_to_jti) / revokeChainForLogout (WITH RECURSIVE CTE) / revokeAllByUser / findMetadata.
+- auth.service.ts: issueInternalTokens — jti uuidv7 생성 + refresh JWT에 포함 + DB insert; access TTL 1h→15m; clockTolerance 60s→2s. performRotation (신규) — JWT verify 선수행 → 단일 tx(INSERT new+UPDATE old) → rowcount=0 분기(expired/rotated/logout). refresh() 함수 제거.
+- cognito-auth.provider.ts: issueTokens 시그니처 (client: DbClient, subject) 로 업데이트; refreshTokens 제거.
+- auth.routes.ts: LogoutSchema.refresh_token REQUIRED (min(1)); /auth/refresh→performRotation; /auth/logout 전면 재작성 — JWT verify 선수행, atomic revokeForLogout, forward chain walk.
+- auth-log.ts: AuthLogger에 warn 추가; emitAuthLog level 파라미터; 신규 이벤트 타입(rotated/expired_or_missing/reuse_detected).
+- 테스트: refresh-rotation.test.ts (NEW) 7케이스 — rotation 성공/parallel race/reuse_detected/expired/logout→refresh/TTL 15m/invalid body 400. logout.test.ts Phase C 전환. rate-limit.test.ts performRotation 모킹. auth.service.test.ts / cognito-auth.provider.test.ts Phase C 시그니처 업데이트.
+- 검증: typecheck 0 error, 118/118 tests pass, coverage 81.97% ≥ 80%.
+### 미완료: Codex review 2회 + Gemini adversarial 1회 (L3 rubric) 미완료 — review 단계에서 진행 예정. access token full blacklist (IMPL-010-g 후보). refresh_tokens GC chore.
+### 연관 파일: db/migrations/0007_refresh-tokens.sql, services/user-service/src/repositories/refresh-token.repository.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/routes/auth.routes.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-2b
+commit_sha: PENDING
+files_changed:
+  - apps/web/middleware.ts
+  - apps/web/src/app/(onboarding)/onboarding/page.tsx
+  - apps/web/src/app/(onboarding)/onboarding/steps/steps.module.css
+  - apps/web/src/app/(onboarding)/onboarding/steps/Step1BasicInfo.tsx
+  - apps/web/src/app/(onboarding)/onboarding/steps/Step2BodyMetrics.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-2b — wizard steps 1+2 + middleware PROTECTED_PATHS
+- apps/web/middleware.ts: PROTECTED_PATHS에 '/onboarding' 추가. 002-2a 주석 제거 (페이지 실존 확인 후 추가 원칙 이행).
+- apps/web/src/app/(onboarding)/onboarding/steps/Step1BasicInfo.tsx (NEW): `'use client'`. Props: `data: Partial<WizardStep1>`, `onChange`. display_name(Input, required, maxLength=100), birth_year(Input type=number, 1920-2013), sex(SelectField, 4 옵션) 폼 필드. WizardStep1Schema 타입 캐스트.
+- apps/web/src/app/(onboarding)/onboarding/steps/Step2BodyMetrics.tsx (NEW): `'use client'`. Props: `data: Partial<WizardStep2>`, `onChange`. height_cm/weight_kg(Input type=number, required), waist_cm(optional, helperText), activity_level(SelectField, 5 옵션) 폼 필드.
+- apps/web/src/app/(onboarding)/onboarding/steps/steps.module.css (NEW): flex-column gap --cb-space-4 공유 컨테이너.
+- apps/web/src/app/(onboarding)/onboarding/page.tsx: 플레이스홀더 → 실제 컴포넌트. isStepValid(step, formData): step0 WizardStep1Schema.safeParse, step1 WizardStep2Schema.safeParse, step 2+ → true (002-2c). renderStep() switch로 Step1BasicInfo/Step2BodyMetrics 렌더. void 억제 코드 제거.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: Steps 3+4 (Health Info + Goals & Preferences) — 002-2c. /onboarding submit to /api/users/me/bio-profile — 002-2c.
+### 연관 파일: apps/web/middleware.ts, apps/web/src/app/(onboarding)/onboarding/steps/, apps/web/src/app/(onboarding)/onboarding/page.tsx

@@ -1,24 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import type { Metadata } from 'next';
 import { WizardShell } from '@celebbase/ui-kit';
-import { Text } from '@celebbase/ui-kit';
-import { WIZARD_STEPS, emptyWizardForm } from './wizard-schema.js';
+import {
+  WIZARD_STEPS,
+  emptyWizardForm,
+  WizardStep1Schema,
+  WizardStep2Schema,
+} from './wizard-schema.js';
 import type { WizardForm } from './wizard-schema.js';
-import styles from './onboarding.module.css';
+import { Step1BasicInfo } from './steps/Step1BasicInfo.js';
+import { Step2BodyMetrics } from './steps/Step2BodyMetrics.js';
 
-// Metadata cannot be exported from a 'use client' page in Next.js App Router.
-// The (onboarding)/layout.tsx or a parent RSC wrapper handles static metadata.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _metadata: Metadata = { title: 'Set up your profile — CelebBase Wellness' };
+function isStepValid(step: number, formData: WizardForm): boolean {
+  switch (step) {
+    case 0:
+      return WizardStep1Schema.safeParse(formData.step1).success;
+    case 1:
+      return WizardStep2Schema.safeParse(formData.step2).success;
+    default:
+      // Steps 3+4 validated in 002-2c
+      return true;
+  }
+}
 
 export default function OnboardingPage(): React.ReactElement {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<WizardForm>(emptyWizardForm);
-
-  void formData;
-  void setFormData;
 
   const handleNext = (): void => {
     if (currentStep < WIZARD_STEPS.length - 1) {
@@ -34,21 +42,41 @@ export default function OnboardingPage(): React.ReactElement {
     }
   };
 
+  function renderStep(): React.ReactElement {
+    switch (currentStep) {
+      case 0:
+        return (
+          <Step1BasicInfo
+            data={formData.step1}
+            onChange={(step1) => setFormData((prev) => ({ ...prev, step1 }))}
+          />
+        );
+      case 1:
+        return (
+          <Step2BodyMetrics
+            data={formData.step2}
+            onChange={(step2) => setFormData((prev) => ({ ...prev, step2 }))}
+          />
+        );
+      default:
+        // Steps 3+4 implemented in 002-2c
+        return (
+          <p style={{ color: 'var(--cb-color-muted)' }}>
+            {WIZARD_STEPS[currentStep]?.label ?? ''} — coming in 002-2c
+          </p>
+        );
+    }
+  }
+
   return (
     <WizardShell
       steps={[...WIZARD_STEPS]}
       currentStep={currentStep}
       onNext={handleNext}
       onBack={handleBack}
+      isNextDisabled={!isStepValid(currentStep, formData)}
     >
-      <div className={styles.stepContent}>
-        <Text variant="display" size="lg">
-          {WIZARD_STEPS[currentStep]?.label ?? ''}
-        </Text>
-        <Text tone="muted">
-          Step {currentStep + 1} form fields — implemented in 002-2b / 002-2c.
-        </Text>
-      </div>
+      {renderStep()}
     </WizardShell>
   );
 }
