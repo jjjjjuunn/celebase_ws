@@ -1988,7 +1988,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-4d
-commit_sha: PENDING
+commit_sha: 8cf3bf5
 files_changed:
   - apps/web/src/app/(app)/recipes/[id]/page.tsx
   - apps/web/src/app/(app)/recipes/[id]/recipe-detail.module.css
