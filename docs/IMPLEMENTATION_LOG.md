@@ -1585,3 +1585,21 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_bff_compliance` `{passed:true}`, `gate-check.sh fe_contract_check` `{passed:true}`.
 ### 미완료: 002-0f-2 (useAuth hook + jest polyfills) 이후 실제 브라우저 OAuth 플로우 E2E 검증.
 ### 연관 파일: apps/web/src/app/api/auth/authorize-url/route.ts, apps/web/src/app/api/auth/callback/route.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0f-2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/lib/useAuth.ts
+  - apps/web/jest.setup.ts
+  - apps/web/src/lib/__tests__/fetcher.test.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0f-2 — useAuth hook + jest polyfills + fetcher unit tests
+- apps/web/src/lib/useAuth.ts (NEW): `'use client';` React hook. `useQuery(['me'], GET /api/users/me, {schema: MeResponseSchema})`. 4xx non-tokenExpired retry 없음, 401+tokenExpired는 query-client refresh cycle 위임. `logout()`: POST /api/auth/logout → `window.location.href = '/login'`. 반환: `{user: schemas.UserWire | null, isLoading, isAuthenticated, logout}`.
+- apps/web/jest.setup.ts: Cognito env stub 5개 추가. WebSocket 글로벌 폴리필 (Node 미제공, 훅 import-time 참조 방지). location 글로벌 폴리필 (Node 미제공, `window.location.href` 대입 방지).
+- apps/web/src/lib/__tests__/fetcher.test.ts (NEW): 13개 Jest 단위 테스트. `jest.spyOn(globalThis, 'fetch')` mock. 커버: /api/ 경로 강제, credentials same-origin, schema 검증 성공/실패(CLIENT_CONTRACT_VIOLATION), 204 No Content undefined 반환, 4xx FetcherError(status/code/message), tokenExpired 헤더 파싱, INVALID_JSON, postJson 메서드/바디.
+- 검증: `pnpm --filter web test` 38/38 pass (25 기존 + 13 신규), `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings.
+### 연관 파일: apps/web/src/lib/useAuth.ts, apps/web/jest.setup.ts, apps/web/src/lib/__tests__/fetcher.test.ts
