@@ -1,7 +1,7 @@
 import { createApp, createPool, EnvPhiKeyProvider, registerJwtAuth } from '@celebbase/service-core';
 import { createClient } from 'redis';
 import type { RedisClientType } from 'redis';
-import Stripe from 'stripe';
+
 import { EnvSchema } from './env.js';
 import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
@@ -26,7 +26,7 @@ const start = async (): Promise<void> => {
 
   // External JWT guard — skips /internal/* (protected by internal JWT guard instead)
   registerJwtAuth(app, {
-    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe', '/internal/*'],
+    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/internal/*'],
   });
 
   // Internal JWT guard — strict iss/aud/jti validation for /internal/* routes
@@ -71,44 +71,8 @@ const start = async (): Promise<void> => {
   await app.register(dailyLogRoutes, { pool });
   await app.register(internalRoutes, { pool });
 
-  // Stripe feature gate — /subscriptions/* only registers when STRIPE_ENABLED=true.
-  if (env.STRIPE_ENABLED === 'true') {
-    if (
-      !env.STRIPE_SECRET_KEY ||
-      !env.STRIPE_WEBHOOK_SECRET ||
-      !env.STRIPE_PREMIUM_PRICE_ID ||
-      !env.STRIPE_ELITE_PRICE_ID ||
-      !env.STRIPE_SUCCESS_URL ||
-      !env.STRIPE_CANCEL_URL
-    ) {
-      const missing = [
-        !env.STRIPE_SECRET_KEY && 'STRIPE_SECRET_KEY',
-        !env.STRIPE_WEBHOOK_SECRET && 'STRIPE_WEBHOOK_SECRET',
-        !env.STRIPE_PREMIUM_PRICE_ID && 'STRIPE_PREMIUM_PRICE_ID',
-        !env.STRIPE_ELITE_PRICE_ID && 'STRIPE_ELITE_PRICE_ID',
-        !env.STRIPE_SUCCESS_URL && 'STRIPE_SUCCESS_URL',
-        !env.STRIPE_CANCEL_URL && 'STRIPE_CANCEL_URL',
-      ].filter(Boolean);
-      app.log.fatal({ missing }, 'STRIPE_ENABLED=true but required Stripe env vars are missing');
-      process.exit(1);
-    }
-
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-    await app.register(subscriptionRoutes, {
-      pool,
-      stripeConfig: {
-        stripe,
-        premiumPriceId: env.STRIPE_PREMIUM_PRICE_ID,
-        elitePriceId: env.STRIPE_ELITE_PRICE_ID,
-        webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-        successUrl: env.STRIPE_SUCCESS_URL,
-        cancelUrl: env.STRIPE_CANCEL_URL,
-      },
-    });
-    app.log.info('Stripe subscriptions enabled');
-  } else {
-    app.log.warn('Stripe subscriptions disabled (STRIPE_ENABLED=false)');
-  }
+  // Slim subscription routes (Stripe removed)
+  await app.register(subscriptionRoutes, { pool });
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });

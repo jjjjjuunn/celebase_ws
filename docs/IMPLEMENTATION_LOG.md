@@ -2168,3 +2168,32 @@ verified_by: codex-review
 - Codex review CRITICAL/HIGH: commerce-service subscriptions cross-service (설계 의도, d2에서 doc 업데이트), 테스트 부재(c2 범위) → out-of-scope PASS
 ### 미완료: IMPL-016-c (Instacart adapter + BFF proxy), IMPL-016-d (Stripe decommission)
 ### 연관 파일: db/migrations/0009_tier-sync-idempotency.sql, services/user-service/src/middleware/internal-jwt.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-d1
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/env.ts
+  - services/user-service/src/routes/subscription.routes.ts
+  - services/user-service/src/repositories/subscription.repository.ts
+  - services/user-service/package.json
+  - services/user-service/tests/unit/env-gate.test.ts
+  - services/user-service/tests/unit/subscription.service.test.ts (deleted)
+  - services/user-service/src/services/subscription.service.ts (deleted)
+verified_by: codex-implement
+---
+### 완료: user-service Stripe 코드 완전 제거 (IMPL-016-d1)
+- subscription.service.ts 삭제 (Stripe circuit breaker + event handlers 모두 제거)
+- index.ts: `import Stripe` 삭제, `/webhooks/stripe` publicPaths 제거, Stripe feature-gate 블록(L74-111) 제거, slim `await app.register(subscriptionRoutes, { pool })` 추가
+- env.ts: STRIPE_ENABLED / STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_PREMIUM_PRICE_ID / STRIPE_ELITE_PRICE_ID / STRIPE_SUCCESS_URL / STRIPE_CANCEL_URL 7개 필드 제거, COMMERCE_SERVICE_URL 추가 (default: http://localhost:3004)
+- subscription.routes.ts → slim: GET /subscriptions/me 만 유지 (POST /subscriptions, POST /subscriptions/me/cancel, POST /webhooks/stripe 제거)
+- subscription.repository.ts → slim: findTierByUserId (users.subscription_tier 쿼리) 만 유지, subscriptions 테이블 직접 접근 전면 제거
+- package.json: stripe@^22.0.1 dependency 제거
+- stale tests 정리: subscription.service.test.ts 삭제, env-gate.test.ts를 COMMERCE_SERVICE_URL 테스트로 교체
+- 검증: typecheck 0 errors / lint 0 warnings / test 97 passed / `rg "stripe|STRIPE" services/user-service/src/` 0건
+- SQL $1 플레이스홀더 손상 (Codex zsh heredoc 탈출) → Claude 직접 수정
+### 미완료: IMPL-016-d2 (tasks.yaml + api-conventions.md 문서 업데이트), Gemini arch review 2
+### 연관 파일: services/user-service/src/, services/user-service/tests/unit/

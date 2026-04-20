@@ -10,6 +10,9 @@ export const EnvSchema = z
     DATABASE_URL: z.string().min(1),
     REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
     PHI_ENCRYPTION_KEY: z.string().length(64).regex(/^[0-9a-fA-F]+$/),
+
+    // Commerce service URL — used by slim subscription routes to redirect if needed
+    COMMERCE_SERVICE_URL: z.string().url().default('http://localhost:3004'),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
     AUTH_PROVIDER: z.enum(['dev', 'cognito']).default('dev'),
@@ -28,14 +31,6 @@ export const EnvSchema = z
       .optional(),
     COGNITO_ISSUER: z.string().optional(),
 
-    // Stripe — feature-gated. All six vars are required only when STRIPE_ENABLED=true.
-    STRIPE_ENABLED: z.enum(['true', 'false']).default('false'),
-    STRIPE_SECRET_KEY: z.string().optional(),
-    STRIPE_WEBHOOK_SECRET: z.string().optional(),
-    STRIPE_PREMIUM_PRICE_ID: z.string().optional(),
-    STRIPE_ELITE_PRICE_ID: z.string().optional(),
-    STRIPE_SUCCESS_URL: z.string().url().optional(),
-    STRIPE_CANCEL_URL: z.string().url().optional(),
   })
   .superRefine((env, ctx) => {
     // prod guard: AUTH_PROVIDER must be cognito in production
