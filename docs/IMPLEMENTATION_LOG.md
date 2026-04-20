@@ -1962,7 +1962,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-4c
-commit_sha: PENDING
+commit_sha: 26e0421
 files_changed:
   - apps/web/src/app/api/meal-plans/[id]/route.ts
   - apps/web/src/app/(app)/plans/page.tsx
