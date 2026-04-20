@@ -178,8 +178,9 @@ export async function cancelSubscription(
     throw new Error('Subscription has no Stripe ID');
   }
 
+  const stripeSubId = sub.stripe_subscription_id;
   await withCircuitBreaker(() =>
-    config.stripe.subscriptions.update(sub.stripe_subscription_id!, {
+    config.stripe.subscriptions.update(stripeSubId, {
       cancel_at_period_end: true,
     }),
   );
@@ -203,16 +204,16 @@ export async function handleWebhookEvent(
 ): Promise<void> {
   switch (event.type) {
     case 'checkout.session.completed':
-      await onCheckoutCompleted(pool, event.data.object as Stripe.Checkout.Session, config);
+      await onCheckoutCompleted(pool, event.data.object, config);
       break;
     case 'customer.subscription.updated':
-      await onSubscriptionChanged(pool, event.data.object as Stripe.Subscription, config);
+      await onSubscriptionChanged(pool, event.data.object, config);
       break;
     case 'customer.subscription.deleted':
-      await onSubscriptionDeleted(pool, event.data.object as Stripe.Subscription);
+      await onSubscriptionDeleted(pool, event.data.object);
       break;
     case 'invoice.payment_failed':
-      await onPaymentFailed(pool, event.data.object as Stripe.Invoice);
+      await onPaymentFailed(pool, event.data.object);
       break;
     default:
       // Unhandled event type — acknowledge with 200, no processing
@@ -223,7 +224,7 @@ export async function handleWebhookEvent(
 async function onCheckoutCompleted(
   pool: pg.Pool,
   session: Stripe.Checkout.Session,
-  config: StripeConfig,
+  _config: StripeConfig,
 ): Promise<void> {
   if (session.mode !== 'subscription') return;
 
@@ -249,7 +250,7 @@ async function onCheckoutCompleted(
   }
 
   // Read tier from metadata (set during createCheckoutSession)
-  const tier = (session.metadata?.tier === 'elite' ? 'elite' : 'premium') as 'premium' | 'elite';
+  const tier = (session.metadata?.tier === 'elite' ? 'elite' : 'premium');
 
   // Use epoch 0 as placeholder — `customer.subscription.updated` webhook will
   // overwrite with real period values from the subscription object.
@@ -281,8 +282,8 @@ async function onSubscriptionChanged(
   }
 
   const status = mapStripeStatus(sub.status);
-  const priceId = sub.items.data[0]?.price?.id;
-  const tier = priceId ? tierFromPriceId(priceId, config) : existing.tier as 'premium' | 'elite';
+  const priceId = sub.items.data[0]?.price.id;
+  const tier = priceId ? tierFromPriceId(priceId, config) : existing.tier;
   const userTier = deriveTierForUsers(status, tier);
 
   // In Stripe v17, current_period is on SubscriptionItem, not Subscription
@@ -312,7 +313,7 @@ async function onSubscriptionDeleted(
   if (!existing) return;
 
   await subscriptionRepo.syncTierTransaction(pool, existing.user_id, sub.id, {
-    tier: existing.tier as 'premium' | 'elite',
+    tier: existing.tier,
     stripe_customer_id: existing.stripe_customer_id ?? '',
     status: 'cancelled',
     current_period_start: existing.current_period_start ?? new Date(),
@@ -330,7 +331,7 @@ async function onPaymentFailed(
     parentDetails?.type === 'subscription_details'
       ? (typeof parentDetails.subscription_details?.subscription === 'string'
           ? parentDetails.subscription_details.subscription
-          : parentDetails.subscription_details?.subscription?.id)
+          : parentDetails.subscription_details?.subscription.id)
       : undefined;
   if (!stripeSubId) return;
 

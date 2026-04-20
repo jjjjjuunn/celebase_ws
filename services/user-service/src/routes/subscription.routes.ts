@@ -9,7 +9,7 @@ const CreateSubscriptionSchema = z.object({
   tier: z.enum(['premium', 'elite']),
 }).strict();
 
-// eslint-disable-next-line @typescript-eslint/require-await
+ 
 export async function subscriptionRoutes(
   app: FastifyInstance,
   options: { pool: pg.Pool; stripeConfig: StripeConfig },
@@ -51,7 +51,7 @@ export async function subscriptionRoutes(
 
   // POST /webhooks/stripe — Stripe webhook receiver (PUBLIC, no JWT)
   // Scoped content-type parser to preserve raw body for signature verification
-  await app.register(async (scope) => {
+  await app.register((scope) => {
     scope.addContentTypeParser(
       'application/json',
       { parseAs: 'buffer' },
