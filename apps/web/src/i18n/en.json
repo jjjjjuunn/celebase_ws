@@ -30,10 +30,16 @@
       "pending": "Creating your account…",
       "switchToLogin": "Already have an account? Log in"
     },
+    "sso": {
+      "orContinueWith": "or continue with",
+      "signingIn": "Signing in…"
+    },
     "errors": {
       "invalidCredentials": "Email or password is incorrect.",
       "tokenExpired": "Your session expired. Please log in again.",
-      "networkError": "Couldn't reach the server. Please try again."
+      "networkError": "Couldn't reach the server. Please try again.",
+      "oauthFailed": "Sign-in failed. Please try again.",
+      "stateMismatch": "Sign-in request expired. Please start over."
     },
     "logoutSuccess": "You've been logged out."
   },

@@ -1,0 +1,16 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+}
+
+.error {
+  margin: 0;
+  padding: var(--cb-space-3) var(--cb-space-4);
+  background: var(--cb-danger-100);
+  color: var(--cb-danger-600);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-sm);
+  font-family: var(--cb-font-family-body);
+  line-height: var(--cb-line-height-body);
+}

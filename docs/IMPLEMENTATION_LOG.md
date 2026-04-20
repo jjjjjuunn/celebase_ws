@@ -1646,3 +1646,29 @@ verified_by: claude-sonnet-4-6
 - packages/ui-kit/stories/SSOButton.stories.tsx (NEW): Google / Apple / GoogleLoading / AppleLoading / GoogleDisabled / BothProviders 6개 스토리.
 - 검증: `pnpm --filter ui-kit build` pass (13 CSS copied), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 연관 파일: packages/ui-kit/src/components/SSOButton/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/SSOButton.stories.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-1b
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(auth)/_components/SSOGroup.tsx
+  - apps/web/src/app/(auth)/_components/SSOGroup.module.css
+  - apps/web/src/app/(auth)/login/page.tsx
+  - apps/web/src/app/(auth)/login/login.module.css
+  - apps/web/src/app/(auth)/signup/page.tsx
+  - apps/web/src/app/(auth)/signup/signup.module.css
+  - apps/web/src/i18n/en.json
+  - apps/web/src/i18n/ko.json
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-1b — /login + /signup pages
+- apps/web/src/app/(auth)/_components/SSOGroup.tsx (NEW): `'use client'` 공유 아일랜드. `provider: google|apple` 각각 로딩 상태 독립 추적. GET /api/auth/authorize-url?return_to= 호출 → window.location.href 리다이렉트. 실패 시 common.unexpectedError 표시. errorCode prop → OAUTH_ERROR_KEYS 매핑 → 번역된 오류 메시지. aria role="alert" 에러 배너.
+- apps/web/src/app/(auth)/login/page.tsx (NEW): RSC, Next.js 15 async searchParams. getTranslations('auth') 서버사이드. SSOGroup(returnTo="/dashboard") + switchToSignup 링크.
+- apps/web/src/app/(auth)/signup/page.tsx (NEW): RSC, SSOGroup(returnTo="/onboarding") + switchToLogin 링크.
+- apps/web/src/i18n/en.json + ko.json: auth.sso (orContinueWith, signingIn), auth.errors.oauthFailed + stateMismatch 키 추가.
+- CSS modules: login.module.css, signup.module.css, SSOGroup.module.css — --cb-* 토큰만 사용.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_bff_compliance` `{passed:true}`.
+### 미완료: 브라우저 E2E — Playwright MCP로 /login?error=AUTH_FAILED 렌더링 + 버튼 클릭 플로우 검증 (002-2b PROTECTED_PATHS 구현 후 전체 golden path 검증 예정).
+### 연관 파일: apps/web/src/app/(auth)/, apps/web/src/i18n/
