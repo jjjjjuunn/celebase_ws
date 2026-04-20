@@ -3,3 +3,19 @@
   flex-direction: column;
   gap: var(--cb-space-4);
 }
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-2);
+  margin-bottom: var(--cb-space-2);
+}
+
+.disclaimer {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-muted);
+  padding: var(--cb-space-3);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+}
+
