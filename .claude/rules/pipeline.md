@@ -156,6 +156,21 @@ gate-implement 자동 체크 전 이 단계가 빠지면 `Cannot find module '@c
 올바른 주입: `run_codex()`에서 mktemp 파일에 CODEX-INSTRUCTIONS.md + task 내용을 합쳐 stdin으로 전달.
 `AGENTS.md`를 프로젝트 루트에 유지하면 Codex가 자동 로드한다.
 
+### Terraform 스테이징 전용 리소스 환경 격리 (CHORE-006 교훈)
+
+`count = var.enable ? 1 : 0` 단독으로는 tfvars 실수 시 prod에 스테이징 전용 리소스가 배포될 수 있다. `lifecycle.precondition`으로 Terraform plan 단계에서 이중 차단:
+
+```hcl
+lifecycle {
+  precondition {
+    condition     = var.environment != "prod"
+    error_message = "이 리소스는 prod 환경에 배포할 수 없습니다."
+  }
+}
+```
+
+스테이징 전용 리소스(smoke client, debug endpoint 등)는 `count` gate + `lifecycle.precondition` 두 가지 모두 적용한다.
+
 ### QA 단계 Python venv 사전 설치 (IMPL-004-c 교훈)
 
 Codex sandbox에는 PyPI 접근이 없어 pytest 실행이 실패한다. 이를 방지하기 위해 `pipeline.sh`의 `step_qa_exec()`에서 Codex 실행 **전에** Python venv을 생성하고 의존성을 설치한다:

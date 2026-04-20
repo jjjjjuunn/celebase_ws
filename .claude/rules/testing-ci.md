@@ -41,6 +41,40 @@ jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
 const { authRoutes } = await import('../../src/routes/auth.routes.js');
 ```
 
+### ESM mock singleton — jest.fn() 팩토리 외부 선언 (CHORE-006 교훈)
+
+`jest.unstable_mockModule` 팩토리 안에서 `jest.fn()`을 호출하면 팩토리가 호출될 때마다 새 함수 인스턴스가 생성된다. 서비스 모듈이 캐시에 로드되는 시점(라우트 import 시)과 테스트가 import하는 시점에 서로 다른 인스턴스를 받아 `mockFn.mockResolvedValueOnce(...)` 설정이 서비스에 전혀 전달되지 않는다.
+
+```ts
+// ❌ 팩토리 내부에서 jest.fn() 생성 — 인스턴스 불일치
+jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
+  findByCognitoSub: jest.fn(),  // 매 호출마다 새 인스턴스
+}));
+
+// ✅ 팩토리 외부에서 상수로 선언 후 참조
+const mockFindByCognitoSub = jest.fn();
+jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
+  findByCognitoSub: mockFindByCognitoSub,  // 동일 인스턴스 공유
+}));
+```
+
+### ESM 트랜지티브 의존 — static import 금지 (CHORE-006 교훈)
+
+테스트 파일 최상단에서 `import { fn } from 'moduleA'` 형태로 static import하면, `jest.unstable_mockModule`이 등록되기 전에 해당 모듈이 로드된다. moduleA가 mock된 repository에 의존한다면, 실제 repository 함수가 이미 바인딩된 상태로 캐시에 올라가 mock이 무효화된다.
+
+해결: 트랜지티브 의존이 있는 함수는 테스트 클래스/함수 내부에서 `await import(...)` 동적 임포트로 가져온다.
+
+```ts
+// ❌ 파일 최상단 static import — mock 등록 전에 auth.service가 로드됨
+import { issueInternalTokens } from '../../src/services/auth.service.js';
+
+// ✅ 동적 임포트 — mock 등록 후 import, 올바른 mock 인스턴스를 사용
+async function issueTokens(client, subject) {
+  const { issueInternalTokens } = await import('../../src/services/auth.service.js');
+  return issueInternalTokens(client, subject);
+}
+```
+
 ### Fastify 통합 테스트 로거 (IMPL-010-e 교훈)
 
 Fastify 5는 request마다 child 로거를 생성하므로 `app.log.info`를 monkey-patch해도 전파되지 않는다. `loggerInstance`에 동기 객체를 넘기고 `child: () => logger`로 자기 자신을 반환한다. **pino 사용 금지** — pino의 async destination이 Jest 환경 해제 후 `"import after environment teardown"` 에러를 유발한다.
