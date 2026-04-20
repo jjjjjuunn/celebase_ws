@@ -84,6 +84,74 @@ async function fetchWithTimeout(input: RequestInfo | URL, ...): Promise<Response
 async function fetchWithTimeout(input: URL, ...): Promise<Response>
 ```
 
+### `import type` 런타임 소거 — instanceof 사용 시 value import 필수 (IMPL-016-c1 교훈)
+
+에러 클래스를 `instanceof`로 체크하는 서비스에서 `import type { ErrClass }` 를 사용하면 런타임에 클래스가 소거되어 체크가 항상 false를 반환한다:
+
+```typescript
+// ❌ import type 으로 가져온 에러 클래스는 런타임에 없음
+import type { InstacartUnavailableError } from './instacart.adapter.js';
+if (err instanceof InstacartUnavailableError) { ... }  // 항상 false!
+
+// ✅ value import
+import { InstacartUnavailableError } from './instacart.adapter.js';
+```
+
+타입 전용 + 런타임 값이 같은 모듈에 있을 때 두 줄로 분리:
+```typescript
+import type { InstacartAdapter } from './instacart.adapter.js';
+import { InstacartUnavailableError } from './instacart.adapter.js';
+```
+
+### Pino logger API 인자 순서 (IMPL-016-c1 교훈)
+
+pino 는 **object 먼저, string 나중** 순서. `console.warn` 과 반대:
+
+```typescript
+// ❌ console.warn 스타일 — pino TS overload 불일치
+log.warn('instacart.cart.error', { status: 400 });
+
+// ✅ pino API
+log.warn({ status: 400 }, 'instacart.cart.error');
+```
+
+### Error 서브클래스 `override` 필수 (IMPL-016-c1 교훈)
+
+`noImplicitOverride: true` + `lib: ["ES2022"]` 환경에서 `Error` 멤버 재선언 시 `override` 필수:
+
+```typescript
+// ❌ TS4114
+export class CustomError extends Error {
+  readonly cause?: unknown;
+  name = 'CustomError';
+}
+
+// ✅
+export class CustomError extends Error {
+  override readonly cause?: unknown;
+  override name = 'CustomError';
+}
+```
+
+### pg.PoolClient 로거 없음 — FastifyBaseLogger 파라미터 주입 (IMPL-016-b3 교훈)
+
+`pg.PoolClient` 는 로거를 가지지 않는다. DB 트랜잭션 내부에서 structured log 를 남기려면 `FastifyBaseLogger` 를 서비스 함수 파라미터로 주입한다:
+
+```typescript
+// ❌ pg.PoolClient 에는 log 프로퍼티 없음
+client.log?.info('tier updated');  // undefined — 런타임 에러
+
+// ✅ FastifyBaseLogger 를 파라미터로 받아 라우트에서 request.log 전달
+export async function updateTier(
+  pool: pg.Pool,
+  userId: string,
+  tier: string,
+  idempotencyKey: string,
+  log: FastifyBaseLogger,
+): Promise<UpdateTierResult>
+// 라우트 핸들러: await updateTier(pool, userId, tier, key, request.log)
+```
+
 ## Python (AI Engine)
 
 ```python

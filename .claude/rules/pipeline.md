@@ -86,6 +86,105 @@ HANDOFF Anti-Patterns 섹션에 아래 항목을 반드시 포함한다:
 - **template literal number 삽입**: `${String(n)}` 으로 명시적 변환 필요 (`restrict-template-expressions`)
 - **`exactOptionalPropertyTypes`**: optional RequestInit 프로퍼티 (body 등) 는 `...(val !== undefined ? { body } : {})` 조건부 spread 사용
 - **Node.js tsconfig `RequestInfo` 미존재**: `fetch` 래퍼 파라미터는 `URL` 타입만 사용
+- **에러 클래스 `instanceof` — value import 필수**: `import type { ErrClass }` 는 런타임 소거 → `instanceof` 항상 false. `import { ErrClass }` (value) 사용
+- **pino `log.warn` 인자 순서**: `log.warn({ data }, 'event')` — object 먼저, string 나중 (console.warn 과 반대)
+- **Error 서브클래스 `override` 필수**: `cause`, `name` 등 Error 기반 멤버 재선언 시 `override` 키워드 필수 (`noImplicitOverride` + ES2022 lib)
+- **`app.register` 콜백 `async` 제거**: 콜백 내부에 `await` 없으면 `async` 키워드 삭제 (`require-await` lint rule)
+- **`no-confusing-void-expression`**: `setTimeout(() => fn(), ms)` 에서 fn() 이 void 면 블록 형태 `() => { fn(); }` 사용
+
+### Fastify module augmentation `import 'fastify'` 선두 필수 (IMPL-016-b2 교훈)
+
+`declare module 'fastify' { interface FastifyRequest { ... } }` 앞에 반드시 `import 'fastify';`를 포함해야 한다. 없으면 ambient module declaration이 되어 Fastify 전체 타입(FastifyReply, FastifyInstance 등)이 소실된다:
+
+```typescript
+// ✅ module augmentation
+import 'fastify';
+declare module 'fastify' {
+  interface FastifyRequest { userId: string; }
+}
+
+// ❌ ambient module declaration — Fastify 타입 전체 대체
+declare module 'fastify' {
+  interface FastifyRequest { userId: string; }
+}
+```
+
+### Stripe SDK v22 switch case — type assertion 불필요 (IMPL-016-b2 교훈)
+
+Stripe SDK v22의 `Stripe.Event` 타입은 `event.type`에 따라 discriminated union으로 이미 좁혀준다. `switch (event.type)` 케이스 내부에서 `as Stripe.Checkout.Session` 등 type assertion은 불필요하며 lint 에러 유발:
+
+```typescript
+// ❌ unnecessary assertion
+case 'checkout.session.completed':
+  await handler(pool, event.data.object as Stripe.Checkout.Session);
+
+// ✅ SDK가 이미 타입을 좁혀줌
+case 'checkout.session.completed':
+  await handler(pool, event.data.object);
+```
+
+### gate-implement 전 git commit 필수 (IMPL-016-b2 교훈)
+
+`pipeline.sh gate-implement`는 `git diff --name-only BASE...HEAD`로 파일 변경을 감지한다. Claude Write 도구로 파일을 생성해도 커밋하지 않으면 untracked 상태(`??`)로 감지 실패 → "No source files changed" gate FAIL 발생:
+
+```bash
+# Claude Write로 파일 생성 후 반드시:
+git add <new-files>
+git commit -m "feat(...): ..."
+# 그 후 gate-implement 실행
+```
+
+### service-core publicPaths prefix wildcard 지원 (IMPL-016-b3 교훈)
+
+`/internal/*` 처럼 동적 경로를 external JWT 가드에서 제외하려면 `registerJwtAuth` 의 `publicPaths` Set 이 prefix wildcard 를 지원해야 한다. `isPublicPath()` 헬퍼를 `packages/service-core/src/middleware/jwt.ts` 에 추가:
+
+```typescript
+// ✅ prefix wildcard: "/internal/*" → "/internal/" 로 시작하는 모든 경로 매칭
+function isPublicPath(urlPath: string, publicPaths: ReadonlySet<string>): boolean {
+  if (publicPaths.has(urlPath)) return true;
+  for (const pattern of publicPaths) {
+    if (pattern.endsWith('/*') && urlPath.startsWith(pattern.slice(0, -1))) return true;
+  }
+  return false;
+}
+```
+
+서비스 등록 시:
+```typescript
+// ✅ internal routes 는 prefix wildcard 로 external JWT 에서 제외
+registerJwtAuth(app, { publicPaths: ['/internal/*'] });
+// ❌ exact match 는 동적 경로에 매칭 불가
+registerJwtAuth(app, { publicPaths: ['/internal/users/abc/tier'] });
+```
+
+### Fastify onRequest hook 등록 순서 — internal guard 먼저 (IMPL-016-b3 교훈)
+
+Fastify `addHook('onRequest', ...)` 는 등록 순서대로 실행된다. `/internal/*` 경로에서 internal JWT guard 가 먼저 실행되려면 `registerJwtAuth` → `registerInternalJwtAuth` → 라우트 등록 순서를 지켜야 한다:
+
+```typescript
+// ✅ 올바른 순서: external JWT (publicPaths에서 /internal/* skip) → internal JWT guard
+registerJwtAuth(app, { publicPaths: [..., '/internal/*'] });
+registerInternalJwtAuth(app);  // /internal/* 에만 적용
+await app.register(internalRoutes, { pool });
+```
+
+### pg.PoolClient 에는 `.log` 없음 — logger 파라미터 주입 (IMPL-016-b3 교훈)
+
+`pg.PoolClient` 는 로거를 가지지 않는다. 서비스 함수에서 structured log 를 남기려면 `FastifyBaseLogger` 를 파라미터로 주입해야 한다:
+
+```typescript
+// ❌ pg.PoolClient 에는 log 프로퍼티 없음
+client.log?.info('tier updated');
+
+// ✅ FastifyBaseLogger 파라미터로 주입
+export async function updateTier(
+  pool: pg.Pool,
+  userId: string,
+  tier: SubscriptionTier,
+  idempotencyKey: string,
+  log: FastifyBaseLogger,
+): Promise<UpdateTierResult>
+```
 
 ### CODEX-HANDOFF 크기 제한 (필수)
 
@@ -121,6 +220,16 @@ Codex `implement` 후 미완성 파일이 있으면 Claude가 직접 보충 → 
 - **보통**: 아키텍처 일관성, 테스트 충분성
 - **관대**: 코드 스타일 (lint 통과했으면 OK)
 - `pipeline/templates/gate-criteria.yaml`의 판정 항목을 순회한다
+
+### Codex review 스코프 분리 판정 (IMPL-016-c1 교훈)
+
+Codex `review` 는 `origin/main...HEAD` 전체를 스캔한다. IMPL-016 처럼 여러 sub-task 가 순차적으로 쌓인 브랜치에서는 이전 HANDOFF 코드 (b1/b2/b3) 의 문제가 현재 HANDOFF (c1) 의 CRITICAL 로 리포트될 수 있다.
+
+gate-review Claude 판정 시:
+1. 각 finding 이 현재 HANDOFF 의 **스코프 파일 목록** 에 속하는지 확인
+2. 스코프 외 파일 → "out-of-scope — 해당 HANDOFF 에서 처리됨" 으로 PASS 근거 기록
+3. "테스트 없음" 은 테스트 파일이 다음 sub-task 로 명시 위임된 경우 "by plan design" 으로 PASS
+4. 판정 근거를 `pipeline-log.jsonl` 에 상세 기록
 
 ### 판정 결과 기록
 - Pass: `log_event`로 기록, 다음 단계 진행
