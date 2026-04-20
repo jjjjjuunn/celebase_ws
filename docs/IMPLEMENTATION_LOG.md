@@ -2143,3 +2143,28 @@ verified_by: codex-review
 - Codex review: PASS (CRITICAL/HIGH 없음, MEDIUM findings 모두 non-prod 범위)
 ### 미완료: IMPL-016-b2 (Stripe webhook + service layer), IMPL-016-b3 (internal tier endpoint)
 ### 연관 파일: db/migrations/0008_processed-events.sql, services/commerce-service/src/repositories/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-016-b3
+commit_sha: a295a79
+files_changed:
+  - db/migrations/0009_tier-sync-idempotency.sql
+  - packages/service-core/src/middleware/jwt.ts
+  - services/user-service/src/middleware/internal-jwt.ts
+  - services/user-service/src/services/tier-sync.service.ts
+  - services/user-service/src/routes/internal.routes.ts
+  - services/user-service/src/index.ts
+verified_by: codex-review
+---
+### 완료: user-service internal tier-sync 수신 엔드포인트 (IMPL-016-b3)
+- 0009_tier-sync-idempotency.sql: 24h TTL idempotency ledger (UNIQUE idempotency_key + expires_at index)
+- internal-jwt.ts: strict HS256 검증 (iss=celebbase-internal, aud=user-service:internal, jti 60s replay 차단). leaked external JWT → 401 + internal_jwt.rejected
+- tier-sync.service.ts: updateTier — idempotency read-through, subscription_tier UPDATE, sync.started/success/failed 이벤트 로그
+- internal.routes.ts: POST /internal/users/:userId/tier (Idempotency-Key 헤더 필수, Zod 검증, 409 on duplicate)
+- jwt.ts: prefix wildcard 지원 (/internal/*) → external JWT가 /internal/* 경로 skip
+- index.ts: registerInternalJwtAuth + /internal/* 를 external JWT publicPaths에 추가
+- Codex review CRITICAL/HIGH: commerce-service subscriptions cross-service (설계 의도, d2에서 doc 업데이트), 테스트 부재(c2 범위) → out-of-scope PASS
+### 미완료: IMPL-016-c (Instacart adapter + BFF proxy), IMPL-016-d (Stripe decommission)
+### 연관 파일: db/migrations/0009_tier-sync-idempotency.sql, services/user-service/src/middleware/internal-jwt.ts
