@@ -21,6 +21,7 @@
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
   }
 }
