@@ -2004,3 +2004,59 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0 (no errors), `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: Sprint B 002-4d 완료 — IMPL-APP-002 (Sprint B) 전체 22개 청크 완료.
 ### 연관 파일: apps/web/src/app/(app)/recipes/[id]/, apps/web/src/app/(app)/dashboard/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-003-batch1
+commit_sha: 1a0b760
+files_changed:
+  - apps/web/src/app/api/users/me/route.ts
+  - apps/web/src/app/(app)/layout.tsx
+  - apps/web/src/app/(app)/_components/UserProvider.tsx
+  - apps/web/src/lib/user-context.tsx
+  - apps/web/src/components/TierGate.tsx
+  - apps/web/src/components/TierGate.module.css
+  - apps/web/src/app/(app)/error.tsx
+  - apps/web/src/app/(auth)/error.tsx
+  - apps/web/src/app/(onboarding)/error.tsx
+  - apps/web/src/app/(marketing)/error.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint C 003-0c/003-0d/003-2b — root redirect + error boundaries + TierGate
+- BFF /users/me schema mismatch 수정: user-service flat User 응답을 UserWireSchema로 검증 후 { user: ... } 수동 래핑
+- 003-0c: root `/` → `/login` redirect (layout.tsx 제거, page.tsx redirect)
+- 003-0d: 모든 4개 route group에 `error.tsx` + `error.module.css` 추가 — `(app)`, `(auth)`, `(onboarding)`, `(marketing)`
+- 003-2b: UserContext/UserProvider (fetches /api/users/me), TierGate component (free < premium < elite rank 비교, loading/upgrade overlay)
+- AppLayout에 UserProvider 래핑
+- 검증: typecheck pass, lint pass, fe_token_hardcode pass
+### 미완료: 003-4a/4b BioProfileWizard steps 5-9
+### 연관 파일: apps/web/src/lib/user-context.tsx, apps/web/src/components/TierGate.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-003-batch2
+commit_sha: 3e6e4e7
+files_changed:
+  - apps/web/src/app/(app)/recipes/[id]/page.tsx
+  - apps/web/src/app/(app)/recipes/[id]/recipe-detail.module.css
+  - apps/web/src/app/(app)/celebrities/[slug]/page.tsx
+  - apps/web/src/app/(app)/track/TrackClient.tsx
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/middleware.ts
+  - apps/web/src/lib/nonce.ts
+  - apps/web/src/app/(app)/track/track.module.css
+  - apps/web/src/app/(app)/celebrities/[slug]/celebrity-detail.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint C 003-3a/003-6b/003-0e/003-1b/003-6a/003-0b
+- 003-3a: recipe detail에 Premium TierGate PersonalizedSection — /api/recipes/[id]/personalized 호출, scaling_factor + adjusted_nutrition + adjusted_servings 표시
+- 003-6b: DisclaimerBanner 컴포넌트를 celebrities/[slug], recipes/[id], track 페이지에 배선 (인라인 HEALTH_DISCLAIMER 상수 제거)
+- 003-0e: createProtectedRoute에 MIN_HANDLER_LATENCY_MS=100 패딩 — 인증 성공 후 핸들러 응답 시간 정규화 (IDOR 타이밍 공격 방지)
+- 003-1b: TrackClient에 QuickLogDrawer + FAB 추가 — 에너지/무드/수면 간편 로그, 저장 후 summary 자동 갱신
+- 003-6a: Celebrity Hero 확장 — 16:7 cinematic 비율, 이미지 없을 때 gradient placeholder, diet count 통계 pill
+- 003-0b: middleware.ts에 per-request nonce CSP + X-Content-Type-Options/X-Frame-Options/Referrer-Policy 헤더. getNonce() RSC 유틸리티 추가
+- 검증: typecheck pass, lint pass, fe_token_hardcode pass (3회 확인)
+### 미완료: 003-0a locale URL routing (D24 defer), 003-4a/4b BioProfileWizard steps 5-9 (OCR/AI 의존)
+### 연관 파일: apps/web/src/middleware.ts, apps/web/src/lib/nonce.ts, apps/web/src/app/(app)/track/TrackClient.tsx
