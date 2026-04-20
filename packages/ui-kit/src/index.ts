@@ -67,3 +67,10 @@ export type { SSOButtonProps, SSOProvider } from './components/SSOButton/SSOButt
 
 export { WizardShell } from './components/WizardShell/WizardShell.js';
 export type { WizardShellProps, WizardStep } from './components/WizardShell/WizardShell.js';
+
+export { CelebrityCard } from './components/CelebrityCard/CelebrityCard.js';
+export type {
+  CelebrityCardProps,
+  CelebrityCardData,
+  CelebrityCategory,
+} from './components/CelebrityCard/CelebrityCard.js';

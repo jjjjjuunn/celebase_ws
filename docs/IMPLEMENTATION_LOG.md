@@ -1779,3 +1779,26 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: display_name → /api/users/me PATCH (별도 청크 또는 003-*). /celebrities 페이지 — 002-3b.
 ### 연관 파일: apps/web/src/app/(onboarding)/onboarding/steps/, apps/web/src/app/(onboarding)/onboarding/page.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-3a-1
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/CelebrityCard/CelebrityCard.tsx
+  - packages/ui-kit/src/components/CelebrityCard/CelebrityCard.module.css
+  - packages/ui-kit/src/components/CelebrityCard/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/CelebrityCard.stories.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-3a-1 — CelebrityCard ui-kit composite
+- packages/ui-kit/src/components/CelebrityCard/CelebrityCard.tsx (NEW): `'use client'`. `CelebrityCardData` interface (slug, displayName, shortBio, avatarUrl, coverImageUrl, category, tags, isFeatured). `CelebrityCategory = 'diet'|'protein'|'vegetarian'|'general'`. `<article role="button">` + photo div (aspect-ratio 4/3, coverImageUrl 우선) + category `<Badge>` overlay + featured `<Badge>` overlay + body (h3 name + p subtitle). Enter/Space 키보드 접근성. onClick prop은 `(slug: string) => void`.
+- packages/ui-kit/src/components/CelebrityCard/CelebrityCard.module.css (NEW): card hover/focus-visible 애니메이션 (translateY -2px + shadow-lg + shadow-focus). photo overlay positioning. subtitle 2줄 line-clamp. 모든 색상/spacing은 --cb-* 토큰.
+- packages/ui-kit/src/components/CelebrityCard/index.ts (NEW): barrel re-export.
+- packages/ui-kit/src/index.ts: CelebrityCard / CelebrityCardProps / CelebrityCardData / CelebrityCategory barrel export 추가.
+- packages/ui-kit/stories/CelebrityCard.stories.tsx (NEW): Default/Featured/HighProtein/NoSubtitle/WithCoverImage 5개 스토리.
+- 검증: `pnpm --filter ui-kit build` pass (15 CSS 복사), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` 0 warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: CategoryTabs composite — 002-3a-2. /celebrities 페이지 — 002-3b.
+### 연관 파일: packages/ui-kit/src/components/CelebrityCard/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/CelebrityCard.stories.tsx
