@@ -3,8 +3,16 @@ import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import { UnauthorizedError } from "../errors.js";
 
 export interface JwtAuthOptions {
-  /** Additional public paths for this service (exact match). */
+  /** Additional public paths for this service. Exact match OR prefix wildcard (e.g. "/internal/*"). */
   readonly publicPaths?: readonly string[];
+}
+
+function isPublicPath(urlPath: string, publicPaths: ReadonlySet<string>): boolean {
+  if (publicPaths.has(urlPath)) return true;
+  for (const pattern of publicPaths) {
+    if (pattern.endsWith("/*") && urlPath.startsWith(pattern.slice(0, -1))) return true;
+  }
+  return false;
 }
 
 interface JwtConfig {
@@ -63,7 +71,7 @@ export function registerJwtAuth(app: FastifyInstance, opts?: JwtAuthOptions): vo
     // eslint-disable-next-line @typescript-eslint/require-await
     app.addHook("onRequest", async (request: FastifyRequest) => {
       const urlPath = request.url.split("?")[0];
-      if (urlPath !== undefined && publicPaths.has(urlPath)) return;
+      if (urlPath !== undefined && isPublicPath(urlPath, publicPaths)) return;
 
       const token = extractToken(request);
       if (token) {
@@ -91,7 +99,7 @@ export function registerJwtAuth(app: FastifyInstance, opts?: JwtAuthOptions): vo
 
   app.addHook("onRequest", async (request: FastifyRequest, _reply: FastifyReply) => {
     const urlPath = request.url.split("?")[0];
-    if (urlPath !== undefined && publicPaths.has(urlPath)) return;
+    if (urlPath !== undefined && isPublicPath(urlPath, publicPaths)) return;
 
     const token = extractToken(request);
     if (!token) throw new UnauthorizedError("Missing or malformed Authorization header");

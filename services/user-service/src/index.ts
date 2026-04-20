@@ -9,6 +9,8 @@ import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
 import { dailyLogRoutes } from './routes/daily-log.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { subscriptionRoutes } from './routes/subscription.routes.js';
+import { internalRoutes } from './routes/internal.routes.js';
+import { registerInternalJwtAuth } from './middleware/internal-jwt.js';
 import type { AuthProvider } from './services/auth.service.js';
 import { DevAuthProvider } from './services/auth.service.js';
 import { CognitoAuthProvider } from './services/cognito-auth.provider.js';
@@ -22,9 +24,13 @@ const start = async (): Promise<void> => {
 
   const app = await createApp({ serviceName: 'user-service' });
 
+  // External JWT guard — skips /internal/* (protected by internal JWT guard instead)
   registerJwtAuth(app, {
-    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe'],
+    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe', '/internal/*'],
   });
+
+  // Internal JWT guard — strict iss/aud/jti validation for /internal/* routes
+  registerInternalJwtAuth(app);
 
   // Auth routes (public — no JWT required)
   // Prod guards are enforced by EnvSchema.superRefine at startup; these are belt-and-suspenders.
@@ -63,6 +69,7 @@ const start = async (): Promise<void> => {
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(dailyLogRoutes, { pool });
+  await app.register(internalRoutes, { pool });
 
   // Stripe feature gate — /subscriptions/* only registers when STRIPE_ENABLED=true.
   if (env.STRIPE_ENABLED === 'true') {
