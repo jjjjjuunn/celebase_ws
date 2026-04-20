@@ -20,11 +20,11 @@ export async function createCart(opts: CreateCartOpts): Promise<CartResult> {
     return { source: 'instacart', url: icResult.checkoutUrl } as const;
   } catch (error) {
     if (error instanceof InstacartUnavailableError) {
-      log.warn('instacart.fallback.chain', {
+      log.warn({
         primary: 'instacart',
         selected: 'amazon_fresh',
         reason: error.message,
-      });
+      }, 'instacart.fallback.chain');
     } else {
       throw error;
     }
@@ -37,18 +37,18 @@ export async function createCart(opts: CreateCartOpts): Promise<CartResult> {
 
   const regionalUrl = process.env.REGIONAL_GROCER_URL ?? '';
   if (regionalUrl) {
-    log.warn('instacart.fallback.chain', {
+    log.warn({
       primary: 'instacart',
       selected: 'regional',
       reason: 'amazon_fresh_empty',
-    });
+    }, 'instacart.fallback.chain');
     return { source: 'regional', url: regionalUrl } as const;
   }
 
-  log.warn('instacart.fallback.chain', {
+  log.warn({
     primary: 'instacart',
     selected: 'checklist',
     reason: 'regional_url_empty',
-  });
+  }, 'instacart.fallback.chain');
   return { source: 'checklist', items } as const;
 }
