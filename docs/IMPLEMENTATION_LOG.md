@@ -2746,7 +2746,7 @@ verified_by: codex-review
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-c2
-commit_sha: PENDING
+commit_sha: c896995
 files_changed:
   - services/commerce-service/src/repositories/instacart-orders.repository.ts
   - services/commerce-service/tests/integration/cart.integration.test.ts
