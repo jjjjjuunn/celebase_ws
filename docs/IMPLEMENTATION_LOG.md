@@ -1957,3 +1957,29 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter ui-kit typecheck` pass, `pnpm --filter ui-kit lint` 0 errors, `pnpm --filter ui-kit build` 17 CSS files copied. `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0, `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: /plans, /plans/[id], Confirm Plan island — 002-4c.
 ### 연관 파일: packages/ui-kit/src/components/WsStatusBanner/, apps/web/src/app/(app)/plans/new/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-4c
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/meal-plans/[id]/route.ts
+  - apps/web/src/app/(app)/plans/page.tsx
+  - apps/web/src/app/(app)/plans/plans-list.module.css
+  - apps/web/src/app/(app)/plans/[id]/page.tsx
+  - apps/web/src/app/(app)/plans/[id]/ConfirmPlan.tsx
+  - apps/web/src/app/(app)/plans/[id]/plan-detail.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-4c — /plans list + /plans/[id] detail + Confirm Plan island
+- apps/web/src/app/api/meal-plans/[id]/route.ts (MOD): PATCH handler 추가. `ConfirmRequestSchema = z.object({status: z.literal('active')})` 검증 → `fetchBff PATCH /meal-plans/{id}` → `MealPlanDetailResponseSchema` 반환.
+- apps/web/src/app/(app)/plans/page.tsx (NEW): `'use client'`. `fetcher('/api/meal-plans', {schema: MealPlanListResponseSchema})` fetch. 로딩/에러/empty/목록 상태. 목록: plan name + start-end date + STATUS_LABEL badge. 클릭 → `/plans/{id}`. `Link` 기반 "New Plan" CTA.
+- apps/web/src/app/(app)/plans/plans-list.module.css (NEW): 720px container. card hover + focus-visible. badge 색상 active/failed 변형. 모든 색상 --cb-* 토큰.
+- apps/web/src/app/(app)/plans/[id]/page.tsx (NEW): `'use client'`. `useParams` + `fetcher('/api/meal-plans/{id}')`. plan header (name + status badge + date range). `plan.status === 'completed'` 시 `<ConfirmPlan>` 렌더. DailyPlan 목록: day/date/kcal + 식사별 type+kcal. `onConfirmed` 시 `loadPlan()` 재호출.
+- apps/web/src/app/(app)/plans/[id]/ConfirmPlan.tsx (NEW): `'use client'`. `patchJson('/api/meal-plans/{id}', {status:'active'})`. idle/loading/error 로컬 state. `aria-busy` + `disabled` on loading. 에러 alert.
+- apps/web/src/app/(app)/plans/[id]/plan-detail.module.css (NEW): confirm section. dayCard + mealRow. 모든 색상 --cb-* 토큰.
+- 메모: `MealPlanStatus`에 `confirmed` 없음 — 활성화 상태는 `active`. `ConfirmRequestSchema`와 FE UI 모두 `active` 사용.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` exit 0, `pnpm --filter web test` 50/50 pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: recipe detail + dashboard — 002-4d.
+### 연관 파일: apps/web/src/app/(app)/plans/, apps/web/src/app/api/meal-plans/[id]/
