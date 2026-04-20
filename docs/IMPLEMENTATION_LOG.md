@@ -1603,3 +1603,25 @@ verified_by: claude-sonnet-4-6
 - apps/web/src/lib/__tests__/fetcher.test.ts (NEW): 13개 Jest 단위 테스트. `jest.spyOn(globalThis, 'fetch')` mock. 커버: /api/ 경로 강제, credentials same-origin, schema 검증 성공/실패(CLIENT_CONTRACT_VIOLATION), 204 No Content undefined 반환, 4xx FetcherError(status/code/message), tokenExpired 헤더 파싱, INVALID_JSON, postJson 메서드/바디.
 - 검증: `pnpm --filter web test` 38/38 pass (25 기존 + 13 신규), `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings.
 ### 연관 파일: apps/web/src/lib/useAuth.ts, apps/web/jest.setup.ts, apps/web/src/lib/__tests__/fetcher.test.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-1a-1
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/AuthCard/AuthCard.tsx
+  - packages/ui-kit/src/components/AuthCard/AuthCard.module.css
+  - packages/ui-kit/src/components/AuthCard/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/AuthCard.stories.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-1a-1 — AuthCard ui-kit composite
+- packages/ui-kit/src/components/AuthCard/AuthCard.tsx (NEW): 프레젠테이셔널 카드 래퍼. `'use client'` 불필요(훅 없음). Props: `title?: string`, `children?: ReactNode`, `footer?: ReactNode`, `className?: string`. 헤더(title 있을 때만 렌더), 바디(children), 푸터(있을 때만 경계선 포함) 3-zone 레이아웃.
+- packages/ui-kit/src/components/AuthCard/AuthCard.module.css (NEW): --cb-* 토큰만 사용. max-width 400px, --cb-color-surface 배경, --cb-color-border 테두리, --cb-radius-md, --cb-shadow-card. raw hex/px 0.
+- packages/ui-kit/src/index.ts: AuthCard + AuthCardProps 배럴 추가.
+- packages/ui-kit/stories/AuthCard.stories.tsx (NEW): Default / WithFooter / WithActions / NoTitle 4개 스토리.
+- 검증: `pnpm --filter ui-kit build` pass (12 CSS files copied), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: Storybook 서버 기동 후 시각 확인 (002-1b 페이지 구현 후 실제 사용처에서 검증 예정).
+### 연관 파일: packages/ui-kit/src/components/AuthCard/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/AuthCard.stories.tsx

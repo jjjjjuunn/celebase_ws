@@ -58,3 +58,6 @@ export type { SlotChipProps } from './components/SlotChip/SlotChip.js';
 
 export { SlotChipGroup } from './components/SlotChip/SlotChipGroup.js';
 export type { SlotChipGroupProps } from './components/SlotChip/SlotChipGroup.js';
+
+export { AuthCard } from './components/AuthCard/AuthCard.js';
+export type { AuthCardProps } from './components/AuthCard/AuthCard.js';
