@@ -2722,6 +2722,29 @@ verified_by: codex-review
 ---
 date: 2026-04-20
 agent: claude-sonnet-4-6
+task_id: IMPL-016-c1
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/src/adapters/instacart.adapter.ts
+  - services/commerce-service/src/adapters/amazon-fresh.adapter.ts
+  - services/commerce-service/src/services/cart-fallback.service.ts
+  - services/commerce-service/src/routes/cart.routes.ts
+  - services/commerce-service/src/types/cart.ts
+verified_by: codex-review
+---
+### 완료: Instacart adapter + fallback cascade (IMPL-016-c1)
+- instacart.adapter.ts: CircuitBreaker(threshold=5, cooldown=30s) + AbortController timeout 3s. `override cause/name` on InstacartUnavailableError (ES2022 lib). pino log.warn obj-first. `() => { controller.abort(); }` (no-confusing-void-expression 수정).
+- amazon-fresh.adapter.ts: affiliate URL 생성. `affiliateTag: string | undefined` (exactOptionalPropertyTypes — 옵셔널 프로퍼티 금지).
+- cart-fallback.service.ts: 4단계 cascade (instacart → amazon_fresh → regional → checklist). `InstacartUnavailableError` value import (import type 는 런타임에 지워지므로 instanceof 불가).
+- cart.routes.ts: POST /cart. Idempotency-Key 헤더 검증. Zod 입력 검증. `ON CONFLICT DO NOTHING` 제거 (instacart_orders에 UNIQUE constraint 없음). `async (scope)` → `(scope)` (require-await 수정).
+- types/cart.ts: CartItem, InstacartCartResult, CartResult, CartFallbackResult 타입.
+- gate-review PASS: Codex CRITICAL(subscription.repository.ts)은 b1 코드, HIGH(tests missing)는 c2에 위임 — 모두 out-of-scope.
+### 미완료: IMPL-016-c2 (integration tests + Pact contract), IMPL-016-c3 (BFF proxy + compose)
+### 연관 파일: services/commerce-service/src/adapters/, services/commerce-service/src/services/cart-fallback.service.ts, services/commerce-service/src/routes/cart.routes.ts
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
 task_id: IMPL-016-d1
 commit_sha: 67fb84e
 files_changed:
