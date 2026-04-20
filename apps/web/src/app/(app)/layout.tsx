@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { LogoutButton } from './_components/LogoutButton.js';
+import { UserProvider } from './_components/UserProvider.js';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const tNav = useTranslations('nav');
@@ -56,7 +57,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </nav>
         <LogoutButton />
       </aside>
-      <main style={{ padding: 32 }}>{children}</main>
+      <main style={{ padding: 32 }}>
+        <UserProvider>{children}</UserProvider>
+      </main>
     </div>
   );
 }
