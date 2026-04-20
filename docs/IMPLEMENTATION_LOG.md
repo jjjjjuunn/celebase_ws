@@ -1784,7 +1784,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-3a-1
-commit_sha: PENDING
+commit_sha: d6b1caf
 files_changed:
   - packages/ui-kit/src/components/CelebrityCard/CelebrityCard.tsx
   - packages/ui-kit/src/components/CelebrityCard/CelebrityCard.module.css
