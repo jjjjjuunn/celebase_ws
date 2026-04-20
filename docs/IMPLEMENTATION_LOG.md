@@ -1555,7 +1555,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-0e
-commit_sha: PENDING
+commit_sha: 49b47e2
 files_changed:
   - packages/shared-types/src/schemas/recipes.ts
   - apps/web/src/app/api/recipes/[id]/personalized/route.ts
