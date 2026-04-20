@@ -1896,7 +1896,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-19
 agent: claude-sonnet-4-6
 task_id: CHORE-005
-commit_sha: PENDING
+commit_sha: 20c5b92
 files_changed:
   - .github/workflows/ci.yml
 verified_by: claude-sonnet-4-6
