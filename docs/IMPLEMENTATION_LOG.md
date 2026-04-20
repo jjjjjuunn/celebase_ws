@@ -2065,7 +2065,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-003-batch3
-commit_sha: PENDING
+commit_sha: e1689a1
 files_changed:
   - apps/web/src/app/(app)/account/AccountClient.tsx
   - apps/web/src/app/(app)/account/account.module.css
