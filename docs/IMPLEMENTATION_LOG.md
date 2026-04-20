@@ -2173,7 +2173,7 @@ verified_by: codex-review
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-d1
-commit_sha: PENDING
+commit_sha: 67fb84e
 files_changed:
   - services/user-service/src/index.ts
   - services/user-service/src/env.ts
