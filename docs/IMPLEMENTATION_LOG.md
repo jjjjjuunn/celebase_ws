@@ -1573,7 +1573,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-0f-1
-commit_sha: PENDING
+commit_sha: 0896042
 files_changed:
   - apps/web/src/app/api/auth/authorize-url/route.ts
   - apps/web/src/app/api/auth/callback/route.ts
