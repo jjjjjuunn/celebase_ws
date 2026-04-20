@@ -1672,3 +1672,31 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_bff_compliance` `{passed:true}`.
 ### 미완료: 브라우저 E2E — Playwright MCP로 /login?error=AUTH_FAILED 렌더링 + 버튼 클릭 플로우 검증 (002-2b PROTECTED_PATHS 구현 후 전체 golden path 검증 예정).
 ### 연관 파일: apps/web/src/app/(auth)/, apps/web/src/i18n/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-2a
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/WizardShell/WizardShell.tsx
+  - packages/ui-kit/src/components/WizardShell/WizardShell.module.css
+  - packages/ui-kit/src/components/WizardShell/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/WizardShell.stories.tsx
+  - apps/web/src/app/(onboarding)/layout.tsx
+  - apps/web/src/app/(onboarding)/onboarding/page.tsx
+  - apps/web/src/app/(onboarding)/onboarding/wizard-schema.ts
+  - apps/web/src/app/(onboarding)/onboarding/onboarding.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-2a — BioProfileWizard shell + step router + shared schema
+- packages/ui-kit/src/components/WizardShell/WizardShell.tsx (NEW): `'use client';` 복합 컴포넌트. Props: `steps: WizardStep[]`, `currentStep: number`, `onNext/onBack`, `isNextDisabled?`, `nextLabel?/backLabel?`. `nav[aria-label="Wizard progress"]` + `ol[role="list"]` 스텝 도트 인디케이터. 완료/현재/미완 상태 CSS 클래스. `aria-current="step"` 현재 스텝 마킹. 마지막 스텝에서 'Finish' 버튼으로 전환. `@typescript-eslint/restrict-template-expressions` 규칙 준수 (`String(index + 1)`).
+- packages/ui-kit/src/components/WizardShell/WizardShell.module.css (NEW): 4-zone 레이아웃 (progress/content/footer). --cb-* 토큰만 사용. 스텝 도트 transition scale 효과.
+- packages/ui-kit/stories/WizardShell.stories.tsx (NEW): Interactive / Step1 / Step3 / LastStep / NextDisabled 5개 스토리.
+- apps/web/src/app/(onboarding)/layout.tsx (NEW): 풀스크린 센터 레이아웃. 사이드바 없는 온보딩 전용 컨텍스트. max-width 560px.
+- apps/web/src/app/(onboarding)/onboarding/wizard-schema.ts (NEW): WizardStep1~4Schema (Zod) + WizardFormSchema 통합 + emptyWizardForm 팩토리. PHI 필드(step3: allergies/intolerances/medical_conditions/medications)는 로그/분석 제외.
+- apps/web/src/app/(onboarding)/onboarding/page.tsx (NEW): `'use client';` 온보딩 페이지. 4-step 라우팅 useState. WizardShell 렌더. 002-2b/2c에서 실제 폼 필드 추가 예정.
+- 검증: `pnpm --filter ui-kit build` pass (14 CSS), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` pass, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: 실제 폼 필드는 002-2b (steps 1+2) / 002-2c (steps 3+4)에서 구현. middleware PROTECTED_PATHS(/onboarding 보호)는 002-2b.
+### 연관 파일: packages/ui-kit/src/components/WizardShell/, apps/web/src/app/(onboarding)/

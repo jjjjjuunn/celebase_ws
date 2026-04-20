@@ -1,0 +1,6 @@
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-4);
+  min-height: 200px;
+}

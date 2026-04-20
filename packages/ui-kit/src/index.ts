@@ -64,3 +64,6 @@ export type { AuthCardProps } from './components/AuthCard/AuthCard.js';
 
 export { SSOButton } from './components/SSOButton/SSOButton.js';
 export type { SSOButtonProps, SSOProvider } from './components/SSOButton/SSOButton.js';
+
+export { WizardShell } from './components/WizardShell/WizardShell.js';
+export type { WizardShellProps, WizardStep } from './components/WizardShell/WizardShell.js';

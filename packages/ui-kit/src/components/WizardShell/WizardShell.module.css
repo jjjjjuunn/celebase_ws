@@ -1,0 +1,125 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  gap: var(--cb-space-8);
+}
+
+/* Progress nav */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+  align-items: center;
+}
+
+.stepList {
+  display: flex;
+  gap: var(--cb-space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--cb-radius-pill);
+  background: var(--cb-color-border);
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.current .stepDot {
+  background: var(--cb-color-brand);
+  transform: scale(1.4);
+}
+
+.completed .stepDot {
+  background: var(--cb-brand-600);
+  opacity: 0.6;
+}
+
+.stepCounter {
+  margin: 0;
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-muted);
+  line-height: var(--cb-line-height-body);
+  text-align: center;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-4);
+}
+
+/* Footer nav */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cb-space-3);
+  padding-top: var(--cb-space-6);
+  border-top: 1px solid var(--cb-color-border);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cb-space-3) var(--cb-space-6);
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-md);
+  font-weight: var(--cb-font-weight-medium);
+  line-height: var(--cb-line-height-tight);
+  border-radius: var(--cb-radius-md);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+  user-select: none;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn:focus-visible {
+  box-shadow: var(--cb-shadow-focus);
+}
+
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btnBack {
+  background: transparent;
+  color: var(--cb-color-text);
+  border: 1px solid var(--cb-color-border);
+}
+
+.btnBack:hover:not(:disabled) {
+  background: var(--cb-brand-50);
+}
+
+.btnNext {
+  flex: 1;
+  background: var(--cb-brand-600);
+  color: var(--cb-cta-text);
+  border: 1px solid var(--cb-brand-600);
+}
+
+.btnNext:hover:not(:disabled) {
+  background: var(--cb-brand-700);
+  border-color: var(--cb-brand-700);
+}
