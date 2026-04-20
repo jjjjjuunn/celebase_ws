@@ -1756,3 +1756,26 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: Steps 3+4 (Health Info + Goals & Preferences) — 002-2c. /onboarding submit to /api/users/me/bio-profile — 002-2c.
 ### 연관 파일: apps/web/middleware.ts, apps/web/src/app/(onboarding)/onboarding/steps/, apps/web/src/app/(onboarding)/onboarding/page.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-2c
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(onboarding)/onboarding/page.tsx
+  - apps/web/src/app/(onboarding)/onboarding/onboarding.module.css
+  - apps/web/src/app/(onboarding)/onboarding/steps/steps.module.css
+  - apps/web/src/app/(onboarding)/onboarding/steps/Step3HealthInfo.tsx
+  - apps/web/src/app/(onboarding)/onboarding/steps/Step4GoalsPrefs.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-2c — wizard steps 3+4 + bio-profile submit
+- steps/Step3HealthInfo.tsx (NEW): `'use client'`. PHI 면책 문구 표시. `TagInput` 내부 컴포넌트 — Input + Chip 조합, Enter/Comma 키 태그 추가, Backspace 마지막 태그 삭제, onBlur 확정. 4개 필드: allergies, intolerances, medical_conditions, medications.
+- steps/Step4GoalsPrefs.tsx (NEW): `'use client'`. primary_goal(SelectField, 5 옵션 필수) + diet_type(SelectField, 7 옵션 필수). WizardStep4 타입 캐스트.
+- steps/steps.module.css: `.tagList` (flex-wrap gap) + `.disclaimer` (xs muted 텍스트 박스) 클래스 추가.
+- onboarding.module.css: `.submitError` 클래스 추가 (--cb-danger-600 + --cb-border-error + --cb-danger-100).
+- page.tsx 전면 업데이트: WizardStep4Schema.safeParse case 3 추가; renderStep() case 2+3 Step3/Step4 컴포넌트 렌더; `handleSubmit()` async — POST /api/users/me/bio-profile (WizardForm→CreateBioProfileRequest 매핑); display_name은 TODO(/api/users/me PATCH); router.push('/celebrities') 성공 시; isSubmitting/submitError 상태로 버튼 비활성화 + 에러 표시.
+- 검증: `pnpm --filter web typecheck` pass, `pnpm --filter web lint` 0 new warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: display_name → /api/users/me PATCH (별도 청크 또는 003-*). /celebrities 페이지 — 002-3b.
+### 연관 파일: apps/web/src/app/(onboarding)/onboarding/steps/, apps/web/src/app/(onboarding)/onboarding/page.tsx
