@@ -2774,7 +2774,7 @@ verified_by: jest-coverage
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-c3
-commit_sha: PENDING
+commit_sha: 740c7f8
 files_changed:
   - services/commerce-service/Dockerfile
   - docker-compose.yml
