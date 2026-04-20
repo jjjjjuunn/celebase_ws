@@ -2126,7 +2126,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-016-b1
-commit_sha: PENDING
+commit_sha: 4cd894a
 files_changed:
   - db/migrations/0008_processed-events.sql
   - services/commerce-service/src/repositories/processed-events.repository.ts
