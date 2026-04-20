@@ -1,4 +1,4 @@
-import { createApp, createPool } from '@celebbase/service-core';
+import { createApp, createPool, registerJwtAuth } from '@celebbase/service-core';
 import Stripe from 'stripe';
 import { EnvSchema } from './env.js';
 
@@ -6,13 +6,13 @@ const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
   const pool = createPool(env.DATABASE_URL);
 
-  // IMPL-016-a2: registerJwtAuth will be called with publicPaths inject after service-core refactor.
-  // For now, createApp() registers JWT auth with the hardcoded PUBLIC_PATHS set.
-  // '/webhooks/stripe' is already in the default set; '/ready' will be added in a2.
   const app = await createApp({ serviceName: 'commerce-service' });
 
+  registerJwtAuth(app, {
+    publicPaths: ['/webhooks/stripe'],
+  });
+
   // Deep readiness probe — verifies all external dependencies are reachable.
-  // IMPL-016-a2: '/ready' will be added to per-service publicPaths so it is truly public in production.
   app.get('/ready', async (_request, reply) => {
     const checks: Record<string, 'ok' | 'fail'> = {};
 
