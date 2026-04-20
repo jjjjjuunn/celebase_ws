@@ -1862,7 +1862,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-20
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-002-3b
-commit_sha: PENDING
+commit_sha: 423f351
 files_changed:
   - apps/web/src/app/(app)/celebrities/page.tsx
   - apps/web/src/app/(app)/celebrities/celebrities.module.css
