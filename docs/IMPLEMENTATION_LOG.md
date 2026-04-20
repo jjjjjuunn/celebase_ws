@@ -2773,6 +2773,26 @@ verified_by: jest-coverage
 ---
 date: 2026-04-20
 agent: claude-sonnet-4-6
+task_id: IMPL-016-c3
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/Dockerfile
+  - docker-compose.yml
+  - apps/web/src/app/api/webhooks/stripe/route.ts
+  - apps/web/.env.example
+verified_by: claude-sonnet-4-6
+---
+### 완료: BFF proxy 교체 + docker-compose + Dockerfile (IMPL-016-c3)
+- commerce-service/Dockerfile: user-service Dockerfile 기반. EXPOSE 3004 (content-service가 3002 점유 → 3004 사용).
+- docker-compose.yml: commerce-service 서비스 추가 (PORT=3004, STRIPE_ENABLED=false shadow deploy, depends_on: postgres+db-migrate).
+- webhooks/stripe/route.ts: USER_SERVICE_URL → COMMERCE_SERVICE_URL, 에러 메시지 "Commerce service unavailable" 업데이트.
+- .env.example: COMMERCE_SERVICE_URL=http://localhost:3004 추가.
+### 미완료: IMPL-016-d (Stripe decommission), Atomic flip + 48h canary, Pact provider verification
+### 연관 파일: services/commerce-service/Dockerfile, docker-compose.yml, apps/web/src/app/api/webhooks/stripe/route.ts, apps/web/.env.example
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
 task_id: IMPL-016-d1
 commit_sha: 67fb84e
 files_changed:
