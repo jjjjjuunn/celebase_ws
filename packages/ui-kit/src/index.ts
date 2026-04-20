@@ -74,3 +74,9 @@ export type {
   CelebrityCardData,
   CelebrityCategory,
 } from './components/CelebrityCard/CelebrityCard.js';
+
+export { CategoryTabs } from './components/CategoryTabs/CategoryTabs.js';
+export type {
+  CategoryTabsProps,
+  CategoryTabOption,
+} from './components/CategoryTabs/CategoryTabs.js';

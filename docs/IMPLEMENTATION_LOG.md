@@ -1802,3 +1802,26 @@ verified_by: claude-sonnet-4-6
 - 검증: `pnpm --filter ui-kit build` pass (15 CSS 복사), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` 0 warnings, `gate-check.sh fe_token_hardcode` `{passed:true}`.
 ### 미완료: CategoryTabs composite — 002-3a-2. /celebrities 페이지 — 002-3b.
 ### 연관 파일: packages/ui-kit/src/components/CelebrityCard/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/CelebrityCard.stories.tsx
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-3a-2
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx
+  - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.module.css
+  - packages/ui-kit/src/components/CategoryTabs/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/stories/CategoryTabs.stories.tsx
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-3a-2 — CategoryTabs ui-kit composite
+- packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx (NEW): `'use client'`. `CategoryTabOption` interface (value, label, count?, disabled?). `CategoryTabsProps` (id, options, value, onChange, ariaLabel). `role="tablist"` + `role="tab"` + `aria-selected` ARIA 패턴. `useRovingTabIndex` 훅으로 ←/→/Home/End 키보드 내비게이션. optional count 배지 (aria-label 포함).
+- packages/ui-kit/src/components/CategoryTabs/CategoryTabs.module.css (NEW): 수평 스크롤 가능 tablist. 탭 하단 2px 언더라인 선택 표시. `.tabSelected` — brand 색상 + semibold. count 배지는 selected 시 brand 배경색. focus-visible ring. hover 색상 전환. 모든 색상은 --cb-* 토큰.
+- packages/ui-kit/src/components/CategoryTabs/index.ts (NEW): barrel re-export.
+- packages/ui-kit/src/index.ts: CategoryTabs / CategoryTabsProps / CategoryTabOption barrel export 추가.
+- packages/ui-kit/stories/CategoryTabs.stories.tsx (NEW): Default/Controlled/NoCounts/WithDisabled 4개 스토리.
+- 검증: `pnpm --filter ui-kit build` pass (16 CSS 복사), `pnpm --filter web typecheck` pass, `pnpm --filter ui-kit lint` 0 errors, `gate-check.sh fe_token_hardcode` `{passed:true}`.
+### 미완료: /celebrities 페이지 — 002-3b.
+### 연관 파일: packages/ui-kit/src/components/CategoryTabs/, packages/ui-kit/src/index.ts, packages/ui-kit/stories/CategoryTabs.stories.tsx
