@@ -40,6 +40,19 @@ export const RecipeDetailResponseSchema = z.object({
 });
 export type RecipeDetailResponse = z.infer<typeof RecipeDetailResponseSchema>;
 
+// GET /recipes/:id/personalized — same recipe with user-specific serving/nutrition adjustments.
+// `scaling_factor` is the multiplier applied to ingredients/nutrition to meet the user's calorie
+// target. `adjusted_nutrition` reflects the scaled values for the user's serving size.
+export const PersonalizedRecipeResponseSchema = z.object({
+  recipe: RecipeWireSchema,
+  personalization: z.object({
+    scaling_factor: z.number().positive(),
+    adjusted_nutrition: NutritionSchema,
+    adjusted_servings: z.number().int().min(1),
+  }),
+});
+export type PersonalizedRecipeResponse = z.infer<typeof PersonalizedRecipeResponseSchema>;
+
 // Wire↔Row parity guard. `instructions` + `nutrition` are JSONB-shared via
 // InstructionStepSchema / NutritionSchema (same z.infer instance), so structural
 // parity is by construction — excluded from the top-level name/optionality check

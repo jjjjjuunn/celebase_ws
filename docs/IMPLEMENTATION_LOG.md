@@ -1550,3 +1550,21 @@ verified_by: claude-sonnet-4-6
 - Stripe webhook + actual Stripe SDK integration은 002-0e에서 처리.
 - 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web lint` warnings 0 (pre-existing bff-error.ts warning only), `gate-check.sh fe_bff_compliance` `{passed:true}`, `gate-check.sh fe_token_hardcode` `{passed:true}`, `gate-check.sh fe_contract_check` `{passed:true}`.
 ### 연관 파일: packages/shared-types/src/schemas/subscriptions.ts, apps/web/src/app/api/subscriptions/
+
+---
+date: 2026-04-19
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002-0e
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/recipes.ts
+  - apps/web/src/app/api/recipes/[id]/personalized/route.ts
+  - apps/web/src/app/api/webhooks/stripe/route.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: Sprint B 002-0e — Stripe webhook BFF + personalized recipe BFF
+- packages/shared-types/src/schemas/recipes.ts: `PersonalizedRecipeResponseSchema {recipe: RecipeWireSchema, personalization: {scaling_factor, adjusted_nutrition: NutritionSchema, adjusted_servings}}` 추가.
+- apps/web/src/app/api/recipes/[id]/personalized/route.ts (NEW): GET, `createProtectedRoute`, content 서비스 `/recipes/:id/personalized` 프록시, `PersonalizedRecipeResponseSchema` 검증.
+- apps/web/src/app/api/webhooks/stripe/route.ts (NEW): POST, 인증 없음(Stripe 시그니처 방식). raw body 보존(`req.text()`) + `Stripe-Signature` 헤더 포워딩 → user-service 직접 fetch (fetchBff 우회). `USER_SERVICE_URL` env allowlist 사용 (SSRF 방지). Stripe 시그니처 검증은 BE(user-service) 책임. 10초 타임아웃.
+- 검증: `pnpm --filter shared-types build` pass, `pnpm --filter web typecheck` pass, `pnpm --filter web lint` warnings 0, `gate-check.sh fe_bff_compliance` `{passed:true}`.
+### 연관 파일: packages/shared-types/src/schemas/recipes.ts, apps/web/src/app/api/recipes/[id]/personalized/, apps/web/src/app/api/webhooks/stripe/
