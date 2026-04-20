@@ -126,4 +126,11 @@ resource "aws_cognito_user_pool_client" "smoke" {
   ]
 
   prevent_user_existence_errors = "ENABLED"
+
+  lifecycle {
+    precondition {
+      condition     = var.environment != "prod"
+      error_message = "enable_smoke_client must not be true in production; set enable_smoke_client=false."
+    }
+  }
 }

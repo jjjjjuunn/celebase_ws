@@ -110,11 +110,11 @@ export const EnvSchema = z
 
     // COGNITO_LIVE_JWKS staging guard
     if (env.COGNITO_LIVE_JWKS) {
-      if (!env.COGNITO_ENVIRONMENT?.includes('staging')) {
+      if (env.COGNITO_ENVIRONMENT !== 'staging') {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            'COGNITO_ENVIRONMENT must include "staging" when COGNITO_LIVE_JWKS is set (prod pool guard)',
+            'COGNITO_ENVIRONMENT must be exactly "staging" when COGNITO_LIVE_JWKS is set (prod pool guard)',
           path: ['COGNITO_ENVIRONMENT'],
         });
       }
