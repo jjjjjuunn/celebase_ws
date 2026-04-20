@@ -6,29 +6,40 @@ import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet, jwtVerify, type
 import type pg from 'pg';
 import { UnauthorizedError } from '@celebbase/service-core';
 import type { AuthProvider, AuthTokens, AuthTokenSubject, IdTokenPayload } from '../../src/services/auth.service.js';
-import { issueInternalTokens } from '../../src/services/auth.service.js';
 
 // ── 저장소 mock ──────────────────────────────────────────────
 
+const mockFindByCognitoSub = jest.fn();
+const mockFindByEmail = jest.fn();
+const mockFindAndUpdateCognitoSubByEmail = jest.fn();
+const mockCreate = jest.fn();
+const mockUpdateCognitoSub = jest.fn();
+
 jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
-  findByCognitoSub: jest.fn(),
-  findByEmail: jest.fn(),
-  findAndUpdateCognitoSubByEmail: jest.fn(),
-  create: jest.fn(),
-  updateCognitoSub: jest.fn(),
+  findByCognitoSub: mockFindByCognitoSub,
+  findByEmail: mockFindByEmail,
+  findAndUpdateCognitoSubByEmail: mockFindAndUpdateCognitoSubByEmail,
+  create: mockCreate,
+  updateCognitoSub: mockUpdateCognitoSub,
 }));
+
+const mockInsert = jest.fn();
+const mockRevokeForRotation = jest.fn();
+const mockFindMetadata = jest.fn();
+const mockRevokeForLogout = jest.fn();
+const mockRevokeChainForLogout = jest.fn();
+const mockRevokeAllByUser = jest.fn();
+
 jest.unstable_mockModule('../../src/repositories/refresh-token.repository.js', () => ({
-  insert: jest.fn(),
-  revokeForRotation: jest.fn(),
-  findMetadata: jest.fn(),
-  revokeForLogout: jest.fn(),
-  revokeChainForLogout: jest.fn(),
-  revokeAllByUser: jest.fn(),
+  insert: mockInsert,
+  revokeForRotation: mockRevokeForRotation,
+  findMetadata: mockFindMetadata,
+  revokeForLogout: mockRevokeForLogout,
+  revokeChainForLogout: mockRevokeChainForLogout,
+  revokeAllByUser: mockRevokeAllByUser,
 }));
 
 const { authRoutes } = await import('../../src/routes/auth.routes.js');
-const userRepo = await import('../../src/repositories/user.repository.js');
-const refreshTokenRepo = await import('../../src/repositories/refresh-token.repository.js');
 
 // ── 로컬 JWKS 세팅 ───────────────────────────────────────────
 
@@ -84,8 +95,9 @@ class LocalCognitoTestProvider implements AuthProvider {
     }
   }
 
-  async issueTokens(_client: pg.Pool | pg.PoolClient, subject: AuthTokenSubject): Promise<AuthTokens> {
-    return issueInternalTokens({} as pg.Pool, subject);
+  async issueTokens(client: pg.Pool | pg.PoolClient, subject: AuthTokenSubject): Promise<AuthTokens> {
+    const { issueInternalTokens } = await import('../../src/services/auth.service.js');
+    return issueInternalTokens(client as pg.Pool, subject);
   }
 }
 
@@ -171,14 +183,14 @@ describe('Cognito AuthProvider Integration', () => {
 
   it('T1: valid id_token login', async () => {
     const token = await mintIdToken();
-    (userRepo.findByCognitoSub as jest.Mock).mockResolvedValueOnce({
+    mockFindByCognitoSub.mockResolvedValueOnce({
       id: 'user-id-1',
       email: 'test@example.com',
       cognito_sub: 'cognito-sub-real-123',
       display_name: 'Test',
       deleted_at: null,
     });
-    (refreshTokenRepo.insert as jest.Mock).mockResolvedValueOnce(undefined);
+    mockInsert.mockResolvedValueOnce(undefined);
     const res = await app.inject({
       method: 'POST',
       url: '/auth/login',
@@ -223,8 +235,8 @@ describe('Cognito AuthProvider Integration', () => {
 
   it('T5: kid rotation both succeed', async () => {
     const tokenB = await mintIdToken({ kid: kidB, privateKey: privateKeyB });
-    (userRepo.findByCognitoSub as jest.Mock).mockResolvedValue({ id: 'x', email: 'test@example.com', cognito_sub: 'cognito-sub-real-123', display_name: 'Test', deleted_at: null });
-    (refreshTokenRepo.insert as jest.Mock).mockResolvedValue(undefined);
+    mockFindByCognitoSub.mockResolvedValue({ id: 'x', email: 'test@example.com', cognito_sub: 'cognito-sub-real-123', display_name: 'Test', deleted_at: null });
+    mockInsert.mockResolvedValue(undefined);
     let res = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'test@example.com', id_token: tokenB } });
     expect(res.statusCode).toBe(200);
 

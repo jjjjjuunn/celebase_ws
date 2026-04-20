@@ -32,7 +32,7 @@ async function runPhaseA(): Promise<void> {
   if (!location.includes('/login') && !location.includes('oauth2')) {
     throw new Error(`Phase A FAIL: unexpected redirect location: ${location.slice(0, 100)}`);
   }
-  console.log(JSON.stringify({ phase: 'A', status: 'pass', statusCode: r.status }));
+  process.stdout.write(JSON.stringify({ phase: 'A', status: 'pass', statusCode: r.status }) + '\n');
 }
 
 async function runPhaseB(): Promise<void> {
@@ -90,26 +90,26 @@ async function runPhaseB(): Promise<void> {
     const { decodeProtectedHeader, decodeJwt } = await import('jose');
     const jtiPrefix = (decodeJwt(tokens.access_token).jti as string | undefined)?.slice(0, 8) ?? 'n/a';
     const kidPrefix = decodeProtectedHeader(idToken).kid?.slice(0, 8) ?? 'n/a';
-    console.log(JSON.stringify({ phase: 'B', status: 'pass', jtiPrefix, kidPrefix }));
+    process.stdout.write(JSON.stringify({ phase: 'B', status: 'pass', jtiPrefix, kidPrefix }) + '\n');
 
   } finally {
     await cognito.send(new AdminDeleteUserCommand({
       UserPoolId: env.COGNITO_USER_POOL_ID,
       Username: smokeEmail,
     })).catch((err: unknown) => {
-      console.error('cleanup failed:', err instanceof Error ? err.name : String(err));
+      process.stderr.write('cleanup failed: ' + (err instanceof Error ? err.name : String(err)) + '\n');
     });
   }
 }
 
 async function main(): Promise<void> {
-  console.log('=== Cognito Smoke Test ===');
+  process.stdout.write('=== Cognito Smoke Test ===\n');
   await runPhaseA();
   await runPhaseB();
-  console.log('✅ All phases passed.');
+  process.stdout.write('All phases passed.\n');
 }
 
 main().catch((err: unknown) => {
-  console.error('FAIL:', err instanceof Error ? err.message : String(err));
+  process.stderr.write('FAIL: ' + (err instanceof Error ? err.message : String(err)) + '\n');
   process.exit(1);
 });
