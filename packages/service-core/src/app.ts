@@ -7,7 +7,6 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from './errors.js';
 import { BaseConfigSchema } from './config.js';
 import { createLogger } from './logger.js';
-import { registerJwtAuth } from './middleware/jwt.js';
 
 export interface CreateAppOptions {
   serviceName: string;
@@ -64,9 +63,6 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
       },
     });
   });
-
-  // JWT authentication — JWKS verification in production, stub in dev/test
-  registerJwtAuth(app);
 
   return app;
 }

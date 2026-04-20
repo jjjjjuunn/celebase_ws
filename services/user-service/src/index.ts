@@ -1,4 +1,4 @@
-import { createApp, createPool, EnvPhiKeyProvider } from '@celebbase/service-core';
+import { createApp, createPool, EnvPhiKeyProvider, registerJwtAuth } from '@celebbase/service-core';
 import { createClient } from 'redis';
 import type { RedisClientType } from 'redis';
 import Stripe from 'stripe';
@@ -21,6 +21,10 @@ const start = async (): Promise<void> => {
   await redis.connect();
 
   const app = await createApp({ serviceName: 'user-service' });
+
+  registerJwtAuth(app, {
+    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/webhooks/stripe'],
+  });
 
   // Auth routes (public — no JWT required)
   // Prod guards are enforced by EnvSchema.superRefine at startup; these are belt-and-suspenders.
