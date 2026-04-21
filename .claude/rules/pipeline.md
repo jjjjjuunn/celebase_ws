@@ -89,7 +89,7 @@ HANDOFF Anti-Patterns 섹션에 아래 항목을 반드시 포함한다:
 - **에러 클래스 `instanceof` — value import 필수**: `import type { ErrClass }` 는 런타임 소거 → `instanceof` 항상 false. `import { ErrClass }` (value) 사용
 - **pino `log.warn` 인자 순서**: `log.warn({ data }, 'event')` — object 먼저, string 나중 (console.warn 과 반대)
 - **Error 서브클래스 `override` 필수**: `cause`, `name` 등 Error 기반 멤버 재선언 시 `override` 키워드 필수 (`noImplicitOverride` + ES2022 lib)
-- **`app.register` 콜백 `async` 제거**: 콜백 내부에 `await` 없으면 `async` 키워드 삭제 (`require-await` lint rule)
+- **`app.register` 콜백 `async` 제거**: 콜백 내부에 `await` 없으면 `async` 키워드 삭제 (`require-await` lint rule). **HANDOFF 스펙에서도** `await` 없는 Fastify 플러그인은 `function pluginName(...): void` sync 시그니처로 작성 — `async function ... Promise<void>` 로 명시하면 Codex가 그대로 따라 `require-await` lint 에러 발생 (IMPL-016-d1 교훈)
 - **`no-confusing-void-expression`**: `setTimeout(() => fn(), ms)` 에서 fn() 이 void 면 블록 형태 `() => { fn(); }` 사용
 
 ### Fastify module augmentation `import 'fastify'` 선두 필수 (IMPL-016-b2 교훈)
@@ -185,6 +185,23 @@ export async function updateTier(
   log: FastifyBaseLogger,
 ): Promise<UpdateTierResult>
 ```
+
+### 삭제 + 대체 파일 패턴 시 대체 코드 테스트 필수 (IMPL-016-d1 교훈)
+
+파일을 삭제하고 대체 파일을 작성하는 패턴에서:
+
+1. **삭제 파일의 기존 테스트도 함께 삭제**한다 (stale import 로 인한 "Cannot find module" 실패 방지).
+2. **대체 파일에 대한 새 테스트를 반드시 작성**한다 (Codex review 가 "Missing tests" HIGH 로 리포트하는 원인).
+3. **HANDOFF Acceptance Criteria에 신규 함수/라우트 테스트 통과 조건을 명시**한다.
+
+```markdown
+## Acceptance Criteria
+- [ ] `findTierByUserId` 단위 테스트 통과 (3 tests)
+- [ ] `GET /subscriptions/me` 통합 테스트 통과 (2 tests)
+- [ ] `POST /subscriptions`, `POST /webhooks/stripe` 라우트 부재 확인 테스트 통과 (3 tests)
+```
+
+이유: 대체 파일만 작성하고 테스트를 추가하지 않으면 Codex review 에서 HIGH "Missing unit/integration tests" finding 이 발생하여 gate-review 재실행이 필요해진다.
 
 ### CODEX-HANDOFF 크기 제한 (필수)
 
@@ -310,6 +327,16 @@ python3 -m venv services/meal-plan-engine/.venv
 Codex QA 프롬프트에 `.venv/bin/python -m pytest` 경로를 명시한다. 그래도 가짜 `pytest/` 디렉토리가 생성되면 `gate-check.sh`의 `check_fake_stubs()`가 자동 탐지하여 gate FAIL 처리한다.
 
 gate-qa 판정 시 Claude가 직접 `python3 -m pytest`를 실행해 실제 통과 여부를 이중 확인한다.
+
+### 신규 서비스 포트 할당 전 compose 상태 확인 (IMPL-016-c3 교훈)
+
+신규 서비스의 포트를 plan 에 명시하기 전, 반드시 `docker-compose.yml` 의 실제 포트 매핑을 확인한다:
+
+```bash
+grep -A1 'ports:' docker-compose.yml
+```
+
+plan 작성 시점의 포트 번호가 이후 compose 에 추가된 다른 서비스와 충돌할 수 있다. IMPL-016 plan 은 commerce-service 를 3002 로 명시했으나 content-service 가 이미 3002:3002 를 점유하고 있어 3004 로 재할당했다.
 
 ## Adaptive Review Intensity Policy
 

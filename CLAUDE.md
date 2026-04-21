@@ -46,6 +46,7 @@
 | `.claude/rules/evaluator-runtime.md` | Evaluator 검증 순서, 브라우저 런타임 검증, 리포트 형식 |
 | `.claude/rules/spec-dod.md` | spec.md DoD 해석 규칙, 근거 유형, 3층 구조 |
 | `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
+| `services/commerce-service/docs/openapi.yaml` | commerce-service OpenAPI 3.1 스펙 (결제·구독·장바구니 경계, IMPL-016) |
 
 ## 4. Workflow
 

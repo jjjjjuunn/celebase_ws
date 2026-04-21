@@ -9,10 +9,10 @@ paths:
 
 | Service | Owns Tables | Can Call |
 |---------|-------------|----------|
-| user-service | users, bio_profiles, subscriptions | - |
+| user-service | users, bio_profiles | - |
 | content-service | celebrities, base_diets, recipes, ingredients, recipe_ingredients | - |
 | meal-plan-engine | meal_plans | user-service, content-service |
-| commerce-service | instacart_orders | user-service, content-service, meal-plan-engine |
+| commerce-service | subscriptions, processed_events, instacart_orders | user-service, content-service, meal-plan-engine |
 | analytics-service | daily_logs | user-service |
 | social-bot (marketing) | content_research, content_posts | content-service |
 
