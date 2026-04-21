@@ -1,6 +1,7 @@
 import { createApp, createPool, registerJwtAuth } from '@celebbase/service-core';
 import { EnvSchema } from './env.js';
 import { dailyLogRoutes } from './routes/daily-log.routes.js';
+import { reportsRoutes } from './routes/reports.routes.js';
 import { startMviewRefreshScheduler } from './lib/mview-refresh.scheduler.js';
 
 const PUBLIC_PATHS = ['/health', '/ready', '/docs', '/docs/json'] as const;
@@ -13,6 +14,7 @@ const start = async (): Promise<void> => {
   registerJwtAuth(app, { publicPaths: [...PUBLIC_PATHS] });
 
   await app.register(dailyLogRoutes, { pool });
+  await app.register(reportsRoutes, { pool });
 
   app.get('/health', async (_request, reply) => {
     void reply.status(200).send({ status: 'ok' });
