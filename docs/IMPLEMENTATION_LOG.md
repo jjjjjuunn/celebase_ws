@@ -2219,3 +2219,27 @@ verified_by: codex-review
 - Codex가 따옴표 누락(analytics 변수 참조), ANALYTICS_SERVICE_URL 미추가, route 파일 미수정 → Claude 직접 수정
 ### 미완료: IMPL-017-d1 (user-service daily-log decommission), IMPL-017-d2 (문서 업데이트), Codex review for c1+c2
 ### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/daily-logs/
+
+---
+date: 2026-04-21
+agent: claude-sonnet-4-6 + codex-o3
+task_id: IMPL-017-d1
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/daily-log.routes.ts (deleted)
+  - services/user-service/src/services/daily-log.service.ts (deleted)
+  - services/user-service/src/repositories/daily-log.repository.ts (deleted)
+  - services/user-service/tests/unit/daily-log.service.test.ts (deleted)
+verified_by: codex-qa
+---
+### 완료: user-service daily-log 코드 완전 제거 (IMPL-017-d1)
+- daily-log.routes.ts 삭제 (POST /daily-logs, GET /daily-logs, GET /daily-logs/summary 제거)
+- daily-log.service.ts 삭제 (createOrUpdate, listByRange, getSummary 제거)
+- daily-log.repository.ts 삭제 (upsert, findByDateRange, getSummary 쿼리 제거)
+- tests/unit/daily-log.service.test.ts 삭제
+- src/index.ts: dailyLogRoutes import (line 9) + app.register(dailyLogRoutes) (line 71) 삭제
+- 검증: rg 'daily.log|daily_log|dailyLog' services/user-service/ → 0건, typecheck 0 errors, lint 0 warnings, test 12/12 suites 99/99 tests
+- daily_logs 테이블 소유권은 analytics-service로 완전 이관 (BFF는 c2에서 이미 전환 완료)
+### 미완료: IMPL-017-d2 (tasks.yaml + api-conventions.md + CLAUDE.md 문서 업데이트)
+### 연관 파일: services/user-service/src/, services/user-service/tests/unit/
