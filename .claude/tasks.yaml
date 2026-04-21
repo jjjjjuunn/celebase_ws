@@ -415,17 +415,17 @@ tasks:
 
   - id: IMPL-016
     title: "commerce-service 분리 — Stripe + Instacart 서비스 경계 분리"
-    owner: agent-claude-sonnet-4-6
+    owner: agent-claude-sonnet-4-6 + agent-codex-o3
     dependsOn:
       - IMPL-010-f
       - CHORE-006
-    status: pending
+    status: done
     definitionOfDone:
-      - "commerce-service 신규 Fastify (Node.js/TS) 서비스 스캐폴드 (services/commerce-service/)"
-      - "Stripe 구독 로직 user-service → commerce-service 이전"
-      - "Instacart cart creation API 구현 (spec §6)"
-      - "user-service에서 commerce-service HTTP 클라이언트로 교체"
-      - "commerce-service Dockerfile + docker-compose 통합"
+      - "commerce-service 신규 Fastify (Node.js/TS) 서비스 스캐폴드 (services/commerce-service/) ✅"
+      - "Stripe 구독 로직 user-service → commerce-service 이전 ✅"
+      - "Instacart cart creation API 구현 (spec §6) ✅"
+      - "user-service에서 commerce-service HTTP 클라이언트로 교체 ✅"
+      - "commerce-service Dockerfile + docker-compose 통합 ✅"
 
   - id: IMPL-017
     title: "analytics-service 분리 — daily-log 집계/리포팅 서비스"
