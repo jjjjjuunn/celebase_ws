@@ -38,7 +38,8 @@ export interface AuthProvider {
 
 // ── Internal token helpers (shared across providers) ──────────────────────
 
-const DEFAULT_DEV_SECRET = 'dev-internal-secret-32-chars-pad';
+export const DEV_INTERNAL_JWT_SECRET = 'dev-internal-secret-32-chars-pad';
+const DEFAULT_DEV_SECRET = DEV_INTERNAL_JWT_SECRET;
 const DEFAULT_INTERNAL_ISSUER = 'celebbase-internal';
 
 export function loadDevSecret(): Uint8Array {

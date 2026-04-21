@@ -56,6 +56,7 @@ const start = async (): Promise<void> => {
       region: env.AWS_REGION,
       jwksUri: env.COGNITO_JWKS_URI,
       issuer: env.COGNITO_ISSUER,
+      log: app.log,
     });
     app.log.info('Auth provider: cognito');
   } else {

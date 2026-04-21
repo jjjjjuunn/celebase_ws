@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { DEV_INTERNAL_JWT_SECRET } from './services/auth.service.js';
 
 const COGNITO_JWKS_PATTERN =
   /^https:\/\/cognito-idp\.[a-z0-9-]+\.amazonaws\.com\//;
+const COGNITO_ISSUER_PATTERN =
+  /^https:\/\/cognito-idp\.[a-z0-9-]+\.amazonaws\.com\/[a-z0-9-]+_[A-Za-z0-9]+$/;
 
 export const EnvSchema = z
   .object({
@@ -29,7 +32,12 @@ export const EnvSchema = z
       .string()
       .regex(COGNITO_JWKS_PATTERN, 'Must be a Cognito JWKS URI')
       .optional(),
-    COGNITO_ISSUER: z.string().optional(),
+    COGNITO_ISSUER: z
+      .string()
+      .regex(COGNITO_ISSUER_PATTERN, 'Must be a Cognito Issuer URL without trailing slash')
+      .optional(),
+    COGNITO_LIVE_JWKS: z.enum(['1', 'true']).optional(),
+    COGNITO_ENVIRONMENT: z.string().optional(),
 
   })
   .superRefine((env, ctx) => {
@@ -60,17 +68,50 @@ export const EnvSchema = z
           });
         }
       }
+
+      // JWKS_URI === ISSUER + '/.well-known/jwks.json' cross-check
+      if (
+        env.COGNITO_JWKS_URI &&
+        env.COGNITO_ISSUER &&
+        env.COGNITO_JWKS_URI !== `${env.COGNITO_ISSUER}/.well-known/jwks.json`
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'COGNITO_JWKS_URI must equal COGNITO_ISSUER + "/.well-known/jwks.json"',
+          path: ['COGNITO_JWKS_URI'],
+        });
+      }
     }
 
-    // internal secret guard: must not be default value in production
-    const DEFAULT_SECRET = 'dev-secret-not-for-prod';
-    const secret = env.INTERNAL_JWT_SECRET ?? DEFAULT_SECRET;
-    if (env.NODE_ENV === 'production' && secret === DEFAULT_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'INTERNAL_JWT_SECRET must be set to a non-default value in production',
-        path: ['INTERNAL_JWT_SECRET'],
-      });
+    // internal secret guard: must not be default value in production; min 32 chars
+    const secret = env.INTERNAL_JWT_SECRET ?? DEV_INTERNAL_JWT_SECRET;
+    if (env.NODE_ENV === 'production') {
+      if (secret === DEV_INTERNAL_JWT_SECRET) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'INTERNAL_JWT_SECRET must be set to a non-default value in production',
+          path: ['INTERNAL_JWT_SECRET'],
+        });
+      }
+      if (!env.INTERNAL_JWT_SECRET || env.INTERNAL_JWT_SECRET.length < 32) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'INTERNAL_JWT_SECRET must be at least 32 characters in production',
+          path: ['INTERNAL_JWT_SECRET'],
+        });
+      }
+    }
+
+    // COGNITO_LIVE_JWKS staging guard
+    if (env.COGNITO_LIVE_JWKS) {
+      if (env.COGNITO_ENVIRONMENT !== 'staging') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            'COGNITO_ENVIRONMENT must be exactly "staging" when COGNITO_LIVE_JWKS is set (prod pool guard)',
+          path: ['COGNITO_ENVIRONMENT'],
+        });
+      }
     }
   });
 

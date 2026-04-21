@@ -17,6 +17,7 @@ export interface CognitoConfig {
   region: string;
   jwksUri: string;
   issuer: string;
+  log?: { warn: (obj: unknown, msg: string) => void };
 }
 
 /**
@@ -29,11 +30,13 @@ export class CognitoAuthProvider implements AuthProvider {
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
   private readonly clientId: string;
   private readonly issuer: string;
+  private readonly log: { warn: (obj: unknown, msg: string) => void } | undefined;
 
   constructor(config: CognitoConfig) {
     this.clientId = config.clientId;
     this.issuer = config.issuer;
     this.jwks = createRemoteJWKSet(new URL(config.jwksUri));
+    this.log = config.log;
   }
 
   async verifyIdToken(idToken: string): Promise<IdTokenPayload> {
@@ -58,6 +61,9 @@ export class CognitoAuthProvider implements AuthProvider {
       // Re-raise UnauthorizedError as-is; otherwise map jose/SDK errors to a
       // single opaque 401 (user enumeration defense, R2-G-H2).
       if (err instanceof UnauthorizedError) throw err;
+      const reason =
+        err instanceof Error && 'code' in err ? String((err as { code: unknown }).code) : 'unknown';
+      this.log?.warn({ reason }, 'cognito_auth_failed');
       throw new UnauthorizedError('Invalid or expired id token');
     }
   }
