@@ -181,6 +181,34 @@ services:
       timeout: 3s
       retries: 5
 
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      COGNITO_USER_POOL_ID: us-east-1_dev
+      COGNITO_APP_CLIENT_ID: dev-client-id
+      COGNITO_REGION: us-east-1
+      MVIEW_REFRESH_ENABLED: "true"
+      MVIEW_REFRESH_INTERVAL_MINUTES: "15"
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3005/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
 volumes:
   pgdata:
   redisdata:
