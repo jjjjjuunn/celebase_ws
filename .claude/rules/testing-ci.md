@@ -121,6 +121,21 @@ jest.spyOn(globalThis, 'fetch');
 
 `jest.mock()` at module level 도 ESM 에서 동작하지 않는다 (모듈 로드 순서 보장 불가). 해결책: dependency injection 패턴 (mock 객체를 테스트에서 함수에 직접 주입) 또는 `jest.unstable_mockModule`.
 
+### CJS 모드 jest 전역 — `@jest/globals` import 금지 (IMPL-017-c2 교훈)
+
+`jest.config.cjs`에 `useESM: false`인 CJS 모드에서는 `@types/jest`가 jest 전역을 **자동 주입**한다. `import { jest } from '@jest/globals'`를 추가하면 `Cannot find module '@jest/globals'` 빌드 실패 발생:
+
+```typescript
+// ❌ CJS 모드에서는 @jest/globals 불필요 — import 추가하면 실패
+import { jest } from '@jest/globals';
+
+// ✅ CJS 모드 (useESM: false): jest 전역 그대로 사용
+let fetchSpy: jest.SpyInstance;
+fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(...);
+```
+
+판단 기준: `jest.config.cjs`의 `useESM` 값 확인. `useESM: true` → `@jest/globals` import 필수. `useESM: false` → import 금지.
+
 ### 외부 API 어댑터 커버리지 — unit test 필수 (IMPL-016-c2 교훈)
 
 integration test 에서 어댑터를 inline mock 객체 (`{ createCart: jest.fn() }`) 로 교체하면 실제 어댑터 클래스 코드가 전혀 실행되지 않아 coverage 임계값 실패가 발생한다. 반드시 별도 unit test (`tests/unit/adapter.unit.test.ts`) 를 작성해 `fetch` mock 으로 어댑터를 직접 테스트한다:

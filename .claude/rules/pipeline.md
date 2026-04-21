@@ -91,6 +91,8 @@ HANDOFF Anti-Patterns 섹션에 아래 항목을 반드시 포함한다:
 - **Error 서브클래스 `override` 필수**: `cause`, `name` 등 Error 기반 멤버 재선언 시 `override` 키워드 필수 (`noImplicitOverride` + ES2022 lib)
 - **`app.register` 콜백 `async` 제거**: 콜백 내부에 `await` 없으면 `async` 키워드 삭제 (`require-await` lint rule). **HANDOFF 스펙에서도** `await` 없는 Fastify 플러그인은 `function pluginName(...): void` sync 시그니처로 작성 — `async function ... Promise<void>` 로 명시하면 Codex가 그대로 따라 `require-await` lint 에러 발생 (IMPL-016-d1 교훈)
 - **`no-confusing-void-expression`**: `setTimeout(() => fn(), ms)` 에서 fn() 이 void 면 블록 형태 `() => { fn(); }` 사용
+- **TypeScript string union literal 따옴표 누락 (IMPL-017-c2 교훈)**: `BffTarget` 같은 string union 확장 시 Codex가 따옴표를 빠뜨리는 버그 발생 (`case analytics:` → `case 'analytics':`). implement 후 `tsc --noEmit`으로 즉시 확인.
+- **readEnv() 상수 선언 누락 (IMPL-017-c2 교훈)**: switch case에 새 target 추가 시 Codex가 `case 'analytics': return ANALYTICS_SERVICE_URL` 은 추가하면서 `const ANALYTICS_SERVICE_URL = readEnv(...)` 모듈 레벨 선언은 빠뜨리는 경향. 모듈 레벨 상수 존재 여부 확인 필수.
 
 ### Fastify module augmentation `import 'fastify'` 선두 필수 (IMPL-016-b2 교훈)
 
