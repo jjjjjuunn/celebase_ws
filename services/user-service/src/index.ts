@@ -6,7 +6,6 @@ import { EnvSchema } from './env.js';
 import { userRoutes } from './routes/user.routes.js';
 import { bioProfileRoutes } from './routes/bio-profile.routes.js';
 import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
-import { dailyLogRoutes } from './routes/daily-log.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { subscriptionRoutes } from './routes/subscription.routes.js';
 import { internalRoutes } from './routes/internal.routes.js';
@@ -68,7 +67,6 @@ const start = async (): Promise<void> => {
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
-  await app.register(dailyLogRoutes, { pool });
   await app.register(internalRoutes, { pool });
 
   // Slim subscription routes (Stripe removed)
