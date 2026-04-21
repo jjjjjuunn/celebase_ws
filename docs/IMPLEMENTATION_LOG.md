@@ -2202,7 +2202,7 @@ verified_by: codex-implement
 date: 2026-04-20
 agent: claude-sonnet-4-6 + codex-o3
 task_id: IMPL-017-c2
-commit_sha: PENDING
+commit_sha: 4f817d5
 files_changed:
   - apps/web/src/app/api/_lib/bff-fetch.ts
   - apps/web/src/app/api/daily-logs/route.ts
