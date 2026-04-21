@@ -81,6 +81,24 @@ const url = new URL(path, opts.baseUrl);
 
 적용 위치: `packages/service-core/src/lib/internal-http-client.ts` `doRequest()` 진입부.
 
+### CSP nonce 기반 설정 시 dev/prod 분기 필수 (2026-04-20 교훈)
+
+`middleware.ts`에서 nonce 기반 CSP를 구성할 때:
+
+```typescript
+// ❌ 개발 환경에서 React HMR 완전 차단
+`script-src 'self' 'nonce-${nonce}'`
+
+// ✅ dev 모드에 unsafe-eval 추가
+const isDev = process.env.NODE_ENV !== 'production';
+isDev ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
+      : `script-src 'self' 'nonce-${nonce}'`
+```
+
+- nonce를 지정하면 `unsafe-inline`/`unsafe-eval`이 자동 무효화된다 (CSP 스펙).
+- `unsafe-eval` 없이 배포하면 React가 하이드레이션되지 않아 모든 인터랙션이 작동하지 않는다.
+- 증상: 폼이 JS 없이 네이티브 GET으로 제출됨, Console에 `EvalError: Evaluating a string as JavaScript violates CSP`.
+
 ## 시크릿 하드코딩 금지
 
 코드, 설정 파일, 커밋에 다음 패턴이 포함되면 CI에서 차단한다:

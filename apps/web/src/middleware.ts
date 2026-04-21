@@ -16,15 +16,22 @@ const PROTECTED_PREFIXES = [
 const AUTH_PATHS = ['/login', '/signup'];
 
 function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== 'production';
+  // unsafe-eval is required by Next.js webpack HMR in development.
+  const scriptSrc = isDev
+    ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
+    : `script-src 'self' 'nonce-${nonce}'`;
+  const wsUrl = process.env['NEXT_PUBLIC_WS_URL'] ?? '';
+  const connectSrc = wsUrl !== '' ? `connect-src 'self' ${wsUrl}` : "connect-src 'self'";
   const directives: string[] = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}'`,
+    scriptSrc,
     // CSS Modules inject styles dynamically in Next.js — unsafe-inline is required.
     // Tracked in IMPL-DS-* for Trusted Types enforcement once we move off CSS Modules.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self'",
+    connectSrc,
     "frame-ancestors 'none'",
     "form-action 'self'",
     "base-uri 'self'",

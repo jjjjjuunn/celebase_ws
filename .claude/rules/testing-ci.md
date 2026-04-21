@@ -106,6 +106,35 @@ v10부터 `skip` 필드가 없어졌다 (silently ignored). 테스트 환경 byp
 { max: 3, timeWindow: '1 minute', allowList: (_req, _key) => process.env['NODE_ENV'] === 'test' }
 ```
 
+### ESM 모드 `jest` 전역 미선언 — import 필수 (IMPL-016-c2 교훈)
+
+ts-jest ESM 모드는 Jest 전역(`jest.fn`, `jest.spyOn`, `jest.mock` 등)을 자동 주입하지 않는다. **모든 테스트 파일 최상단에 반드시 `import { jest } from '@jest/globals';` 선언 필수**:
+
+```typescript
+// ❌ ESM 모드에서 jest is not defined
+jest.spyOn(globalThis, 'fetch');
+
+// ✅ 명시적 import 필수
+import { jest } from '@jest/globals';
+jest.spyOn(globalThis, 'fetch');
+```
+
+`jest.mock()` at module level 도 ESM 에서 동작하지 않는다 (모듈 로드 순서 보장 불가). 해결책: dependency injection 패턴 (mock 객체를 테스트에서 함수에 직접 주입) 또는 `jest.unstable_mockModule`.
+
+### 외부 API 어댑터 커버리지 — unit test 필수 (IMPL-016-c2 교훈)
+
+integration test 에서 어댑터를 inline mock 객체 (`{ createCart: jest.fn() }`) 로 교체하면 실제 어댑터 클래스 코드가 전혀 실행되지 않아 coverage 임계값 실패가 발생한다. 반드시 별도 unit test (`tests/unit/adapter.unit.test.ts`) 를 작성해 `fetch` mock 으로 어댑터를 직접 테스트한다:
+
+```typescript
+// tests/unit/instacart-adapter.unit.test.ts
+import { jest } from '@jest/globals';
+const fetchSpy = jest.spyOn(globalThis, 'fetch');
+fetchSpy.mockResolvedValue(new Response(JSON.stringify({ cart_id: '...' }), { status: 200 }));
+const adapter = new InstacartAdapter({ apiKey: '...', baseUrl: '...' });
+const result = await adapter.createCart(items);
+expect(result.cartId).toBe('...');
+```
+
 ## Test File Location
 
 ```
