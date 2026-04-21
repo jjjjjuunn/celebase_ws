@@ -2197,3 +2197,25 @@ verified_by: codex-implement
 - SQL $1 플레이스홀더 손상 (Codex zsh heredoc 탈출) → Claude 직접 수정
 ### 미완료: IMPL-016-d2 (tasks.yaml + api-conventions.md 문서 업데이트), Gemini arch review 2
 ### 연관 파일: services/user-service/src/, services/user-service/tests/unit/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6 + codex-o3
+task_id: IMPL-017-c2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/daily-logs/route.ts
+  - apps/web/src/app/api/daily-logs/summary/route.ts
+  - apps/web/src/app/api/daily-logs/__tests__/bff.integration.test.ts
+verified_by: codex-review
+---
+### 완료: BFF BffTarget 'analytics' 추가 + daily-log proxy 대상 변경 (IMPL-017-c2)
+- bff-fetch.ts: BffTarget union에 'analytics' 추가, ANALYTICS_SERVICE_URL = readEnv('ANALYTICS_SERVICE_URL') 상수 추가, baseUrlFor() switch에 'analytics' case 추가
+- daily-logs/route.ts: GET/POST 모두 fetchBff('user', ...) → fetchBff('analytics', ...) 교체
+- daily-logs/summary/route.ts: GET fetchBff('user', ...) → fetchBff('analytics', ...) 교체
+- bff.integration.test.ts: 4개 테스트 - GET/POST /daily-logs, GET /daily-logs/summary → localhost:3005, 회귀 GET /users/me → localhost:3001
+- C4 sweep: rg "fetchBff.*user.*daily" apps/web/ → 0건 확인
+- Codex가 따옴표 누락(analytics 변수 참조), ANALYTICS_SERVICE_URL 미추가, route 파일 미수정 → Claude 직접 수정
+### 미완료: IMPL-017-d1 (user-service daily-log decommission), IMPL-017-d2 (문서 업데이트), Codex review for c1+c2
+### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/daily-logs/

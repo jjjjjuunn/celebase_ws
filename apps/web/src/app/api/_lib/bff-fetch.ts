@@ -9,7 +9,7 @@ import { readEnv } from './session.js';
 
 export { SessionExpiredError } from './bff-error.js';
 
-export type BffTarget = 'user' | 'content' | 'meal-plan';
+export type BffTarget = 'user' | 'content' | 'meal-plan' | 'analytics';
 
 // D29: Use this helper ONLY in Server Components after awaiting fetchBff.
 // RSCs MUST pattern-match the error specifically — NEVER a bare `catch`
@@ -48,6 +48,7 @@ export interface BffFetchOptions<T> extends Omit<RequestInit, 'signal'> {
 const USER_SERVICE_URL = readEnv('USER_SERVICE_URL');
 const CONTENT_SERVICE_URL = readEnv('CONTENT_SERVICE_URL');
 const MEAL_PLAN_URL = readEnv('MEAL_PLAN_URL');
+const ANALYTICS_SERVICE_URL = readEnv('ANALYTICS_SERVICE_URL');
 const log = createLogger('bff-fetch');
 
 interface Bucket {
@@ -70,6 +71,8 @@ function baseUrlFor(target: BffTarget): string {
       return CONTENT_SERVICE_URL;
     case 'meal-plan':
       return MEAL_PLAN_URL;
+    case 'analytics':
+      return ANALYTICS_SERVICE_URL;
   }
 }
 

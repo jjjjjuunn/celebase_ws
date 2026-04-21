@@ -8,7 +8,7 @@ export const GET = createProtectedRoute(async (req: NextRequest, session: Sessio
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
   const search = req.nextUrl.search;
-  const result = await fetchBff('user', `/daily-logs${search}`, {
+  const result = await fetchBff('analytics', `/daily-logs${search}`, {
     method: 'GET',
     schema: schemas.DailyLogListResponseSchema,
     requestId,
@@ -36,7 +36,7 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
     );
   }
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
-  const result = await fetchBff('user', '/daily-logs', {
+  const result = await fetchBff('analytics', '/daily-logs', {
     method: 'POST',
     body: JSON.stringify(parsed.data),
     schema: schemas.DailyLogResponseSchema,
