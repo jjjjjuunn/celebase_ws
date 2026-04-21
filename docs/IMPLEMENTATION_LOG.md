@@ -2224,7 +2224,7 @@ verified_by: codex-review
 date: 2026-04-21
 agent: claude-sonnet-4-6 + codex-o3
 task_id: IMPL-017-d1
-commit_sha: PENDING
+commit_sha: 96587ea
 files_changed:
   - services/user-service/src/index.ts
   - services/user-service/src/routes/daily-log.routes.ts (deleted)
