@@ -1,6 +1,7 @@
 'use client';
 
 import type { KeyboardEvent, ReactElement } from 'react';
+import { useState } from 'react';
 import { Badge } from '../Badge/Badge.js';
 import type { BadgeVariant } from '../Badge/Badge.js';
 import styles from './CelebrityCard.module.css';
@@ -37,12 +38,28 @@ const CATEGORY_VARIANT: Record<CelebrityCategory, BadgeVariant> = {
   general: 'neutral',
 };
 
+// CSS class names for placeholder gradient slots — cycles by first char code
+const GRADIENT_SLOTS = [
+  'gradientBrand',
+  'gradientTeal',
+  'gradientPurple',
+  'gradientCoral',
+  'gradientDark',
+] as const;
+
+function gradientSlot(name: string): string {
+  const idx = name.charCodeAt(0) % GRADIENT_SLOTS.length;
+  return GRADIENT_SLOTS[idx] ?? 'gradientBrand';
+}
+
 export function CelebrityCard({ data, onClick }: CelebrityCardProps): ReactElement {
   const { slug, displayName, shortBio, avatarUrl, coverImageUrl, category, tags, isFeatured } =
     data;
 
   const photoSrc = coverImageUrl ?? avatarUrl;
   const subtitle = shortBio ?? tags[0] ?? '';
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !photoSrc || imgError;
 
   const handleClick = (): void => {
     onClick?.(slug);
@@ -64,8 +81,24 @@ export function CelebrityCard({ data, onClick }: CelebrityCardProps): ReactEleme
       tabIndex={onClick ? 0 : undefined}
       aria-label={displayName}
     >
-      <div className={styles.photo}>
-        <img src={photoSrc} alt={displayName} className={styles.img} />
+      <div
+        className={[
+          styles.photo,
+          showPlaceholder ? (styles[gradientSlot(displayName)] ?? '') : '',
+        ].join(' ')}
+      >
+        {showPlaceholder ? (
+          <span className={styles.placeholderInitial} aria-hidden="true">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+        ) : (
+          <img
+            src={photoSrc}
+            alt={displayName}
+            className={styles.img}
+            onError={() => { setImgError(true); }}
+          />
+        )}
         <span className={styles.categoryBadge}>
           <Badge variant={CATEGORY_VARIANT[category]}>{CATEGORY_LABEL[category]}</Badge>
         </span>

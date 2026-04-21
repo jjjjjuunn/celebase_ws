@@ -37,6 +37,27 @@
   display: block;
 }
 
+.placeholderInitial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cb-font-family-display);
+  font-size: 56px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Placeholder gradient slots — used when photo is absent or fails to load */
+.gradientBrand  { background: linear-gradient(135deg, var(--cb-brand-500), var(--cb-brand-700)); }
+.gradientTeal   { background: linear-gradient(135deg, var(--cb-neutral-700), var(--cb-accent-biohacker)); }
+.gradientPurple { background: linear-gradient(135deg, var(--cb-neutral-700), var(--cb-accent-glp1)); }
+.gradientCoral  { background: linear-gradient(135deg, var(--cb-accent-aspirational), var(--cb-neutral-700)); }
+.gradientDark   { background: linear-gradient(135deg, var(--cb-neutral-700), var(--cb-neutral-900)); }
+
 .categoryBadge {
   position: absolute;
   top: var(--cb-space-2);

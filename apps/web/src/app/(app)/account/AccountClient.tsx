@@ -155,10 +155,10 @@ export function AccountClient(): React.ReactElement {
     setCancelling(true);
     setCancelError(null);
     try {
-      const res = await postJson('/api/subscriptions/me/cancel', {}, {
+      await postJson('/api/subscriptions/me/cancel', {}, {
         schema: schemas.CancelSubscriptionResponseSchema,
       });
-      setSub(res.subscription);
+      setSub((prev) => prev !== null ? { ...prev, cancel_at_period_end: true } : prev);
       setCancelConfirm(false);
     } catch (err) {
       setCancelError(err instanceof FetcherError ? err.message : 'Could not cancel. Try again.');

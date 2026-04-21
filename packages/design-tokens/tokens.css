@@ -1,20 +1,27 @@
 /*
  * CelebBase design tokens — source of truth consumed by apps/web and packages/ui-kit.
- * Keep aligned with DESIGN.md §2 (color) / §3 (typography) / §6 (depth).
+ * Keep aligned with DESIGN.md §2–§11 + sister repo colors_and_type.css.
  * Build script: packages/design-tokens/scripts/build.ts parses this file and emits tokens.native.ts.
+ *
+ * Philosophy: warm parchment neutrals + single gold brand + Fraunces serif display.
  */
 
+/* Webfonts: loaded via next/font/local in apps/web — no @import needed here. */
+
+/* =====================================================
+   1. COLOR SYSTEM  (DESIGN.md §2)
+   ===================================================== */
 :root {
-  /* Brand — gold family, none of the five references use gold (DESIGN.md §2) */
-  --cb-brand-50: #FBF8F0;
+  /* Brand — gold family */
+  --cb-brand-50:  #FBF8F0;
   --cb-brand-100: #F5EDDA;
   --cb-brand-500: #C9A84C;
-  --cb-brand-600: #8B6D2F;
-  --cb-brand-700: #6B5420;
+  --cb-brand-600: #8B6D2F;   /* PRIMARY CTA bg — 6.2:1 white text */
+  --cb-brand-700: #6B5420;   /* pressed / dark CTA variant */
 
-  /* Neutral — warm paper scale, no --cb-neutral-800 on purpose (DESIGN.md §2) */
-  --cb-neutral-0: #FAFAF8;
-  --cb-neutral-50: #F4F3F0;
+  /* Neutral spine (warm, yellow-brown undertones) */
+  --cb-neutral-0:   #FAFAF8;
+  --cb-neutral-50:  #F4F3F0;
   --cb-neutral-100: #E8E6E1;
   --cb-neutral-200: #D0CEC8;
   --cb-neutral-300: #A8A5A0;
@@ -23,93 +30,201 @@
   --cb-neutral-600: #5A5750;
   --cb-neutral-700: #3D3B37;
   --cb-neutral-900: #1A1917;
+  /* Note: --cb-neutral-800 is INTENTIONALLY OMITTED (DESIGN.md §2) */
 
-  /* Semantic — contrast-verified on --cb-neutral-0 (DESIGN.md §2) */
-  --cb-success-600: #0F7438;
-  --cb-success-100: #DDF3E6;
-  --cb-warning-600: #A15900;
-  --cb-warning-100: #FDEBD5;
-  --cb-danger-600: #B4232C;
-  --cb-danger-100: #FADADD;
-  --cb-info-600: #1767B8;
-  --cb-info-100: #D9EAFB;
+  /* Semantic */
+  --cb-success-600: #0F7438;  --cb-success-100: #DDF3E6;
+  --cb-warning-600: #A15900;  --cb-warning-100: #FDEBD5;
+  --cb-danger-600:  #B4232C;  --cb-danger-100:  #FADADD;
+  --cb-info-600:    #1767B8;  --cb-info-100:    #D9EAFB;
 
-  /* Semantic aliases used across apps/web (light-mode defaults) */
-  --cb-color-bg: var(--cb-neutral-0);
-  --cb-color-surface: var(--cb-neutral-50);
-  --cb-color-text: var(--cb-neutral-900);
-  --cb-color-text-muted: var(--cb-neutral-500);
-  --cb-color-border: var(--cb-neutral-100);
-  --cb-color-muted: var(--cb-neutral-500);
-  --cb-color-brand: var(--cb-brand-600);
+  /* Persona accents (category chips only — DESIGN.md §2.4) */
+  --cb-accent-biohacker:    #0E8F9B;
+  --cb-accent-glp1:         #7B5EA7;
+  --cb-accent-aspirational: #D4654A;
+  --cb-accent-household:    var(--cb-brand-500);
 
-  /* Typography — variable fonts shipped in apps/web/public/fonts (DESIGN.md §3) */
-  --cb-font-family-display: 'Fraunces', 'Times New Roman', serif;
-  --cb-font-family-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --cb-font-family-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  /* Subscription tiers (DESIGN.md §2.5) */
+  --cb-tier-free-bg:       #EEF2F5;  --cb-tier-free-border:    #CBD5DE;  --cb-tier-free-text:    #33414E;
+  --cb-tier-premium-bg:    #E8F6F3;  --cb-tier-premium-border: #79C8BB;  --cb-tier-premium-text: #0B5A4F;
+  --cb-tier-elite-bg:      #1A1917;  --cb-tier-elite-border:   #C9A84C;  --cb-tier-elite-text:   #F5EDDA;
 
-  --cb-font-size-xs: 12px;
-  --cb-font-size-sm: 14px;
-  --cb-font-size-md: 16px;
-  --cb-font-size-lg: 20px;
-  --cb-font-size-xl: 28px;
+  /* Chart (DESIGN.md §2.6) */
+  --cb-chart-weight:    #0E8F7D;
+  --cb-chart-adherence: #1767B8;
+  --cb-chart-protein:   #A06A1C;
+  --cb-chart-calories:  #7A4D00;
+  --cb-chart-goal:      #6A737C;
+
+  /* Skeleton (DESIGN.md §2.7) */
+  --cb-skeleton-base:    #E8E1D8;
+  --cb-skeleton-shimmer: #F5EFE7;
+
+  /* Semantic aliases */
+  --cb-color-bg:           var(--cb-neutral-0);
+  --cb-color-surface:      var(--cb-neutral-50);
+  --cb-color-text:         var(--cb-neutral-900);
+  --cb-color-text-muted:   var(--cb-neutral-500);
+  --cb-color-text-subtle:  var(--cb-neutral-400);   /* lighter secondary text */
+  --cb-color-border:       var(--cb-neutral-100);
+  --cb-color-muted:        var(--cb-neutral-500);
+  --cb-color-brand:        var(--cb-brand-600);
+  --cb-color-brand-subtle: var(--cb-brand-50);      /* tinted brand bg */
+  --cb-color-on-brand:     #FFFFFF;                  /* text on brand-colored bg */
+  --cb-color-error:        var(--cb-danger-600);     /* error state alias */
+  --cb-color-neutral-100:  var(--cb-neutral-100);   /* direct palette alias */
+  --cb-cta-text:           #FFFFFF;
+
+  /* Line height aliases */
+  --cb-line-height-relaxed: 1.625;
+
+  /* =====================================================
+     2. TYPOGRAPHY  (DESIGN.md §3)
+     ===================================================== */
+  --cb-font-family-display: 'Fraunces', 'Iowan Old Style', 'Georgia', serif;
+  --cb-font-family-body:    'Plus Jakarta Sans', 'Helvetica Neue', Arial, sans-serif;
+  --cb-font-family-mono:    'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Type scale — authoritative source: Style Guide PDF §02 */
+  --cb-display-xl: 72px;   /* Fraunces 600 / 77px / -0.02em  — hero/marketing only */
+  --cb-display-lg: 48px;   /* Fraunces 600 / 55px / -0.015em */
+  --cb-display-md: 34px;   /* Fraunces 600 / 42px / -0.01em  — app page section hero */
+  --cb-h1:         32px;   /* Plus Jakarta 700 / 38px / -0.005em */
+  --cb-h2:         24px;   /* Plus Jakarta 700 / 30px / -0.005em */
+  --cb-h3:         20px;   /* Plus Jakarta 600 / 27px / 0 */
+  --cb-h4:         18px;   /* Plus Jakarta 600 / 24px / 0 */
+  --cb-body-lg:    18px;   /* Plus Jakarta 400 / 28px / 0 */
+  --cb-body-md:    16px;   /* Plus Jakarta 400 / 26px / 0 */
+  --cb-body-sm:    14px;   /* Plus Jakarta 400 / 22px / 0 */
+  --cb-label-lg:   14px;   /* Plus Jakarta 600 / 18px / 0.01em */
+  --cb-label-md:   13px;   /* Plus Jakarta 600 / 17px / 0.01em */
+  --cb-label-sm:   12px;   /* Plus Jakarta 500 / 16px / 0.02em */
+  --cb-caption:    12px;   /* Plus Jakarta 400 / 18px / 0.01em */
+  --cb-metric-xl:  44px;   /* JetBrains Mono 600 / 44px / -0.01em — tabular */
+  --cb-metric-lg:  32px;   /* JetBrains Mono 600 / 32px / -0.01em */
+  --cb-metric-md:  20px;   /* JetBrains Mono 500 / 22px / 0 */
+  --cb-metric-sm:  14px;   /* JetBrains Mono 500 / 18px / 0.01em */
+
+  /* Legacy size aliases (backward compat — prefer semantic tokens above) */
+  --cb-font-size-xs:  12px;
+  --cb-font-size-sm:  14px;
+  --cb-font-size-md:  16px;
+  --cb-font-size-lg:  20px;
+  --cb-font-size-xl:  28px;
   --cb-font-size-2xl: 40px;
   --cb-font-size-3xl: 56px;
 
   --cb-line-height-tight: 1.14;
-  --cb-line-height-snug: 1.35;
-  --cb-line-height-body: 1.60;
+  --cb-line-height-snug:  1.35;
+  --cb-line-height-body:  1.60;
 
-  --cb-font-weight-regular: 400;
-  --cb-font-weight-medium: 500;
+  --cb-font-weight-regular:  400;
+  --cb-font-weight-medium:   500;
   --cb-font-weight-semibold: 600;
-  --cb-font-weight-bold: 700;
+  --cb-font-weight-bold:     700;
 
-  /* Depth — shadow scale (DESIGN.md §6) */
+  /* =====================================================
+     3. SPACING — 8px base, 4px sub-unit  (DESIGN.md §4)
+     ===================================================== */
+  --cb-space-0:   0px;
+  --cb-space-1:   4px;
+  --cb-space-2:   8px;
+  --cb-space-3:  12px;
+  --cb-space-4:  16px;
+  --cb-space-5:  20px;
+  --cb-space-6:  24px;
+  --cb-space-7:  32px;
+  --cb-space-8:  40px;
+  --cb-space-9:  48px;
+  --cb-space-10: 56px;
+  --cb-space-11: 64px;
+  --cb-space-12: 72px;
+  --cb-space-13: 80px;
+  --cb-space-14: 96px;
+
+  /* Layout containers */
+  --cb-container-max:     1200px;
+  --cb-container-reading: 760px;
+  --cb-gutter-mobile:     16px;
+  --cb-gutter-tablet:     24px;
+  --cb-gutter-desktop:    32px;
+
+  /* Component-level tokens (exempt from 4/8 grid) */
+  --cb-button-pad-y:           14px;
+  --cb-button-pad-x:           32px;
+  --cb-button-pad-x-secondary: 34px;
+  --cb-input-height:           52px;
+  --cb-fab-size:               56px;
+  --cb-tabbar-height:          72px;
+  --cb-topnav-height:          72px;
+
+  /* =====================================================
+     4. RADII  (DESIGN.md §5)
+     ===================================================== */
+  --cb-radius-none:   0px;
+  --cb-radius-xs:     4px;
+  --cb-radius-sm:     8px;
+  --cb-radius-md:    12px;
+  --cb-radius-lg:    16px;
+  --cb-radius-xl:    24px;
+  --cb-radius-2xl:   32px;
+  --cb-radius-pill:  9999px;
+  --cb-radius-circle: 50%;
+
+  /* =====================================================
+     5. SHADOWS & BORDERS  (DESIGN.md §6)
+     ===================================================== */
+  --cb-shadow-0:          none;
+  --cb-shadow-1:          0 1px 3px rgba(26,25,23,0.06), 0 1px 2px rgba(26,25,23,0.04);
+  --cb-shadow-2:          0 4px 12px rgba(26,25,23,0.10), 0 2px 4px rgba(26,25,23,0.06);
+  --cb-shadow-3:          0 16px 40px rgba(26,25,23,0.15), 0 4px 12px rgba(26,25,23,0.08);
+  --cb-shadow-card-photo: rgba(0,0,0,0.22) 3px 5px 30px 0px;  /* Apple lineage — sparingly */
+  --cb-shadow-brand:      0 8px 24px rgba(139,109,47,0.30);    /* Primary CTA only */
+  --cb-shadow-focus:      0 0 0 3px rgba(139,109,47,0.40);
+
+  /* Legacy shadow aliases (backward compat) */
   --cb-shadow-ring: 0 0 0 1px rgba(26, 25, 23, 0.08);
-  --cb-shadow-sm: 0 1px 2px rgba(26, 25, 23, 0.06);
-  --cb-shadow-md: 0 6px 20px rgba(26, 25, 23, 0.08);
-  --cb-shadow-lg: 0 24px 48px rgba(26, 25, 23, 0.12);
-  --cb-shadow-focus: 0 0 0 3px rgba(139, 109, 47, 0.40);
+  --cb-shadow-sm:   var(--cb-shadow-1);
+  --cb-shadow-md:   var(--cb-shadow-2);
+  --cb-shadow-lg:   var(--cb-shadow-3);
 
-  /* Border — primitives (neutral-400 for ≥3:1 contrast with bg in both themes) */
-  --cb-border-strong: var(--cb-neutral-400);
-  --cb-border-focus: var(--cb-brand-600);
-  --cb-border-error: var(--cb-danger-600);
+  /* Border shorthands */
+  --cb-border-default: 1px solid rgba(26,25,23,0.08);
+  --cb-border-strong:  1px solid rgba(26,25,23,0.15);
+  --cb-border-focus:   2px solid var(--cb-brand-600);
+  --cb-border-error:   2px solid var(--cb-danger-600);
 
-  /* Radius */
-  --cb-radius-sm: 4px;
-  --cb-radius-md: 8px;
-  --cb-radius-lg: 16px;
-  --cb-radius-2xl: 32px;
-  --cb-radius-pill: 9999px;
+  /* =====================================================
+     6. MOTION  (DESIGN.md §10)
+     ===================================================== */
+  --cb-motion-fast:     120ms;
+  --cb-motion-base:     180ms;
+  --cb-motion-slow:     330ms;
+  --cb-ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --cb-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Spacing — 4px base */
-  --cb-space-1: 4px;
-  --cb-space-2: 8px;
-  --cb-space-3: 12px;
-  --cb-space-4: 16px;
-  --cb-space-6: 24px;
-  --cb-space-8: 32px;
-  --cb-space-12: 48px;
-  --cb-space-16: 64px;
+  /* =====================================================
+     7. BREAKPOINTS  (DESIGN.md §9)
+     ===================================================== */
+  --cb-bp-mobile:  375px;
+  --cb-bp-tablet:  768px;
+  --cb-bp-desktop: 1280px;
 
-  /* Component-level tokens (primitives) */
-  --cb-button-pad-y: 14px;
-  --cb-button-pad-x: 24px;
-  --cb-input-height: 52px;
-  --cb-cta-text: var(--cb-neutral-0);
+  /* =====================================================
+     8. ICON SIZES  (DESIGN.md §11)
+     ===================================================== */
+  --cb-icon-sm: 16px;
+  --cb-icon-md: 20px;
+  --cb-icon-lg: 24px;
+  --cb-icon-xl: 32px;
 }
 
+/* =====================================================
+   9. DARK MODE  (DESIGN.md §2.8)
+   ===================================================== */
 [data-theme='dark'] {
-  --cb-brand-50: #2B2418;
-  --cb-brand-100: #3D331E;
-  --cb-brand-500: #E8C870;
-  --cb-brand-600: #D4B35E;
-  --cb-brand-700: #E8C870;
-
-  --cb-neutral-0: #141412;
-  --cb-neutral-50: #1E1D1B;
+  --cb-neutral-0:   #141412;
+  --cb-neutral-50:  #1E1D1B;
   --cb-neutral-100: #282623;
   --cb-neutral-200: #33312D;
   --cb-neutral-300: #4A4742;
@@ -119,33 +234,104 @@
   --cb-neutral-700: #E0DDD7;
   --cb-neutral-900: #F2F0EB;
 
-  --cb-success-600: #3ABF6E;
-  --cb-success-100: rgba(58, 191, 110, 0.14);
-  --cb-warning-600: #E2933A;
-  --cb-warning-100: rgba(226, 147, 58, 0.14);
-  --cb-danger-600: #E8575F;
-  --cb-danger-100: rgba(232, 87, 95, 0.14);
-  --cb-info-600: #5B9EEC;
-  --cb-info-100: rgba(91, 158, 236, 0.14);
+  --cb-brand-50:  #2B2418;
+  --cb-brand-100: #3D331E;
+  --cb-brand-500: #E8C870;
+  --cb-brand-600: #D4B35E;
+  --cb-brand-700: #E8C870;
 
-  --cb-color-bg: var(--cb-neutral-0);
-  --cb-color-surface: var(--cb-neutral-50);
-  --cb-color-text: var(--cb-neutral-900);
-  --cb-color-text-muted: var(--cb-neutral-500);
-  --cb-color-border: var(--cb-neutral-200);
-  --cb-color-muted: var(--cb-neutral-500);
-  --cb-color-brand: var(--cb-brand-500);
+  --cb-success-600: #3ABF6E;  --cb-success-100: rgba(58,191,110,0.14);
+  --cb-warning-600: #E2933A;  --cb-warning-100: rgba(226,147,58,0.14);
+  --cb-danger-600:  #E8575F;  --cb-danger-100:  rgba(232,87,95,0.14);
+  --cb-info-600:    #5B9EEC;  --cb-info-100:    rgba(91,158,236,0.14);
 
-  --cb-shadow-ring: 0 0 0 1px rgba(242, 240, 235, 0.08);
-  --cb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --cb-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
-  --cb-shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.55);
-  --cb-shadow-focus: 0 0 0 3px rgba(232, 200, 112, 0.50);
+  --cb-color-bg:           var(--cb-neutral-0);
+  --cb-color-surface:      var(--cb-neutral-50);
+  --cb-color-text:         var(--cb-neutral-900);
+  --cb-color-text-muted:   var(--cb-neutral-500);
+  --cb-color-text-subtle:  var(--cb-neutral-400);
+  --cb-color-border:       var(--cb-neutral-200);
+  --cb-color-muted:        var(--cb-neutral-500);
+  --cb-color-brand:        var(--cb-brand-500);
+  --cb-color-brand-subtle: var(--cb-brand-100);
+  --cb-color-on-brand:     #1A1917;
+  --cb-color-error:        var(--cb-danger-600);
 
-  /* border-strong cascades from :root (--cb-neutral-400 = #6D6A64 in dark → 3.6:1) */
-  --cb-border-focus: var(--cb-brand-500);
-  --cb-border-error: var(--cb-danger-600);
+  --cb-shadow-1:          none;
+  --cb-shadow-2:          none;
+  --cb-shadow-3:          none;
+  --cb-shadow-brand:      none;
+  --cb-shadow-focus:      0 0 0 3px rgba(232,200,112,0.55);
+  --cb-shadow-ring:       0 0 0 1px rgba(242, 240, 235, 0.08);
+  --cb-shadow-sm:         none;
+  --cb-shadow-md:         none;
+  --cb-shadow-lg:         none;
 
-  /* cta-text in dark must be dark (brand-600 is light gold) — hard-coded to preserve legibility */
+  --cb-border-default: 1px solid rgba(255,255,255,0.08);
+  --cb-border-strong:  1px solid rgba(255,255,255,0.16);
+  --cb-border-focus:   2px solid var(--cb-brand-500);
+  --cb-border-error:   2px solid var(--cb-danger-600);
+
+  --cb-skeleton-base:    #2A2824;
+  --cb-skeleton-shimmer: #35332F;
+
+  /* cta-text flips in dark: dark text on lightened gold */
   --cb-cta-text: #1A1917;
+}
+
+/* =====================================================
+   10. SEMANTIC TYPE CLASSES  (DESIGN.md §3.3)
+   ===================================================== */
+
+/* Display (Fraunces) — source: Style Guide PDF §02 */
+.cb-display-xl { font-family: var(--cb-font-family-display); font-size: var(--cb-display-xl); font-weight: 600; line-height: calc(77 / 72); letter-spacing: -0.02em;  color: var(--cb-color-text); }
+.cb-display-lg { font-family: var(--cb-font-family-display); font-size: var(--cb-display-lg); font-weight: 600; line-height: calc(55 / 48); letter-spacing: -0.015em; color: var(--cb-color-text); }
+.cb-display-md { font-family: var(--cb-font-family-display); font-size: var(--cb-display-md); font-weight: 600; line-height: calc(42 / 34); letter-spacing: -0.01em;  color: var(--cb-color-text); }
+
+/* Headings (Plus Jakarta Sans) — source: Style Guide PDF §02 */
+.cb-h1 { font-family: var(--cb-font-family-body); font-size: var(--cb-h1); font-weight: 700; line-height: calc(38 / 32); letter-spacing: -0.005em; color: var(--cb-color-text); }
+.cb-h2 { font-family: var(--cb-font-family-body); font-size: var(--cb-h2); font-weight: 700; line-height: 1.25;           letter-spacing: -0.005em; color: var(--cb-color-text); }
+.cb-h3 { font-family: var(--cb-font-family-body); font-size: var(--cb-h3); font-weight: 600; line-height: calc(27 / 20);  letter-spacing: 0;        color: var(--cb-color-text); }
+.cb-h4 { font-family: var(--cb-font-family-body); font-size: var(--cb-h4); font-weight: 600; line-height: 1.33;           letter-spacing: 0;        color: var(--cb-color-text); }
+
+/* Body — source: Style Guide PDF §02 */
+.cb-body-lg { font-family: var(--cb-font-family-body); font-size: var(--cb-body-lg); font-weight: 400; line-height: calc(28 / 18); color: var(--cb-color-text); }
+.cb-body-md { font-family: var(--cb-font-family-body); font-size: var(--cb-body-md); font-weight: 400; line-height: calc(26 / 16); color: var(--cb-color-text); }
+.cb-body-sm { font-family: var(--cb-font-family-body); font-size: var(--cb-body-sm); font-weight: 400; line-height: calc(22 / 14); color: var(--cb-color-text); }
+
+/* Labels */
+.cb-label-lg { font-family: var(--cb-font-family-body); font-size: var(--cb-label-lg); font-weight: 600; line-height: calc(18 / 14); letter-spacing: 0.01em; }
+.cb-label-md { font-family: var(--cb-font-family-body); font-size: var(--cb-label-md); font-weight: 600; line-height: calc(17 / 13); letter-spacing: 0.01em; }
+.cb-label-sm { font-family: var(--cb-font-family-body); font-size: var(--cb-label-sm); font-weight: 500; line-height: calc(16 / 12); letter-spacing: 0.02em; }
+.cb-caption  { font-family: var(--cb-font-family-body); font-size: var(--cb-caption);  font-weight: 400; line-height: calc(18 / 12); letter-spacing: 0.01em; color: var(--cb-color-text-muted); }
+
+/* Metrics (JetBrains Mono — numbers only) — source: Style Guide PDF §02 */
+.cb-metric-xl { font-family: var(--cb-font-family-mono); font-size: var(--cb-metric-xl); font-weight: 600; line-height: 1.00; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.cb-metric-lg { font-family: var(--cb-font-family-mono); font-size: var(--cb-metric-lg); font-weight: 600; line-height: 1.00; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.cb-metric-md { font-family: var(--cb-font-family-mono); font-size: var(--cb-metric-md); font-weight: 500; line-height: 1.10; letter-spacing: 0;        font-variant-numeric: tabular-nums; }
+.cb-metric-sm { font-family: var(--cb-font-family-mono); font-size: var(--cb-metric-sm); font-weight: 500; line-height: 1.29; letter-spacing: 0.01em;  font-variant-numeric: tabular-nums; }
+
+/* Utility */
+.cb-muted { color: var(--cb-color-text-muted); }
+.cb-eyebrow {
+  font-family: var(--cb-font-family-body);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cb-color-text-muted);
+}
+
+/* =====================================================
+   11. BASE RESETS
+   ===================================================== */
+html, body { margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--cb-color-bg);
+  color: var(--cb-color-text);
+  font-family: var(--cb-font-family-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

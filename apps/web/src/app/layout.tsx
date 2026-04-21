@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import localFont from 'next/font/local';
 import { ThemeProvider, ThemePrePaintScript } from '@celebbase/ui-kit';
 import '@/styles/globals.css';
@@ -36,7 +37,8 @@ export const metadata: Metadata = {
   description: 'Premium wellness platform for celebrity-inspired health routines',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <html
       lang={DEFAULT_LOCALE}
@@ -44,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
     >
       <head>
-        <ThemePrePaintScript />
+        <ThemePrePaintScript nonce={nonce} />
       </head>
       <body>
         <ThemeProvider defaultMode="system">

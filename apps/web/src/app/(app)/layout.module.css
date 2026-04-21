@@ -1,0 +1,121 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cb-color-bg);
+  color: var(--cb-color-text);
+}
+
+/* Top navigation */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--cb-topnav-height, 72px);
+  background: rgba(250, 250, 248, 0.90);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--cb-color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  gap: 32px;
+}
+
+[data-theme='dark'] .topnav {
+  background: rgba(20, 20, 18, 0.90);
+}
+
+.brand {
+  font-family: var(--cb-font-family-display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--cb-neutral-900);
+  text-decoration: none;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.brand:hover {
+  color: var(--cb-brand-600);
+}
+
+.brandDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cb-brand-500);
+  display: inline-block;
+  margin-bottom: 4px;
+  margin-left: 1px;
+}
+
+/* Nav links (center) */
+.nav {
+  display: flex;
+  gap: 28px;
+  flex: 1;
+  justify-content: center;
+}
+
+.navLink {
+  font-family: var(--cb-font-family-body);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--cb-neutral-600);
+  text-decoration: none;
+  cursor: pointer;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--cb-motion-fast) var(--cb-ease-standard),
+              border-bottom-color var(--cb-motion-fast) var(--cb-ease-standard);
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--cb-neutral-900);
+}
+
+.navLinkActive {
+  color: var(--cb-brand-600);
+  border-bottom-color: var(--cb-brand-600);
+}
+
+.navLinkActive:hover {
+  color: var(--cb-brand-600);
+}
+
+/* Right side (logout etc.) */
+.navRight {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Main content */
+.main {
+  flex: 1;
+  max-width: var(--cb-container-max, 1200px);
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px var(--cb-gutter-desktop, 32px);
+}
+
+@media (max-width: 768px) {
+  .topnav {
+    padding: 0 var(--cb-gutter-mobile, 16px);
+    gap: 16px;
+  }
+
+  .nav {
+    gap: 16px;
+  }
+
+  .main {
+    padding: 32px var(--cb-gutter-mobile, 16px);
+  }
+}

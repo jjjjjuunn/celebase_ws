@@ -15,9 +15,12 @@
 
 .heading {
   margin: 0;
-  font-size: var(--cb-font-size-2xl);
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-display-md);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-color-text);
+  line-height: 1.24;
+  letter-spacing: -0.01em;
 }
 
 .section {
