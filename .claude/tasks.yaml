@@ -429,12 +429,12 @@ tasks:
 
   - id: IMPL-017
     title: "analytics-service 분리 — daily-log 집계/리포팅 서비스"
-    owner: agent-claude-sonnet-4-6
+    owner: agent-claude-sonnet-4-6 + agent-codex-o3
     dependsOn:
       - IMPL-015
-    status: pending
+    status: done
     definitionOfDone:
-      - "analytics-service 신규 스캐폴드 (services/analytics-service/)"
-      - "daily-log 데이터 집계 API (7일/30일 요약)"
-      - "user-service daily-log → analytics-service 이전 또는 이벤트 소비"
-      - "Dockerfile + docker-compose 통합"
+      - "analytics-service 신규 스캐폴드 (services/analytics-service/) ✅"
+      - "daily-log 데이터 집계 API (7일/30일 요약) ✅"
+      - "user-service daily-log → analytics-service 이전 또는 이벤트 소비 ✅"
+      - "Dockerfile + docker-compose 통합 ✅"
