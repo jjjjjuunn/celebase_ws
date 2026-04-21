@@ -1,0 +1,426 @@
+openapi: 3.1.0
+info:
+  title: CelebBase Analytics Service
+  version: 0.1.0
+  description: Daily log aggregation and reporting service (NON-PHI, spec §4.3 §8.5)
+servers:
+  - url: http://localhost:3005
+    description: Local development
+  - url: http://analytics-service:3005
+    description: Internal docker-compose network
+
+components:
+  securitySchemes:
+    CognitoJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: AWS Cognito ID token
+
+  schemas:
+    DailyLogInput:
+      type: object
+      properties:
+        log_date:
+          type: string
+          format: date
+          example: "2026-04-20"
+        meals_completed:
+          type: object
+          additionalProperties: true
+          example: { "breakfast": true, "lunch": false, "dinner": true }
+        weight_kg:
+          type: number
+          minimum: 0
+          maximum: 999.9
+          example: 72.5
+        energy_level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 3
+        sleep_quality:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        notes:
+          type: string
+          maxLength: 2000
+          example: "Felt great today"
+      required:
+        - log_date
+
+    DailyLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        log_date:
+          type: string
+          format: date
+        meals_completed:
+          type: object
+          additionalProperties: true
+        weight_kg:
+          type: number
+          nullable: true
+        energy_level:
+          type: integer
+          nullable: true
+        mood:
+          type: integer
+          nullable: true
+        sleep_quality:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - log_date
+        - meals_completed
+        - created_at
+
+    DailyLogSummary:
+      type: object
+      properties:
+        range:
+          type: string
+          enum: [7d, 30d]
+        avg_weight_kg:
+          type: number
+          nullable: true
+        avg_energy_level:
+          type: number
+          nullable: true
+        avg_mood:
+          type: number
+          nullable: true
+        avg_sleep_quality:
+          type: number
+          nullable: true
+        meals_adherence_pct:
+          type: number
+          minimum: 0
+          maximum: 100
+          nullable: true
+        log_count:
+          type: integer
+      required:
+        - range
+        - log_count
+
+    WeeklyReport:
+      type: object
+      properties:
+        week_start:
+          type: string
+          format: date
+        week_end:
+          type: string
+          format: date
+        summary:
+          $ref: '#/components/schemas/DailyLogSummary'
+        daily_logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyLog'
+      required:
+        - week_start
+        - week_end
+        - summary
+        - daily_logs
+
+    MonthlyReport:
+      type: object
+      properties:
+        month:
+          type: string
+          format: date
+          description: First day of the month (ISO 8601)
+        summary:
+          $ref: '#/components/schemas/DailyLogSummary'
+        meal_plan_stats:
+          type: object
+          nullable: true
+          properties:
+            total_plans:
+              type: integer
+            active_users:
+              type: integer
+            avg_duration_days:
+              type: number
+          description: From meal_plan_monthly_stats MView (may be up to 15min stale)
+      required:
+        - month
+        - summary
+
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable UPPER_SNAKE error code
+        message:
+          type: string
+          description: Human-readable error description
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+            required:
+              - issue
+        requestId:
+          type: string
+      required:
+        - code
+        - message
+        - requestId
+
+security:
+  - CognitoJWT: []
+
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      tags: [Observability]
+      security: []
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /ready:
+    get:
+      summary: Readiness probe (DB connectivity check)
+      tags: [Observability]
+      security: []
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ready]
+                  checks:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      enum: [ok, fail]
+                required: [status, checks]
+        '503':
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [not_ready]
+                  checks:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      enum: [ok, fail]
+                required: [status, checks]
+
+  /daily-logs:
+    post:
+      summary: Create or update daily log (upsert by user_id + log_date)
+      tags: [Daily Logs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyLogInput'
+      responses:
+        '200':
+          description: Daily log upserted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyLog'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+    get:
+      summary: List daily logs within a date range
+      tags: [Daily Logs]
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2026-04-01"
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2026-04-20"
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for pagination
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of daily logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DailyLog'
+                  has_next:
+                    type: boolean
+                  next_cursor:
+                    type: string
+                    nullable: true
+                required: [data, has_next]
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+  /daily-logs/summary:
+    get:
+      summary: Get aggregated daily log summary
+      tags: [Daily Logs]
+      parameters:
+        - name: range
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [7d, 30d]
+          example: "7d"
+      responses:
+        '200':
+          description: Aggregated summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyLogSummary'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+  /reports/weekly:
+    get:
+      summary: Get weekly progress report (last 7 days)
+      tags: [Reports]
+      responses:
+        '200':
+          description: Weekly report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyReport'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+  /reports/monthly:
+    get:
+      summary: Get monthly progress report (MView-backed, up to 15min stale)
+      tags: [Reports]
+      responses:
+        '200':
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyReport'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
