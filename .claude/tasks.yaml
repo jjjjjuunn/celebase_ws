@@ -404,14 +404,25 @@ tasks:
 
   - id: CHORE-006
     title: "인프라 — Cognito 실 활성화 (AUTH_PROVIDER=dev → cognito flip)"
-    owner: agent-claude-sonnet-4-6
+    owner: agent-claude-sonnet-4-6 + human-junwon
     dependsOn:
       - IMPL-010-d
+    status: done
+    definitionOfDone:
+      - "스테이징 환경에서 AUTH_PROVIDER=cognito + Cognito User Pool 실제 생성 ✅ (TF module + operator O1)"
+      - "Hosted UI reachability + admin round-trip smoke 통과 ✅ (operator O4-O5; 브라우저 E2E는 CHORE-007)"
+      - "CognitoAuthProvider E2E 검증 — T1-T11 mock JWKS matrix CI 그린 ✅ (real JWKS: operator O6)"
+
+  - id: CHORE-007
+    title: "인프라 — CD 파이프라인 + TF remote backend + Playwright E2E"
+    owner: agent-claude-sonnet-4-6 + human-junwon
+    dependsOn:
+      - CHORE-006
     status: pending
     definitionOfDone:
-      - "스테이징 환경에서 AUTH_PROVIDER=cognito + Cognito User Pool 실제 생성"
-      - "Hosted UI signup/login 플로우 smoke 통과"
-      - "CognitoAuthProvider E2E 검증 (mock JWKS server → 실 JWKS)"
+      - ".github/workflows/cd.yml — user-service + BFF staging 자동 배포"
+      - "Terraform remote backend (S3 + DynamoDB lock) 마이그레이션"
+      - "Playwright Hosted UI E2E (browser-level signup/login flow)"
 
   - id: IMPL-016
     title: "commerce-service 분리 — Stripe + Instacart 서비스 경계 분리"

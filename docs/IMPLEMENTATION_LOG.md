@@ -2243,3 +2243,36 @@ verified_by: codex-qa
 - daily_logs 테이블 소유권은 analytics-service로 완전 이관 (BFF는 c2에서 이미 전환 완료)
 ### 미완료: IMPL-017-d2 (tasks.yaml + api-conventions.md + CLAUDE.md 문서 업데이트)
 ### 연관 파일: services/user-service/src/, services/user-service/tests/unit/
+
+---
+date: 2026-04-20
+agent: claude-sonnet-4-6 + human-junwon
+task_id: CHORE-006
+commit_sha: PENDING
+files_changed:
+  - infra/cognito/main.tf
+  - infra/cognito/variables.tf
+  - infra/cognito/outputs.tf
+  - infra/cognito/README.md
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/tests/unit/env-gate.test.ts
+  - services/user-service/tests/integration/auth.cognito.integration.test.ts
+  - services/user-service/.env.staging.example
+  - apps/web/.env.staging.example
+  - scripts/smoke/cognito-hosted-ui.ts
+  - scripts/seed/cognito-staging-users.sh
+verified_by: claude-sonnet-4-6
+---
+### 완료: CHORE-006 — Cognito 스테이징 활성화 인프라 (코드 + 테스트 레이어)
+- ST-1: infra/cognito TF 모듈 (User Pool + BFF client + smoke client); lifecycle.precondition prod 차단; README operator checklist (IAM least-privilege + CloudTrail)
+- ST-2: env.ts 3-way merge (COGNITO_ISSUER_PATTERN regex + JWKS↔Issuer cross-check + COGNITO_LIVE_JWKS staging guard + 32-char INTERNAL_JWT_SECRET floor); COMMERCE_SERVICE_URL 보존 (C1); cognito-auth.provider.ts에 structured log 추가 (G5)
+- ST-3+ST-5: .env.staging.example (user-service + web) + smoke/seed operator 스크립트 + package.json smoke:cognito/seed:cognito scripts
+- ST-4: auth.cognito.integration.test.ts T1-T11 negative matrix (wrong aud/sub/email/kid, HS256 rejection, expired, wrong iss, clock-skew, kid-rotation)
+- 검증: typecheck 0 errors / 122 tests PASS (13 suites) / build smoke DEV_INTERNAL_JWT_SECRET 순환 import 없음
+- Operator 단계 O1-O6(+O2.1, O3.5) — AWS credentials 필요, human-junwon 수동 진행 예정
+- Stale branch 3-way merge 전략 (C1), env.ts COMMERCE_SERVICE_URL 보존 확인
+### 미완료: CHORE-007 (CD workflow + TF remote backend + Playwright E2E); operator O1-O6 실행 (AWS credentials 필요)
+### 연관 파일: infra/cognito/, services/user-service/src/, services/user-service/tests/, scripts/smoke/, scripts/seed/
