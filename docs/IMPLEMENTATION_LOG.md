@@ -2248,7 +2248,7 @@ verified_by: codex-qa
 date: 2026-04-20
 agent: claude-sonnet-4-6 + human-junwon
 task_id: CHORE-006
-commit_sha: PENDING
+commit_sha: 01083f8
 files_changed:
   - infra/cognito/main.tf
   - infra/cognito/variables.tf
