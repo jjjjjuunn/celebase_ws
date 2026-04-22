@@ -2334,3 +2334,117 @@ verified_by: human-junwon
   - pnpm --filter web exec playwright install chromium (브라우저 설치)
   - PLAYWRIGHT_BASE_URL + E2E_SMOKE_EMAIL + E2E_SMOKE_PASSWORD 설정 후 pnpm --filter web test:e2e
 ### 연관 파일: .github/workflows/cd.yml, infra/bootstrap/, infra/cognito/main.tf, apps/web/tests/e2e/
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002
+commit_sha: 231040b
+files_changed:
+  - apps/web/src/features/persona/index.ts
+  - apps/web/src/features/safety/index.ts
+  - apps/web/src/features/fulfillment/index.ts
+  - apps/web/src/features/wellness-log/index.ts
+  - apps/web/src/features/wellness-log/IdentitySyncScore.tsx
+  - apps/web/src/features/wellness-log/IdentitySyncScore.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-APP-002 — features/ 도메인 폴더 재편 (plan 20 Phase D-1)
+- `apps/web/src/features/{persona,safety,fulfillment,wellness-log}/index.ts` barrel 4종 신규
+  - persona: ui-kit `PersonaHero` re-export
+  - safety: `TrafficLightIndicator`, `IngredientSwapCard`, `SourceTrackingBadge` re-export
+  - fulfillment: `InstacartCartPreview`, `StockSubstitutionPopup`, `SavingsBanner` re-export
+  - wellness-log: `NutritionRing` + 로컬 `IdentitySyncScore` composite re-export
+- 신규 composite `IdentitySyncScore` (client-side):
+  - 3-state (`ready` / `pending` / `error`) — pending 은 "계산 중" 플레이스홀더 (plan M1 async 패턴)
+  - aria-live="polite" 로 스코어 변화를 스크린리더 공지
+  - Fraunces display-md + `--cb-color-brand` gold 토큰 사용 (raw hex 0)
+- dashboard Phase E 에서 `preferred_celebrity_slug` 영속 + persona-match 결과 연결 이전까지 heuristic 사용
+### 미완료: spec §7.1 persona-first 개정 (Phase C-1), onboarding step 재정렬 + PersonaSelect (Phase C-2)
+### 연관 파일: apps/web/src/features/, plan 20 Phase D-1
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-BFF-001
+commit_sha: 231040b
+files_changed:
+  - apps/web/src/app/api/persona-match/route.ts
+  - apps/web/src/app/api/meal-plans/[id]/safety/route.ts
+  - apps/web/src/app/api/instacart/cart/route.ts
+  - apps/web/src/app/api/instacart/status/route.ts
+  - apps/web/src/app/api/instacart/substitutions/route.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-BFF-001 — persona-match / safety / Instacart BFF 라우트 (plan 20 Phase D-2/D-3)
+- `POST /api/persona-match`:
+  - 요청 바디는 `{ celebritySlug, goal, wellnessKeywords }` 만 허용 (Zod `.strict()`)
+  - PHI 필드 (`bioProfile*`, `biomarkers`, `medications`, `medicalConditions`, `age`, `weightKg`, `heightCm`, `sex`) 감지 시 400 `PHI_EXPOSURE` — CLAUDE.md Absolute Rule #4 준수 (plan C2 조치)
+  - 실체 upstream (`analytics-service` `/internal/persona-match`) 계약 대기 → 503 `NOT_IMPLEMENTED` mock
+- `GET /api/meal-plans/[id]/safety`:
+  - mealPlanId UUID 검증 후 upstream `meal-plan-engine` 으로 fan-out 예정 (plan C1 정정)
+  - 503 `NOT_IMPLEMENTED` mock — 실체 엔드포인트 부재 (Phase D-0 rg 확인 결과)
+- Instacart 3종 route:
+  - 공통 env gate: `INSTACART_IDP_KEY` 미설정 시 503 `INSTACART_UNCONFIGURED` (plan H3 조치)
+  - `POST /api/instacart/cart`: items + meal_plan_id Zod 검증
+  - `GET /api/instacart/status?orderId=...`: orderId UUID 검증
+  - `POST /api/instacart/substitutions`: `{ substitutionOptionId, decision: 'approve'|'reject' }` refinement
+- 모든 라우트 공통 구조: BFF session → Zod validate → upstream 호출 (현재 503) → `pickUpstreamError` 변환
+### 미완료: analytics `/internal/persona-match` BE 계약 (IMPL-BE-analytics-persona-match 선행), meal-plan-engine safety 엔드포인트 구현 (IMPL-BE-mealplan-safety), Instacart IDP 실제 연동 (credential 확보 후)
+### 연관 파일: apps/web/src/app/api/{persona-match,meal-plans,instacart}/, plan 20 Phase D-2/D-3
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-003
+commit_sha: 3bb2adf
+files_changed:
+  - apps/web/src/app/(app)/dashboard/page.tsx
+  - apps/web/src/app/(app)/dashboard/dashboard.module.css
+  - packages/shared-types/src/schemas/users.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-APP-003 — Dashboard 3-ring + Identity Sync Score (plan 20 Phase E)
+- `apps/web/src/app/(app)/dashboard/page.tsx` "This Week" stat cards → 3-ring 클러스터로 교체:
+  - Ring 1 Adherence (`tone='brand'`, gold) — `summary.completion_rate × 100`
+  - Ring 2 Energy (`tone='persona'`) — `summary.avg_energy_level / 5 × 100`
+  - Ring 3 Recovery (`tone='brand'`) — 데이터 있을 때만, `avg_weight_kg === null` 이면 dashed circular fallback 카드 ("Log weight or sleep to unlock recovery tracking")
+- `IdentitySyncScore` 중앙 overlay — Fraunces display-md 로 "00% tuned to Tom Brady" 형태 렌더:
+  - `computeIdentitySync()` heuristic: adherence 70% + energyNorm 15% + moodNorm 15%, 0-100 정규화 — `IMPL-BE-analytics-persona-match` 계약 확정까지 임시 (plan H2 async 패턴)
+  - `personaSlug === null` → error state + "페르소나 미선택" 메시지 (plan H2 null-safe fallback)
+  - `summaryLoading` → pending state (aria-live placeholder)
+- `UserWireSchema` 에 `preferred_celebrity_slug: z.string().min(1).max(100).nullable()` 필드 추가 + `satisfies` entity parity guard 확장 — `/api/me` 응답에서 persona slug 를 받을 수 있도록 wire 계약 확장
+- `dashboard.module.css`: `.ringStage`, `.ringCluster` (grid 3-col / 1-col @720px), `.identitySync`, `.recoveryFallback` (dashed circular aspect-ratio 1/1)
+- 모든 색상은 `--cb-*` 토큰 사용 (raw hex 0, `scripts/gate-check.sh fe_token_hardcode` 통과)
+### 미완료: persona-match 실체 계약 (L3 review loop 후 heuristic 교체), Oura-style 3-level progressive disclosure (ring tap → drill-down → long-term trend, plan Phase E 후속)
+### 연관 파일: apps/web/src/app/(app)/dashboard/, packages/shared-types/src/schemas/users.ts, plan 20 Phase E
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: PLAN-20-PHASE-F-STUB
+commit_sha: PENDING
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-sonnet-4-6
+---
+### 완료: Plan 20 Phase F — 장기 로드맵 stub 기록 (3년차 이후 타깃)
+Plan 20 "Celebase FE Optimization" Phase F 는 현재 plan 스코프 밖으로 규정되어 있으며, 본 엔트리는 향후 작업 분해가 재개될 때의 진입 조건을 고정한다.
+
+**F-1. PHI Privacy Center** — 계정 설정 내 ePHI 사용 내역 + 권한 철회 UI
+- spec 참조: `spec.md §9.3 — PHI & Right to Deletion`
+- 진입 조건: 30일 유예 + DEK 폐기 절차가 production 에서 1회 이상 execute 됨 + 법무 검토 (HIPAA 6년 보관 확인)
+- 예상 범위: `apps/web/src/app/(app)/settings/privacy/`, `services/user-service/src/routes/privacy.ts`, migration (audit view) + GDPR/CCPA DSAR export endpoint
+
+**F-2. B2B Enterprise Health Insight** — 관리자 대시보드 (익명화 지표)
+- 진입 조건: B2C MAU ≥ 10k + 첫 엔터프라이즈 파일럿 LOI
+- 예상 범위: `packages/ui` 별도 워크스페이스로 분리 가능. `services/enterprise-analytics-service` (신규). 개인 식별 필드 제외된 집계 API + role-based 접근 제어
+
+**F-3. 웨어러블 통합** — Oura / Apple Watch / WHOOP 양방향 동기화
+- spec 참조: `.claude/rules/domain/content.md#Wearable Data (Phase 2+)`
+- 진입 조건: 기기 로컬 집계 정책 확정 + 일일 요약값 스키마 합의 + CGM 암호화 정책 검토
+- 예상 범위: `services/wearable-sync-service` (가칭) 신규, `db/migrations/*_wearable_aggregates.sql`, IMPL-WEARABLE-* 태스크 분기
+
+**현 plan 채택 커버리지 재확인**: 전략 4축 (Aspirational Optimizer 쐐기 / Identity Sync Score / Source Tracking Badge + Safety Bridge / Zero-Friction Fulfillment) 100% 반영. 장기 로드맵 3종은 stub 문서화만 수행, 구현 작업 분해 없음.
+### 미완료: 위 F-1/F-2/F-3 모두 — 각 진입 조건 충족 전까지 작업 분해하지 않음
+### 연관 파일: docs/IMPLEMENTATION_LOG.md (본 엔트리), plan 20 Phase F
