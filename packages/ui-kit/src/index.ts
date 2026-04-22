@@ -116,3 +116,19 @@ export type { MealCardProps } from './components/MealCard/MealCard.js';
 
 export { PersonaHero } from './components/PersonaHero/PersonaHero.js';
 export type { PersonaHeroProps } from './components/PersonaHero/PersonaHero.js';
+
+export { InstacartCartPreview } from './components/InstacartCartPreview/InstacartCartPreview.js';
+export type {
+  InstacartCartPreviewProps,
+  InstacartLineItem,
+  InstacartFulfillmentStatus,
+} from './components/InstacartCartPreview/InstacartCartPreview.js';
+
+export { StockSubstitutionPopup } from './components/InstacartCartPreview/StockSubstitutionPopup.js';
+export type {
+  StockSubstitutionPopupProps,
+  StockSubstitutionOption,
+} from './components/InstacartCartPreview/StockSubstitutionPopup.js';
+
+export { SavingsBanner } from './components/InstacartCartPreview/SavingsBanner.js';
+export type { SavingsBannerProps } from './components/InstacartCartPreview/SavingsBanner.js';

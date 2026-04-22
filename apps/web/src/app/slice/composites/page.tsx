@@ -6,19 +6,26 @@ import {
   Chip,
   IngredientSwapCard,
   InputField,
+  InstacartCartPreview,
   MealCard,
   NutritionRing,
   PersonaHero,
+  SavingsBanner,
   SegmentedControl,
   SelectField,
   SlotChip,
   SlotChipGroup,
   SourceTrackingBadge,
   Stack,
+  StockSubstitutionPopup,
   Text,
   TrafficLightIndicator,
 } from '@celebbase/ui-kit';
-import type { CelebrityCardData } from '@celebbase/ui-kit';
+import type {
+  CelebrityCardData,
+  InstacartLineItem,
+  StockSubstitutionOption,
+} from '@celebbase/ui-kit';
 
 const SECTION_STYLE: CSSProperties = {
   display: 'flex',
@@ -84,6 +91,19 @@ const DISABLED_RANGE_OPTIONS = [
 ] as const;
 
 const DIET_KEYS = ['mediterranean', 'keto', 'paleo', 'vegan'] as const;
+
+const DEMO_CART_ITEMS: InstacartLineItem[] = [
+  { id: 'quinoa', name: 'Organic quinoa, tri-color', quantity: 2, unit: 'lb', priceCents: 899 },
+  { id: 'salmon', name: 'Wild sockeye salmon fillet', quantity: 1, unit: 'lb', priceCents: 2499 },
+  { id: 'avocado', name: 'Hass avocado', quantity: 4, unit: 'ct', priceCents: 599, substituted: true },
+  { id: 'spinach', name: 'Baby spinach', quantity: 1, unit: 'bag', priceCents: 449 },
+];
+
+const DEMO_SUB_OPTIONS: StockSubstitutionOption[] = [
+  { id: 'haas', name: 'Haas avocado (loose)', priceCents: 549, note: 'Same variety, sold individually' },
+  { id: 'bag', name: 'Avocado bag (6 ct)', priceCents: 799, note: 'Bulk option — slightly riper' },
+  { id: 'guac', name: 'Pre-made guacamole', priceCents: 699, note: 'Skip the prep — 5g added fiber' },
+];
 
 const DEMO_PERSONAS: CelebrityCardData[] = [
   {
@@ -470,6 +490,54 @@ export default function CompositesPreview(): JSX.Element {
         <PersonaHero
           celebrities={DEMO_PERSONAS}
           footnote="Educational only — not medical advice."
+        />
+      </Section>
+
+      <Section id="instacart-cart" title="InstacartCartPreview">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 'var(--cb-space-4)',
+          }}
+        >
+          <InstacartCartPreview
+            items={DEMO_CART_ITEMS}
+            subtotalCents={4446}
+            status="ready"
+            onCheckout={() => {
+              // demo slot — wired in fulfillment feature later
+            }}
+            footer="Delivery by 7:30 PM · Handed to shopper at checkout."
+          />
+          <InstacartCartPreview
+            items={DEMO_CART_ITEMS.slice(0, 2)}
+            subtotalCents={3398}
+            status="private_chef"
+            footer="Private Chef prep — includes a 45-min cook session."
+          />
+        </div>
+      </Section>
+
+      <Section id="stock-substitution" title="StockSubstitutionPopup">
+        <StockSubstitutionPopup
+          originalItem="Hass avocado (4 ct)"
+          reason="Out of stock at your local store right now."
+          options={DEMO_SUB_OPTIONS}
+          onApprove={() => {
+            // demo — wired in fulfillment feature
+          }}
+          onReject={() => {
+            // demo — skip item
+          }}
+        />
+      </Section>
+
+      <Section id="savings-banner" title="SavingsBanner (3-way comparison)">
+        <SavingsBanner
+          aiPlanCents={4446}
+          diyCents={6200}
+          privateChefCents={18500}
         />
       </Section>
     </Stack>
