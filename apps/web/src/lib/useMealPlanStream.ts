@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { schemas } from '@celebbase/shared-types';
-import { postJson } from './fetcher.js';
+import { fetcher, postJson } from './fetcher.js';
 
 // WS event protocol — wire-only, not in shared-types
 type WsStreamEvent =
@@ -110,6 +110,46 @@ export async function openMealPlanStream(
   return ws;
 }
 
+const POLL_INTERVAL_MS = 2000;
+
+async function pollMealPlanStatus(
+  mealPlanId: string,
+  callbacks: StreamCallbacks,
+  signal: AbortSignal,
+): Promise<void> {
+  let fakeProgress = 10;
+
+  const tick = async (): Promise<void> => {
+    if (signal.aborted) return;
+
+    let plan: schemas.MealPlanWire;
+    try {
+      plan = await fetcher(`/api/meal-plans/${mealPlanId}`, {
+        schema: schemas.MealPlanDetailResponseSchema,
+        signal,
+      });
+    } catch {
+      if (!signal.aborted) callbacks.onError('Failed to check meal plan status');
+      return;
+    }
+
+    if (signal.aborted) return;
+
+    if (plan.status === 'queued' || plan.status === 'generating') {
+      callbacks.onStreaming();
+      fakeProgress = Math.min(fakeProgress + 15, 85);
+      callbacks.onProgress(fakeProgress, 'Generating your plan…');
+      setTimeout(() => void tick(), POLL_INTERVAL_MS);
+    } else if (plan.status === 'draft' || plan.status === 'completed' || plan.status === 'active') {
+      callbacks.onComplete(plan.id);
+    } else {
+      callbacks.onError('Meal plan generation failed');
+    }
+  };
+
+  await tick();
+}
+
 export function useMealPlanStream(mealPlanId: string | null): MealPlanStreamState {
   const [state, setState] = useState<MealPlanStreamState>(INITIAL_STATE);
   const wsRef = useRef<WebSocket | null>(null);
@@ -121,8 +161,9 @@ export function useMealPlanStream(mealPlanId: string | null): MealPlanStreamStat
     }
 
     const abort = new AbortController();
+    let fellBack = false;
 
-    const callbacks: StreamCallbacks = {
+    const baseCallbacks: StreamCallbacks = {
       onConnecting: () =>
         setState({ status: 'connecting', progressPct: 0, message: '', error: null, completedMealPlanId: null }),
       onStreaming: () =>
@@ -135,7 +176,21 @@ export function useMealPlanStream(mealPlanId: string | null): MealPlanStreamStat
         setState({ status: 'error', progressPct: 0, message: '', error, completedMealPlanId: null }),
     };
 
-    void openMealPlanStream(mealPlanId, callbacks, abort.signal).then((ws) => {
+    // Intercept WS errors to fall back to polling before surfacing to UI
+    const wsCallbacks: StreamCallbacks = {
+      ...baseCallbacks,
+      onError: (error) => {
+        if (!fellBack && !abort.signal.aborted) {
+          fellBack = true;
+          baseCallbacks.onConnecting();
+          void pollMealPlanStatus(mealPlanId, baseCallbacks, abort.signal);
+        } else if (!abort.signal.aborted) {
+          baseCallbacks.onError(error);
+        }
+      },
+    };
+
+    void openMealPlanStream(mealPlanId, wsCallbacks, abort.signal).then((ws) => {
       if (ws) wsRef.current = ws;
     });
 

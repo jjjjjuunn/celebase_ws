@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import date, timedelta
 from typing import Any, Callable, Dict, List
 
 from . import calorie_adjuster, macro_rebalancer, micronutrient_checker, nutrition_normalizer, phi_minimizer, variety_optimizer
@@ -200,7 +201,23 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,
         "nutrition_standard": nutrition_std.asdict(),
-        "weekly_plan": [[slot.recipe_id for slot in day] for day in varied_plan],
+        "weekly_plan": [
+            {
+                "day": i + 1,
+                "date": (date.today() + timedelta(days=i)).isoformat(),
+                "meals": [
+                    {"meal_type": slot.meal_type, "recipe_id": slot.recipe_id}
+                    for slot in day_slots
+                ],
+                "daily_totals": {
+                    "calories": round(float(target_kcal), 2),
+                    "protein_g": round(float(macros.get("protein_g", 0.0)), 2),
+                    "carbs_g": round(float(macros.get("carb_g", 0.0)), 2),
+                    "fat_g": round(float(macros.get("fat_g", 0.0)), 2),
+                },
+            }
+            for i, day_slots in enumerate(varied_plan)
+        ],
     }
 
     await _emit(on_progress, {"pass": 2, "pct": 100})

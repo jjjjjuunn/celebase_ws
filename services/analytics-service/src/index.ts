@@ -16,10 +16,6 @@ const start = async (): Promise<void> => {
   await app.register(dailyLogRoutes, { pool });
   await app.register(reportsRoutes, { pool });
 
-  app.get('/health', async (_request, reply) => {
-    void reply.status(200).send({ status: 'ok' });
-  });
-
   app.get('/ready', async (_request, reply) => {
     const checks: Record<string, 'ok' | 'fail'> = {};
     try {

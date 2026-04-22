@@ -100,20 +100,23 @@ export function AccountClient(): React.ReactElement {
   useEffect(() => {
     void (async () => {
       try {
-        const [meRes, subRes] = await Promise.all([
-          fetcher('/api/users/me', { schema: schemas.MeResponseSchema }),
-          fetcher('/api/subscriptions/me', { schema: schemas.GetMySubscriptionResponseSchema }),
-        ]);
+        const meRes = await fetcher('/api/users/me', { schema: schemas.MeResponseSchema });
         setUser(meRes.user);
         setNameInput(meRes.user.display_name);
-        setSub(subRes.subscription);
       } catch (err) {
         setLoadError(
           err instanceof FetcherError ? err.message : 'Could not load account info.',
         );
-      } finally {
         setLoading(false);
+        return;
       }
+      try {
+        const subRes = await fetcher('/api/subscriptions/me', { schema: schemas.GetMySubscriptionResponseSchema });
+        setSub(subRes.subscription);
+      } catch {
+        // subscription service unavailable — degrade gracefully
+      }
+      setLoading(false);
     })();
   }, []);
 

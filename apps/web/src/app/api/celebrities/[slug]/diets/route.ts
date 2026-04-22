@@ -1,8 +1,12 @@
 import { type NextRequest } from 'next/server';
+import { z } from 'zod';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../../_lib/bff-fetch.js';
 import { createPublicRoute } from '../../../_lib/session.js';
 import { toBffErrorResponse } from '../../../_lib/bff-error.js';
+
+// content-service returns { items: [...] }, BFF contract uses { diets: [...] }
+const ContentDietsSchema = z.object({ items: z.array(schemas.BaseDietWireSchema) });
 
 export async function GET(
   req: NextRequest,
@@ -17,7 +21,7 @@ export async function GET(
       `/celebrities/${encodeURIComponent(slug)}/diets`,
       {
         method: 'GET',
-        schema: schemas.CelebrityDietsResponseSchema,
+        schema: ContentDietsSchema,
         requestId,
         forwardedFor,
       },
@@ -25,7 +29,7 @@ export async function GET(
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
     }
-    return new Response(JSON.stringify(result.data), {
+    return new Response(JSON.stringify({ diets: result.data.items }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
     });

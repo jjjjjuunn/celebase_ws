@@ -4,10 +4,6 @@ import { fetchBff, SessionExpiredError } from '../../_lib/bff-fetch.js';
 import { createLogger } from '../../_lib/bff-error.js';
 import { createPublicRoute, readEnv } from '../../_lib/session.js';
 
-const COGNITO_TOKEN_ENDPOINT = readEnv('COGNITO_TOKEN_ENDPOINT');
-const COGNITO_CLIENT_ID = readEnv('COGNITO_CLIENT_ID');
-const COGNITO_CLIENT_SECRET = readEnv('COGNITO_CLIENT_SECRET');
-const COGNITO_REDIRECT_URI = readEnv('COGNITO_REDIRECT_URI');
 const TOKEN_EXCHANGE_TIMEOUT_MS = 10_000;
 
 const log = createLogger('bff-auth-callback');
@@ -51,6 +47,11 @@ function decodeJwtClaims(token: string): Record<string, unknown> {
 }
 
 export const GET = createPublicRoute(async (req: NextRequest) => {
+  const cognitoTokenEndpoint = readEnv('COGNITO_TOKEN_ENDPOINT');
+  const cognitoClientId = readEnv('COGNITO_CLIENT_ID');
+  const cognitoClientSecret = readEnv('COGNITO_CLIENT_SECRET');
+  const cognitoRedirectUri = readEnv('COGNITO_REDIRECT_URI');
+
   const { searchParams } = req.nextUrl;
   const code = searchParams.get('code');
   const state = searchParams.get('state');
@@ -79,8 +80,8 @@ export const GET = createPublicRoute(async (req: NextRequest) => {
   }
 
   // Exchange authorization code for Cognito tokens using client_secret_basic
-  const credentials = btoa(`${COGNITO_CLIENT_ID}:${COGNITO_CLIENT_SECRET}`);
-  const tokenRes = await fetch(COGNITO_TOKEN_ENDPOINT, {
+  const credentials = btoa(`${cognitoClientId}:${cognitoClientSecret}`);
+  const tokenRes = await fetch(cognitoTokenEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -89,8 +90,8 @@ export const GET = createPublicRoute(async (req: NextRequest) => {
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: COGNITO_REDIRECT_URI,
-      client_id: COGNITO_CLIENT_ID,
+      redirect_uri: cognitoRedirectUri,
+      client_id: cognitoClientId,
       code_verifier: codeVerifier,
     }).toString(),
     signal: AbortSignal.timeout(TOKEN_EXCHANGE_TIMEOUT_MS),
