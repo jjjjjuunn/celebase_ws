@@ -243,7 +243,7 @@ Runs **parallel to IMPL-APP-***, but with token freeze points. Tokens must land 
 
 ### DESIGN.md §7 coverage gap (tracked, no chunk yet)
 Components required by spec but not yet assigned a chunk. These must be assigned before Sprint C execution:
-- HealthDisclaimer (full component), Skeleton system, CardEditorial, CardMetric, CardPlanDay, CardTier, CardCheckout, CardHistoryRow, onboarding screens S3–S9 (Basic Info through Health Intake), support/help components.
+- HealthDisclaimer (full component), Skeleton system, CardEditorial, CardMetric, CardPlanDay, CardTier, CardCheckout, CardHistoryRow, onboarding screens S0–S7 persona-first flow (PersonaSelect → BasicInfo → BodyMetrics → ActivityHealth → Goals & Diet → BlueprintReveal; see spec.md §7.1 revision 2026-04-22), support/help components.
 
 ---
 
