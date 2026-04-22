@@ -6,18 +6,13 @@ terraform {
       version = "~> 5.0"
     }
   }
-  # CHORE-007 remote backend — uncomment after:
-  #   Step 1: cd infra/bootstrap && terraform init && terraform apply
-  #   Step 2: cd infra/cognito  && terraform init -migrate-state
-  # Until then, local state + single-operator lock (see README.md).
-  #
-  # backend "s3" {
-  #   bucket         = "celebbase-terraform-state"
-  #   key            = "cognito/staging/terraform.tfstate"
-  #   region         = "us-west-2"
-  #   dynamodb_table = "celebbase-terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "celebbase-terraform-state"
+    key            = "cognito/staging/terraform.tfstate"
+    region         = "us-west-2"
+    dynamodb_table = "celebbase-terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
