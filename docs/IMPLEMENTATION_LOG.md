@@ -2281,7 +2281,7 @@ verified_by: claude-sonnet-4-6
 date: 2026-04-21
 agent: claude-sonnet-4-6 + human-junwon
 task_id: CHORE-006
-commit_sha: PENDING
+commit_sha: 8610ea3
 files_changed:
   - infra/cognito/main.tf
   - scripts/smoke/cognito-hosted-ui.ts
