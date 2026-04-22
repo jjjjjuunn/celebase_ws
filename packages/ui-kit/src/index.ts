@@ -86,3 +86,20 @@ export type {
   WsStatusBannerProps,
   WsStreamStatus,
 } from './components/WsStatusBanner/WsStatusBanner.js';
+
+export { TrafficLightIndicator } from './components/TrafficLightIndicator/TrafficLightIndicator.js';
+export type {
+  TrafficLightIndicatorProps,
+  TrafficLightStatus,
+  TrafficLightVariant,
+  TrafficLightSize,
+} from './components/TrafficLightIndicator/TrafficLightIndicator.js';
+
+export { SourceTrackingBadge } from './components/SourceTrackingBadge/SourceTrackingBadge.js';
+export type { SourceTrackingBadgeProps } from './components/SourceTrackingBadge/SourceTrackingBadge.js';
+
+export { IngredientSwapCard } from './components/IngredientSwapCard/IngredientSwapCard.js';
+export type {
+  IngredientSwapCardProps,
+  IngredientInfo,
+} from './components/IngredientSwapCard/IngredientSwapCard.js';

@@ -4,13 +4,16 @@ import { useState } from 'react';
 import type { ChangeEvent, CSSProperties, JSX } from 'react';
 import {
   Chip,
+  IngredientSwapCard,
   InputField,
   SegmentedControl,
   SelectField,
   SlotChip,
   SlotChipGroup,
+  SourceTrackingBadge,
   Stack,
   Text,
+  TrafficLightIndicator,
 } from '@celebbase/ui-kit';
 
 const SECTION_STYLE: CSSProperties = {
@@ -324,6 +327,60 @@ export default function CompositesPreview(): JSX.Element {
             <SlotChip value="16:30" timeLabel="4:30 PM" priceLabel="$30" disabled />
             <SlotChip value="17:00" timeLabel="5:00 PM" priceLabel="$30" />
           </SlotChipGroup>
+        </Stack>
+      </Section>
+
+      <Section id="traffic-light" title="TrafficLightIndicator">
+        <Stack direction="column" gap="3">
+          <div style={ROW_STYLE}>
+            <TrafficLightIndicator status="green" />
+            <TrafficLightIndicator status="orange" />
+            <TrafficLightIndicator status="red" />
+            <TrafficLightIndicator status="green" label="Cleared for your allergies" />
+            <TrafficLightIndicator status="orange" size="sm" label="Sodium moderate" />
+          </div>
+          <Text variant="body" size="sm" tone="muted">
+            Swap-context variant is rendered inside IngredientSwapCard below.
+          </Text>
+        </Stack>
+      </Section>
+
+      <Section id="source-tracking" title="SourceTrackingBadge">
+        <div style={ROW_STYLE}>
+          <SourceTrackingBadge
+            sourceLabel="Vogue 2024"
+            href="https://www.vogue.com/"
+            verifiedAt="2024-11"
+          />
+          <SourceTrackingBadge
+            sourceLabel="Harvard Med News"
+            href="https://hms.harvard.edu/news"
+            verifiedAt="2025-03"
+          />
+          <SourceTrackingBadge sourceLabel="USDA FDC" href="https://fdc.nal.usda.gov/" />
+        </div>
+      </Section>
+
+      <Section id="ingredient-swap" title="IngredientSwapCard (Safety Bridge framing)">
+        <Stack direction="column" gap="4">
+          <IngredientSwapCard
+            status="green"
+            original={{ name: 'Almond milk', note: 'in original recipe' }}
+            replacement={{ name: 'Oat milk', note: 'suggested by AI' }}
+            reason="Your profile flags a tree-nut allergy. Oat milk keeps the creamy texture and matches macros within 3%."
+          >
+            This suggestion considers your recorded allergies and is for educational
+            purposes only — not medical advice.
+          </IngredientSwapCard>
+
+          <IngredientSwapCard
+            status="orange"
+            original={{ name: 'Raw salmon' }}
+            replacement={{ name: 'Seared salmon' }}
+            reason="You indicated pregnancy in onboarding. Fully cooked replaces raw to lower listeria exposure risk."
+          >
+            Not a medical diagnosis. Consult a clinician for your specific case.
+          </IngredientSwapCard>
         </Stack>
       </Section>
     </Stack>
