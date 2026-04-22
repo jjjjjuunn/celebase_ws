@@ -49,3 +49,7 @@ packages/ui-kit/storybook-static/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Playwright E2E
+playwright-report/
+test-results/

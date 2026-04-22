@@ -11,7 +11,8 @@
     "test": "jest --config jest.config.cjs --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "verify:contracts": "tsx scripts/verify-api-contracts.ts",
-    "record:fixtures": "bash scripts/record-fixtures.sh"
+    "record:fixtures": "bash scripts/record-fixtures.sh",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@celebbase/design-tokens": "workspace:*",
@@ -30,6 +31,7 @@
     "@axe-core/react": "^4.10.0",
     "@celebbase/eslint-plugin-celebbase": "workspace:*",
     "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.59.1",
     "@types/jest": "^29",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

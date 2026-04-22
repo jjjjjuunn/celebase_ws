@@ -418,11 +418,11 @@ tasks:
     owner: agent-claude-sonnet-4-6 + human-junwon
     dependsOn:
       - CHORE-006
-    status: pending
+    status: done
     definitionOfDone:
-      - ".github/workflows/cd.yml — user-service + BFF staging 자동 배포"
-      - "Terraform remote backend (S3 + DynamoDB lock) 마이그레이션"
-      - "Playwright Hosted UI E2E (browser-level signup/login flow)"
+      - ".github/workflows/cd.yml — user-service + BFF staging 자동 배포 ✅"
+      - "Terraform remote backend (S3 + DynamoDB lock) 마이그레이션 ✅ (infra/bootstrap/ 생성, infra/cognito/main.tf backend 블록 준비; 실제 apply는 operator 수동 단계)"
+      - "Playwright Hosted UI E2E (browser-level signup/login flow) ✅ (apps/web/tests/e2e/auth-cognito.spec.ts; E2E_SMOKE_EMAIL/PASSWORD 설정 시 실행)"
 
   - id: IMPL-016
     title: "commerce-service 분리 — Stripe + Instacart 서비스 경계 분리"

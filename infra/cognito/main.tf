@@ -6,9 +6,18 @@ terraform {
       version = "~> 5.0"
     }
   }
-  # Local state for CHORE-006 (single-operator).
-  # CHORE-007 will migrate this to an S3+DynamoDB backend.
-  # See README.md — single-operator lock rules MUST be followed until migration.
+  # CHORE-007 remote backend — uncomment after:
+  #   Step 1: cd infra/bootstrap && terraform init && terraform apply
+  #   Step 2: cd infra/cognito  && terraform init -migrate-state
+  # Until then, local state + single-operator lock (see README.md).
+  #
+  # backend "s3" {
+  #   bucket         = "celebbase-terraform-state"
+  #   key            = "cognito/staging/terraform.tfstate"
+  #   region         = "us-west-2"
+  #   dynamodb_table = "celebbase-terraform-locks"
+  #   encrypt        = true
+  # }
 }
 
 provider "aws" {

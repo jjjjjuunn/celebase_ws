@@ -1,0 +1,170 @@
+name: CD — Staging Deploy
+
+on:
+  # 수동 트리거: GitHub Actions 탭에서 "Run workflow" 클릭
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Deploy target (user-service | all)'
+        required: true
+        default: 'user-service'
+        type: choice
+        options:
+          - user-service
+          - all
+
+  # CI 통과 후 main 브랜치 push 시 자동 실행
+  push:
+    branches: [main]
+    paths:
+      - 'services/user-service/**'
+      - 'packages/shared-types/**'
+      - 'packages/service-core/**'
+      - '.github/workflows/cd.yml'
+
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false  # 배포는 취소하지 않음
+
+env:
+  AWS_REGION: us-west-2
+
+# ────────────────────────────────────────────────────────────────────────────
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#
+#   AWS_ACCESS_KEY_ID        — ECR push + Secrets Manager read 권한
+#   AWS_SECRET_ACCESS_KEY
+#   ECR_REGISTRY             — e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com
+#   STAGING_SSH_KEY          — staging 서버 SSH 비밀키 (PEM 전체 내용)
+#   STAGING_SERVER_IP        — staging 서버 IP 주소
+#   STAGING_SERVER_USER      — staging 서버 SSH 유저 (e.g. ubuntu, ec2-user)
+#
+# 서버 사전 준비 (operator):
+#   1. EC2 인스턴스 생성 (Amazon Linux 2023 또는 Ubuntu 22.04)
+#   2. Docker + docker compose 설치
+#   3. /app 디렉토리에 docker-compose.yml + .env.staging 배포
+#   4. GitHub Secrets에 위 값 등록
+# ────────────────────────────────────────────────────────────────────────────
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 1: CI 게이트 — 테스트/lint/typecheck 통과 확인
+  # ──────────────────────────────────────────────────────────────────────────
+  ci-gate:
+    name: "✅ CI Gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: |
+          pnpm --filter @celebbase/shared-types build
+          pnpm --filter @celebbase/service-core build
+
+      - name: Typecheck user-service
+        run: pnpm --filter @celebbase/user-service typecheck
+
+      - name: Test user-service
+        run: pnpm --filter @celebbase/user-service test
+        env:
+          NODE_ENV: test
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 2: Docker 이미지 빌드 → ECR push
+  # ──────────────────────────────────────────────────────────────────────────
+  build-push:
+    name: "🐳 Build & Push"
+    runs-on: ubuntu-latest
+    needs: ci-gate
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      short_sha: ${{ steps.vars.outputs.short_sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set variables
+        id: vars
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push user-service
+        id: meta
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.vars.outputs.short_sha }}
+        run: |
+          docker build \
+            -t "$ECR_REGISTRY/celebbase-user-service:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/celebbase-user-service:staging-latest" \
+            -f services/user-service/Dockerfile \
+            .
+          docker push "$ECR_REGISTRY/celebbase-user-service:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/celebbase-user-service:staging-latest"
+          echo "tags=$ECR_REGISTRY/celebbase-user-service:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 3: Staging 서버에 배포 (SSH)
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: "🚀 Deploy to Staging"
+    runs-on: ubuntu-latest
+    needs: build-push
+    environment: staging
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_SERVER_IP }}
+          username: ${{ secrets.STAGING_SERVER_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            cd /app
+
+            # ECR 로그인 (서버에 AWS CLI 필요)
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+            # 최신 이미지 pull + 재시작
+            docker compose pull user-service
+            docker compose up -d --force-recreate user-service
+
+            # 헬스체크 (최대 30초 대기)
+            for i in $(seq 1 6); do
+              if curl -sf http://localhost:3001/health; then
+                echo "✅ user-service healthy"
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "❌ Health check failed"
+            exit 1
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Deployed celebbase-user-service:${{ needs.build-push.outputs.short_sha }} to staging"

@@ -2302,3 +2302,35 @@ verified_by: human-junwon
 - O6: COGNITO_LIVE_JWKS=1 integration test T1-T11 모두 PASS (real JWKS 검증 완료)
 ### 미완료: CHORE-007 (CD workflow + TF remote backend + Playwright E2E)
 ### 연관 파일: infra/cognito/main.tf, scripts/smoke/cognito-hosted-ui.ts, docs/runs/CHORE-006/
+
+---
+date: 2026-04-21
+agent: claude-sonnet-4-6
+task_id: CHORE-007
+commit_sha: PENDING
+files_changed:
+  - .github/workflows/cd.yml
+  - infra/bootstrap/main.tf
+  - infra/bootstrap/variables.tf
+  - infra/bootstrap/outputs.tf
+  - infra/cognito/main.tf
+  - apps/web/playwright.config.ts
+  - apps/web/tests/e2e/auth-cognito.spec.ts
+  - apps/web/package.json
+verified_by: human-junwon
+---
+### 완료: CHORE-007 — CD 파이프라인 + TF remote backend + Playwright E2E
+- .github/workflows/cd.yml: ci-gate → build-push (ECR) → SSH deploy 3-job CD 파이프라인
+  - workflow_dispatch + push(main) 트리거, environment=staging gate
+  - 필요 Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, ECR_REGISTRY, STAGING_SSH_KEY, STAGING_SERVER_IP, STAGING_SERVER_USER
+- infra/bootstrap/: S3 + DynamoDB Terraform remote backend 모듈 (versioning + AES256 + public access block)
+  - infra/cognito/main.tf backend 블록 주석으로 준비 (operator apply 후 terraform init -migrate-state)
+- apps/web/tests/e2e/auth-cognito.spec.ts: Playwright Cognito Hosted UI E2E
+  - login → SSO click → Cognito → callback → /dashboard + cb_access cookie 검증
+  - E2E_SMOKE_EMAIL / E2E_SMOKE_PASSWORD 미설정 시 test.skip()
+### 미완료: operator 수동 단계 (AWS credentials 필요)
+  - EC2 staging 서버 + GitHub Secrets 등록 (CD 실제 배포)
+  - infra/bootstrap apply → infra/cognito terraform init -migrate-state (TF remote backend)
+  - pnpm --filter web exec playwright install chromium (브라우저 설치)
+  - PLAYWRIGHT_BASE_URL + E2E_SMOKE_EMAIL + E2E_SMOKE_PASSWORD 설정 후 pnpm --filter web test:e2e
+### 연관 파일: .github/workflows/cd.yml, infra/bootstrap/, infra/cognito/main.tf, apps/web/tests/e2e/
