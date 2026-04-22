@@ -6,6 +6,8 @@ import {
   Chip,
   IngredientSwapCard,
   InputField,
+  MealCard,
+  NutritionRing,
   SegmentedControl,
   SelectField,
   SlotChip,
@@ -358,6 +360,61 @@ export default function CompositesPreview(): JSX.Element {
             verifiedAt="2025-03"
           />
           <SourceTrackingBadge sourceLabel="USDA FDC" href="https://fdc.nal.usda.gov/" />
+        </div>
+      </Section>
+
+      <Section id="nutrition-ring" title="NutritionRing (brand + persona tones)">
+        <div style={ROW_STYLE}>
+          <NutritionRing value={42} label="Adherence" tone="brand" size="sm" />
+          <NutritionRing
+            value={78}
+            label="Adherence"
+            subLabel="Target 2150 kcal"
+            tone="brand"
+            size="md"
+          />
+          <NutritionRing
+            value={100}
+            label="Sync"
+            subLabel="Tom Brady persona"
+            tone="persona"
+            size="lg"
+          />
+        </div>
+      </Section>
+
+      <Section id="meal-card" title="MealCard">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 'var(--cb-space-4)',
+          }}
+        >
+          <MealCard
+            title="Quinoa bowl with seared salmon"
+            celebrityTag="Tom Brady"
+            mealType="Lunch"
+            kcal={620}
+            safetyStatus="green"
+            onShopIngredients={() => {
+              // demo slot — wired in fulfillment feature later
+            }}
+            sourceBadge={
+              <SourceTrackingBadge
+                sourceLabel="Vogue 2024"
+                href="https://www.vogue.com/"
+                verifiedAt="2024-11"
+              />
+            }
+          />
+          <MealCard
+            title="Mediterranean mezze plate"
+            celebrityTag="Gwyneth Paltrow"
+            mealType="Dinner"
+            kcal={540}
+            safetyStatus="orange"
+          />
         </div>
       </Section>
 

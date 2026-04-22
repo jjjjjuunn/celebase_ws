@@ -103,3 +103,13 @@ export type {
   IngredientSwapCardProps,
   IngredientInfo,
 } from './components/IngredientSwapCard/IngredientSwapCard.js';
+
+export { NutritionRing } from './components/NutritionRing/NutritionRing.js';
+export type {
+  NutritionRingProps,
+  NutritionRingSize,
+  NutritionRingTone,
+} from './components/NutritionRing/NutritionRing.js';
+
+export { MealCard } from './components/MealCard/MealCard.js';
+export type { MealCardProps } from './components/MealCard/MealCard.js';
