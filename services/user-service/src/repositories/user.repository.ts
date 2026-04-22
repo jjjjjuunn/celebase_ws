@@ -22,10 +22,11 @@ type UpdateableUserFields = {
   avatar_url?: string | null | undefined;
   locale?: string | undefined;
   timezone?: string | undefined;
+  preferred_celebrity_slug?: string | null | undefined;
 };
 
 const ALLOWED_USER_COLUMNS: ReadonlySet<string> = new Set<string>([
-  'display_name', 'avatar_url', 'locale', 'timezone',
+  'display_name', 'avatar_url', 'locale', 'timezone', 'preferred_celebrity_slug',
 ]);
 
 export async function updateUser(
