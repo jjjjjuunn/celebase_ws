@@ -133,34 +133,29 @@ jobs:
     environment: staging
 
     steps:
+      - name: Write SSH key
+        run: |
+          printf '%s' "${{ secrets.STAGING_SSH_KEY }}" > /tmp/staging_key
+          chmod 600 /tmp/staging_key
+
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.STAGING_SERVER_IP }}
-          username: ${{ secrets.STAGING_SERVER_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -e
-            cd /app
-
-            # ECR 로그인 (서버에 AWS CLI 필요)
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} \
-              | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-
-            # 최신 이미지 pull + 재시작
-            docker compose pull user-service
-            docker compose up -d --force-recreate user-service
-
-            # 헬스체크 (최대 30초 대기)
-            for i in $(seq 1 6); do
-              if curl -sf http://localhost:3001/health; then
-                echo "✅ user-service healthy"
-                exit 0
-              fi
-              sleep 5
-            done
-            echo "❌ Health check failed"
-            exit 1
+        env:
+          HOST: ${{ secrets.STAGING_SERVER_IP }}
+          REMOTE_USER: ${{ secrets.STAGING_SERVER_USER }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        run: |
+          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" bash -s <<ENDSSH
+          set -e
+          cd /app
+          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          docker compose pull user-service
+          docker compose up -d --force-recreate user-service
+          for i in 1 2 3 4 5 6; do
+            if curl -sf http://localhost:3001/health; then echo "healthy"; exit 0; fi
+            sleep 5
+          done
+          exit 1
+          ENDSSH
 
       - name: Notify success
         if: success()
