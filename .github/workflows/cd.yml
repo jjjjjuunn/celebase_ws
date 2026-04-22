@@ -166,3 +166,4 @@ jobs:
         if: success()
         run: |
           echo "✅ Deployed celebase-user-service:${{ needs.build-push.outputs.short_sha }} to staging"
+
