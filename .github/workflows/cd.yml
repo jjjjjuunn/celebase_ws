@@ -134,8 +134,10 @@ jobs:
 
     steps:
       - name: Write SSH key
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
         run: |
-          printf '%s' "${{ secrets.STAGING_SSH_KEY }}" > /tmp/staging_key
+          echo "$SSH_KEY" > /tmp/staging_key
           chmod 600 /tmp/staging_key
 
       - name: Deploy via SSH
