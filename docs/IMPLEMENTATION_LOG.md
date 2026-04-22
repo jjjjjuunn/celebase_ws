@@ -2276,3 +2276,29 @@ verified_by: claude-sonnet-4-6
 - Stale branch 3-way merge 전략 (C1), env.ts COMMERCE_SERVICE_URL 보존 확인
 ### 미완료: CHORE-007 (CD workflow + TF remote backend + Playwright E2E); operator O1-O6 실행 (AWS credentials 필요)
 ### 연관 파일: infra/cognito/, services/user-service/src/, services/user-service/tests/, scripts/smoke/, scripts/seed/
+
+---
+date: 2026-04-21
+agent: claude-sonnet-4-6 + human-junwon
+task_id: CHORE-006
+commit_sha: PENDING
+files_changed:
+  - infra/cognito/main.tf
+  - scripts/smoke/cognito-hosted-ui.ts
+  - docs/runs/CHORE-006/smoke-a.log
+  - docs/runs/CHORE-006/smoke-b.log
+  - docs/runs/CHORE-006/live-jwks.log
+verified_by: human-junwon
+---
+### 완료: CHORE-006 — Operator 단계 O1-O6 완료 (AWS 스테이징 Cognito 활성화)
+- O1: terraform apply — us-west-2_GvpQnHLEj User Pool + BFF client + smoke client 생성
+- O2+O2.1: Secrets Manager celebbase/staging/user-service + web-bff 시크릿 생성 완료
+- O3: .env.staging + docker-compose.override.yml 생성, user-service AUTH_PROVIDER=cognito 확인
+- O3.5: dev placeholder 3건 soft delete (UPDATE users SET deleted_at = now() WHERE cognito_sub LIKE 'dev-%')
+- O4: docker compose up --force-recreate로 user-service Cognito 모드 기동 확인
+- O5: smoke Phase A (Hosted UI 302 PASS) + Phase B (AdminCreateUser→AdminInitiateAuth→/auth/signup 200 PASS)
+  - BFF client에 ALLOW_ADMIN_USER_PASSWORD_AUTH 추가 (id_token aud=bff_client_id로 정렬)
+  - smoke script: COGNITO_BFF_CLIENT_SECRET + SECRET_HASH 계산, /auth/signup 호출
+- O6: COGNITO_LIVE_JWKS=1 integration test T1-T11 모두 PASS (real JWKS 검증 완료)
+### 미완료: CHORE-007 (CD workflow + TF remote backend + Playwright E2E)
+### 연관 파일: infra/cognito/main.tf, scripts/smoke/cognito-hosted-ui.ts, docs/runs/CHORE-006/
