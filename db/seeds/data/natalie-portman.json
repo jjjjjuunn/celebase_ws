@@ -2,10 +2,15 @@
   "slug": "natalie-portman",
   "display_name": "Natalie Portman",
   "short_bio": "Oscar-winning actress and longtime ethical vegan who advocates for whole-food plant-based eating, emphasizing legumes, grains, and seasonal vegetables.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/natalie-portman/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/natalie-portman/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/natalie-portman/400/400",
+  "cover_image_url": "https://picsum.photos/seed/natalie-portman-cover/800/600",
   "category": "vegetarian",
-  "tags": ["ethical-vegan", "whole-foods", "sustainable", "plant-based"],
+  "tags": [
+    "ethical-vegan",
+    "whole-foods",
+    "sustainable",
+    "plant-based"
+  ],
   "is_featured": true,
   "sort_order": 7,
   "base_diet": {
@@ -14,296 +19,1267 @@
     "philosophy": "Natalie has been vegetarian since childhood and went fully vegan after reading 'Eating Animals.' She focuses on whole, unprocessed plant foods prepared simply and emphasizes sustainability.",
     "diet_type": "vegan",
     "avg_daily_kcal": 1900,
-    "macro_ratio": { "protein_pct": 18, "carbs_pct": 55, "fat_pct": 27 },
-    "included_foods": ["lentils", "chickpeas", "quinoa", "brown rice", "leafy greens", "sweet potato", "berries", "avocado", "tofu", "tempeh"],
-    "excluded_foods": ["meat", "fish", "dairy", "eggs", "honey", "gelatin", "processed foods"],
-    "key_supplements": ["B12", "Vitamin D", "Iron", "Omega-3 (algae)", "Zinc"],
+    "macro_ratio": {
+      "protein_pct": 18,
+      "carbs_pct": 55,
+      "fat_pct": 27
+    },
+    "included_foods": [
+      "lentils",
+      "chickpeas",
+      "quinoa",
+      "brown rice",
+      "leafy greens",
+      "sweet potato",
+      "berries",
+      "avocado",
+      "tofu",
+      "tempeh"
+    ],
+    "excluded_foods": [
+      "meat",
+      "fish",
+      "dairy",
+      "eggs",
+      "honey",
+      "gelatin",
+      "processed foods"
+    ],
+    "key_supplements": [
+      "B12",
+      "Vitamin D",
+      "Iron",
+      "Omega-3 (algae)",
+      "Zinc"
+    ],
     "source_refs": [
-      { "type": "interview", "outlet": "Harper's Bazaar", "date": "2009-08-01" },
-      { "type": "documentary", "outlet": "Eating Animals (producer)", "date": "2018-06-15" }
+      {
+        "type": "interview",
+        "outlet": "Harper's Bazaar",
+        "date": "2009-08-01"
+      },
+      {
+        "type": "documentary",
+        "outlet": "Eating Animals (producer)",
+        "date": "2018-06-15"
+      }
     ]
   },
   "recipes": [
-    { "title": "Berry and Granola Smoothie Bowl", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 12, "carbs_g": 58, "fat_g": 12, "fiber_g": 9, "sugar_g": 22, "sodium_mg": 60 },
+    {
+      "title": "Berry and Granola Smoothie Bowl",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 12,
+        "carbs_g": 58,
+        "fat_g": 12,
+        "fiber_g": 9,
+        "sugar_g": 22,
+        "sodium_mg": 60
+      },
       "instructions": [
-        { "step": 1, "text": "Blend frozen berries, banana, and almond milk into a thick smoothie.", "duration_min": 2 },
-        { "step": 2, "text": "Pour into bowl. Top with granola, chia seeds, and fresh fruit.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Blend frozen berries, banana, and almond milk into a thick smoothie.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Pour into bowl. Top with granola, chia seeds, and fresh fruit.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Mixed Berries", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Almond Milk", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Granola", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Strawberries", "quantity": 3, "unit": "pieces", "preparation": "sliced" }
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 3,
+          "unit": "pieces",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Avocado Toast with Chickpea Spread", "meal_type": "breakfast", "prep_time_min": 10, "cook_time_min": 3, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 12, "carbs_g": 38, "fat_g": 18, "fiber_g": 10, "sugar_g": 3, "sodium_mg": 340 },
+    {
+      "title": "Avocado Toast with Chickpea Spread",
+      "meal_type": "breakfast",
+      "prep_time_min": 10,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 12,
+        "carbs_g": 38,
+        "fat_g": 18,
+        "fiber_g": 10,
+        "sugar_g": 3,
+        "sodium_mg": 340
+      },
       "instructions": [
-        { "step": 1, "text": "Mash chickpeas with lemon juice, salt, and cumin.", "duration_min": 5 },
-        { "step": 2, "text": "Toast bread and spread with chickpea mixture and avocado.", "duration_min": 3 },
-        { "step": 3, "text": "Top with cherry tomatoes and chili flakes.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Mash chickpeas with lemon juice, salt, and cumin.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Toast bread and spread with chickpea mixture and avocado.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Top with cherry tomatoes and chili flakes.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sourdough Bread", "quantity": 2, "unit": "slices", "preparation": "toasted" },
-        { "ingredient_name": "Chickpeas", "quantity": 0.5, "unit": "cup", "preparation": "drained and mashed" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 4, "unit": "pieces", "preparation": "halved" },
-        { "ingredient_name": "Cumin", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Chili Flakes", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Sourdough Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "drained and mashed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 4,
+          "unit": "pieces",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Chili Flakes",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Tofu Scramble with Vegetables", "meal_type": "breakfast", "prep_time_min": 10, "cook_time_min": 12, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 320, "protein_g": 20, "carbs_g": 18, "fat_g": 18, "fiber_g": 5, "sugar_g": 4, "sodium_mg": 480 },
+    {
+      "title": "Tofu Scramble with Vegetables",
+      "meal_type": "breakfast",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 20,
+        "carbs_g": 18,
+        "fat_g": 18,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Crumble tofu and sauté with turmeric, nutritional yeast, and garlic.", "duration_min": 6 },
-        { "step": 2, "text": "Add spinach, bell pepper, and tomato. Cook until tender.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Crumble tofu and sauté with turmeric, nutritional yeast, and garlic.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Add spinach, bell pepper, and tomato. Cook until tender.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tofu", "quantity": 8, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Bell Pepper", "quantity": 0.5, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Tomato", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Nutritional Yeast", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove", "preparation": "minced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Tofu",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Overnight Oats with Walnuts and Banana", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 12, "carbs_g": 52, "fat_g": 14, "fiber_g": 8, "sugar_g": 14, "sodium_mg": 90 },
+    {
+      "title": "Overnight Oats with Walnuts and Banana",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 12,
+        "carbs_g": 52,
+        "fat_g": 14,
+        "fiber_g": 8,
+        "sugar_g": 14,
+        "sodium_mg": 90
+      },
       "instructions": [
-        { "step": 1, "text": "Combine oats, oat milk, chia seeds, and maple syrup in a jar.", "duration_min": 3 },
-        { "step": 2, "text": "Refrigerate overnight. Top with banana and walnuts.", "duration_min": null }
+        {
+          "step": 1,
+          "text": "Combine oats, oat milk, chia seeds, and maple syrup in a jar.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Refrigerate overnight. Top with banana and walnuts.",
+          "duration_min": null
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Oat Milk", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
-    { "title": "Lentil and Vegetable Stew", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 30, "servings": 4, "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 18, "carbs_g": 52, "fat_g": 6, "fiber_g": 14, "sugar_g": 6, "sodium_mg": 420 },
+    {
+      "title": "Lentil and Vegetable Stew",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 4,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 18,
+        "carbs_g": 52,
+        "fat_g": 6,
+        "fiber_g": 14,
+        "sugar_g": 6,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté onion, garlic, and carrot in olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Add lentils, diced tomato, cumin, and vegetable broth.", "duration_min": 3 },
-        { "step": 3, "text": "Simmer until lentils are tender.", "duration_min": 25 },
-        { "step": 4, "text": "Stir in kale and lemon juice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Sauté onion, garlic, and carrot in olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add lentils, diced tomato, cumin, and vegetable broth.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Simmer until lentils are tender.",
+          "duration_min": 25
+        },
+        {
+          "step": 4,
+          "text": "Stir in kale and lemon juice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Lentils", "quantity": 1.5, "unit": "cup" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Tomato", "quantity": 2, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Kale", "quantity": 2, "unit": "cup", "preparation": "chopped" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Quinoa Tabbouleh", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 0, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 12, "carbs_g": 48, "fat_g": 14, "fiber_g": 7, "sugar_g": 4, "sodium_mg": 280 },
+    {
+      "title": "Quinoa Tabbouleh",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 12,
+        "carbs_g": 48,
+        "fat_g": 14,
+        "fiber_g": 7,
+        "sugar_g": 4,
+        "sodium_mg": 280
+      },
       "instructions": [
-        { "step": 1, "text": "Combine cooked quinoa, diced cucumber, tomato, and parsley.", "duration_min": 8 },
-        { "step": 2, "text": "Dress with olive oil, lemon juice, and salt.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Combine cooked quinoa, diced cucumber, tomato, and parsley.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Dress with olive oil, lemon juice, and salt.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Cucumber", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Tomato", "quantity": 2, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Parsley", "quantity": 0.5, "unit": "cup", "preparation": "finely chopped" },
-        { "ingredient_name": "Mint", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "finely chopped"
+        },
+        {
+          "ingredient_name": "Mint",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Chickpea and Roasted Veggie Wrap", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 400, "protein_g": 14, "carbs_g": 52, "fat_g": 16, "fiber_g": 10, "sugar_g": 6, "sodium_mg": 460 },
+    {
+      "title": "Chickpea and Roasted Veggie Wrap",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 14,
+        "carbs_g": 52,
+        "fat_g": 16,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 460
+      },
       "instructions": [
-        { "step": 1, "text": "Roast chickpeas, zucchini, and bell pepper with cumin and olive oil.", "duration_min": 20 },
-        { "step": 2, "text": "Load into whole wheat tortillas with hummus and spinach.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Roast chickpeas, zucchini, and bell pepper with cumin and olive oil.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Load into whole wheat tortillas with hummus and spinach.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chickpeas", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Whole Wheat Tortilla", "quantity": 2, "unit": "large" },
-        { "ingredient_name": "Hummus", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Tempeh Buddha Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 480, "protein_g": 24, "carbs_g": 52, "fat_g": 20, "fiber_g": 10, "sugar_g": 5, "sodium_mg": 520 },
+    {
+      "title": "Tempeh Buddha Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 24,
+        "carbs_g": 52,
+        "fat_g": 20,
+        "fiber_g": 10,
+        "sugar_g": 5,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Marinate and pan-fry tempeh slices in tamari and maple syrup.", "duration_min": 8 },
-        { "step": 2, "text": "Arrange over brown rice with roasted sweet potato, kale, and avocado.", "duration_min": 5 },
-        { "step": 3, "text": "Drizzle with tahini dressing.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Marinate and pan-fry tempeh slices in tamari and maple syrup.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Arrange over brown rice with roasted sweet potato, kale, and avocado.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Drizzle with tahini dressing.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tempeh", "quantity": 4, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Brown Rice", "quantity": 0.75, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Sweet Potato", "quantity": 0.5, "unit": "medium", "preparation": "roasted and cubed" },
-        { "ingredient_name": "Kale", "quantity": 1, "unit": "cup", "preparation": "massaged" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Tamari", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Tahini", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "roasted and cubed"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "massaged"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Coconut Chickpea Curry", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 25, "servings": 3, "difficulty": "medium",
-      "nutrition": { "calories": 420, "protein_g": 14, "carbs_g": 48, "fat_g": 20, "fiber_g": 10, "sugar_g": 6, "sodium_mg": 480 },
+    {
+      "title": "Coconut Chickpea Curry",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 3,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 14,
+        "carbs_g": 48,
+        "fat_g": 20,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté onion, garlic, ginger, and curry powder in coconut oil.", "duration_min": 5 },
-        { "step": 2, "text": "Add chickpeas, coconut milk, and diced tomato. Simmer.", "duration_min": 20 },
-        { "step": 3, "text": "Stir in spinach. Serve over basmati rice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Sauté onion, garlic, ginger, and curry powder in coconut oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add chickpeas, coconut milk, and diced tomato. Simmer.",
+          "duration_min": 20
+        },
+        {
+          "step": 3,
+          "text": "Stir in spinach. Serve over basmati rice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chickpeas", "quantity": 1.5, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Canned Coconut Milk", "quantity": 1, "unit": "can" },
-        { "ingredient_name": "Tomato", "quantity": 2, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tbsp", "preparation": "grated" },
-        { "ingredient_name": "Curry Powder", "quantity": 2, "unit": "tsp" },
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Coconut Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Basmati Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" }
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Canned Coconut Milk",
+          "quantity": 1,
+          "unit": "can"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Curry Powder",
+          "quantity": 2,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Basmati Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        }
       ]
     },
-    { "title": "Stuffed Sweet Potatoes with Black Beans", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 45, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 400, "protein_g": 14, "carbs_g": 62, "fat_g": 12, "fiber_g": 14, "sugar_g": 10, "sodium_mg": 380 },
+    {
+      "title": "Stuffed Sweet Potatoes with Black Beans",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 45,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 14,
+        "carbs_g": 62,
+        "fat_g": 12,
+        "fiber_g": 14,
+        "sugar_g": 10,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Bake sweet potatoes at 400°F until tender.", "duration_min": 45 },
-        { "step": 2, "text": "Split open and fill with black beans, salsa, and avocado.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Bake sweet potatoes at 400°F until tender.",
+          "duration_min": 45
+        },
+        {
+          "step": 2,
+          "text": "Split open and fill with black beans, salsa, and avocado.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "large" },
-        { "ingredient_name": "Black Beans", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Salsa", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Lime", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Salsa",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Mushroom and Walnut Bolognese", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 25, "servings": 3, "difficulty": "medium",
-      "nutrition": { "calories": 440, "protein_g": 16, "carbs_g": 54, "fat_g": 18, "fiber_g": 8, "sugar_g": 8, "sodium_mg": 420 },
+    {
+      "title": "Mushroom and Walnut Bolognese",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 3,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 16,
+        "carbs_g": 54,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 8,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Pulse mushrooms and walnuts in food processor until coarsely ground.", "duration_min": 3 },
-        { "step": 2, "text": "Sauté with onion, garlic, and Italian seasoning.", "duration_min": 8 },
-        { "step": 3, "text": "Add tomato sauce and simmer.", "duration_min": 15 },
-        { "step": 4, "text": "Serve over whole wheat pasta.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Pulse mushrooms and walnuts in food processor until coarsely ground.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Sauté with onion, garlic, and Italian seasoning.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Add tomato sauce and simmer.",
+          "duration_min": 15
+        },
+        {
+          "step": 4,
+          "text": "Serve over whole wheat pasta.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Mushrooms", "quantity": 8, "unit": "oz", "preparation": "pulsed" },
-        { "ingredient_name": "Walnuts", "quantity": 0.5, "unit": "cup", "preparation": "pulsed" },
-        { "ingredient_name": "Tomato Sauce", "quantity": 1.5, "unit": "cup" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Oregano", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Basil", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Whole Wheat Pasta", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "pulsed"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "pulsed"
+        },
+        {
+          "ingredient_name": "Tomato Sauce",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Basil",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Tofu Stir-Fry with Vegetables", "meal_type": "dinner", "prep_time_min": 15, "cook_time_min": 12, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 380, "protein_g": 22, "carbs_g": 36, "fat_g": 16, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 580 },
+    {
+      "title": "Tofu Stir-Fry with Vegetables",
+      "meal_type": "dinner",
+      "prep_time_min": 15,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 22,
+        "carbs_g": 36,
+        "fat_g": 16,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 580
+      },
       "instructions": [
-        { "step": 1, "text": "Press and cube tofu. Pan-fry until golden.", "duration_min": 8 },
-        { "step": 2, "text": "Stir-fry broccoli, carrot, and bell pepper.", "duration_min": 4 },
-        { "step": 3, "text": "Combine with tamari-ginger sauce. Serve over brown rice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Press and cube tofu. Pan-fry until golden.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Stir-fry broccoli, carrot, and bell pepper.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Combine with tamari-ginger sauce. Serve over brown rice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tofu", "quantity": 8, "unit": "oz", "preparation": "pressed and cubed" },
-        { "ingredient_name": "Broccoli", "quantity": 1.5, "unit": "cup", "preparation": "florets" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" }
+        {
+          "ingredient_name": "Tofu",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "pressed and cubed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        }
       ]
     },
-    { "title": "Almond Energy Bites", "meal_type": "snack", "prep_time_min": 10, "cook_time_min": 0, "servings": 8, "difficulty": "easy",
-      "nutrition": { "calories": 140, "protein_g": 4, "carbs_g": 16, "fat_g": 8, "fiber_g": 3, "sugar_g": 10, "sodium_mg": 20 },
+    {
+      "title": "Almond Energy Bites",
+      "meal_type": "snack",
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 8,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 140,
+        "protein_g": 4,
+        "carbs_g": 16,
+        "fat_g": 8,
+        "fiber_g": 3,
+        "sugar_g": 10,
+        "sodium_mg": 20
+      },
       "instructions": [
-        { "step": 1, "text": "Blend dates, almond butter, oats, and chia seeds.", "duration_min": 3 },
-        { "step": 2, "text": "Roll into small balls. Refrigerate.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Blend dates, almond butter, oats, and chia seeds.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Roll into small balls. Refrigerate.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Medjool Dates", "quantity": 6, "unit": "pieces", "preparation": "pitted" },
-        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 6,
+          "unit": "pieces",
+          "preparation": "pitted"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Hummus and Veggie Plate", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 180, "protein_g": 7, "carbs_g": 20, "fat_g": 8, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 300 },
+    {
+      "title": "Hummus and Veggie Plate",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 7,
+        "carbs_g": 20,
+        "fat_g": 8,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 300
+      },
       "instructions": [
-        { "step": 1, "text": "Arrange veggie sticks around a bowl of hummus.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Arrange veggie sticks around a bowl of hummus.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Hummus", "quantity": 0.33, "unit": "cup" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "sticks" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sticks" },
-        { "ingredient_name": "Bell Pepper", "quantity": 0.5, "unit": "medium", "preparation": "strips" }
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 0.33,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sticks"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sticks"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "strips"
+        }
       ]
     },
-    { "title": "Apple with Peanut Butter", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 240, "protein_g": 7, "carbs_g": 30, "fat_g": 12, "fiber_g": 5, "sugar_g": 20, "sodium_mg": 60 },
+    {
+      "title": "Apple with Peanut Butter",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 240,
+        "protein_g": 7,
+        "carbs_g": 30,
+        "fat_g": 12,
+        "fiber_g": 5,
+        "sugar_g": 20,
+        "sodium_mg": 60
+      },
       "instructions": [
-        { "step": 1, "text": "Slice apple and serve with peanut butter for dipping.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Slice apple and serve with peanut butter for dipping.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "large", "preparation": "sliced" },
-        { "ingredient_name": "Peanut Butter", "quantity": 1.5, "unit": "tbsp" }
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Trail Mix with Dried Fruit", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 220, "protein_g": 6, "carbs_g": 26, "fat_g": 12, "fiber_g": 3, "sugar_g": 14, "sodium_mg": 15 },
+    {
+      "title": "Trail Mix with Dried Fruit",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 6,
+        "carbs_g": 26,
+        "fat_g": 12,
+        "fiber_g": 3,
+        "sugar_g": 14,
+        "sodium_mg": 15
+      },
       "instructions": [
-        { "step": 1, "text": "Mix walnuts, almonds, dried cranberries, and raisins.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Mix walnuts, almonds, dried cranberries, and raisins.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Almonds", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Dried Cranberries", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Raisins", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Dried Cranberries",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Raisins",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Green Goddess Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 10, "carbs_g": 42, "fat_g": 10, "fiber_g": 7, "sugar_g": 18, "sodium_mg": 80 },
+    {
+      "title": "Green Goddess Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 10,
+        "carbs_g": 42,
+        "fat_g": 10,
+        "fiber_g": 7,
+        "sugar_g": 18,
+        "sodium_mg": 80
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Hemp Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Mango Turmeric Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 260, "protein_g": 6, "carbs_g": 48, "fat_g": 6, "fiber_g": 5, "sugar_g": 28, "sodium_mg": 60 },
+    {
+      "title": "Mango Turmeric Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 6,
+        "carbs_g": 48,
+        "fat_g": 6,
+        "fiber_g": 5,
+        "sugar_g": 28,
+        "sodium_mg": 60
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Mango", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Coconut Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Ginger", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Frozen Mango",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Coconut Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     }
   ]

@@ -316,8 +316,8 @@ check_sql_schema_alignment() {
 
     # Parse column names (strip whitespace, type casts, quotes)
     local insert_cols=()
-    IFS=',' read -ra col_parts <<< "$cols_raw"
-    for c in "${col_parts[@]}"; do
+    IFS=',' read -ra col_parts <<< "$cols_raw" || true
+    for c in "${col_parts[@]+"${col_parts[@]}"}"; do
       local col_name
       col_name=$(echo "$c" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/::[a-z]+//g;s/"//g')
       [[ -n "$col_name" ]] && insert_cols+=("$col_name")
@@ -346,7 +346,7 @@ check_sql_schema_alignment() {
     fi
 
     # Check each INSERT column exists in DDL
-    for col in "${insert_cols[@]}"; do
+    for col in "${insert_cols[@]+"${insert_cols[@]}"}"; do
       if ! echo "$ddl_cols" | grep -qw "$col"; then
         issues+="Column '${col}' in INSERT INTO ${table} not found in migration DDL\n"
         exit_code=1
