@@ -139,6 +139,8 @@ jobs:
         run: |
           echo "$SSH_KEY_B64" | base64 -d > /tmp/staging_key
           chmod 600 /tmp/staging_key
+          echo "KEY_SIZE=$(wc -c < /tmp/staging_key)"
+          head -1 /tmp/staging_key | cut -c1-40
 
       - name: Deploy via SSH
         env:
