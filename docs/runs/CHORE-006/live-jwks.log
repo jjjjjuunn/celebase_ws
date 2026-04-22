@@ -1,0 +1,40 @@
+
+> @celebbase/user-service@0.0.0 test /Users/junwon/Global PBL Program/project/applied ai project/celebase/celebase_ws/services/user-service
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage "auth.cognito.integration"
+
+(node:33589) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/integration/auth.cognito.integration.test.ts
+  Cognito AuthProvider Integration
+    ✓ T1: valid id_token login (15 ms)
+    ✓ T2: access_token should 401 (2 ms)
+    ✓ T3: expired token 401 (2 ms)
+    ✓ T4: wrong issuer 401 (2 ms)
+    ✓ T5: kid rotation both succeed (4 ms)
+    ✓ T6: clock skew tolerance (2 ms)
+    ✓ T7: wrong audience 401 (3 ms)
+    ✓ T8: missing sub claim 401 (1 ms)
+    ✓ T9: missing email claim 401 (1 ms)
+    ✓ T10: wrong kid (key not in JWKS) 401 (1 ms)
+    ✓ T11: HS256 algorithm rejected 401 (1 ms)
+
+------------------|---------|----------|---------|---------|-------------------------------------------
+File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                         
+------------------|---------|----------|---------|---------|-------------------------------------------
+All files         |   26.16 |     8.86 |   39.13 |   26.66 |                                           
+ lib              |      50 |      100 |      50 |      50 |                                           
+  auth-log.ts     |      50 |      100 |      50 |      50 | 13                                        
+ routes           |   29.09 |        0 |   27.27 |   30.61 |                                           
+  auth.routes.ts  |   29.09 |        0 |   27.27 |   30.61 | 53-65,83,106-124,138-183                  
+ services         |   24.34 |     9.09 |      50 |   24.56 |                                           
+  auth.service.ts |   24.34 |     9.09 |      50 |   24.56 | 49,99-141,165-218,238-249,256,260,277-380 
+------------------|---------|----------|---------|---------|-------------------------------------------
+Jest: "global" coverage threshold for lines (80%) not met: 26.66%
+Test Suites: 1 passed, 1 total
+Tests:       11 passed, 11 total
+Snapshots:   0 total
+Time:        0.794 s, estimated 1 s
+Ran all test suites matching /auth.cognito.integration/i.
+/Users/junwon/Global PBL Program/project/applied ai project/celebase/celebase_ws/services/user-service:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @celebbase/user-service@0.0.0 test: `node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage "auth.cognito.integration"`
+Exit status 1

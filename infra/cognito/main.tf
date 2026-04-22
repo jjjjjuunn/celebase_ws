@@ -84,10 +84,13 @@ resource "aws_cognito_user_pool_client" "bff" {
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
 
-  # SRP for future native-client support; no USER_PASSWORD_AUTH (Gemini M1)
+  # SRP for future native-client support; no USER_PASSWORD_AUTH (Gemini M1).
+  # ALLOW_ADMIN_USER_PASSWORD_AUTH: Admin API only (requires AWS credentials),
+  # used by smoke test so id_token aud == bff_client_id (not smoke_client_id).
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
   ]
 
   callback_urls                = var.callback_urls
