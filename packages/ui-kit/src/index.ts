@@ -113,3 +113,6 @@ export type {
 
 export { MealCard } from './components/MealCard/MealCard.js';
 export type { MealCardProps } from './components/MealCard/MealCard.js';
+
+export { PersonaHero } from './components/PersonaHero/PersonaHero.js';
+export type { PersonaHeroProps } from './components/PersonaHero/PersonaHero.js';

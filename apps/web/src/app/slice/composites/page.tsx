@@ -8,6 +8,7 @@ import {
   InputField,
   MealCard,
   NutritionRing,
+  PersonaHero,
   SegmentedControl,
   SelectField,
   SlotChip,
@@ -17,6 +18,7 @@ import {
   Text,
   TrafficLightIndicator,
 } from '@celebbase/ui-kit';
+import type { CelebrityCardData } from '@celebbase/ui-kit';
 
 const SECTION_STYLE: CSSProperties = {
   display: 'flex',
@@ -82,6 +84,29 @@ const DISABLED_RANGE_OPTIONS = [
 ] as const;
 
 const DIET_KEYS = ['mediterranean', 'keto', 'paleo', 'vegan'] as const;
+
+const DEMO_PERSONAS: CelebrityCardData[] = [
+  {
+    slug: 'tom-brady',
+    displayName: 'Tom Brady',
+    shortBio: 'Anti-inflammatory, plant-forward fuel.',
+    avatarUrl: '',
+    coverImageUrl: null,
+    category: 'protein',
+    tags: ['Anti-inflammatory', 'Alkaline'],
+    isFeatured: true,
+  },
+  {
+    slug: 'gwyneth-paltrow',
+    displayName: 'Gwyneth Paltrow',
+    shortBio: 'Mediterranean with intermittent windows.',
+    avatarUrl: '',
+    coverImageUrl: null,
+    category: 'diet',
+    tags: ['Mediterranean', 'IF'],
+    isFeatured: false,
+  },
+];
 
 export default function CompositesPreview(): JSX.Element {
   const [emailValue, setEmailValue] = useState<string>('');
@@ -439,6 +464,13 @@ export default function CompositesPreview(): JSX.Element {
             Not a medical diagnosis. Consult a clinician for your specific case.
           </IngredientSwapCard>
         </Stack>
+      </Section>
+
+      <Section id="persona-hero" title="PersonaHero (persona-first onboarding)">
+        <PersonaHero
+          celebrities={DEMO_PERSONAS}
+          footnote="Educational only — not medical advice."
+        />
       </Section>
     </Stack>
   );
