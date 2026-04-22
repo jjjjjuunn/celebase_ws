@@ -3,7 +3,8 @@
  * Keep aligned with DESIGN.md §2–§11 + sister repo colors_and_type.css.
  * Build script: packages/design-tokens/scripts/build.ts parses this file and emits tokens.native.ts.
  *
- * Philosophy: warm mousse neutrals + Mocha Mousse brand + 2025 wellness palette.
+ * Philosophy: warm neutrals + Gold brand (DESIGN.md §2.1) + 2025 wellness palette
+ * adjacencies (Lyons Blue info / Lemon Grass CTA accent / Digital Lavender GLP-1).
  */
 
 /* Webfonts: loaded via next/font/local in apps/web — no @import needed here. */
@@ -12,12 +13,12 @@
    1. COLOR SYSTEM  (DESIGN.md §2)
    ===================================================== */
 :root {
-  /* Brand — Mocha Mousse family (2025 palette, MD §Palette) */
-  --cb-brand-50:  #FAF6F4;
-  --cb-brand-100: #F2E6DE;
-  --cb-brand-500: #BE9583;
-  --cb-brand-600: #A47764;   /* PRIMARY CTA bg — 4.9:1 dark text (WCAG AA) */
-  --cb-brand-700: #7E5A4C;   /* pressed / dark CTA variant */
+  /* Brand — Gold family (DESIGN.md §2.1, verify-contrast.ts WCAG AA priority) */
+  --cb-brand-50:  #FAF4E0;   /* tint */
+  --cb-brand-100: #F3E4B0;
+  --cb-brand-500: #C9A84C;   /* signature gold — decoration/hero accents */
+  --cb-brand-600: #A6862A;   /* PRIMARY CTA bg — 5.1:1 vs #1A1917, 3.3:1 vs bg (WCAG AA + graphics) */
+  --cb-brand-700: #604A1C;   /* pressed / brand text on light bg — 8.1:1 vs #FAFAF8 */
 
   /* Neutral spine (warm, yellow-brown undertones) */
   --cb-neutral-0:   #FAFAF8;
@@ -43,11 +44,12 @@
   --cb-accent-glp1:         #735184;   /* Digital Lavender */
   --cb-accent-aspirational: #D4654A;
   --cb-accent-household:    var(--cb-brand-500);
+  --cb-color-on-glp1:       #FFFFFF;   /* white text on Digital Lavender — 7.1:1 */
 
   /* Subscription tiers (DESIGN.md §2.5) */
   --cb-tier-free-bg:       #EEF2F5;  --cb-tier-free-border:    #CBD5DE;  --cb-tier-free-text:    #33414E;
   --cb-tier-premium-bg:    #E8F6F3;  --cb-tier-premium-border: #79C8BB;  --cb-tier-premium-text: #0B5A4F;
-  --cb-tier-elite-bg:      #1A1917;  --cb-tier-elite-border:   #A47764;  --cb-tier-elite-text:   #F2E6DE;
+  --cb-tier-elite-bg:      #1A1917;  --cb-tier-elite-border:   #C9A84C;  --cb-tier-elite-text:   #F3E4B0;
 
   /* Chart (DESIGN.md §2.6) */
   --cb-chart-weight:    #0E8F7D;
@@ -68,13 +70,13 @@
   --cb-color-text-subtle:  var(--cb-neutral-400);   /* lighter secondary text */
   --cb-color-border:       var(--cb-neutral-100);
   --cb-color-muted:        var(--cb-neutral-500);
-  --cb-color-brand:        var(--cb-brand-700);      /* text/icon usage — WCAG AA 5.8:1 on light bg */
-  --cb-color-brand-bg:     var(--cb-brand-600);      /* decoration/CTA bg usage (Mocha Mousse) */
+  --cb-color-brand:        var(--cb-brand-700);      /* text/icon usage — WCAG AA 8.1:1 on light bg */
+  --cb-color-brand-bg:     var(--cb-brand-600);      /* decoration/CTA bg usage (gold) */
   --cb-color-brand-subtle: var(--cb-brand-50);      /* tinted brand bg */
-  --cb-color-on-brand:     #1A1917;                  /* dark text on mousse bg — WCAG AA 4.9:1 */
+  --cb-color-on-brand:     #1A1917;                  /* dark text on gold bg — WCAG AA 5.1:1 */
   --cb-color-error:        var(--cb-danger-600);     /* error state alias */
   --cb-color-neutral-100:  var(--cb-neutral-100);   /* direct palette alias */
-  --cb-cta-text:           #1A1917;                  /* dark text on mousse CTA */
+  --cb-cta-text:           #1A1917;                  /* dark text on gold CTA */
   --cb-cta-accent:         #DCD494;                  /* Lemon Grass — secondary CTA accent */
 
   /* Line height aliases */
@@ -181,8 +183,8 @@
   --cb-shadow-2:          0 4px 12px rgba(26,25,23,0.10), 0 2px 4px rgba(26,25,23,0.06);
   --cb-shadow-3:          0 16px 40px rgba(26,25,23,0.15), 0 4px 12px rgba(26,25,23,0.08);
   --cb-shadow-card-photo: rgba(0,0,0,0.22) 3px 5px 30px 0px;  /* Apple lineage — sparingly */
-  --cb-shadow-brand:      0 8px 24px rgba(164,119,100,0.30);   /* Primary CTA only */
-  --cb-shadow-focus:      0 0 0 3px rgba(164,119,100,0.40);
+  --cb-shadow-brand:      0 8px 24px rgba(166,134,42,0.30);    /* Primary CTA only (brand-600 gold tone) */
+  --cb-shadow-focus:      0 0 0 3px rgba(166,134,42,0.40);
 
   /* Legacy shadow aliases (backward compat) */
   --cb-shadow-ring: 0 0 0 1px rgba(26, 25, 23, 0.08);
@@ -236,11 +238,11 @@
   --cb-neutral-700: #E0DDD7;
   --cb-neutral-900: #F2F0EB;
 
-  --cb-brand-50:  #251C1A;
-  --cb-brand-100: #37241F;
-  --cb-brand-500: #D4A090;
-  --cb-brand-600: #C09585;
-  --cb-brand-700: #D4A090;
+  --cb-brand-50:  #1F1A10;
+  --cb-brand-100: #2E2617;
+  --cb-brand-500: #E8C870;   /* lightened gold — text/icon on dark bg */
+  --cb-brand-600: #D4B35F;   /* CTA bg — dark text (#1A1917) ≥ 4.5:1 */
+  --cb-brand-700: #E8C870;   /* alias for accent usage on dark */
 
   --cb-success-600: #3ABF6E;  --cb-success-100: rgba(58,191,110,0.14);
   --cb-warning-600: #E2933A;  --cb-warning-100: rgba(226,147,58,0.14);
@@ -263,7 +265,7 @@
   --cb-shadow-2:          none;
   --cb-shadow-3:          none;
   --cb-shadow-brand:      none;
-  --cb-shadow-focus:      0 0 0 3px rgba(212,160,144,0.55);
+  --cb-shadow-focus:      0 0 0 3px rgba(232,200,112,0.55);
   --cb-shadow-ring:       0 0 0 1px rgba(242, 240, 235, 0.08);
   --cb-shadow-sm:         none;
   --cb-shadow-md:         none;
@@ -277,7 +279,7 @@
   --cb-skeleton-base:    #2A2824;
   --cb-skeleton-shimmer: #35332F;
 
-  /* cta-text stays dark on lightened mousse in dark mode */
+  /* cta-text stays dark on lightened gold in dark mode */
   --cb-cta-text: #1A1917;
 }
 
