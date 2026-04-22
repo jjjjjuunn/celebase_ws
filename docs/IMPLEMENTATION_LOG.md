@@ -2307,7 +2307,7 @@ verified_by: human-junwon
 date: 2026-04-21
 agent: claude-sonnet-4-6
 task_id: CHORE-007
-commit_sha: PENDING
+commit_sha: 3afc1a2
 files_changed:
   - .github/workflows/cd.yml
   - infra/bootstrap/main.tf
