@@ -36,6 +36,13 @@ export const UpdateMeRequestSchema = z
     avatar_url: z.string().url().nullable().optional(),
     locale: z.string().min(2).max(10).optional(),
     timezone: z.string().min(1).max(64).optional(),
+    preferred_celebrity_slug: z
+      .string()
+      .min(1)
+      .max(100)
+      .regex(/^[a-z0-9][a-z0-9-]*$/)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;
