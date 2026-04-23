@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PersonaHero } from '@celebbase/ui-kit';
 import type { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../lib/fetcher.js';
@@ -32,6 +32,106 @@ function toCardData(wire: schemas.CelebrityWire): CelebrityCardData {
     tags: wire.tags,
     isFeatured: wire.is_featured,
   };
+}
+
+interface ConfirmationOverlayProps {
+  celebrity: CelebrityCardData;
+}
+
+function ConfirmationOverlay({ celebrity }: ConfirmationOverlayProps): React.ReactElement {
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setVisible(false);
+    const prefersReducedMotion =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+    if (prefersReducedMotion) {
+      setVisible(true);
+      return () => {
+        if (timerRef.current !== null) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      };
+    }
+    timerRef.current = setTimeout(() => {
+      setVisible(true);
+    }, 0);
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [celebrity.slug]);
+
+  return (
+    <section
+      aria-live="polite"
+      data-testid="persona-confirmation"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--cb-space-3)',
+        alignItems: 'center',
+        padding: 'var(--cb-space-8)',
+        borderRadius: 'var(--cb-radius-lg)',
+        background: 'var(--cb-color-surface)',
+        border: '1px solid var(--cb-color-border)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(8px)',
+        transition: 'opacity 300ms ease, transform 300ms ease',
+      }}
+    >
+      <div
+        style={{
+          width: 96,
+          height: 96,
+          borderRadius: '50%',
+          overflow: 'hidden',
+          background: 'var(--cb-color-bg)',
+          boxShadow: 'var(--cb-shadow-md)',
+        }}
+      >
+        {celebrity.avatarUrl ? (
+          <img
+            src={celebrity.avatarUrl}
+            alt={celebrity.displayName}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : null}
+      </div>
+      <h2
+        style={{
+          margin: 0,
+          fontFamily: 'var(--cb-font-family-display)',
+          fontSize: 'var(--cb-display-md)',
+          fontWeight: 600,
+          textAlign: 'center',
+          color: 'var(--cb-color-text)',
+        }}
+      >
+        {`${celebrity.displayName} 와 함께`}
+      </h2>
+      {celebrity.shortBio !== null ? (
+        <p
+          style={{
+            margin: 0,
+            fontFamily: 'var(--cb-font-family-body)',
+            fontSize: 'var(--cb-body-md)',
+            color: 'var(--cb-color-text-muted)',
+            maxWidth: 560,
+            textAlign: 'center',
+          }}
+        >
+          {celebrity.shortBio}
+        </p>
+      ) : null}
+    </section>
+  );
 }
 
 export function PersonaSelect({ value, onChange }: PersonaSelectProps): React.ReactElement {
@@ -72,15 +172,17 @@ export function PersonaSelect({ value, onChange }: PersonaSelectProps): React.Re
     );
   }
 
-  const footnote = value
-    ? `Selected · "${celebrities.find((c) => c.slug === value)?.displayName ?? value}"`
-    : 'Select a persona to continue.';
+  const selected =
+    value !== undefined ? celebrities.find((c) => c.slug === value) ?? null : null;
 
   return (
-    <PersonaHero
-      celebrities={celebrities}
-      onSelect={onChange}
-      footnote={footnote}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--cb-space-6)' }}>
+      <PersonaHero
+        celebrities={celebrities}
+        onSelect={onChange}
+        {...(value !== undefined ? { selectedSlug: value } : {})}
+      />
+      {selected !== null ? <ConfirmationOverlay celebrity={selected} /> : null}
+    </div>
   );
 }

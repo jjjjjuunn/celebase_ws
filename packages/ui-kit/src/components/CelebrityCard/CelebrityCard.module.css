@@ -23,6 +23,27 @@
   box-shadow: var(--cb-shadow-focus);
 }
 
+.cardSelected {
+  outline: 3px solid var(--cb-brand-600);
+  outline-offset: -3px;
+  box-shadow: var(--cb-shadow-focus);
+  transform: translateZ(0) scale(1.01);
+}
+
+.card[data-dimmed='true'] {
+  opacity: 0.45;
+  filter: grayscale(0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardSelected {
+    transform: none;
+  }
+  .card[role='button']:hover {
+    transform: none;
+  }
+}
+
 .photo {
   position: relative;
   aspect-ratio: 4 / 3;
