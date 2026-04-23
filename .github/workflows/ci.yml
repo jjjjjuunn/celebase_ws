@@ -384,6 +384,9 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: jjjjjuunn/celebase_ws
+          ref: ${{ github.sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -432,8 +435,6 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Post failure comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
