@@ -25,6 +25,9 @@
       "persistent": true
     },
     "lint": {
+      "dependsOn": [
+        "^build"
+      ],
       "inputs": [
         "src/**",
         "tests/**",
