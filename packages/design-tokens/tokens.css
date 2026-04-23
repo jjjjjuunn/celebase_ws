@@ -17,8 +17,8 @@
   --cb-brand-50:  #FAF4E0;   /* tint */
   --cb-brand-100: #F3E4B0;
   --cb-brand-500: #C9A84C;   /* signature gold — decoration/hero accents */
-  --cb-brand-600: #A6862A;   /* PRIMARY CTA bg — 5.1:1 vs #1A1917, 3.3:1 vs bg (WCAG AA + graphics) */
-  --cb-brand-700: #604A1C;   /* pressed / brand text on light bg — 8.1:1 vs #FAFAF8 */
+  --cb-brand-600: #8B6D2F;   /* PRIMARY CTA bg — 6.2:1 vs #FAFAF8 (WCAG AA) */
+  --cb-brand-700: #6B5420;   /* pressed / brand text on light bg — 8.9:1 vs #FAFAF8 */
 
   /* Neutral spine (warm, yellow-brown undertones) */
   --cb-neutral-0:   #FAFAF8;
@@ -73,10 +73,10 @@
   --cb-color-brand:        var(--cb-brand-700);      /* text/icon usage — WCAG AA 8.1:1 on light bg */
   --cb-color-brand-bg:     var(--cb-brand-600);      /* decoration/CTA bg usage (gold) */
   --cb-color-brand-subtle: var(--cb-brand-50);      /* tinted brand bg */
-  --cb-color-on-brand:     #1A1917;                  /* dark text on gold bg — WCAG AA 5.1:1 */
+  --cb-color-on-brand:     #FAFAF8;                  /* white text on gold bg — WCAG AA 6.2:1 */
   --cb-color-error:        var(--cb-danger-600);     /* error state alias */
   --cb-color-neutral-100:  var(--cb-neutral-100);   /* direct palette alias */
-  --cb-cta-text:           #1A1917;                  /* dark text on gold CTA */
+  --cb-cta-text:           #FAFAF8;                  /* white text on gold CTA */
   --cb-cta-accent:         #DCD494;                  /* Lemon Grass — secondary CTA accent */
 
   /* Line height aliases */
@@ -183,8 +183,8 @@
   --cb-shadow-2:          0 4px 12px rgba(26,25,23,0.10), 0 2px 4px rgba(26,25,23,0.06);
   --cb-shadow-3:          0 16px 40px rgba(26,25,23,0.15), 0 4px 12px rgba(26,25,23,0.08);
   --cb-shadow-card-photo: rgba(0,0,0,0.22) 3px 5px 30px 0px;  /* Apple lineage — sparingly */
-  --cb-shadow-brand:      0 8px 24px rgba(166,134,42,0.30);    /* Primary CTA only (brand-600 gold tone) */
-  --cb-shadow-focus:      0 0 0 3px rgba(166,134,42,0.40);
+  --cb-shadow-brand:      0 8px 24px rgba(139,109,47,0.35);    /* Primary CTA only (brand-600 gold tone) */
+  --cb-shadow-focus:      0 0 0 3px rgba(139,109,47,0.45);
 
   /* Legacy shadow aliases (backward compat) */
   --cb-shadow-ring: 0 0 0 1px rgba(26, 25, 23, 0.08);

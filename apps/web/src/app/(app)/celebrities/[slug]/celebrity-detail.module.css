@@ -30,7 +30,7 @@
 .heroPlaceholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--cb-color-brand) 0%, var(--cb-color-neutral-200) 100%);
+  background: linear-gradient(135deg, var(--cb-color-brand-bg) 0%, var(--cb-color-neutral-200) 100%);
 }
 
 .heroImg {

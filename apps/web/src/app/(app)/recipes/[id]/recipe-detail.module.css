@@ -187,7 +187,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-cta-text);
   font-size: var(--cb-font-size-sm);
   font-weight: var(--cb-font-weight-semibold);
@@ -237,7 +237,7 @@
   font-size: var(--cb-font-size-xs);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   padding: var(--cb-space-1) var(--cb-space-2);
   border-radius: var(--cb-radius-sm);
   text-transform: uppercase;

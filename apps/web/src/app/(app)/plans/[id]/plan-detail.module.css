@@ -91,7 +91,7 @@
 .confirmBtn {
   align-self: flex-start;
   padding: var(--cb-space-2) var(--cb-space-5);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-color-on-brand);
   border: none;
   border-radius: var(--cb-radius-md);

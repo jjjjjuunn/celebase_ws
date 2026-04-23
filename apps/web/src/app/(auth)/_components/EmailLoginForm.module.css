@@ -43,7 +43,7 @@
   font-size: var(--cb-font-size-md);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border: none;
   border-radius: var(--cb-radius-md);
   cursor: pointer;
