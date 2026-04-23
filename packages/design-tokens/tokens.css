@@ -198,6 +198,11 @@
   --cb-border-focus:   2px solid var(--cb-brand-600);
   --cb-border-error:   2px solid var(--cb-danger-600);
 
+  /* Input-specific borders (Material 3 outlined field spec — 38% opacity baseline) */
+  --cb-border-input:       1px solid rgba(26,25,23,0.38);
+  --cb-border-input-hover: 1px solid rgba(26,25,23,0.60);
+  --cb-border-input-focus: 2px solid var(--cb-brand-600);
+
   /* =====================================================
      6. MOTION  (DESIGN.md §10)
      ===================================================== */
@@ -275,6 +280,10 @@
   --cb-border-strong:  1px solid rgba(255,255,255,0.16);
   --cb-border-focus:   2px solid var(--cb-brand-500);
   --cb-border-error:   2px solid var(--cb-danger-600);
+
+  --cb-border-input:       1px solid rgba(245,244,240,0.38);
+  --cb-border-input-hover: 1px solid rgba(245,244,240,0.60);
+  --cb-border-input-focus: 2px solid var(--cb-brand-500);
 
   --cb-skeleton-base:    #2A2824;
   --cb-skeleton-shimmer: #35332F;
