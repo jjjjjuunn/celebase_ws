@@ -23,39 +23,9 @@ jest.mock('jose', () => {
 import { jwtVerify, errors as joseErrors } from 'jose';
 import { createProtectedRoute, createPublicRoute } from '../session';
 import { SessionExpiredError } from '../bff-error';
+import { makeRequest, VALID_SESSION_PAYLOAD as VALID_PAYLOAD } from './test-helpers';
 
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
-
-// Minimal NextRequest-shaped mock — only the fields createProtectedRoute uses
-function makeRequest(opts?: {
-  cookie?: string;
-  refreshCookie?: string;
-  requestId?: string;
-}): Parameters<ReturnType<typeof createProtectedRoute>>[0] {
-  return {
-    headers: {
-      get(name: string) {
-        if (name.toLowerCase() === 'x-request-id') return opts?.requestId ?? null;
-        return null;
-      },
-    },
-    cookies: {
-      get(name: string) {
-        if (name === 'cb_access') return opts?.cookie !== undefined ? { value: opts.cookie } : undefined;
-        if (name === 'cb_refresh') return opts?.refreshCookie !== undefined ? { value: opts.refreshCookie } : undefined;
-        return undefined;
-      },
-    },
-  } as unknown as Parameters<ReturnType<typeof createProtectedRoute>>[0];
-}
-
-const VALID_PAYLOAD = {
-  sub: 'user-abc-123',
-  email: 'test@example.com',
-  cognito_sub: 'cognito-sub-xyz',
-  iat: Math.floor(Date.now() / 1000),
-  exp: Math.floor(Date.now() / 1000) + 900,
-};
 
 afterEach(() => {
   jest.clearAllMocks();

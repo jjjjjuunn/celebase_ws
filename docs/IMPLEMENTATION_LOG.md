@@ -2622,3 +2622,59 @@ verified_by: claude-opus-4-7 (typecheck + jest 90 tests + coverage)
 ### 미완료: IMPL-BFF-005 (BFF 통합 테스트 보강 — auth/users/subscriptions/meal-plans/celebrities 5개 신규 integration test). `fe_bff_smoke` 200/400 probe 는 BE 기동 필요로 본 스코프 제외.
 
 ### 연관 파일: apps/web/src/app/api/_lib/, apps/web/src/app/api/auth/, apps/web/src/app/api/webhooks/stripe/, apps/web/jest.setup.ts, /Users/junwon/.claude/plans/humble-wandering-squid.md
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-BFF-005
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/__tests__/test-helpers.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/__tests__/auth-bff.integration.test.ts
+  - apps/web/src/app/api/users/__tests__/users-bff.integration.test.ts
+  - apps/web/src/app/api/subscriptions/__tests__/subscriptions-bff.integration.test.ts
+  - apps/web/src/app/api/meal-plans/__tests__/meal-plans-bff.integration.test.ts
+  - apps/web/src/app/api/celebrities/__tests__/celebrities-bff.integration.test.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF 통합 테스트 보강 — auth/users/subscriptions/meal-plans/celebrities (Plan humble-wandering-squid IMPL-BFF-005)
+
+**Scope**: `apps/web/src/app/api/**/__tests__/**` 만 수정 (테스트 전용). 런타임 코드 변경 없음. FE 세션 및 BE 서비스는 건드리지 않음.
+
+**공용 테스트 헬퍼 분리**
+- `apps/web/src/app/api/_lib/__tests__/test-helpers.ts` 신규 — `makeRequest({ cookie?, body?, forwardedFor?, search? })` + `upstreamResponse(body, status)` + `VALID_SESSION_PAYLOAD` export. jest `testMatch: '*.test.ts'` 패턴 밖이라 collection 미대상 (`jest --listTests | grep test-helpers` → empty 확인).
+- `session.test.ts` 의 private `makeRequest()` 함수 + inline `VALID_PAYLOAD` 상수 제거 → 공용 helper import 로 DRY 리팩토링. 기존 20 케이스 모두 회귀 없음.
+
+**신규 통합 테스트 (5 파일, 총 34 케이스)**
+- `auth/__tests__/auth-bff.integration.test.ts` (8 케이스) — `/api/auth/login` + `/api/auth/signup` 공용. 정상 200/201 (URL=`http://localhost:3001/auth/login|signup`, cookies 2건 set), 400 VALIDATION_ERROR (email/display_name missing), 502 UPSTREAM_UNREACHABLE, 504 UPSTREAM_TIMEOUT, upstream 401→X-Token-Expired=true, 429 RATE_LIMITED (burst of 21 → 20/min `/auth/*` 한도 초과, retry_after=60).
+- `users/__tests__/users-bff.integration.test.ts` — protected route (`jose` hoisted mock 필요). `GET /api/users/me` 200 / 401 (no cookie) / 502 / 504. `PATCH /api/users/me` 200 (method=PATCH 검증) / 400 VALIDATION_ERROR.
+- `subscriptions/__tests__/subscriptions-bff.integration.test.ts` (5 케이스) — `GET /api/subscriptions/me` protected. URL=`http://localhost:3001/subscriptions/me`. Fixture `{subscription: null}` (free tier = nullable). 401 UNAUTHORIZED (no cookie, fetch 미호출), 502, 504, upstream 401→TOKEN_EXPIRED + X-Token-Expired: true.
+- `meal-plans/__tests__/meal-plans-bff.integration.test.ts` (7 케이스) — protected. GET list (URL=`http://localhost:3003/meal-plans?limit=10`) 200 / 401 / 502 / 504. POST generate (URL=`http://localhost:3003/meal-plans/generate`, method=POST, 201 envelope `{id, status, estimated_completion_sec, poll_url, ws_channel}`) / 400 base_diet_id missing / 400 duration_days > 30.
+- `celebrities/__tests__/celebrities-bff.integration.test.ts` (7 케이스) — public route (jose mock 불필요). List 200 (URL=`http://localhost:3002/celebrities?limit=20`), 502, 504, 502 BFF_CONTRACT_VIOLATION (wrong_shape). Detail 200 (Next.js 15 deferred params: `{ params: Promise.resolve({ slug }) }`), 404 upstream propagate, 502 network.
+
+**공통 테스트 보일러플레이트**
+- `jest.spyOn(globalThis, 'fetch')` 기반 mock (CJS 모드 `jest.config.cjs` `useESM: false` — `@jest/globals` import 금지, jest 전역 자동 주입).
+- `beforeEach(resetRateLimitBucketsForTest)` + `afterEach(jest.restoreAllMocks)` 로 singleton / spy 격리.
+- Protected route 는 hoisted `jest.mock('jose', factory)` 로 `JWTExpired`/`JWSSignatureVerificationFailed` fresh class + `jwtVerify` jest.fn — `VALID_SESSION_PAYLOAD` 를 성공 경로에서 resolve.
+
+**스키마 정합성 수정 (초기 3 failures → 해결)**
+1. `subscriptions` 200 테스트 → `tier: 'free'` 는 `PaidTier` 위반 → `{ subscription: null }` 로 교체 (스키마가 nullable 허용).
+2. `celebrities` detail 200 → 필수 필드 누락 (`short_bio`, `avatar_url`=URL, `cover_image_url`, `category`, `tags[]`, `is_featured`, `sort_order`, `is_active`) → fixture 재구성.
+3. `meal-plans` POST 201 → `{meal_plan: {...}}` 래핑 오답 → `GenerateMealPlanResponseSchema` 의 평탄 envelope `{id, status, estimated_completion_sec, poll_url, ws_channel}` 로 교체.
+
+**Lint 정리**
+- 5 신규 테스트 파일에서 daily-logs 패턴 복붙으로 따라온 미사용 `// eslint-disable-next-line @typescript-eslint/no-unsafe-*` directive 전량 제거 (cast 가 `as string` / `as RequestInit` 이라 unsafe 규칙 미발동).
+- `auth-bff.integration.test.ts` line 108 `// eslint-disable-next-line no-await-in-loop` 미사용 제거.
+
+**Verification**
+- `pnpm --filter web typecheck`: pass (0 errors).
+- `pnpm --filter web test`: 14 suites / 124 tests all pass. Coverage `_lib/` 93.51% stmts / 94.4% lines.
+- `scripts/gate-check.sh fe_token_hardcode`: `{"status":"pass","passed":true}`.
+- `grep -rn "fetch(" apps/web/src/app/api/ --include='*.ts' | grep -v fetchBff | grep -v forwardRaw | grep -v _tests__` → Cognito OAuth / refresh.ts helper / bff-fetch.ts 내부 구현 4건 모두 plan-approved.
+- `pnpm exec jest --listTests | grep test-helpers` → empty (collection 미대상 확인).
+- Auto mode 대체 증거 (수동 smoke 불가): 각 신규 테스트의 `fetchSpy.mock.calls[0][0]` URL assertion 으로 upstream 라우팅 정확도 확인.
+
+### 미완료: `fe_bff_smoke` 200/400 probe (BE 기동 필요, 본 스코프 제외). commerce 라우팅 마이그레이션 (/api/subscriptions/** user→commerce) — upstream commerce-service 배포 선행 필요.
+
+### 연관 파일: apps/web/src/app/api/_lib/__tests__/, apps/web/src/app/api/{auth,users,subscriptions,meal-plans,celebrities}/__tests__/, /Users/junwon/.claude/plans/humble-wandering-squid.md
