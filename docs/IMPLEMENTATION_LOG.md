@@ -2499,3 +2499,42 @@ verified_by: claude-opus-4-7, codex-review-r1, codex-review-r2, gemini-adversari
 ### 미완료: `/api/persona-match` upstream (`analytics-service /internal/persona-match`) 계약 확정 전까지 클라이언트는 IdentitySyncScore `error`/`pending` 상태로 degrade — Plan D-2 후속 IMPL-BE-analytics-persona-match 대기. E2E Playwright persona-first 시나리오 (페르소나 선택 → 3분 내 BlueprintReveal + IdentitySyncScore placeholder) 는 별도 QA 태스크로 분기.
 
 ### 연관 파일: apps/web/src/app/(onboarding)/onboarding/, apps/web/src/features/persona/components/, packages/shared-types/src/schemas/users.ts, spec.md §7.1, DESIGN.md §8.1, plan 20 Phase C-1 + C-2
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: CHORE-FE-21A
+commit_sha: ab8f9e1
+files_changed:
+  - services/user-service/src/routes/auth.routes.ts
+  - turbo.json
+  - packages/ui-kit/src/components/InstacartCartPreview/SavingsBanner.tsx
+  - packages/ui-kit/src/components/InstacartCartPreview/StockSubstitutionPopup.tsx
+  - services/meal-plan-engine/requirements.txt
+  - ruff.toml
+  - services/meal-plan-engine/tests/conftest.py
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - .github/workflows/ci.yml
+verified_by: claude-sonnet-4-6, GitHub Actions CI (run #24820023966, all green)
+---
+### 완료: CHORE-FE-21A — Plan 20 PR CI 수정 + main 머지 (Plan 21 Phase A, L1)
+
+**CI 수정 항목 (PR #4 `feat/fe-optimization-gold-plus-domain` → main)**
+
+1. **rate-limit 테스트 회귀 수정** (`auth.routes.ts`): `max: process.env['NODE_ENV'] === 'production' ? 3 : 100` → `max: 3`. integration 환경에서 max=100 이라 4번째 POST /auth/signup 에 429 미반환 → 테스트 실패. `allowList` 콜백이 test 환경 bypass 를 독립적으로 처리하므로 max 를 flat 3으로 고정.
+
+2. **Turbo lint 의존성 누락** (`turbo.json`): `lint` 태스크에 `dependsOn: ["^build"]` 추가. 빌드 없이 ESLint 실행 시 `@celebbase/eslint-plugin-celebbase` 모듈 미빌드 → `Cannot find module` CI 실패.
+
+3. **TypeScript `restrict-template-expressions`** (`SavingsBanner.tsx`, `StockSubstitutionPopup.tsx`): CSS module class 가 `string | undefined` 타입이라 template literal 에 직접 삽입 불가 → `.filter(Boolean).join(' ')` 배열 패턴으로 교체.
+
+4. **pytest-timeout 패키지 누락** (`requirements.txt`): E2E CI가 `pytest --timeout=120` 으로 실행하나 `pytest-timeout==2.3.1` 이 requirements.txt 에 없어 `unrecognized arguments` 실패 → 추가.
+
+5. **Python ruff 린트 수정**: E401(복수 import) + F401(미사용 import) `--fix` 적용. `ruff format .` 으로 30개 파일 포맷 통일. E402(의도적 import 순서) 는 `ruff.toml` per-file-ignores 로 suppression.
+
+6. **Generate Progress 권한 오류** (`ci.yml`): `permissions: pull-requests: write` 만 명시 시 기본 `contents: read` 가 박탈되어 GITHUB_TOKEN 으로 저장소 clone 불가 ("Repository not found"). `contents: read` 추가. 또한 `actions/checkout@v4` 가 `GITHUB_REPOSITORY` 환경변수의 공백 (`celebase ws/`) 을 URL 에 그대로 사용해 실패 → raw git 초기화 + hardcoded URL 방식으로 교체. `notify-on-failure` 잡은 저장소 파일 불필요하여 checkout 제거.
+
+**머지**: PR #4 squash merge → main HEAD `ab8f9e1`. `IdentitySyncScore` + 3-ring dashboard (Plan 20) main 반영 확인.
+
+### 미완료: dev 환경 배포 후 /dashboard Playwright MCP 스크린샷 검증 (CI CD 파이프라인 자동 배포 대기)
+
+### 연관 파일: .github/workflows/ci.yml, turbo.json, ruff.toml, services/user-service/src/routes/auth.routes.ts, packages/ui-kit/src/components/InstacartCartPreview/
