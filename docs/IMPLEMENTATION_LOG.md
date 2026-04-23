@@ -2627,7 +2627,7 @@ verified_by: claude-opus-4-7 (typecheck + jest 90 tests + coverage)
 date: 2026-04-23
 agent: claude-opus-4-7
 task_id: IMPL-BFF-005
-commit_sha: PENDING
+commit_sha: 2f63440
 files_changed:
   - apps/web/src/app/api/_lib/__tests__/test-helpers.ts
   - apps/web/src/app/api/_lib/__tests__/session.test.ts
