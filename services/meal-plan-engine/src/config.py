@@ -65,10 +65,6 @@ class Settings(BaseSettings):
             raise ValueError(
                 "INTERNAL_JWT_SECRET must be set to a non-default value in production"
             )
-        if self.ENABLE_LLM_MEAL_PLANNER and not self.OPENAI_API_KEY:
-            raise ValueError(
-                "OPENAI_API_KEY must be set when ENABLE_LLM_MEAL_PLANNER=True"
-            )
         return self
 
     model_config = {

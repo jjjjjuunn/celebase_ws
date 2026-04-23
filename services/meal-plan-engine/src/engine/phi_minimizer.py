@@ -3,8 +3,7 @@
 from typing import Literal
 
 PipelineTask = Literal[
-    "calorie_adjustment", "macro_rebalance", "allergen_filter", "glp1_adjustment",
-    "llm_ranking",
+    "calorie_adjustment", "macro_rebalance", "allergen_filter", "glp1_adjustment"
 ]
 
 TASK_FIELD_MAP: dict[str, list[str]] = {
@@ -12,8 +11,6 @@ TASK_FIELD_MAP: dict[str, list[str]] = {
     "macro_rebalance": ["weight_kg", "activity_level", "diet_type"],
     "allergen_filter": ["allergies", "intolerances"],
     "glp1_adjustment": ["weight_kg", "primary_goal"],
-    # spec §5.8 — allergies 전달 금지 (Codex FINDING-01): 결정론 게이트에서만 처리
-    "llm_ranking": ["primary_goal", "activity_level", "diet_type"],
 }
 
 

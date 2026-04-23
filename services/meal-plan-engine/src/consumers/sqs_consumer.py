@@ -113,17 +113,19 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     )
 
     # Persist result
-    await repo.update_meal_plan(pool, plan_id, user_id, {
-        "status": "completed",
-        "daily_plans": result.get("weekly_plan", []),
-        "adjustments": {
-            "target_kcal": result.get("target_kcal"),
-            "macros": result.get("macros"),
-            "mode": result.get("mode", "standard"),
-            "ui_hint": result.get("ui_hint"),
-            **({"llm_provenance": result["llm_provenance"]} if result.get("llm_provenance") is not None else {}),
+    await repo.update_meal_plan(
+        pool,
+        plan_id,
+        user_id,
+        {
+            "status": "completed",
+            "daily_plans": result.get("weekly_plan", []),
+            "adjustments": {
+                "target_kcal": result.get("target_kcal"),
+                "macros": result.get("macros"),
+            },
         },
-    })
+    )
 
     _logger.info("plan=%s generation completed", plan_id)
 
