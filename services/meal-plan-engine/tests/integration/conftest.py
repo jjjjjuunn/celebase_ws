@@ -6,6 +6,7 @@ Assumes:
 - meal-plan-engine on localhost:3003
 - LocalStack SQS on localhost:4566 with queue 'meal-plan-generation'
 """
+
 from __future__ import annotations
 
 import os

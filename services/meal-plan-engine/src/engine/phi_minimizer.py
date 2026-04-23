@@ -3,14 +3,14 @@
 from typing import Literal
 
 PipelineTask = Literal[
-    'calorie_adjustment', 'macro_rebalance', 'allergen_filter', 'glp1_adjustment'
+    "calorie_adjustment", "macro_rebalance", "allergen_filter", "glp1_adjustment"
 ]
 
 TASK_FIELD_MAP: dict[str, list[str]] = {
-    'calorie_adjustment': ['weight_kg', 'height_cm', 'activity_level', 'primary_goal'],
-    'macro_rebalance': ['weight_kg', 'activity_level', 'diet_type'],
-    'allergen_filter': ['allergies', 'intolerances'],
-    'glp1_adjustment': ['weight_kg', 'primary_goal'],
+    "calorie_adjustment": ["weight_kg", "height_cm", "activity_level", "primary_goal"],
+    "macro_rebalance": ["weight_kg", "activity_level", "diet_type"],
+    "allergen_filter": ["allergies", "intolerances"],
+    "glp1_adjustment": ["weight_kg", "primary_goal"],
 }
 
 

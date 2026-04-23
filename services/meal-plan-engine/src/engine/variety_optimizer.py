@@ -61,7 +61,11 @@ def optimize_variety(
                 continue
 
             # Need replacement.
-            options = [c for c in pool_by_type.get(slot.meal_type, []) if c.recipe_id not in used_ids]
+            options = [
+                c
+                for c in pool_by_type.get(slot.meal_type, [])
+                if c.recipe_id not in used_ids
+            ]
             if options:
                 substitute = random.choice(options)
                 new_day.append(substitute)
@@ -70,10 +74,11 @@ def optimize_variety(
                 current_counts[slot.recipe_id] -= 1
                 replacements += 1
             else:
-                _logger.warning("Variety optimiser exhausted candidates for %s", slot.meal_type)
+                _logger.warning(
+                    "Variety optimiser exhausted candidates for %s", slot.meal_type
+                )
                 new_day.append(slot)
         updated_plan.append(new_day)
 
     _logger.info("Variety optimiser performed %d replacements", replacements)
     return updated_plan
-

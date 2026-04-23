@@ -58,7 +58,9 @@ class NutritionStandard:
 # ---------------------------------------------------------------------------
 
 
-def normalize(raw: dict, source: str, source_version: str = "unknown") -> NutritionStandard:  # noqa: C901
+def normalize(
+    raw: dict, source: str, source_version: str = "unknown"
+) -> NutritionStandard:  # noqa: C901
     """Normalise *raw* nutrition dict into the canonical :class:`NutritionStandard`."""
 
     # Base scalar fields may vary in naming; map fallbacks.
@@ -77,18 +79,26 @@ def normalize(raw: dict, source: str, source_version: str = "unknown") -> Nutrit
         # Entry may be a scalar, tuple or dict.  Normalise to dict w/ value+unit.
         if isinstance(entry, (int, float)):
             value = float(entry)
-            unit = "mg" if name.endswith("_mg") else ("µg" if name.endswith("_ug") else "unknown")
+            unit = (
+                "mg"
+                if name.endswith("_mg")
+                else ("µg" if name.endswith("_ug") else "unknown")
+            )
             confidence = 1.0
         elif isinstance(entry, dict):
             value = float(entry.get("value", 0.0))
             unit = str(entry.get("unit", "unknown"))
             confidence = float(entry.get("confidence", 1.0))
         else:
-            _logger.warning("Unsupported micronutrient entry format for %s: %r", name, entry)
+            _logger.warning(
+                "Unsupported micronutrient entry format for %s: %r", name, entry
+            )
             continue
 
         # Convert unit if needed.
-        target_unit = "µg" if unit in {"IU", "µg"} else unit  # vitamin D path; others keep same.
+        target_unit = (
+            "µg" if unit in {"IU", "µg"} else unit
+        )  # vitamin D path; others keep same.
         conv_key = (unit, target_unit)
         if unit == "IU":
             confidence = 0.9  # Spec mandates confidence downgrade.
@@ -139,4 +149,3 @@ def compare_sources(a: NutritionStandard, b: NutritionStandard) -> dict:
         "calorie_variance_pct": round(calorie_var, 2),
         "warnings": warnings,
     }
-

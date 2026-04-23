@@ -6,6 +6,7 @@ Spec §4.2 WebSocket contract:
 - Ticket validated against Redis, immediately deleted after use
 - Events: progress, completed, failed
 """
+
 from __future__ import annotations
 
 import json
@@ -47,7 +48,9 @@ async def _validate_ticket(ticket: str) -> bool:
 
 
 @router.websocket("/ws/meal-plans/{plan_id}/status")
-async def meal_plan_status(websocket: WebSocket, plan_id: str, ticket: str = "") -> None:
+async def meal_plan_status(
+    websocket: WebSocket, plan_id: str, ticket: str = ""
+) -> None:
     """WebSocket endpoint for meal-plan generation progress."""
 
     # Validate ticket
@@ -77,7 +80,9 @@ async def meal_plan_status(websocket: WebSocket, plan_id: str, ticket: str = "")
     finally:
         # Unregister
         if plan_id in _connections:
-            _connections[plan_id] = [ws for ws in _connections[plan_id] if ws is not websocket]
+            _connections[plan_id] = [
+                ws for ws in _connections[plan_id] if ws is not websocket
+            ]
             if not _connections[plan_id]:
                 del _connections[plan_id]
 

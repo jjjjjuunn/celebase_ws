@@ -5,6 +5,7 @@ from __future__ import annotations
 # Configure structured JSON logging BEFORE any module-level getLogger() calls.
 from src.config import settings as _settings_early
 from src.logging_config import configure_logging
+
 configure_logging(level=_settings_early.LOG_LEVEL)
 
 import asyncio
@@ -44,6 +45,7 @@ async def lifespan(app: FastAPI):  # noqa: D401  # pylint: disable=unused-argume
     consumer_task: asyncio.Task[None] | None = None
     if settings.SQS_QUEUE_URL:
         from src.consumers.sqs_consumer import start_consumer
+
         consumer_task = asyncio.create_task(start_consumer(settings.SQS_QUEUE_URL))
         _logger.info("SQS consumer started for %s", settings.SQS_QUEUE_URL)
 
@@ -85,7 +87,9 @@ app.add_middleware(
 
 
 @app.exception_handler(Exception)
-async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def _unhandled_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
     request_id = request.headers.get("x-request-id", str(uuid4()))
     _logger.exception("Unhandled exception: %s", exc, extra={"requestId": request_id})
     return JSONResponse(
@@ -129,4 +133,3 @@ if __name__ == "__main__":  # pragma: no cover
         port=settings.PORT,
         log_level=settings.LOG_LEVEL.lower(),
     )
-
