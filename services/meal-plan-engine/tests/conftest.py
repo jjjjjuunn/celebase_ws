@@ -3,7 +3,8 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/celebase_test")
 
-import warnings, pytest
+import warnings
+import pytest
 warnings.filterwarnings("ignore", category=pytest.PytestRemovedIn9Warning)
 
 import os
@@ -26,7 +27,6 @@ async def _patched_client_fixture():
 
 import asyncio
 import pytest
-from contextlib import asynccontextmanager
 
 @pytest.fixture(name="client", scope="function")  # override with sync fixture
 def _sync_client_fixture():

@@ -20,7 +20,7 @@ if not os.getenv("LOCALSTACK_ENDPOINT"):
 
 import time
 import uuid
-from typing import Any, Dict
+from typing import Dict
 
 import asyncpg
 import boto3
