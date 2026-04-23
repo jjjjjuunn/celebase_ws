@@ -518,12 +518,10 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - name: Checkout repository
-        run: |
-          git init
-          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjjjuunn/celebase_ws.git"
-          git fetch --depth 1 origin "${{ github.sha }}"
-          git checkout FETCH_HEAD
+      - uses: actions/checkout@v4
+        with:
+          repository: jjjjjuunn/celebase_ws
+          ref: ${{ github.sha }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
