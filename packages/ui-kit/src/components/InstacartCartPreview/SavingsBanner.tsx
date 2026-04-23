@@ -54,7 +54,7 @@ export function SavingsBanner(props: SavingsBannerProps): ReactElement {
           </span>
         </article>
 
-        <article className={`${styles.cell} ${styles.cellFeatured}`}>
+        <article className={[styles.cell, styles.cellFeatured].filter(Boolean).join(' ')}>
           <span className={styles.cellLabel}>Your AI plan</span>
           <span className={styles.cellPrice}>
             {formatMoney(aiPlanCents, currency)}

@@ -87,9 +87,9 @@ export function StockSubstitutionPopup(
         {options.map((opt, idx) => {
           const selected = opt.id === selectedId;
           const props = itemProps(idx);
-          const optionClass = selected
-            ? `${styles.option} ${styles.optionSelected}`
-            : styles.option;
+          const optionClass = [styles.option, selected ? styles.optionSelected : undefined]
+            .filter(Boolean)
+            .join(' ');
           return (
             <div
               key={opt.id}
