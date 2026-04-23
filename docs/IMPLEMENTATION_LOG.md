@@ -2543,7 +2543,7 @@ verified_by: claude-sonnet-4-6, GitHub Actions CI (run #24820023966, all green)
 date: 2026-04-23
 agent: claude-opus-4-7 (Auto mode)
 task_id: IMPL-BFF-003
-commit_sha: PENDING
+commit_sha: 9b2e9d3
 files_changed:
   - apps/web/src/app/api/_lib/env.ts
   - apps/web/src/app/api/_lib/cookies.ts
