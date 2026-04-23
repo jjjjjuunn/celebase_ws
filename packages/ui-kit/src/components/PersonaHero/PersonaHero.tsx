@@ -11,6 +11,7 @@ export interface PersonaHeroProps
   subhead?: string;
   celebrities: CelebrityCardData[];
   onSelect?: (slug: string) => void;
+  selectedSlug?: string;
   footnote?: ReactNode;
 }
 
@@ -24,12 +25,14 @@ export function PersonaHero(props: PersonaHeroProps): ReactElement {
     subhead = DEFAULT_SUBHEAD,
     celebrities,
     onSelect,
+    selectedSlug,
     footnote,
     className,
     ...rest
   } = props;
 
   const classes = [styles.hero, className].filter(Boolean).join(' ');
+  const hasSelection = selectedSlug !== undefined;
 
   return (
     <section {...rest} className={classes} aria-label="Persona selection">
@@ -39,11 +42,20 @@ export function PersonaHero(props: PersonaHeroProps): ReactElement {
       </header>
 
       <div className={styles.grid} role="list">
-        {celebrities.map((celeb) => (
-          <div key={celeb.slug} role="listitem" className={styles.cell}>
-            <CelebrityCard data={celeb} {...(onSelect ? { onClick: onSelect } : {})} />
-          </div>
-        ))}
+        {celebrities.map((celeb) => {
+          const isSelected = hasSelection && celeb.slug === selectedSlug;
+          const isDimmed = hasSelection && celeb.slug !== selectedSlug;
+          return (
+            <div key={celeb.slug} role="listitem" className={styles.cell}>
+              <CelebrityCard
+                data={celeb}
+                selected={isSelected}
+                dimmed={isDimmed}
+                {...(onSelect ? { onClick: onSelect } : {})}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {footnote ? <p className={styles.footnote}>{footnote}</p> : null}
