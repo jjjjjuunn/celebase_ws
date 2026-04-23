@@ -2538,3 +2538,87 @@ verified_by: claude-sonnet-4-6, GitHub Actions CI (run #24820023966, all green)
 ### 미완료: dev 환경 배포 후 /dashboard Playwright MCP 스크린샷 검증 (CI CD 파이프라인 자동 배포 대기)
 
 ### 연관 파일: .github/workflows/ci.yml, turbo.json, ruff.toml, services/user-service/src/routes/auth.routes.ts, packages/ui-kit/src/components/InstacartCartPreview/
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7 (Auto mode)
+task_id: IMPL-BFF-003
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/env.ts
+  - apps/web/src/app/api/_lib/cookies.ts
+  - apps/web/src/app/api/_lib/forward-raw.ts
+  - apps/web/src/app/api/_lib/refresh.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/__tests__/refresh.test.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/auth/logout/__tests__/logout.integration.test.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/src/app/api/auth/refresh/__tests__/refresh.integration.test.ts
+  - apps/web/src/app/api/webhooks/stripe/route.ts
+  - apps/web/src/app/api/webhooks/stripe/__tests__/stripe.integration.test.ts
+  - apps/web/jest.setup.ts
+verified_by: claude-opus-4-7 (typecheck + jest 90 tests + coverage)
+---
+### 완료: BFF 레이어 내부 완성도 — IMPL-BFF-000/001/002/003/004/006 통합 구현 (Plan humble-wandering-squid)
+
+**Scope**: 순수 BFF 레이어 (`apps/web/src/app/api/**`) 만 수정. FE 세션 (`middleware.ts`, `src/lib`, `src/components`, `packages/ui-kit`) 및 BE 서비스 (`services/**`) 는 건드리지 않음. upstream 서비스 미구현 라우트는 기존 503 stub 유지.
+
+**IMPL-BFF-000 — 공용 _lib 모듈 분리 (L1, 선행)**
+- `env.ts` 신규: `readEnv(name)` 을 `session.ts` 에서 이동. `session.ts` 는 `env.ts` 를 re-export 해 backward-compat 유지.
+- `cookies.ts` 신규: `setSessionCookies({ accessToken, refreshToken, accessMaxAgeSec, refreshMaxAgeSec })` + `clearSessionCookies()` 공용 helper. `cb_access` Path=/, `cb_refresh` Path=/api/auth, HttpOnly + SameSite=Lax + Secure(prod only).
+- `bff-fetch.ts` 에 `resetRateLimitBucketsForTest()` export 추가 (singleton 누적 방지, 테스트 격리용).
+
+**IMPL-BFF-001 — logout forward 를 fetchBff 경유로 통일 (L2)**
+- `auth/logout/route.ts` 가 raw `fetch` 대신 `fetchBff('user', '/auth/logout', { method: 'POST', body: JSON.stringify({ refresh_token }), ... })` 호출. rate-limit / Zod / 에러 매핑 통일.
+- user-service `LogoutSchema` 필수 `refresh_token` body 전달 (plan v1 누락 버그 수정). `cb_refresh` 미존재 시 forward skip + 204.
+- `SessionExpiredError` / network / timeout / 5xx 모두 best-effort 204 유지 (사용자 세션 정리는 항상 성공).
+- 통합 테스트: 정상 204 / no-refresh 204 / 5xx 204 / timeout 204 / upstream 401 204 / body payload 검증 총 6 케이스.
+
+**IMPL-BFF-002 — Stripe webhook 을 forward-raw helper 로 통일 (L2)**
+- `_lib/forward-raw.ts` 신규: status-preserving raw forwarder. `fetchBff` 가 `Result<T>` 로 status 를 소거하므로 Stripe 재시도 판단이 깨지는 문제 대응. timeout→504, network→502 envelope.
+- `webhooks/stripe/route.ts` 가 `forwardRaw` 로 교체. `readEnv('USER_SERVICE_URL')` 직접 참조 삭제, `baseUrlFor` 재사용.
+- rate-limit 미적용 (Stripe retry burst 보호) — webhook 경로는 `rateLimitBuckets` 를 건드리지 않음.
+- 통합 테스트: signature 전달 / upstream 200 / upstream 400 / timeout 504 / network 502 / missing signature 400 등.
+
+**IMPL-BFF-003 — Silent token refresh (L3, 보안 민감)**
+- `_lib/refresh.ts` 신규: `attemptSilentRefresh(refreshToken, requestId)` → discriminated union `SilentRefreshResult`. 2s timeout (`AbortSignal.timeout`), `RefreshResponseSchema` (@celebbase/shared-types) 재사용 (별도 inline schema 금지 — 계약 일관성).
+- 로거 whitelist: `{ reason, requestId, ok, status? }` 만. 토큰 값 (`newAccess`, `newRefresh`, `refreshToken`) 은 payload 에 절대 미등장 (Rule #8).
+- `session.ts` `createProtectedRoute` 재작성:
+  - Timing padding anchor (`handlerStart = performance.now()`) 를 루트 진입 시점으로 이동 → refresh 소요시간도 100ms 최소 latency 에 포함 (timing side-channel 차단).
+  - JWTExpired catch → `cb_refresh` 쿠키 확인 → `attemptSilentRefresh` 1회 호출. 재진입 루프 방지 (request 당 최대 1회).
+  - Refresh 성공 → `verifyAccessToken(refreshed.newAccess)` 로 session 생성 (discriminated union 으로 `!` 비단언 불필요). `setSessionCookies` 결과를 `newCookies` 에 보관, handler Response 에 `Set-Cookie` 2건 append.
+  - Refresh 성공 후 handler 가 `SessionExpiredError` 재발생 → `newCookies = null` drop + `clearSessionCookies()` 로 교체 (무한 루프 없이 401 + clear cookies 로 즉시 종료).
+  - Refresh 실패 (upstream 5xx / 4xx / timeout / network / no-cookie / schema-mismatch) → 401 `TOKEN_EXPIRED` + `clearSessionCookies()` 2건 + `X-Token-Expired: true`.
+- Concurrent refresh race (다수 탭 동시 만료) 는 user-service `performRotation` atomic winner-takes-all + reuse-detected revoke-all 로 수용 가능한 트레이드오프. 프론트엔드 query-client 의 `/login?reason=session_expired` redirect 가 UX 처리.
+- 단위 테스트 9 케이스 (`refresh.test.ts`): ok=true / no_cookie / upstream_4xx / upstream_5xx / timeout / network / schema_mismatch(wrong shape) / schema_mismatch(invalid JSON) / X-Request-Id 전파. 100% coverage.
+- `session.test.ts` 에 silent-refresh describe 블록 6 케이스 추가: 성공 retry + 2 Set-Cookie / upstream 5xx→clear 2건 / upstream 401→clear 2건 / no cb_refresh→401 + fetch 미호출 / handler SessionExpiredError→ cookies dropped / no-cookie padding ≥ 95ms.
+
+**IMPL-BFF-004 — commerce BffTarget 추가 (L1)**
+- `bff-fetch.ts` `BffTarget` union 에 `'commerce'` 추가. `COMMERCE_SERVICE_URL` module-level 상수 + `baseUrlFor` switch case 추가.
+- `jest.setup.ts` 에 `COMMERCE_SERVICE_URL = http://localhost:3004` test stub 추가 (주석: "Test stub only — commerce-service is not deployed at runtime yet").
+
+**IMPL-BFF-006 — `/api/auth/refresh` SessionExpiredError 경로 수정 (L2)**
+- `auth/refresh/route.ts` 가 `fetchBff` 호출 시 upstream 401 을 `!result.ok` 분기로 처리하려 했으나 `fetchBff` 는 401 시 `SessionExpiredError` throw → `createPublicRoute` 기본 envelope 로 떨어지는 버그.
+- `try/catch` 로 `SessionExpiredError` 명시 catch → 401 `TOKEN_EXPIRED` + `X-Token-Expired: true` + `clearSessionCookies()` 반환.
+- 통합 테스트 3 케이스: upstream 200→set cookies / upstream 401→clear + X-Token-Expired / upstream 5xx→envelope.
+
+**설계 결정 (plan v2 review 반영)**
+- **순환 import 해결**: `refresh.ts` → `env.ts` 단방향. `bff-fetch.ts` 도 `env.ts` 만 참조.
+- **Discriminated union**: `SilentRefreshResult` `ok: true` 분기에서 TypeScript 가 `newAccess: string` 으로 자동 narrow → non-null assertion 불필요.
+- **BFF audit log 없음**: 토큰 이벤트 감사는 user-service `emitAuthLog` 담당. BFF 는 HTTP status 만 전달. user-service 5xx (`AUDIT_LOG_FAILURE` 포함) 는 1회 시도 후 401 로 종료 — Rule #5 fail-closed 준수.
+- **Raw webhook forwarding**: status-preserving `forwardRaw` helper 분리 (vs. `fetchBff` 의 Result<T>) — Stripe 재시도 계약 보존.
+
+**Verification (매 sub-task 공통 게이트)**
+- `pnpm --filter web typecheck`: pass (0 errors)
+- `pnpm --filter web lint`: pass (IMPL-BFF 범위 신규 warning 0건; 기존 `<img>` / unused-disable-directive warning 은 범위 외)
+- `pnpm --filter web test`: 90 tests passed, 9 suites, 0 failures
+- Coverage (`_lib/` 하위): `refresh.ts` 100%, `session.ts` 92.07%, `bff-error.ts` 98.36%, `cookies.ts` 100%, `env.ts` 80%, `forward-raw.ts` 95.23%, `bff-fetch.ts` 78.89%.
+- `grep -rn "fetch(" apps/web/src/app/api/ --include='*.ts' | grep -v fetchBff | grep -v forwardRaw` → helper 외 직접 `fetch` 호출 0건 (테스트 파일 제외).
+- 로그 토큰 누출 grep: `refresh.ts` 모든 log 호출이 whitelist field 만 사용 — 수동 확인.
+
+### 미완료: IMPL-BFF-005 (BFF 통합 테스트 보강 — auth/users/subscriptions/meal-plans/celebrities 5개 신규 integration test). `fe_bff_smoke` 200/400 probe 는 BE 기동 필요로 본 스코프 제외.
+
+### 연관 파일: apps/web/src/app/api/_lib/, apps/web/src/app/api/auth/, apps/web/src/app/api/webhooks/stripe/, apps/web/jest.setup.ts, /Users/junwon/.claude/plans/humble-wandering-squid.md

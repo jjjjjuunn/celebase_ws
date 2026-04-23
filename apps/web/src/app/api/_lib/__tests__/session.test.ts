@@ -27,7 +27,11 @@ import { SessionExpiredError } from '../bff-error';
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
 
 // Minimal NextRequest-shaped mock — only the fields createProtectedRoute uses
-function makeRequest(opts?: { cookie?: string; requestId?: string }): Parameters<ReturnType<typeof createProtectedRoute>>[0] {
+function makeRequest(opts?: {
+  cookie?: string;
+  refreshCookie?: string;
+  requestId?: string;
+}): Parameters<ReturnType<typeof createProtectedRoute>>[0] {
   return {
     headers: {
       get(name: string) {
@@ -38,6 +42,7 @@ function makeRequest(opts?: { cookie?: string; requestId?: string }): Parameters
     cookies: {
       get(name: string) {
         if (name === 'cb_access') return opts?.cookie !== undefined ? { value: opts.cookie } : undefined;
+        if (name === 'cb_refresh') return opts?.refreshCookie !== undefined ? { value: opts.refreshCookie } : undefined;
         return undefined;
       },
     },
@@ -77,7 +82,7 @@ describe('createProtectedRoute', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('returns 401 with X-Token-Expired header when token is expired', async () => {
+  it('returns 401 with X-Token-Expired header when access token is expired and no refresh cookie present', async () => {
     // The mock's JWTExpired has a default message; TS uses the real type which requires 2+ args
     mockJwtVerify.mockRejectedValueOnce(
       new (joseErrors.JWTExpired as unknown as new () => Error)(),
@@ -91,6 +96,9 @@ describe('createProtectedRoute', () => {
     const body = await res.json() as { error: { code: string } };
     expect(body.error.code).toBe('TOKEN_EXPIRED');
     expect(handler).not.toHaveBeenCalled();
+    // No refresh cookie → no clear-cookies emitted (client state is already
+    // "logged out" from the cookie's perspective).
+    expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 
   it('returns 401 without X-Token-Expired header for forged/malformed token', async () => {
@@ -175,6 +183,172 @@ describe('createProtectedRoute', () => {
     expect(res.headers.get('X-Token-Expired')).toBe('true');
     const body = await res.json() as { error: { code: string } };
     expect(body.error.code).toBe('TOKEN_EXPIRED');
+  });
+});
+
+describe('createProtectedRoute silent refresh', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it('retries handler with new session on successful silent refresh and appends both Set-Cookie headers', async () => {
+    // 1) Expired access token → JWTExpired
+    // 2) Silent refresh upstream returns 200 with new tokens
+    // 3) Refreshed access token verifies successfully → handler invoked
+    mockJwtVerify
+      .mockRejectedValueOnce(
+        new (joseErrors.JWTExpired as unknown as new () => Error)(),
+      )
+      .mockResolvedValueOnce(
+        { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+      );
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          access_token: 'fresh-access',
+          refresh_token: 'fresh-refresh',
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    );
+    const handler = jest.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ cookie: 'expired-access', refreshCookie: 'valid-refresh' }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalledTimes(1);
+    const setCookies = res.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(setCookies[0]).toContain('cb_access=fresh-access');
+    expect(setCookies[0]).toContain('Path=/');
+    expect(setCookies[0]).toContain('Max-Age=900');
+    expect(setCookies[1]).toContain('cb_refresh=fresh-refresh');
+    expect(setCookies[1]).toContain('Path=/api/auth');
+    expect(setCookies[1]).toContain('Max-Age=2592000');
+  });
+
+  it('returns 401 + clears cookies when upstream refresh 5xx', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'INTERNAL' } }), { status: 500 }),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ cookie: 'expired-access', refreshCookie: 'valid-refresh' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    const setCookies = res.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(setCookies[0]).toContain('cb_access=');
+    expect(setCookies[0]).toContain('Path=/');
+    expect(setCookies[0]).toContain('Max-Age=0');
+    expect(setCookies[1]).toContain('cb_refresh=');
+    expect(setCookies[1]).toContain('Path=/api/auth');
+    expect(setCookies[1]).toContain('Max-Age=0');
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 + clears cookies when upstream refresh returns 401', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { code: 'INVALID_REFRESH_TOKEN' } }),
+        { status: 401 },
+      ),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ cookie: 'expired-access', refreshCookie: 'revoked-refresh' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    const setCookies = res.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(setCookies[0]).toContain('Max-Age=0');
+    expect(setCookies[1]).toContain('Max-Age=0');
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 without firing upstream refresh when cb_refresh absent', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(makeRequest({ cookie: 'expired-access' }));
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('clears refreshed cookies and returns 401 when handler throws SessionExpiredError after refresh', async () => {
+    mockJwtVerify
+      .mockRejectedValueOnce(
+        new (joseErrors.JWTExpired as unknown as new () => Error)(),
+      )
+      .mockResolvedValueOnce(
+        { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+      );
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          access_token: 'fresh-access',
+          refresh_token: 'fresh-refresh',
+        }),
+        { status: 200 },
+      ),
+    );
+    const handler = jest.fn().mockImplementation(() => {
+      throw new SessionExpiredError('/users/me');
+    });
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ cookie: 'expired-access', refreshCookie: 'valid-refresh' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    // Infinite-loop guard: handler is retried exactly once (from the refresh
+    // path). SessionExpiredError in the handler → 401 + cleared cookies,
+    // NOT another refresh attempt.
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const setCookies = res.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(setCookies[0]).toContain('cb_access=');
+    expect(setCookies[0]).toContain('Max-Age=0');
+    expect(setCookies[1]).toContain('cb_refresh=');
+    expect(setCookies[1]).toContain('Max-Age=0');
+  });
+
+  it('pads response to at least 100ms even on no-cookie fast path', async () => {
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const start = performance.now();
+    const res = await wrapped(makeRequest());
+    const elapsed = performance.now() - start;
+
+    expect(res.status).toBe(401);
+    expect(elapsed).toBeGreaterThanOrEqual(95);
   });
 });
 
