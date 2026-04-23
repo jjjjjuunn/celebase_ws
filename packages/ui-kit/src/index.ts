@@ -86,3 +86,49 @@ export type {
   WsStatusBannerProps,
   WsStreamStatus,
 } from './components/WsStatusBanner/WsStatusBanner.js';
+
+export { TrafficLightIndicator } from './components/TrafficLightIndicator/TrafficLightIndicator.js';
+export type {
+  TrafficLightIndicatorProps,
+  TrafficLightStatus,
+  TrafficLightVariant,
+  TrafficLightSize,
+} from './components/TrafficLightIndicator/TrafficLightIndicator.js';
+
+export { SourceTrackingBadge } from './components/SourceTrackingBadge/SourceTrackingBadge.js';
+export type { SourceTrackingBadgeProps } from './components/SourceTrackingBadge/SourceTrackingBadge.js';
+
+export { IngredientSwapCard } from './components/IngredientSwapCard/IngredientSwapCard.js';
+export type {
+  IngredientSwapCardProps,
+  IngredientInfo,
+} from './components/IngredientSwapCard/IngredientSwapCard.js';
+
+export { NutritionRing } from './components/NutritionRing/NutritionRing.js';
+export type {
+  NutritionRingProps,
+  NutritionRingSize,
+  NutritionRingTone,
+} from './components/NutritionRing/NutritionRing.js';
+
+export { MealCard } from './components/MealCard/MealCard.js';
+export type { MealCardProps } from './components/MealCard/MealCard.js';
+
+export { PersonaHero } from './components/PersonaHero/PersonaHero.js';
+export type { PersonaHeroProps } from './components/PersonaHero/PersonaHero.js';
+
+export { InstacartCartPreview } from './components/InstacartCartPreview/InstacartCartPreview.js';
+export type {
+  InstacartCartPreviewProps,
+  InstacartLineItem,
+  InstacartFulfillmentStatus,
+} from './components/InstacartCartPreview/InstacartCartPreview.js';
+
+export { StockSubstitutionPopup } from './components/InstacartCartPreview/StockSubstitutionPopup.js';
+export type {
+  StockSubstitutionPopupProps,
+  StockSubstitutionOption,
+} from './components/InstacartCartPreview/StockSubstitutionPopup.js';
+
+export { SavingsBanner } from './components/InstacartCartPreview/SavingsBanner.js';
+export type { SavingsBannerProps } from './components/InstacartCartPreview/SavingsBanner.js';

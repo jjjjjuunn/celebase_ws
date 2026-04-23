@@ -1,10 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { createPublicRoute, readEnv } from '../../_lib/session.js';
 
-const COGNITO_HOSTED_UI_DOMAIN = readEnv('COGNITO_HOSTED_UI_DOMAIN');
-const COGNITO_CLIENT_ID = readEnv('COGNITO_CLIENT_ID');
-const COGNITO_REDIRECT_URI = readEnv('COGNITO_REDIRECT_URI');
-
 // 48 bytes → 64-char base64url code_verifier (PKCE spec: 43–128 chars)
 function generateCodeVerifier(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(48));
@@ -25,6 +21,10 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 }
 
 export const GET = createPublicRoute(async (req: NextRequest) => {
+  const cognitoHostedUiDomain = readEnv('COGNITO_HOSTED_UI_DOMAIN');
+  const cognitoClientId = readEnv('COGNITO_CLIENT_ID');
+  const cognitoRedirectUri = readEnv('COGNITO_REDIRECT_URI');
+
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
   const returnToRaw = req.nextUrl.searchParams.get('return_to');
   // Only allow relative paths to prevent open-redirect
@@ -38,11 +38,11 @@ export const GET = createPublicRoute(async (req: NextRequest) => {
   const codeChallenge = await generateCodeChallenge(codeVerifier);
 
   const authorizeUrl = new URL(
-    `https://${COGNITO_HOSTED_UI_DOMAIN}/oauth2/authorize`,
+    `https://${cognitoHostedUiDomain}/oauth2/authorize`,
   );
   authorizeUrl.searchParams.set('response_type', 'code');
-  authorizeUrl.searchParams.set('client_id', COGNITO_CLIENT_ID);
-  authorizeUrl.searchParams.set('redirect_uri', COGNITO_REDIRECT_URI);
+  authorizeUrl.searchParams.set('client_id', cognitoClientId);
+  authorizeUrl.searchParams.set('redirect_uri', cognitoRedirectUri);
   authorizeUrl.searchParams.set('state', state);
   authorizeUrl.searchParams.set('code_challenge', codeChallenge);
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');

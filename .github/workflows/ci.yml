@@ -382,8 +382,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        run: |
+          git init
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjjjuunn/celebase_ws.git"
+          git fetch --depth 1 origin "${{ github.sha }}"
+          git checkout FETCH_HEAD
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -432,8 +438,6 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Post failure comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7

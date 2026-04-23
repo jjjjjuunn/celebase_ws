@@ -18,6 +18,7 @@ export const UserWireSchema = z.object({
   subscription_tier: SubscriptionTier,
   locale: z.string(),
   timezone: z.string(),
+  preferred_celebrity_slug: z.string().min(1).max(100).nullable(),
   created_at: IsoDateTime,
   updated_at: IsoDateTime,
   deleted_at: IsoDateTime.nullable(),
@@ -35,6 +36,13 @@ export const UpdateMeRequestSchema = z
     avatar_url: z.string().url().nullable().optional(),
     locale: z.string().min(2).max(10).optional(),
     timezone: z.string().min(1).max(64).optional(),
+    preferred_celebrity_slug: z
+      .string()
+      .min(1)
+      .max(100)
+      .regex(/^[a-z0-9][a-z0-9-]*$/)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;
@@ -62,6 +70,7 @@ const _userWireRowParity = null as unknown as UserWire satisfies {
   subscription_tier: User['subscription_tier'];
   locale: User['locale'];
   timezone: User['timezone'];
+  preferred_celebrity_slug: User['preferred_celebrity_slug'];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

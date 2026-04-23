@@ -12,6 +12,7 @@ body (sqs_consumer.py:62) and calls ``content_client.get_base_diet()``
 The meal_plans row itself carries a valid ``base_diet_id`` to satisfy
 the FK to ``base_diets(id)``.
 """
+
 from __future__ import annotations
 
 import asyncio

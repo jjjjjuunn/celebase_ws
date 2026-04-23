@@ -316,8 +316,8 @@ check_sql_schema_alignment() {
 
     # Parse column names (strip whitespace, type casts, quotes)
     local insert_cols=()
-    IFS=',' read -ra col_parts <<< "$cols_raw"
-    for c in "${col_parts[@]}"; do
+    IFS=',' read -ra col_parts <<< "$cols_raw" || true
+    for c in "${col_parts[@]+"${col_parts[@]}"}"; do
       local col_name
       col_name=$(echo "$c" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/::[a-z]+//g;s/"//g')
       [[ -n "$col_name" ]] && insert_cols+=("$col_name")
@@ -346,7 +346,7 @@ check_sql_schema_alignment() {
     fi
 
     # Check each INSERT column exists in DDL
-    for col in "${insert_cols[@]}"; do
+    for col in "${insert_cols[@]+"${insert_cols[@]}"}"; do
       if ! echo "$ddl_cols" | grep -qw "$col"; then
         issues+="Column '${col}' in INSERT INTO ${table} not found in migration DDL\n"
         exit_code=1
@@ -875,6 +875,54 @@ check_fe_be_probe() {
   RESULTS+=("{\"name\":\"fe_be_probe\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
+# Plan 20-vast-adleman · Phase D-0 gate (H3): validate Instacart credentials
+# + allowlist posture before any /api/instacart/* route can run against prod.
+# Passes when:
+#   (a) INSTACART_API_KEY env or `.env.staging` entry is set to a non-placeholder value, AND
+#   (b) `api.instacart.com` or `connect.instacart.com` appears in the URL allowlist
+#       (harness/policy.yaml `allow.external_http` or equivalent).
+# Staging/dev without creds → passed:false with machine-readable reason so CD
+# can flip `/api/instacart/*` routes into mock-only mode (no prod rollout).
+check_instacart_cred() {
+  local issues=()
+  local env_value=""
+
+  if [[ -n "${INSTACART_API_KEY:-}" ]]; then
+    env_value="$INSTACART_API_KEY"
+  elif [[ -f "services/user-service/.env.staging" ]] && grep -q "^INSTACART_API_KEY=" services/user-service/.env.staging; then
+    env_value=$(grep "^INSTACART_API_KEY=" services/user-service/.env.staging | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")
+  fi
+
+  if [[ -z "$env_value" ]]; then
+    issues+=("INSTACART_API_KEY is not set (env or .env.staging)")
+  elif [[ "$env_value" == "xxx" || "$env_value" == "placeholder" || "$env_value" == "changeme" ]]; then
+    issues+=("INSTACART_API_KEY is still a placeholder ($env_value)")
+  fi
+
+  local allowlist_hit="false"
+  if [[ -f "harness/policy.yaml" ]] && grep -qE "api\.instacart\.com|connect\.instacart\.com" harness/policy.yaml; then
+    allowlist_hit="true"
+  fi
+  if [[ "$allowlist_hit" == "false" ]]; then
+    issues+=("harness/policy.yaml allowlist missing api.instacart.com / connect.instacart.com")
+  fi
+
+  local passed=true
+  local exit_code=0
+  local output=""
+  if (( ${#issues[@]} > 0 )); then
+    passed=false
+    exit_code=1
+    output=$(printf '%s; ' "${issues[@]}" | sed 's/; $//')
+    OVERALL_PASS="false"
+  else
+    output="INSTACART_API_KEY present + allowlist entry verified"
+  fi
+  local truncated
+  truncated=$(echo "$output" | head -c 500 | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g')
+  RESULTS+=("{\"name\":\"instacart_cred\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Run requested checks
 case "$CHECK" in
   typecheck)
@@ -931,6 +979,9 @@ case "$CHECK" in
   fe_be_probe)
     check_fe_be_probe
     ;;
+  instacart_cred)
+    check_instacart_cred
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -954,7 +1005,7 @@ case "$CHECK" in
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, instacart_cred, all" >&2
     exit 1
     ;;
 esac

@@ -1,0 +1,4 @@
+[lint.per-file-ignores]
+# E402: imports after env/logging setup are intentional in these files
+"services/meal-plan-engine/main.py" = ["E402"]
+"services/meal-plan-engine/tests/conftest.py" = ["E402"]

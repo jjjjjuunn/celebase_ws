@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { schemas } from '@celebbase/shared-types';
 import type { z } from 'zod';
+import { NutritionRing } from '@celebbase/ui-kit';
 import { fetcher } from '../../../lib/fetcher.js';
 import { useUser } from '../../../lib/user-context.js';
+import { IdentitySyncScore } from '../../../features/wellness-log/index.js';
 import styles from './dashboard.module.css';
 
 type PlanItem = schemas.MealPlanListResponse['items'][number];
@@ -28,12 +30,25 @@ function greeting(): string {
   return 'Good evening';
 }
 
-function pct(v: number | null): string {
-  return v !== null ? `${Math.round(v * 100)}%` : '—';
+function slugToDisplayName(slug: string): string {
+  return slug
+    .split('-')
+    .map((part) => (part.length === 0 ? part : part[0]!.toUpperCase() + part.slice(1)))
+    .join(' ');
 }
 
-function avg(v: number | null): string {
-  return v !== null ? v.toFixed(1) : '—';
+/**
+ * Temporary Identity Sync heuristic until BE `persona-match` lands.
+ * Weighted blend of meal adherence (70%) + energy/mood proxies (30%) —
+ * bounded 0-100. Zero-safe on nullable log metrics.
+ */
+function computeIdentitySync(summary: DailyLogSummary | null): number | null {
+  if (summary === null || summary.total_logs === 0) return null;
+  const adherence = summary.completion_rate ?? 0;
+  const energyNorm = summary.avg_energy_level !== null ? summary.avg_energy_level / 5 : 0.5;
+  const moodNorm = summary.avg_mood !== null ? summary.avg_mood / 5 : 0.5;
+  const blend = adherence * 0.7 + energyNorm * 0.15 + moodNorm * 0.15;
+  return Math.round(Math.max(0, Math.min(1, blend)) * 100);
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -93,6 +108,26 @@ export default function DashboardPage(): React.ReactElement {
 
   const firstName = user?.display_name.split(' ')[0] ?? null;
 
+  const personaSlug = user?.preferred_celebrity_slug ?? null;
+  const personaDisplayName = personaSlug !== null ? slugToDisplayName(personaSlug) : null;
+
+  const adherencePct =
+    summary !== null && summary.total_logs > 0 ? Math.round((summary.completion_rate ?? 0) * 100) : 0;
+  const energyPct =
+    summary !== null && summary.avg_energy_level !== null
+      ? Math.round((summary.avg_energy_level / 5) * 100)
+      : 0;
+  const hasRecoveryData = summary !== null && summary.avg_weight_kg !== null;
+  const recoveryPct = hasRecoveryData ? Math.min(100, Math.max(0, Math.round(energyPct))) : 0;
+
+  const identityScore = computeIdentitySync(summary);
+  const identityStatus: 'ready' | 'pending' | 'error' = (() => {
+    if (summaryLoading) return 'pending';
+    if (personaSlug === null) return 'error';
+    if (identityScore === null) return 'error';
+    return 'ready';
+  })();
+
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
@@ -114,35 +149,53 @@ export default function DashboardPage(): React.ReactElement {
             <Link href="/track" className={styles.ctaLink}>Start logging →</Link>
           </div>
         ) : (
-          <div className={styles.statsRow}>
-            <div className={styles.statCard}>
-              <span className={styles.statValue}>
-                {summary.total_logs}
-                <span className={styles.statUnit}>/7</span>
-              </span>
-              <span className={styles.statLabel}>Days logged</span>
+          <div className={styles.ringStage}>
+            <div className={styles.ringCluster}>
+              <NutritionRing
+                value={adherencePct}
+                label="Adherence"
+                subLabel={<span>{summary.total_logs} of 7 days</span>}
+                tone="brand"
+                size="lg"
+              />
+              <NutritionRing
+                value={energyPct}
+                label="Energy"
+                subLabel={
+                  <span>
+                    {summary.avg_energy_level !== null ? summary.avg_energy_level.toFixed(1) : '—'} / 5
+                  </span>
+                }
+                tone="persona"
+                size="lg"
+              />
+              {hasRecoveryData ? (
+                <NutritionRing
+                  value={recoveryPct}
+                  label="Recovery"
+                  subLabel={
+                    <span>
+                      {summary.avg_weight_kg !== null ? summary.avg_weight_kg.toFixed(1) : '—'} kg
+                    </span>
+                  }
+                  tone="brand"
+                  size="lg"
+                />
+              ) : (
+                <div className={styles.recoveryFallback}>
+                  <span className={styles.recoveryFallbackTitle}>Recovery</span>
+                  <span className={styles.recoveryFallbackHint}>
+                    Log weight or sleep to unlock recovery tracking.
+                  </span>
+                </div>
+              )}
             </div>
-            <div className={styles.statCard}>
-              <span className={styles.statValue}>{pct(summary.completion_rate)}</span>
-              <span className={styles.statLabel}>Meal adherence</span>
-            </div>
-            <div className={styles.statCard}>
-              <span className={styles.statValue}>{avg(summary.avg_energy_level)}</span>
-              <span className={styles.statLabel}>Avg energy</span>
-            </div>
-            <div className={styles.statCard}>
-              <span className={styles.statValue}>{avg(summary.avg_mood)}</span>
-              <span className={styles.statLabel}>Avg mood</span>
-            </div>
-            {summary.avg_weight_kg !== null && (
-              <div className={styles.statCard}>
-                <span className={styles.statValue}>
-                  {summary.avg_weight_kg.toFixed(1)}
-                  <span className={styles.statUnit}>kg</span>
-                </span>
-                <span className={styles.statLabel}>Avg weight</span>
-              </div>
-            )}
+            <IdentitySyncScore
+              className={styles.identitySync}
+              score={identityScore}
+              personaDisplayName={personaDisplayName}
+              status={identityStatus}
+            />
           </div>
         )}
       </section>

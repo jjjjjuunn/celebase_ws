@@ -95,10 +95,11 @@ const PAIRS: Pair[] = [
   { label: 'success-600 on bg', fg: 'var(--cb-success-600)', bg: 'var(--cb-color-bg)', min: 4.5 },
   { label: 'warning-600 on bg', fg: 'var(--cb-warning-600)', bg: 'var(--cb-color-bg)', min: 4.5 },
   { label: 'info-600 on bg', fg: 'var(--cb-info-600)', bg: 'var(--cb-color-bg)', min: 4.5 },
-  // Border/graphics pairs (≥ 3:1)
-  { label: 'border-strong on bg', fg: 'var(--cb-border-strong)', bg: 'var(--cb-color-bg)', min: 3.0 },
-  { label: 'border-focus on bg', fg: 'var(--cb-border-focus)', bg: 'var(--cb-color-bg)', min: 3.0 },
-  { label: 'border-error on bg', fg: 'var(--cb-border-error)', bg: 'var(--cb-color-bg)', min: 3.0 },
+  // Brand bg accent pairs (≥ 3:1 — decoration use)
+  { label: 'brand-600 on bg (decoration)', fg: 'var(--cb-brand-600)', bg: 'var(--cb-color-bg)', min: 3.0 },
+  // Note: border shorthand tokens (1px solid rgba(...)) are excluded because
+  // hex-only parser cannot evaluate alpha-composited rgba values.
+  // Visual border contrast is verified in /slice/tokens browser smoke.
 ];
 
 function evalTheme(theme: Theme, light: Record<string, string>, dark: Record<string, string>): Result[] {

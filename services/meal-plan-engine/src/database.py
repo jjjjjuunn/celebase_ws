@@ -70,4 +70,3 @@ async def close_pool() -> None:  # noqa: D401
     if _pool is not None:
         await _pool.close()
         _pool = None
-

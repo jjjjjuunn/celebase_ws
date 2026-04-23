@@ -5,6 +5,7 @@ Requires docker compose stack to be up with migrations applied.
 Primary completion signal: DB status polling (robust against WS no-replay).
 WS: secondary — best-effort observation, handshake success only.
 """
+
 from __future__ import annotations
 
 import asyncio

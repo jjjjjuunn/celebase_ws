@@ -14,14 +14,14 @@ export async function GET(
     const forwardedFor = innerReq.headers.get('x-forwarded-for') ?? undefined;
     const result = await fetchBff('content', `/celebrities/${encodeURIComponent(slug)}`, {
       method: 'GET',
-      schema: schemas.CelebrityDetailResponseSchema,
+      schema: schemas.CelebrityWireSchema,
       requestId,
       forwardedFor,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
     }
-    return new Response(JSON.stringify(result.data), {
+    return new Response(JSON.stringify({ celebrity: result.data }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
     });

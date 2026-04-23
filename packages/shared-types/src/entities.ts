@@ -38,6 +38,8 @@ export interface User {
   subscription_tier: SubscriptionTier;
   locale: string;
   timezone: string;
+  /** Soft reference to celebrities.slug — set during persona-first onboarding (plan 20, Phase C). */
+  preferred_celebrity_slug: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;

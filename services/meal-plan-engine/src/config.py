@@ -22,13 +22,17 @@ class Settings(BaseSettings):
     # Internal JWT secret — must match INTERNAL_JWT_SECRET in user-service
     INTERNAL_JWT_SECRET: str = "dev-secret-not-for-prod"
     INTERNAL_JWT_ISSUER: str = "celebbase-user-service"
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,http://localhost:3002"
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,http://localhost:3001,http://localhost:3002"
+    )
     CONTENT_SERVICE_URL: str = "http://localhost:3002"
     USER_SERVICE_URL: str = "http://localhost:3001"
     REDIS_URL: str = "redis://localhost:6379"
-    SQS_QUEUE_URL: str = ""          # empty = consumer disabled in dev
+    SQS_QUEUE_URL: str = ""  # empty = consumer disabled in dev
     AWS_REGION: str = "us-east-1"
-    AWS_ENDPOINT_URL: str | None = None  # LocalStack dev override; None → real AWS in prod
+    AWS_ENDPOINT_URL: str | None = (
+        None  # LocalStack dev override; None → real AWS in prod
+    )
     LOG_LEVEL: str = "INFO"
     APP_VERSION: str = "0.1.0"
 
@@ -38,8 +42,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _reject_default_secret_in_prod(self) -> Settings:
-        if self.NODE_ENV == "production" and self.INTERNAL_JWT_SECRET == "dev-secret-not-for-prod":
-            raise ValueError("INTERNAL_JWT_SECRET must be set to a non-default value in production")
+        if (
+            self.NODE_ENV == "production"
+            and self.INTERNAL_JWT_SECRET == "dev-secret-not-for-prod"
+        ):
+            raise ValueError(
+                "INTERNAL_JWT_SECRET must be set to a non-default value in production"
+            )
         return self
 
     model_config = {
@@ -50,4 +59,3 @@ class Settings(BaseSettings):
 
 # The singleton settings instance imported across the codebase.
 settings = Settings()  # type: ignore[arg-type]
-

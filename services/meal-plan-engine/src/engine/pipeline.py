@@ -27,13 +27,22 @@ Runs the full 7-stage pipeline:
 The *on_progress* callback receives JSON-serialisable dicts so the WebSocket
 layer can relay real-time status updates to subscribed clients.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import date, timedelta
 from typing import Any, Callable, Dict, List
 
-from . import calorie_adjuster, macro_rebalancer, micronutrient_checker, nutrition_normalizer, phi_minimizer, variety_optimizer
+from . import (
+    calorie_adjuster,
+    macro_rebalancer,
+    micronutrient_checker,
+    nutrition_normalizer,
+    phi_minimizer,
+    variety_optimizer,
+)
 from .allergen_filter import RecipeSlot, filter_allergens
 
 __all__ = ["run_pipeline"]
@@ -45,7 +54,9 @@ _logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-async def _emit(on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str, Any]) -> None:  # noqa: D401
+async def _emit(
+    on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str, Any]
+) -> None:  # noqa: D401
     """Safety wrapper that shields *on_progress* exceptions from the engine."""
 
     try:
@@ -53,7 +64,9 @@ async def _emit(on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str
         if asyncio.iscoroutine(maybe_awaitable):
             await maybe_awaitable
     except Exception:  # noqa: BLE001 – never let WS progress crash the engine
-        _logger.exception("on_progress callback raised – ignoring to keep pipeline alive")
+        _logger.exception(
+            "on_progress callback raised – ignoring to keep pipeline alive"
+        )
 
 
 def _build_weekly_plan(
@@ -115,7 +128,9 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
     tdee = prof_cal.get("tdee", preferences.get("tdee", 2000))  # fallback heuristic
-    primary_goal = prof_cal.get("primary_goal", preferences.get("primary_goal", "maintenance"))
+    primary_goal = prof_cal.get(
+        "primary_goal", preferences.get("primary_goal", "maintenance")
+    )
     activity_level = prof_cal.get("activity_level", "moderate")
 
     target_kcal = calorie_adjuster.adjust_calories(tdee, primary_goal, activity_level)
@@ -125,7 +140,9 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # --- 1b. Allergen filter ---------------------------------------------
     user_allergies = preferences.get("allergies", [])
     user_intolerances = preferences.get("intolerances", [])
-    draft_recipes = filter_allergens(base_diet.get("recipes", []), user_allergies, user_intolerances, candidate_pool)  # type: ignore[arg-type]
+    draft_recipes = filter_allergens(
+        base_diet.get("recipes", []), user_allergies, user_intolerances, candidate_pool
+    )  # type: ignore[arg-type]
 
     await _emit(on_progress, {"pass": 1, "pct": 100})
 
@@ -153,7 +170,9 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     await _emit(on_progress, {"pass": 2, "pct": 25})
 
     # Step 3 – Allergen (already applied in pass 1 but re-run against updated pool)
-    safe_recipes = filter_allergens(draft_recipes, user_allergies, user_intolerances, candidate_pool)
+    safe_recipes = filter_allergens(
+        draft_recipes, user_allergies, user_intolerances, candidate_pool
+    )
 
     await _emit(on_progress, {"pass": 2, "pct": 35})
 
@@ -200,7 +219,23 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,
         "nutrition_standard": nutrition_std.asdict(),
-        "weekly_plan": [[slot.recipe_id for slot in day] for day in varied_plan],
+        "weekly_plan": [
+            {
+                "day": i + 1,
+                "date": (date.today() + timedelta(days=i)).isoformat(),
+                "meals": [
+                    {"meal_type": slot.meal_type, "recipe_id": slot.recipe_id}
+                    for slot in day_slots
+                ],
+                "daily_totals": {
+                    "calories": round(float(target_kcal), 2),
+                    "protein_g": round(float(macros.get("protein_g", 0.0)), 2),
+                    "carbs_g": round(float(macros.get("carb_g", 0.0)), 2),
+                    "fat_g": round(float(macros.get("fat_g", 0.0)), 2),
+                },
+            }
+            for i, day_slots in enumerate(varied_plan)
+        ],
     }
 
     await _emit(on_progress, {"pass": 2, "pct": 100})

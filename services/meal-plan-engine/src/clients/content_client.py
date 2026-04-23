@@ -4,6 +4,7 @@ All URLs are resolved from ``settings.CONTENT_SERVICE_URL``.  The client
 is intentionally thin — it fetches JSON and returns plain dicts so the
 engine layer stays decoupled from Pydantic serialisation.
 """
+
 from __future__ import annotations
 
 import logging
