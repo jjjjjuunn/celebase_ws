@@ -26,6 +26,13 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.staging
+**/.env.staging
+
+# Terraform (local state — use remote backend in CI/prod)
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.backup
 
 # IDE
 .idea/

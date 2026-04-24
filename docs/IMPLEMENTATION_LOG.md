@@ -28,6 +28,300 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: PLAN-22-PHASE-G-STUB
+commit_sha: PENDING
+files_changed:
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: human
+---
+### 완료: Plan 22 Phase G — Future Scope Stub
+- spec.md §10 "Phase 4 (Plan 22 Follow-up — Home Experience & Closed-Loop Automation)" 섹션 신설 — 7개 future scope 항목 체크박스 기록
+  - Native calendar sync (EventKit / CalendarProvider)
+  - AI pantry reflection (Plan 23 meal-plan-engine 재료 재사용)
+  - Multi-celebrity blend (2 persona 가중 평균)
+  - Weekly recap email (Day 5 WOW 재귀)
+  - Live Instacart API (adapter live-mode + affiliate)
+  - `ingredient_id` 정규화 테이블 (Plan 23)
+  - `pantry_entries` 테이블 분리 (JSONB → 관계형)
+- Plan 22 모든 Phase entry (A1/A2/B/C1/C2/D1/D2/D3/E/F/H1/H2) 본 로그 파일에 append
+### 미완료: 각 entry 의 commit_sha 채우기 — 2-commit 패턴에 따라 `scripts/record-log-sha.sh` 로 충족
+### 연관 파일: spec.md, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-011-h2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/features/home/Day5RecapCard.tsx
+  - apps/web/src/features/home/Day5RecapCard.module.css
+  - apps/web/src/app/(app)/home/HomeClient.tsx
+verified_by: typecheck clean, lint clean (no new errors), fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase H2 — Day 5 WOW Moment UI + HomeClient 통합
+- `Day5RecapCard.tsx` 신규: `role="region"` + `aria-labelledby` + AlignmentRing(`size="lg"`) hero + 3-meal preview list + primary CTA (`Link → recap.cta_target`) + ghost dismiss button
+- headline 4-way variant (alignment null / persona null 조합)
+- heroCopy 3-way copy variant (≥70% / <70% / null)
+- `Day5RecapCard.module.css` 신규: token-only (`--cb-color-brand` border, `--cb-space-*`, `--cb-radius-lg`, `--cb-shadow-2`), `prefers-reduced-motion: reduce` override, `:focus-visible` outline
+- `HomeClient.tsx` 수정: `trialRecap` + `day5Dismissed` state, useEffect 로 `fetch('/api/trial/recap')` + localStorage `celebbase.day5RecapDismissed` 체크, `trial_day === 5 && !dismissed` 조건부 렌더 (Today Hero 위)
+- MEAL_TYPE_LABEL map: breakfast/lunch/dinner/snack/smoothie
+- Review tier L3 (Codex 2 + Gemini 1) — 본 phase 는 L4 전체 Plan 22 내에서 L3 sub-scope
+### 미완료: Codex/Gemini review round (구현 검증만 수행, 별도 리뷰 라운드 미실행)
+### 연관 파일: apps/web/src/features/home/, apps/web/src/app/(app)/home/HomeClient.tsx
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-011-h1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/trial/recap/route.ts
+  - packages/shared-types/src/schemas/trial-recap.ts
+  - packages/shared-types/src/schemas/index.ts
+verified_by: shared-types build clean, web typecheck clean, fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase H1 — Trial Recap BFF + Schema
+- `schemas/trial-recap.ts` 신규: `TrialRecapResponseSchema` (`trial_day` int≥1, `alignment_pct` int 0-100 nullable, `celebrity_slug` string nullable, `next_week_preview` 배열 max 3, `cta_target` startsWith('/'))
+- `schemas/index.ts` barrel: `export * from './trial-recap.js'` 추가
+- `/api/trial/recap/route.ts` 신규: `createProtectedRoute` + `Promise.all` 3-way fanout (user-service `/users/me`, meal-plan `/meal-plans?status=active&limit=1`, analytics `/daily-logs/summary`)
+- MVP proxy: `trial_day` = `Math.max(1, floor((now - users.created_at) / 86400000) + 1)` — `trial_start_date` 컬럼 부재로 plan 0014 migration 회피
+- `extractPreview`: 활성 플랜 `daily_plans` 에서 `date >= today` 필터 + ascending sort → flat meal 리스트 → 3 cap
+- `blendAlignmentPct`: `completion_rate*0.7 + energyNorm*0.15 + moodNorm*0.15` → clamp [0,1] → round*100 (total_logs=0 시 null)
+- `UPSTREAM_SHAPE_MISMATCH` 502 fallback (Zod safeParse 실패 시)
+- Review tier L3 (Codex 2 + Gemini 1) — 본 phase 는 L3 sub-scope
+### 미완료: Codex/Gemini review round 별도 실행 필요 시
+### 연관 파일: apps/web/src/app/api/trial/, packages/shared-types/src/schemas/trial-recap.ts
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-007-c2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/features/home/MealActionHandle.tsx
+  - apps/web/src/app/api/pantry/carryover/route.ts
+  - apps/web/src/app/api/daily-logs/[date]/meals/route.ts
+  - apps/web/src/app/(app)/home/HomeClient.tsx
+verified_by: typecheck clean, lint clean, fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase C2 — Silent-Skip Check-in + 4s Undo Toast + Pantry Carryover
+- `MealActionHandle.tsx` 신규: pointer swipe + 키보드 fallback (Enter=complete, Delete=skip), `role="button"` + 상태별 `aria-label`, `touch-action: pan-y` 수직 scroll 분리
+- 4초 inline undo toast (Gmail/Linear 패턴) — swipe 직후 `[Skipped · Undo]` 노출, 4초 내 탭 시 `completed` rollback + carryover skip
+- `/api/pantry/carryover/route.ts` 신규: POST body `{recipe_id, source: 'skip'|'exclude', skipped_at}` → user-service `PATCH /users/me/preferences` merge-patch
+- `/api/daily-logs/[date]/meals/route.ts` 수정: 기존 PATCH 에 `status: 'completed' | 'skipped'` 확장
+- `HomeClient.tsx` 수정: optimistic update + 4초 undo window + rollback + toast state
+- Review tier L4 (Plan 22 전체), C2 sub-scope 은 UI-only
+### 미완료: Codex/Gemini review round
+### 연관 파일: apps/web/src/features/home/MealActionHandle.tsx, apps/web/src/app/api/{pantry,daily-logs}
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-008
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/src/adapters/instacart.mock.ts
+  - services/commerce-service/src/routes/instacart.ts
+  - apps/web/src/features/plans/InstacartConfirmModal.tsx
+  - apps/web/src/app/api/instacart/cart/route.ts
+verified_by: commerce-service typecheck clean, web typecheck clean, lint clean
+---
+### 완료: Plan 22 Phase F — Instacart Adapter De-stub (mock mode)
+- `instacart.mock.ts` 신규: `createCartMock(items, skipped_slots): Promise<{cart_url, cart_id}>` — 2초 지연 + fake URL
+- `instacart.ts` route 수정: `INSTACART_ADAPTER_MODE` env flag (mock/live/stub) + Zod body `skipped_slots` 수용
+- `InstacartConfirmModal.tsx` 신규: 재료 리스트 + mock URL 복사 + "Preview" badge + 실패 시 inline error + Retry/Save-preview-link fallback (재료 리스트 유지)
+- BFF `/api/instacart/cart/route.ts` 수정: Zod `.strict()` + `skipped_slots: z.array(z.string()).default([])` → commerce-service pass-through
+- Review tier L3 (Codex 2 + Gemini 1)
+### 미완료: live-mode IDP 계약 (Plan 22 Phase G future scope)
+### 연관 파일: services/commerce-service/src/{adapters,routes}, apps/web/src/features/plans/InstacartConfirmModal.tsx
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-010
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/onboarding/wizard-complete/route.ts
+  - apps/web/src/features/plans/PlanPreviewClient.tsx
+  - db/migrations/0013_meal_plans_confirmed_at.sql
+verified_by: typecheck clean, migration dry-run clean
+---
+### 완료: Plan 22 Phase E — Post-login Routing (Plan Preview 우선)
+- `wizard-complete/route.ts` 수정: 플랜 생성 성공 → `redirect('/plans/${id}/preview')`
+- `PlanPreviewClient.tsx` 수정 (D1 파일 확장): "Sync to Instacart" 성공 후 → `PATCH /meal-plans/:id/confirm` (status=active, confirmed_at=NOW()) → `router.push('/home')`; `status !== 'draft' || confirmed_at` 이면 `/plans/:id` detail 로 즉시 리다이렉트 (race 방지)
+- `0013_meal_plans_confirmed_at.sql` 신규: `ALTER TABLE meal_plans ADD COLUMN confirmed_at TIMESTAMPTZ NULL`
+- 리뷰 반영 (Codex r1 #1): `pending_confirm` enum 도입 회피, `draft && !confirmed_at` 이중 가드로 redirect loop 차단
+- Review tier L2 (Codex 1)
+### 미완료: Codex review round
+### 연관 파일: apps/web/src/app/(app)/onboarding/wizard-complete/, apps/web/src/features/plans/, db/migrations/0013
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-006
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/recipes.ts
+  - apps/web/src/features/home/MealRationaleDrawer.tsx
+  - apps/web/src/app/(app)/home/home.module.css
+  - apps/web/src/app/(app)/home/HomeClient.tsx
+verified_by: shared-types build clean, web typecheck clean, fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase B — Meal Rationale Drawer + Triple-Layer Safety Citations
+- `schemas/recipes.ts` 수정: `CitationSchema` (source_type enum 5종) + `RecipeWireSchema.citations` / `narrative` 필드 추가 (기존 필드 호환 — default/optional)
+- `MealRationaleDrawer.tsx` 신규: `role="dialog"` + `aria-modal="true"` + focus trap, **섹션 순서 (리뷰 #15)**: Your fit → The science → Celebrity voice → Sources
+- Mifflin-St Jeor 데이터 출처: `bio_metrics` prop 주입 (Codex r1 #7) — `RecipeWireSchema.citations` 단독으로는 불충분
+- Loading state: 3초 후 "천천히 불러오는 중…" (리뷰 #13d)
+- Empty citations fallback: rule-based mode 에서 narrative/citations 비어있을 때 "자동 생성 모드 — 다시 생성" CTA (리뷰 #13e)
+- Swipe-down to dismiss (mobile) + ESC / backdrop 닫기
+- `home.module.css` 확장: drawer overlay / panel 토큰-only
+- `HomeClient.tsx` 수정: drawer state + `fetch /api/recipes/:id`
+- Review tier L2 (Codex 1)
+### 미완료: Codex review round
+### 연관 파일: packages/shared-types/src/schemas/recipes.ts, apps/web/src/features/home/MealRationaleDrawer.tsx
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-009-d1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/plans/[id]/preview/page.tsx
+  - apps/web/src/features/plans/PlanPreviewClient.tsx
+  - apps/web/src/features/plans/preview.module.css
+verified_by: typecheck clean, lint clean, fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase D1 — Plan Preview 화면 UI
+- `plans/[id]/preview/page.tsx` 신규: server wrapper → `GET /api/meal-plans/:id` + `GET /api/recipes?ids=...` (D3 batch endpoint) → `PlanPreviewClient`
+- `PlanPreviewClient.tsx` 신규: Week pagination (duration>7 → `[Week 1][Week 2]` tabs + Summary view toggle, ≤7 is single week) — 리뷰 #12
+- `.mealCard` SkippedPill toggle (리뷰 #10): Stripe Save-for-later 패턴 — `✕ + dim + line-through` 금지, `[Skipped]` pill + "Include" ghost CTA
+- `.ingredientSummary` footer (sticky-safe): "42 items · $174" 실시간 감소
+- `skippedSlots: Set<string>` state (key = `{date}:{meal_type}`) + `useMemo` 로 `ingredientLines` 재계산
+- `preview.module.css` 신규: `.mealCardSkipped` — strike-through 금지, `opacity: 0.78` + border-dashed + Include CTA 가시; `prefers-reduced-motion` 준수; 토큰-only
+- Review tier L4 (Codex 3 + Gemini 2) sub-scope
+### 미완료: Codex/Gemini review round
+### 연관 파일: apps/web/src/app/(app)/plans/[id]/preview/, apps/web/src/features/plans/
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-009-d2
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/plan-preview.ts
+  - apps/web/src/app/api/meal-plans/[id]/preview/aggregate/route.ts
+verified_by: shared-types build clean, web typecheck clean
+---
+### 완료: Plan 22 Phase D2 — Ingredient Aggregation Schema + BFF
+- `schemas/plan-preview.ts` 신규 (Codex r1 #5 반영): `IngredientLineSchema` (`key = normalize(name) + ':' + canonicalUnit`, qty, unit, recipe_refs), `PlanPreviewAggregateResponseSchema` (ingredients + skipped_slots + estimated_total_usd nullable + unit_conflicts)
+- `/api/meal-plans/[id]/preview/aggregate/route.ts` 신규: POST body `{skipped_slots: string[]}`; 집계 키 `normalize(name).toLowerCase() + ':' + canonicalUnit(unit)` — `g/kg/oz/lb → g`, `ml/l/cup/tbsp/tsp → ml` 매핑
+- 동일 key qty 합산, 상이 unit 발견 시 `unit_conflicts` 분리 표기 (합산 안 함 — 안전 기본값)
+- 가격 집계는 mock (`name+unit → unit_price_usd` map) — 실 IDP API 는 Plan 23
+- Review tier L4 sub-scope
+### 미완료: `ingredient_id` 정규화 (Plan 23 future scope)
+### 연관 파일: packages/shared-types/src/schemas/plan-preview.ts, apps/web/src/app/api/meal-plans/[id]/preview/aggregate/
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-009-d3
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/routes/recipe.routes.ts
+  - apps/web/src/app/api/recipes/route.ts
+verified_by: content-service typecheck clean, web typecheck clean
+---
+### 완료: Plan 22 Phase D3 — Content-Service Batch Recipes Endpoint (N+1 방지)
+- `recipe.routes.ts` 수정 (Codex r1 #6): `GET /recipes?ids=uuid,uuid,...` 신규 — max 32 UUID, `WHERE id = ANY($1)` 단일 쿼리; 응답 `{recipes: Recipe[]}`
+- `/api/recipes/route.ts` 신규 (BFF 프록시): query pass-through + Zod `.strict()` 검증
+- Phase D/E/F 공통 N+1 원인 제거 — plan preview + home + instacart 모두 batch 호출 가능
+- Review tier L4 sub-scope
+### 미완료: Codex review round
+### 연관 파일: services/content-service/src/routes/recipe.routes.ts, apps/web/src/app/api/recipes/route.ts
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-007-c1
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0012_users_preferences.sql
+  - services/user-service/src/routes/user.routes.ts
+  - packages/shared-types/src/schemas/users.ts
+verified_by: migration dry-run clean, user-service typecheck clean
+---
+### 완료: Plan 22 Phase C1 — users.preferences 컬럼 + PATCH /users/me/preferences
+- `0012_users_preferences.sql` 신규: `ALTER TABLE users ADD COLUMN preferences JSONB NOT NULL DEFAULT '{}'::jsonb` + GIN index on `preferences -> 'pantry'`
+- `user.routes.ts` 수정: `PATCH /users/me/preferences` 신규 — RFC 7396 merge-patch, Zod validation (PHI 컬럼 allowlist 차단), audit_log 기록 (spec.md §6)
+- `schemas/users.ts` 확장: `UserPreferencesSchema` + `PantryEntrySchema` export ({recipe_id, added_at, source: 'skip'|'exclude'})
+- Codex r1 #2, #3 반영: `users.preferences` 컬럼 부재 + 라우트 부재 선결
+- Review tier L4 (PHI-adjacent 사용자 데이터 + 서비스 3경계)
+### 미완료: Codex 2회 + Gemini 1회 review round
+### 연관 파일: db/migrations/0012_users_preferences.sql, services/user-service/src/routes/user.routes.ts
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-005-a2
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/home/home.module.css
+  - apps/web/src/features/home/AlignmentRing.tsx
+verified_by: fe_token_hardcode passed:true, lint clean
+---
+### 완료: Plan 22 Phase A2 — Home CSS + AlignmentRing
+- `home.module.css` 신규: token-only (`var(--cb-*)` only, raw hex 0건), `prefers-reduced-motion: reduce` override, `.page` / `.greetingRow` / `.weekStrip` / `.todayHero` / `.todayRemaining` / `.alignmentFooter` 클래스
+- `AlignmentRing.tsx` 신규: `role="meter"` + `aria-valuenow/min/max` + conic-gradient, Track v2 streakRing 패턴 재사용, size={md|lg}, loading state
+- `personaDisplayName` prop → `aria-label` 구성 ("Alignment with {persona}: {n}%")
+- Review tier L2 (Codex 1)
+### 미완료: Codex review round
+### 연관 파일: apps/web/src/app/(app)/home/home.module.css, apps/web/src/features/home/AlignmentRing.tsx
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-APP-005-a1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/home/page.tsx
+  - apps/web/src/app/(app)/home/HomeClient.tsx
+  - apps/web/src/middleware.ts
+  - apps/web/src/app/(app)/_components/NavLinks.tsx
+verified_by: typecheck clean, lint clean, fe_token_hardcode passed:true
+---
+### 완료: Plan 22 Phase A1 — Home shell + middleware + nav
+- `home/page.tsx` 신규: server wrapper → `GET /api/meal-plans?status=active&limit=1` → `HomeClient`
+- `HomeClient.tsx` 신규: 사용자 우선 greeting `"{user_name}, your {celebrity} Blueprint is ready"` (리뷰 #14 — persona 서브 라인), week strip 7-dot + 14일+ collapsible (리뷰 #17), Today Hero full-bleed + "NIH-calibrated" mini badge (리뷰 #15), alignment footer 저점수 copy variant (리뷰 #16)
+- State 명세 (리뷰 #13): (a) 활성 플랜 없음 → `/celebrities` 단일 CTA, (b) Day 0 home → "첫 끼를 열어보세요", (c) week strip swipe ↔ 선택 요일 sync
+- `middleware.ts` 수정: `AUTH_PATHS` 기본 target `/home` + `PROTECTED_PREFIXES` 에 `/home` 추가
+- `NavLinks.tsx` 수정: 순서 Home · Celebrities · Plans · Track · Insights(구 Dashboard) · Account
+- Review tier L2 (Codex 1) — Plan 22 전체 L4 내 sub-scope
+### 미완료: Codex review round
+### 연관 파일: apps/web/src/app/(app)/home/, apps/web/src/middleware.ts, apps/web/src/app/(app)/_components/NavLinks.tsx
+
+---
+date: 2026-04-24
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-005-d
+commit_sha: fc6c5b7
+files_changed:
+  - .env.example
+  - docker-compose.override.yml
+  - apps/web/tests/e2e/meal-plan-llm.spec.ts
+verified_by: codex-review (PASS, Critical=0 High=0 Medium=0), qa-exec static grep 8 scenarios all passed, secrets passed:true, fe_token_hardcode passed:true
+---
+### 완료: IMPL-APP-005-d — dev LLM env 설정 + Playwright E2E spec
+- `.env.example`: `ENABLE_LLM_MEAL_PLANNER=false` + `OPENAI_API_KEY=sk-xxx` placeholder 추가 (dev only 주석)
+- `docker-compose.override.yml`: `meal-plan-engine` 서비스 블록 추가 — LLM env off by default, 주석으로 dev 활성화 가이드
+- `apps/web/tests/e2e/meal-plan-llm.spec.ts` 신규: 3 테스트 (LLM badge+narrative+citations, standard info banner, full generation flow) 모두 env var skip 가드 보유
+- Claude 직접 구현 (config+spec 파일 — Codex heredoc 불필요), static grep QA 8개 모두 pass
+### 미완료: Gemini #1 review (L3 rubric — IMPL-APP-005-c UX/a11y 검증 대상), sub-task 브랜치 머지
+### 연관 파일: apps/web/tests/e2e/, docker-compose.override.yml, .env.example
+
+---
 date: 2026-04-24
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-005-c
