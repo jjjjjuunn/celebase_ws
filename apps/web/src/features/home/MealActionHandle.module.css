@@ -1,0 +1,55 @@
+.handle,
+.handleCompleted,
+.handleSkipped {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cb-space-2);
+  padding: var(--cb-space-2) var(--cb-space-3);
+  border-radius: var(--cb-radius-md);
+  background: var(--cb-color-neutral-100);
+  color: var(--cb-color-text);
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-medium);
+  font-family: inherit;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+  transition: transform 120ms ease, background 160ms ease, opacity 160ms ease;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
+
+.handle:focus-visible,
+.handleCompleted:focus-visible,
+.handleSkipped:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+.handleCompleted {
+  background: var(--cb-color-brand-soft, var(--cb-color-neutral-100));
+  color: var(--cb-color-brand-strong, var(--cb-color-brand));
+  cursor: default;
+}
+
+.handleSkipped {
+  background: var(--cb-color-neutral-100);
+  color: var(--cb-color-text-muted);
+  opacity: 0.8;
+  cursor: default;
+}
+
+.hint {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .handle,
+  .handleCompleted,
+  .handleSkipped {
+    transition: none;
+  }
+}
