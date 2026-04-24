@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-24
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-005-a
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/engine/allergen_filter.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_impl_app_005_a.py
+verified_by: codex-review (PASS), pytest 103/103
+---
+### 완료: IMPL-APP-005-a — G1 nutrition fix + GET /meal-plans/{id} mode/narrative/citations 노출
+- G1 fix: `_build_candidate_pool` + `base_diet["recipes"]` 에 `nutrition=r.get("nutrition")` propagate
+- `RecipeSlot.nutrition: Optional[Dict[str, Any]] = None` 필드 추가 (allergen_filter.py)
+- `_serialize_meal_plan_row`: top-level `mode`, per-meal `narrative`/`citations` (llm mode), `llm_provenance` 제외
+- `pipeline.py`: `slot.nutrition or {}` None guard (G1 fix로 인한 downstream AttributeError 수정)
+- contract test 10건 + nutrition regression test 1건 추가 (test_impl_app_005_a.py)
+- Codex review CRITICAL=0 HIGH=0 PASS, 103 unit tests PASS
+### 미완료: IMPL-APP-005-b (shared-types Zod schema), -c (FE UI), -d (E2E Playwright)
+### 연관 파일: services/meal-plan-engine/src/, tests/unit/test_impl_app_005_a.py
+
+---
 date: 2026-04-23
 agent: claude-sonnet-4-6
 task_id: IMPL-AI-001-review-g2
