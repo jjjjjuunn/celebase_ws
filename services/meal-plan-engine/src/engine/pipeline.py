@@ -1,4 +1,4 @@
-"""Pipeline orchestrator — spec.md §5.2 & §5.6.
+"""Pipeline orchestrator — spec.md §5.2, §5.6, §5.8.
 
 This module stitches together the seven leaf-modules implemented in the
 ``src.engine`` package and exposes a single public coroutine
@@ -15,17 +15,22 @@ within ~3 seconds.
 
 Pass 2 (deep optimisation)
 --------------------------
-Runs the full 7-stage pipeline:
+Runs the full 8-stage pipeline:
 1. PHI minimisation per stage
 2. Calorie adjuster                 ``adjust_calories``
 3. Macro rebalance                  ``rebalance_macros``
 4. Allergen filter                  ``filter_allergens``
 5. Micronutrient checker            ``check_micronutrients``
 6. Variety optimiser                ``optimize_variety``
+6.5 LLM Reranker + Narrator        ``llm_rerank_and_narrate``  (optional)
 7. Nutrition data normalisation     ``normalize``
 
 The *on_progress* callback receives JSON-serialisable dicts so the WebSocket
 layer can relay real-time status updates to subscribed clients.
+
+LLM 블록(Step 6.5)은 ``ENABLE_LLM_MEAL_PLANNER=true`` 이고 ``redis_client``와
+``llm_context`` 가 제공될 때만 실행된다.  오류 시 standard mode 로 폴백하며
+``final_out`` 에 ``mode``, ``ui_hint``, ``quota_exceeded`` 필드가 추가된다.
 """
 
 from __future__ import annotations
@@ -44,6 +49,9 @@ from . import (
     variety_optimizer,
 )
 from .allergen_filter import RecipeSlot, filter_allergens
+from .llm_reranker import llm_rerank_and_narrate
+from .llm_schema import LlmRerankResult
+from ..config import settings
 
 __all__ = ["run_pipeline"]
 
@@ -109,6 +117,8 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     candidate_pool: List[RecipeSlot],
     duration_days: int,
     on_progress: Callable[[Dict[str, Any]], None] | Callable[[Dict[str, Any]], Any],
+    redis_client: Any = None,
+    llm_context: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Generate a personalised meal-plan using the Two-Pass strategy.
 
@@ -197,6 +207,32 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     await _emit(on_progress, {"pass": 2, "pct": 70})
 
+    # Step 5.5 – LLM Reranker + Narrator (optional, spec §5.8)
+    llm_result: LlmRerankResult | None = None
+    if (
+        settings.ENABLE_LLM_MEAL_PLANNER
+        and redis_client is not None
+        and llm_context is not None
+        and varied_plan
+    ):
+        try:
+            prof_llm = phi_minimizer.minimize_profile(bio_profile, "llm_ranking")
+            llm_result = await llm_rerank_and_narrate(
+                varied_plan=varied_plan,
+                candidate_pool=candidate_pool,
+                llm_profile=prof_llm,
+                persona_id=llm_context.get("persona_id", ""),
+                plan_id=plan_id,
+                user_id_hash=llm_context.get("user_id_hash", ""),
+                user_allergies=user_allergies,
+                redis_client=redis_client,
+            )
+        except Exception:  # noqa: BLE001
+            _logger.exception("pipeline step5.5 llm_reranker crashed, standard mode")
+            llm_result = LlmRerankResult(ranked_plan=varied_plan, mode="standard")
+
+    await _emit(on_progress, {"pass": 2, "pct": 80})
+
     # Step 6 – Nutrition normalisation
     nutrition_std = nutrition_normalizer.normalize(
         {
@@ -211,10 +247,38 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     await _emit(on_progress, {"pass": 2, "pct": 95})
 
+    # ── LLM mode 결정 ─────────────────────────────────────────────────────────
+    llm_mode = llm_result.mode if llm_result else "standard"
+    quota_exceeded = llm_result.quota_exceeded if llm_result else False
+    # Gemini BS-NEW-03: ui_hint 강제 (LLM-DESIGN §S3)
+    ui_hint: str | None = (
+        "일시적인 지연으로 기본 식단을 제공합니다." if llm_mode == "standard" else None
+    )
+
+    # ── weekly_plan 직렬화 ────────────────────────────────────────────────────
+    display_plan: List[Any] = (
+        llm_result.ranked_plan if (llm_result and llm_mode == "llm") else varied_plan
+    )
+
+    def _serialize_slot(slot: Any) -> Dict[str, Any]:
+        """RecipeSlot 또는 llm ranked dict 모두 처리."""
+        if isinstance(slot, dict):
+            return {
+                "meal_type": slot.get("meal_type", ""),
+                "recipe_id": slot.get("recipe_id", ""),
+                "rank": slot.get("rank"),
+                "narrative": slot.get("narrative") or None,
+                "citations": slot.get("citations", []) or [],
+            }
+        return {"meal_type": slot.meal_type, "recipe_id": slot.recipe_id}
+
     # Final assemble -------------------------------------------------------
     final_out: Dict[str, Any] = {
         "plan_id": plan_id,
         "status": "completed",
+        "mode": llm_mode,
+        "quota_exceeded": quota_exceeded,
+        "ui_hint": ui_hint,
         "target_kcal": target_kcal,
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,
@@ -223,10 +287,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
             {
                 "day": i + 1,
                 "date": (date.today() + timedelta(days=i)).isoformat(),
-                "meals": [
-                    {"meal_type": slot.meal_type, "recipe_id": slot.recipe_id}
-                    for slot in day_slots
-                ],
+                "meals": [_serialize_slot(slot) for slot in day_slots],
                 "daily_totals": {
                     "calories": round(float(target_kcal), 2),
                     "protein_g": round(float(macros.get("protein_g", 0.0)), 2),
@@ -234,9 +295,11 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
                     "fat_g": round(float(macros.get("fat_g", 0.0)), 2),
                 },
             }
-            for i, day_slots in enumerate(varied_plan)
+            for i, day_slots in enumerate(display_plan)
         ],
     }
+    if llm_result and llm_result.provenance:
+        final_out["llm_provenance"] = llm_result.provenance.model_dump()
 
     await _emit(on_progress, {"pass": 2, "pct": 100})
 
