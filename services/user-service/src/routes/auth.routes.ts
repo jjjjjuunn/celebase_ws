@@ -43,7 +43,7 @@ export async function authRoutes(
     {
       config: {
         rateLimit: {
-          max: 3,
+          max: process.env['NODE_ENV'] === 'production' ? 3 : 100,
           timeWindow: '1 minute',
           allowList: testAllowList,
         },

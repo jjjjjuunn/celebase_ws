@@ -9,7 +9,8 @@ import { z } from 'zod';
 import { MealPlanStatus } from '../enums.js';
 import type { MealPlan } from '../entities.js';
 import { IsoDateTime, UuidV7 } from './_utils.js';
-import { DailyPlanSchema } from '../jsonb/index.js';
+import { DailyMealSchema, DailyPlanSchema, DailyTotalsSchema } from '../jsonb/index.js';
+import { CITATION_TYPES } from '../enums/citation.js';
 
 const MealPlanSubstitutionSchema = z.object({
   original_ingredient_id: UuidV7,
@@ -25,6 +26,28 @@ export const MealPlanAdjustmentsSchema = z.object({
   added_supplements: z.array(z.string()).optional(),
 });
 // Type re-exported from `entities.ts` at the top-level barrel; don't export again here.
+
+// Per-meal citation — mirrors Python Citation.model_dump() (source_type/title/url/celeb_persona)
+export const MealCitationSchema = z.object({
+  source_type: z.enum(CITATION_TYPES),
+  title: z.string().min(1),
+  url: z.string().url().nullable().optional(),
+  celeb_persona: z.string().nullable().optional(),
+});
+export type MealCitation = z.infer<typeof MealCitationSchema>;
+
+// Detail-endpoint meal schema — extends base DailyMeal with LLM narrative fields
+const DetailDailyMealSchema = DailyMealSchema.extend({
+  narrative: z.string().min(1).nullable().optional(),
+  citations: z.array(MealCitationSchema).optional().default([]),
+});
+
+// Detail-endpoint day schema — day/daily_totals are optional (pipeline may omit)
+const DetailDailyPlanSchema = DailyPlanSchema.extend({
+  day: z.number().int().min(1).optional(),
+  daily_totals: DailyTotalsSchema.optional(),
+  meals: z.array(DetailDailyMealSchema),
+});
 
 export const MealPlanWireSchema = z.object({
   id: UuidV7,
@@ -53,7 +76,20 @@ export const MealPlanListResponseSchema = z.object({
 export type MealPlanListResponse = z.infer<typeof MealPlanListResponseSchema>;
 
 // Detail endpoint returns the row directly, not a `{meal_plan: ...}` wrapper.
-export const MealPlanDetailResponseSchema = MealPlanWireSchema;
+// Extends MealPlanWireSchema with optional legacy fields (user_id/base_diet_id/name/adjustments
+// are omitted by _serialize_meal_plan_row in -a) + new mode/narrative/citations fields.
+export const MealPlanDetailResponseSchema = MealPlanWireSchema.extend({
+  user_id: UuidV7.optional(),
+  base_diet_id: UuidV7.optional(),
+  name: z.string().nullable().optional(),
+  adjustments: MealPlanAdjustmentsSchema.optional(),
+  mode: z.enum(['llm', 'standard']).optional().default('standard'),
+  start_date: z.string().nullable().optional(),
+  end_date: z.string().nullable().optional(),
+  daily_plans: z.array(DetailDailyPlanSchema),
+  created_at: IsoDateTime.nullable().optional(),
+  updated_at: IsoDateTime.nullable().optional(),
+});
 export type MealPlanDetailResponse = z.infer<typeof MealPlanDetailResponseSchema>;
 
 export const GenerateMealPlanRequestSchema = z.object({
