@@ -30,6 +30,53 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-23
 agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-review-g2
+commit_sha: 0426ecc
+files_changed:
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: Gemini #2 blind spot review (28 tests PASS)
+---
+### 완료: IMPL-AI-001 Gemini #2 리뷰 수정 — BS-04/10/11/13/14/16/17
+- BS-04: tiktoken cl100k_base → encoding_for_model(OPENAI_MODEL) (fallback o200k_base)
+- BS-10: increment_monthly_cost() 구현 — Redis INCRBYFLOAT + kill switch 자동 발화
+- BS-11: AsyncOpenAI per-call 생성 → async with 컨텍스트 매니저 (httpx aclose 보장)
+- BS-13: try_claim_elite_quota INCR+EXPIRE → pipeline() 원자적 실행
+- BS-14: persona_id allowlist regex ^[a-z0-9_-]{1,50}$ 검증 (프롬프트 주입 방지)
+- BS-16: Gate 2.5 partial response check (LLM 반환 수 < 입력 수 시 standard mode)
+- BS-17: LLM_ROLLOUT_PCT Field(ge=0, le=100) bounds validation
+- 테스트: 28개 (기존 24 + 신규 4: BS-14×2, BS-16, BS-10) 전부 PASS
+### 미완료: BS-12(SQS auth_token 아키텍처 개선), BS-06/08/09 deferred
+### 연관 파일: services/meal-plan-engine/src/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-review-g1
+commit_sha: 23a92bd
+files_changed:
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: Gemini #1 arch review + Codex #2/#3 review (24 tests PASS)
+---
+### 완료: IMPL-AI-001 Gemini #1 + Codex #2/#3 리뷰 수정 — BS-01/02/03/05/07
+- BS-01: endorsement regex 영어 의료 주장 패턴 확장 (prevent/heal/reverse/manage.*blood 등)
+- BS-02: check_elite_quota + increment_elite_quota TOCTOU → try_claim_elite_quota() (INCR+compare 원자적)
+- BS-03: sanitize_llm_profile() primary_goal/activity_level/diet_type 화이트리스트 검증 추가
+- BS-05: Gate 2 앞 중복 recipe_id dedup 체크 추가
+- BS-07: OPENAI_MODEL config 필드 + OPENAI_API_KEY startup validator 추가
+- 테스트: 24개 (신규 4: BS-01, BS-03×3, BS-05) 전부 PASS
+### 미완료: BS-04/06/08/09 deferred
+### 연관 파일: services/meal-plan-engine/src/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
 task_id: IMPL-AI-001-f
 commit_sha: 6ea30df
 files_changed:
