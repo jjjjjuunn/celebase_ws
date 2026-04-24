@@ -51,6 +51,7 @@ async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlo
                 meal_type=r.get("meal_type", "lunch"),
                 allergens=r.get("allergens", []),
                 ingredients=r.get("ingredients", []),
+                nutrition=r.get("nutrition"),
             )
         )
     return slots
@@ -86,6 +87,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
             meal_type=r.get("meal_type", "lunch"),
             allergens=r.get("allergens", []),
             ingredients=r.get("ingredients", []),
+            nutrition=r.get("nutrition"),
         )
         for r in recipes
     ]
@@ -111,19 +113,17 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     )
 
     # Persist result
-    await repo.update_meal_plan(
-        pool,
-        plan_id,
-        user_id,
-        {
-            "status": "completed",
-            "daily_plans": result.get("weekly_plan", []),
-            "adjustments": {
-                "target_kcal": result.get("target_kcal"),
-                "macros": result.get("macros"),
-            },
+    await repo.update_meal_plan(pool, plan_id, user_id, {
+        "status": "completed",
+        "daily_plans": result.get("weekly_plan", []),
+        "adjustments": {
+            "target_kcal": result.get("target_kcal"),
+            "macros": result.get("macros"),
+            "mode": result.get("mode", "standard"),
+            "ui_hint": result.get("ui_hint"),
+            **({"llm_provenance": result["llm_provenance"]} if result.get("llm_provenance") is not None else {}),
         },
-    )
+    })
 
     _logger.info("plan=%s generation completed", plan_id)
 

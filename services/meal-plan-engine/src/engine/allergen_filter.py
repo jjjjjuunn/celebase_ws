@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass
-from typing import List, Set
+from typing import List, Set, Optional, Dict, Any
 
 __all__ = [
     "RecipeSlot",
@@ -33,6 +33,7 @@ class RecipeSlot:
     meal_type: str  # breakfast / lunch / dinner / snack
     allergens: List[str]
     ingredients: List[str]
+    nutrition: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------

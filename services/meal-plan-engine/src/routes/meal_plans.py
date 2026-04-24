@@ -45,6 +45,52 @@ def _error_response(
     return JSONResponse(status_code=status_code, content=content)
 
 
+def _serialize_meal_plan_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Reshape raw DB row to GET /meal-plans/{id} contract (IMPL-APP-005).
+
+    - mode: top-level canonical field from adjustments.mode
+    - llm_provenance: excluded from response (internal audit JSONB only)
+    - narrative/citations: per-meal from daily_plans JSONB; null/[] when mode=standard
+    """
+    adjustments: Dict[str, Any] = row.get("adjustments") or {}
+    mode: str = adjustments.get("mode", "standard")
+    is_llm = mode == "llm"
+
+    raw_plans = row.get("daily_plans") or []
+    daily_plans = []
+    for day in raw_plans:
+        meals = []
+        for meal in day.get("meals", []):
+            meals.append({
+                "meal_type": meal.get("meal_type"),
+                "recipe_id": meal.get("recipe_id"),
+                "narrative": meal.get("narrative") if is_llm else None,
+                "citations": meal.get("citations", []) if is_llm else [],
+            })
+        day_out: Dict[str, Any] = {"date": day.get("date"), "meals": meals}
+        if "daily_totals" in day:
+            day_out["daily_totals"] = day["daily_totals"]
+        daily_plans.append(day_out)
+
+    def _fmt(val: Any) -> Optional[str]:
+        if val is None:
+            return None
+        if hasattr(val, "isoformat"):
+            return val.isoformat()
+        return str(val)
+
+    return {
+        "id": str(row["id"]),
+        "status": row.get("status"),
+        "mode": mode,
+        "start_date": _fmt(row.get("start_date")),
+        "end_date": _fmt(row.get("end_date")),
+        "daily_plans": daily_plans,
+        "created_at": _fmt(row.get("created_at")),
+        "updated_at": _fmt(row.get("updated_at")),
+    }
+
+
 async def get_request_id(request: Request) -> str:  # noqa: D401
     return request.headers.get("x-request-id", str(uuid4()))
 
@@ -285,7 +331,7 @@ async def get_meal_plan(
             "NOT_FOUND", "Meal plan not found", await get_request_id(request), 404
         )
 
-    return row
+    return _serialize_meal_plan_row(row)
 
 
 # PATCH /meal-plans/{plan_id} --------------------------------------------------
