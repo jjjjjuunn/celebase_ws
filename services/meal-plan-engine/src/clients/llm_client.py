@@ -5,11 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import re
 from typing import Any
 
 import tiktoken
-from openai import AsyncOpenAI, OpenAIError
+from openai import AsyncOpenAI
 
 from ..config import settings
 from ..engine.llm_schema import LlmRankedMealList
