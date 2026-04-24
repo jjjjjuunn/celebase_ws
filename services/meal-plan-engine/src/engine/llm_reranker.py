@@ -281,7 +281,7 @@ async def llm_rerank_and_narrate(
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
     # ── Gate 4: Bounds 검증 ───────────────────────────────────────────────────
-    if not (1 <= len(parsed.meals) <= max(len(pool_ids), 1) + 1):
+    if not (1 <= len(parsed.meals) <= len(pool_ids) + 1):
         _logger.warning(
             "llm_reranker gate4_bounds_violation meals=%d pool=%d plan=%s",
             len(parsed.meals),
@@ -334,7 +334,7 @@ async def llm_rerank_and_narrate(
         ranked_plan.append(day)
 
     provenance = LlmProvenance(
-        model="gpt-4.1-mini",
+        model=settings.OPENAI_MODEL,
         prompt_hash=prompt_hash,
         output_hash=output_hash,
         mode="llm",

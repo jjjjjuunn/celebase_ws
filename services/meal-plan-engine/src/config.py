@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     ELITE_DAILY_LLM_SOFT_LIMIT: int = 3    # Redis quota per user per day
     LLM_MONTHLY_WARN_USD: float = 500.0    # MAU 10K 기준 warn 임계값
     LLM_MONTHLY_KILL_USD: float = 1000.0   # kill switch 자동 발화 임계값
+    OPENAI_MODEL: str = "gpt-4.1-mini"     # env override로 모델 변경 가능
 
     @property
     def cors_origins_list(self) -> List[str]:

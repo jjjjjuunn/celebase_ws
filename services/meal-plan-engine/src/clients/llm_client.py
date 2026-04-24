@@ -121,7 +121,7 @@ async def call_openai_ranker(
     system_prompt: str,
     user_prompt: str,
     json_schema: dict[str, Any],
-    model: str = "gpt-4.1-mini",
+    model: str | None = None,
 ) -> tuple[LlmRankedMealList, str, str]:
     """OpenAI Structured Output 호출 — LLM-DESIGN §S5, §S8.
 
@@ -132,6 +132,7 @@ async def call_openai_ranker(
         OpenAIError: API 오류 (caller가 try/except로 표준 모드 폴백 처리).
         ValidationError: Pydantic 파싱 실패 (Safety Gate 1).
     """
+    _model = model or settings.OPENAI_MODEL
     client = AsyncOpenAI(
         api_key=settings.OPENAI_API_KEY,
         timeout=settings.LLM_TIMEOUT_SECONDS,
@@ -141,7 +142,7 @@ async def call_openai_ranker(
     prompt_hash = _hash16(system_prompt + user_prompt)
 
     response = await client.chat.completions.create(
-        model=model,
+        model=_model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -161,7 +162,7 @@ async def call_openai_ranker(
         "llm_call prompt_hash=%s output_hash=%s model=%s",
         prompt_hash,
         output_hash,
-        model,
+        _model,
     )
 
     # Safety Gate 1: Pydantic 파싱 — 실패 시 ValidationError propagate (caller 처리)

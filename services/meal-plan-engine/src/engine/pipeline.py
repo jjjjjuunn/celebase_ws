@@ -297,9 +297,12 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
             }
             for i, day_slots in enumerate(display_plan)
         ],
+        "llm_provenance": (
+            llm_result.provenance.model_dump()
+            if llm_result and llm_result.provenance
+            else None
+        ),
     }
-    if llm_result and llm_result.provenance:
-        final_out["llm_provenance"] = llm_result.provenance.model_dump()
 
     await _emit(on_progress, {"pass": 2, "pct": 100})
 
