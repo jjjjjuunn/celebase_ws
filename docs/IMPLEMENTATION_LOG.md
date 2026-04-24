@@ -915,6 +915,36 @@ verified_by: claude-opus-4-7
 ### 연관 파일: scripts/gate-check.sh
 
 ---
+date: 2026-04-17
+agent: claude-opus-4-7 + codex-o3 (adversarial review ×4)
+task_id: IMPL-016
+commit_sha: aa4e2fa
+files_changed:
+  - .github/workflows/ci.yml
+  - docker/docker-compose.ci.yml
+  - .github/CODEOWNERS
+verified_by: claude-opus-4-7 + codex-review (rounds 1-4)
+---
+### 완료: Compose-based E2E Integration Tests in GitHub Actions CI — IMPL-016
+- **신규 `e2e-integration` job** (`ci.yml:253-394`): `needs: [validate-docs, validate-schemas, validate-compliance]`, `timeout-minutes: 60`, `if: hashFiles('services/**', 'docker-compose.yml', 'docker/**', 'db/**', '.github/workflows/**') != ''`. 기존 contract-tests (ci.yml:235-251) 와 security-scan (ci.yml:398-) 사이 삽입.
+- **빌드 캐시 전략**: `docker/build-push-action@v5` + `type=gha,scope=<service>` per-service isolation — postgres / user-service / content-service / meal-plan-engine 4개. `requirements.txt` / `pnpm-lock.yaml` / Dockerfile 변경 시 해당 서비스만 캐시 무효화. Warm run 기대: 5-8 분, cold run: 18-22 분.
+- **CI override** (`docker/docker-compose.ci.yml`): 4개 서비스에 `:ci` image tag 고정 + `build: !reset null` 로 inherited build 블록 제거. 로컬 verify 중 발견: plain `build: null` 은 compose v2.23+ 에서도 inherited stanza 를 **제거하지 않음** → `!reset` YAML 태그 필수 (Codex r1 BLOCKER 재발견). Volumes: postgres `!override` (init bind only) + redis `!reset []` → 명명 볼륨 pgdata/redisdata 생성 생략, CI 간 상태 누수 방지.
+- **LocalStack SQS 큐 대기**: ready.d 스크립트가 healthcheck 후 async 로 큐 생성 → `boto3.get_queue_url` 폴링 (30 시도 × 2s = 60s). IMPL-014-d2 regression pattern.
+- **테스트 실행**: Python 3.12 venv + `pip install -r services/meal-plan-engine/requirements.txt` → `pytest tests/integration/` (T1 happy-path + T2 DLQ retry + T3 WS ticket reuse, `--tb=short`, 20-min step cap).
+- **PHI 누출 방지 (Codex r4 #1 HIGH fix)**: 실패 artifact 업로드 전 compose logs 를 double-grep sanitize — `'"?phi[_-]?encryption[_-]?key"?[[:space:]]*[:=]'` (optional quotes 로 JSON 덤프 커버) + `'0{60,}'` (belt-and-suspenders). 초기 패턴은 JSON-shape `"PHI_ENCRYPTION_KEY": "..."` 를 통과시켰음 — round 4 adversarial review 에서 차단.
+- **CODEOWNERS 범위 확장 (Codex r4 #2 HIGH fix)**: `docker/docker-compose.ci.yml` 과 `docker-compose.yml` 에 `@junwon` ownership 추가. 기존 CODEOWNERS 는 `.github/workflows/**` 만 보호 → docker compose stack 은 CI guard 밖이었음. Narrow fix (경로 2개만) 로 범위 유지.
+- **`notify-on-failure.needs` 확장**: `e2e-integration` 을 `ci.yml:365` needs 리스트에 추가 → PR 실패 코멘트에 포함.
+- **Codex 적대적 리뷰 4 라운드**: r1 (BLOCKING: build:null 필요 / HIGH: pytest 10→20분, LocalStack 30→60s poll / MEDIUM: 볼륨 override / LOW: PHI grep) → r2 (CONVERGED on BLOCKER/HIGH; MEDIUM 1 만) → r3 (HIGH: compose-up 6→12분, job 50→60분; 거부: "shared Docker daemon" 사실오류 — GHA hosted runner 는 job 당 VM 할당) → r4 (HIGH: PHI grep JSON bypass, HIGH: CODEOWNERS docker/ gap). 모두 반영 또는 rejected-with-rationale 기록.
+- **F1~F4 self-audit** (Revision 4): 플랜 재검증에서 4개 컨텍스트 항목 추가 — CODEOWNERS `.github/workflows/**` gate (R9), `require-log-entry` CODE_PATTERNS 본 PR 비매치 (수동 주의), `websockets>=12.0` range spec (R10), 삽입 seam 라인 251/253 정밀화.
+- **검증 근거**: 
+  - `python3 -c "yaml.safe_load(open('.github/workflows/ci.yml'))"` → valid.
+  - `docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml config` → 4개 override 서비스 모두 `build:` 키 제거 확인 (`image:` 만 남음).
+  - CODEOWNERS diff → 기존 rules 보존, 2줄만 추가.
+- **2-commit 패턴 (`require-log-entry` 갭 보강)**: 본 PR 의 변경 파일 셋 (`ci.yml`, `docker/docker-compose.ci.yml`, `.github/CODEOWNERS`, `docs/IMPLEMENTATION_LOG.md`) 은 `ci.yml:293` `CODE_PATTERNS="src/|services/|packages/|\.sql$|\.claude/rules/"` 어느 것도 매치하지 않음 → CI 자동 검출 불가. CLAUDE.md §4 mandate 수동 준수로 보강.
+### 미완료: Semgrep strict-mode flip (`ci.yml:268` `continue-on-error: true` 제거 — 별도 `chore(ci): enable-semgrep-strict` PR 로 분리; CLAUDE.md Rule 12 미완), `test_dlq_retry.py:30` 하드코딩 SQS URL → `conftest.py` env 패턴 일원화 (별도 cleanup), `websockets>=12,<14` pin (R10 관측 시).
+### 연관 파일: .github/workflows/ci.yml, docker/docker-compose.ci.yml, .github/CODEOWNERS, docker-compose.yml, services/meal-plan-engine/tests/integration/, docker/localstack/init/01-create-sqs-queue.sh
+
+---
 date: 2026-04-18
 agent: claude-opus-4-7 + codex-o3
 task_id: IMPL-UI-003
