@@ -30,6 +30,25 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-23
 agent: claude-opus-4-7
+task_id: IMPL-AI-001-b
+commit_sha: afa4ecc
+files_changed:
+  - db/migrations/0011_recipes-citation-columns.sql
+  - packages/shared-types/src/jsonb/citation.ts
+  - packages/shared-types/src/jsonb/index.ts
+verified_by: pnpm --filter shared-types build (tsc 0 errors)
+---
+### 완료: IMPL-AI-001-b — recipes citation columns + CitationSchema
+- 0011_recipes-citation-columns.sql: recipes/ingredients에 citations JSONB NOT NULL DEFAULT '[]' 추가 (0-downtime)
+- citation.ts: CitationSourceSchema(5개 enum: celebrity_interview/cookbook/clinical_study/usda_db/nih_standard) + CitationSchema(url|celeb_persona 필수 refine) + CitationArraySchema
+- jsonb/index.ts: citation.ts re-export 추가
+- pnpm --filter shared-types build 통과
+### 미완료: Python llm_schema.py Citation Pydantic 모델 (→ IMPL-AI-001-c)
+### 연관 파일: db/migrations/0011_recipes-citation-columns.sql, packages/shared-types/src/jsonb/citation.ts
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
 task_id: IMPL-AI-001-a
 commit_sha: 9f1801d
 files_changed:
