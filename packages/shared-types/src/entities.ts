@@ -19,12 +19,14 @@ import type {
 } from './enums.js';
 import type {
   Biomarkers,
+  Citation,
   DailyPlan,
   MacroRatio,
   MacroTargets,
   Nutrition,
   QuotaOverride,
   SourceRef,
+  UserPreferences,
 } from './jsonb/index.js';
 
 // ── users ──────────────────────────────────────────────────────────────────
@@ -40,6 +42,12 @@ export interface User {
   timezone: string;
   /** Soft reference to celebrities.slug — set during persona-first onboarding (plan 20, Phase C). */
   preferred_celebrity_slug: string | null;
+  /**
+   * UX preferences — see packages/shared-types/src/jsonb/user-preferences.ts
+   * (plan 22, Phase C1). Optional because migration 0012 rollout is gradual;
+   * consumers default to `{}` when undefined.
+   */
+  preferences?: UserPreferences;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -150,6 +158,8 @@ export interface Recipe {
   tips: string | null;
   image_url: string | null;
   video_url: string | null;
+  /** spec §5.8 LLM Enhancement Layer — citations JSONB (migration 0011). */
+  citations: Citation[];
   is_active: boolean;
   created_at: Date;
   updated_at: Date;

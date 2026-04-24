@@ -24,15 +24,10 @@
 }
 
 .cardSelected {
-  outline: 3px solid var(--cb-brand-600);
-  outline-offset: -3px;
-  box-shadow: var(--cb-shadow-focus);
-  transform: translateZ(0) scale(1.01);
-}
-
-.card[data-dimmed='true'] {
-  opacity: 0.45;
-  filter: grayscale(0.15);
+  outline: 2px solid var(--cb-brand-600);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 6px rgba(139, 109, 47, 0.18), var(--cb-shadow-lg);
+  transform: translateZ(0) scale(1.02);
 }
 
 @media (prefers-reduced-motion: reduce) {

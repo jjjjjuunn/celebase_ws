@@ -12,7 +12,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <header className={styles.topnav}>
-        <Link href="/dashboard" className={styles.brand}>
+        <Link href="/home" className={styles.brand}>
           {tApp('name')}
           <span className={styles.brandDot} aria-hidden="true" />
         </Link>

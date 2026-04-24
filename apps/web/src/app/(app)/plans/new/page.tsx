@@ -46,7 +46,9 @@ function PlansNewContent(): React.ReactElement {
 
   useEffect(() => {
     if (streamState.completedMealPlanId !== null) {
-      router.replace(`/plans/${streamState.completedMealPlanId}`);
+      // Plan 22 Phase E — land on preview so the user can inspect + skip meals
+      // before we confirm the plan and push them to Home.
+      router.replace(`/plans/${streamState.completedMealPlanId}/preview`);
     }
   }, [streamState.completedMealPlanId, router]);
 

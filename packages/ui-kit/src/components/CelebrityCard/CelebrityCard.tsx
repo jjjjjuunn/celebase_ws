@@ -23,7 +23,6 @@ export interface CelebrityCardProps {
   data: CelebrityCardData;
   onClick?: (slug: string) => void;
   selected?: boolean;
-  dimmed?: boolean;
 }
 
 const CATEGORY_LABEL: Record<CelebrityCategory, string> = {
@@ -58,7 +57,6 @@ export function CelebrityCard({
   data,
   onClick,
   selected = false,
-  dimmed = false,
 }: CelebrityCardProps): ReactElement {
   const { slug, displayName, shortBio, avatarUrl, coverImageUrl, category, tags, isFeatured } =
     data;
@@ -95,7 +93,6 @@ export function CelebrityCard({
       tabIndex={onClick ? 0 : undefined}
       aria-label={displayName}
       aria-pressed={onClick ? (selected ? 'true' : 'false') : undefined}
-      data-dimmed={dimmed ? 'true' : undefined}
     >
       <div
         className={[

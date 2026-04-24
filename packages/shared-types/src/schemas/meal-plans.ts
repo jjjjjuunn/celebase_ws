@@ -65,6 +65,10 @@ export const MealPlanWireSchema = z.object({
   created_at: IsoDateTime,
   updated_at: IsoDateTime,
   deleted_at: IsoDateTime.nullable().optional(),
+  // Plan 22 Phase E — set when user confirms the draft preview (PATCH status='active').
+  // Optional on the wire: BE migration 0013 adds the column as NULL, and older
+  // service builds may still omit the field entirely.
+  confirmed_at: IsoDateTime.nullable().optional(),
 });
 export type MealPlanWire = z.infer<typeof MealPlanWireSchema>;
 

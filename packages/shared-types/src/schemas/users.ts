@@ -8,6 +8,7 @@ import { SubscriptionTier } from '../enums.js';
 import type { User } from '../entities.js';
 import { IsoDateTime, UuidV7 } from './_utils.js';
 import { AuthTokensSchema } from './auth.js';
+import { UserPreferencesSchema, UserPreferencesPatchSchema } from '../jsonb/user-preferences.js';
 
 export const UserWireSchema = z.object({
   id: UuidV7,
@@ -19,11 +20,21 @@ export const UserWireSchema = z.object({
   locale: z.string(),
   timezone: z.string(),
   preferred_celebrity_slug: z.string().min(1).max(100).nullable(),
+  // Plan 22-vast-adleman Phase C1: `.optional()` because migration 0012 may
+  // not have reached every environment yet. Consumers should treat `undefined`
+  // as "no preferences yet" and default to `{}` before writing merge-patches.
+  preferences: UserPreferencesSchema.optional(),
   created_at: IsoDateTime,
   updated_at: IsoDateTime,
   deleted_at: IsoDateTime.nullable(),
 });
 export type UserWire = z.infer<typeof UserWireSchema>;
+
+// Plan 22-vast-adleman · Phase C1 — PATCH /users/me/preferences body.
+// RFC 7396 merge-patch: only top-level keys listed in UserPreferencesPatchSchema
+// are accepted. Nested arrays (e.g. `pantry`) are replaced atomically.
+export const UpdateMePreferencesRequestSchema = UserPreferencesPatchSchema;
+export type UpdateMePreferencesRequest = z.infer<typeof UpdateMePreferencesRequestSchema>;
 
 export const MeResponseSchema = z.object({
   user: UserWireSchema,
@@ -71,6 +82,7 @@ const _userWireRowParity = null as unknown as UserWire satisfies {
   locale: User['locale'];
   timezone: User['timezone'];
   preferred_celebrity_slug: User['preferred_celebrity_slug'];
+  preferences?: User['preferences'];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

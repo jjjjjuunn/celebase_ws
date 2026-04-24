@@ -6,10 +6,11 @@ import { useTranslations } from 'next-intl';
 import styles from '../layout.module.css';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', key: 'dashboard' },
+  { href: '/home', key: 'home' },
   { href: '/celebrities', key: 'celebrities' },
   { href: '/plans', key: 'plans' },
   { href: '/track', key: 'track' },
+  { href: '/dashboard', key: 'insights' },
   { href: '/account', key: 'account' },
 ] as const;
 

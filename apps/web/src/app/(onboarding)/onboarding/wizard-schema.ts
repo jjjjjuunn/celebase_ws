@@ -11,10 +11,13 @@ export const WizardStep0Schema = z.object({
 export type WizardStep0 = z.infer<typeof WizardStep0Schema>;
 
 // Step 1 — Basic Info
+// birth_month / birth_day are UI-only (not transmitted to BE yet — server accepts birth_year only)
 export const WizardStep1Schema = z.object({
   display_name: z.string().min(1).max(100),
   birth_year: z.number().int().min(1920).max(2013),
-  sex: z.enum(['male', 'female', 'other', 'prefer_not_to_say']),
+  birth_month: z.number().int().min(1).max(12).optional(),
+  birth_day: z.number().int().min(1).max(31).optional(),
+  sex: z.enum(['male', 'female']),
 });
 export type WizardStep1 = z.infer<typeof WizardStep1Schema>;
 

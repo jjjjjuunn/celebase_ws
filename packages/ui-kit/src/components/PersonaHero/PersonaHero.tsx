@@ -44,13 +44,11 @@ export function PersonaHero(props: PersonaHeroProps): ReactElement {
       <div className={styles.grid} role="list">
         {celebrities.map((celeb) => {
           const isSelected = hasSelection && celeb.slug === selectedSlug;
-          const isDimmed = hasSelection && celeb.slug !== selectedSlug;
           return (
             <div key={celeb.slug} role="listitem" className={styles.cell}>
               <CelebrityCard
                 data={celeb}
                 selected={isSelected}
-                dimmed={isDimmed}
                 {...(onSelect ? { onClick: onSelect } : {})}
               />
             </div>

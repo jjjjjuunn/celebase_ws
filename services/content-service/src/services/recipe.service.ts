@@ -16,6 +16,17 @@ export async function getRecipe(pool: pg.Pool, id: string): Promise<RecipeWithIn
   return recipe;
 }
 
+// Plan 22 · Phase D3 — batch lookup. Callers pass up to 32 UUIDs (route-enforced).
+// Silently drops ids not found or soft-deleted so preview flows degrade gracefully.
+export async function getRecipesByIds(
+  pool: pg.Pool,
+  ids: readonly string[],
+): Promise<RecipeWithIngredients[]> {
+  if (ids.length === 0) return [];
+  const unique = Array.from(new Set(ids));
+  return recipeRepo.findByIds(pool, unique);
+}
+
 export async function listByBaseDiet(
   pool: pg.Pool,
   baseDietId: string,

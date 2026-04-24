@@ -8,10 +8,39 @@
     "celebrities": "Celebrities",
     "recipes": "Recipes",
     "dashboard": "Dashboard",
+    "insights": "Insights",
     "plans": "Meal Plans",
     "account": "Account",
     "track": "Track",
     "logout": "Log out"
+  },
+  "home": {
+    "greetingReady": "{name}, your {celebrity} Blueprint is ready",
+    "greetingFallback": "Welcome back",
+    "noPlan": {
+      "title": "Pick your celebrity to begin",
+      "body": "Your Blueprint unlocks once you choose who inspires you.",
+      "cta": "Browse celebrities"
+    },
+    "dayZero": {
+      "title": "Open your first meal",
+      "body": "Your Blueprint is live — tap the hero card below."
+    },
+    "todayHero": {
+      "upNext": "Up next",
+      "viewDetails": "Why this meal",
+      "nihBadge": "NIH-calibrated"
+    },
+    "remaining": "Rest of today",
+    "weekStrip": {
+      "today": "Today"
+    },
+    "alignment": {
+      "title": "Blueprint Alignment",
+      "low": "This week is explore mode — alignment starts next week.",
+      "mid": "Steady rhythm — you're on the pace.",
+      "high": "Dialed in with your persona."
+    }
   },
   "auth": {
     "login": {

@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 // Routes that require a valid session cookie
 const PROTECTED_PREFIXES = [
+  '/home',
   '/dashboard',
   '/celebrities',
   '/plans',
@@ -14,6 +15,9 @@ const PROTECTED_PREFIXES = [
 
 // Routes that redirect authenticated users away (already logged in)
 const AUTH_PATHS = ['/login', '/signup'];
+
+// Post-auth landing path (Plan 22: dashboard → home)
+const POST_AUTH_LANDING = '/home';
 
 function buildCsp(nonce: string): string {
   const isDev = process.env.NODE_ENV !== 'production';
@@ -55,7 +59,7 @@ export function middleware(request: NextRequest): NextResponse {
 
   if (AUTH_PATHS.includes(pathname) && hasSession) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = POST_AUTH_LANDING;
     url.search = '';
     return NextResponse.redirect(url);
   }

@@ -166,6 +166,63 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
   return assembleRecipe(rows);
 }
 
+// Plan 22 · Phase D3 — batch fetch by id list for plan-preview aggregation.
+// Single query using `WHERE id = ANY($1)` to avoid N+1 across preview screens.
+export async function findByIds(
+  pool: pg.Pool,
+  ids: readonly string[],
+): Promise<RecipeWithIngredients[]> {
+  if (ids.length === 0) return [];
+  const { rows } = await pool.query<RecipeJoinRow>(
+    `SELECT
+       r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
+       r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
+       r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
+       r.is_active, r.created_at, r.updated_at,
+       ri.id         AS ri_id,
+       ri.ingredient_id AS ri_ingredient_id,
+       ri.quantity   AS ri_quantity,
+       ri.unit       AS ri_unit,
+       ri.preparation AS ri_preparation,
+       ri.is_optional AS ri_is_optional,
+       ri.sort_order AS ri_sort_order,
+       i.id          AS i_id,
+       i.name        AS i_name,
+       i.name_normalized AS i_name_normalized,
+       i.category    AS i_category,
+       i.instacart_product_id AS i_instacart_product_id,
+       i.instacart_upc AS i_instacart_upc,
+       i.default_unit AS i_default_unit,
+       i.allergens   AS i_allergens,
+       i.nutrition_per_100g AS i_nutrition_per_100g,
+       i.is_active   AS i_is_active,
+       i.created_at  AS i_created_at
+     FROM recipes r
+     LEFT JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+     LEFT JOIN ingredients i ON i.id = ri.ingredient_id AND i.is_active = TRUE
+     WHERE r.id = ANY($1::uuid[]) AND r.is_active = TRUE
+     ORDER BY r.id ASC, ri.sort_order ASC`,
+    [ids as string[]],
+  );
+
+  const grouped = new Map<string, RecipeJoinRow[]>();
+  for (const row of rows) {
+    const bucket = grouped.get(row.id);
+    if (bucket) {
+      bucket.push(row);
+    } else {
+      grouped.set(row.id, [row]);
+    }
+  }
+
+  const out: RecipeWithIngredients[] = [];
+  for (const bucket of grouped.values()) {
+    const assembled = assembleRecipe(bucket);
+    if (assembled) out.push(assembled);
+  }
+  return out;
+}
+
 export async function findByBaseDietId(
   pool: pg.Pool,
   baseDietId: string,

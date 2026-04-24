@@ -123,6 +123,30 @@ export async function softDelete(pool: pg.Pool, id: string): Promise<void> {
 }
 
 /**
+ * Plan 22-vast-adleman · Phase C1 — RFC 7396 merge-patch on users.preferences.
+ *
+ * Uses jsonb concat (`||`) so existing top-level keys outside the patch are
+ * preserved. Caller is responsible for Zod-validating `patch` before invoking.
+ */
+export async function mergePreferences(
+  pool: pg.Pool,
+  userId: string,
+  patch: Record<string, unknown>,
+): Promise<User> {
+  const { rows } = await pool.query<User>(
+    `UPDATE users
+       SET preferences = preferences || $1::jsonb,
+           updated_at = NOW()
+     WHERE id = $2
+     RETURNING *`,
+    [JSON.stringify(patch), userId],
+  );
+  const row = rows[0];
+  if (!row) throw new Error('User not found after preferences merge');
+  return row;
+}
+
+/**
  * Update only subscription_tier — kept separate from ALLOWED_USER_COLUMNS
  * to prevent client-facing PATCH from modifying this column.
  * Accepts Pool or PoolClient for use within transactions.
