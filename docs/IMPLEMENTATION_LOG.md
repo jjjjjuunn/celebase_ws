@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-04-24
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-005-a
-commit_sha: PENDING
+commit_sha: 8fd7403
 files_changed:
   - services/meal-plan-engine/src/consumers/sqs_consumer.py
   - services/meal-plan-engine/src/engine/allergen_filter.py
