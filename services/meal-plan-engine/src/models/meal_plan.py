@@ -76,4 +76,3 @@ class PatchMealPlanRequest(BaseModel):
     name: str | None = None
     daily_plans: list[Any] | None = None
     adjustments: dict[str, Any] | None = None
-

@@ -2,6 +2,7 @@
 
 Spec: §4.3 Subscription Quota Rules + §8 Tier Limits.
 """
+
 from __future__ import annotations
 
 import calendar
@@ -24,9 +25,9 @@ _logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 TIER_LIMITS: dict[str, int | None] = {
-    "free": 0,        # feature disabled
+    "free": 0,  # feature disabled
     "premium": 4,
-    "elite": None,    # unlimited
+    "elite": None,  # unlimited
 }
 
 # ---------------------------------------------------------------------------
@@ -155,7 +156,12 @@ async def check_quota_atomic(
     if effective_limit is None:
         # Unlimited — skip advisory lock, insert directly
         row = await repo.create_meal_plan(
-            pool, user_id, base_diet_id, duration_days, preferences, idempotency_key,
+            pool,
+            user_id,
+            base_diet_id,
+            duration_days,
+            preferences,
+            idempotency_key,
         )
         return (True, 0, row)
 
@@ -172,6 +178,11 @@ async def check_quota_atomic(
             if count >= effective_limit:
                 return (False, count, None)
             row = await repo.create_meal_plan(
-                conn, user_id, base_diet_id, duration_days, preferences, idempotency_key,
+                conn,
+                user_id,
+                base_diet_id,
+                duration_days,
+                preferences,
+                idempotency_key,
             )
             return (True, count, row)

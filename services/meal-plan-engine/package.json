@@ -1,0 +1,9 @@
+{
+  "name": "@celebbase/meal-plan-engine",
+  "private": true,
+  "scripts": {
+    "test": "pytest",
+    "lint": "echo 'lint via root ruff step'",
+    "typecheck": "echo 'typecheck via ruff'"
+  }
+}

@@ -20,7 +20,7 @@ export function AxeDevInit(): null {
         import('react'),
         import('react-dom'),
       ]);
-      void axe(React, ReactDOM, 1000);
+      try { void axe(React, ReactDOM, 1000); } catch { /* axe incompatible with React 19 ESM getters */ }
     })();
   }, []);
 

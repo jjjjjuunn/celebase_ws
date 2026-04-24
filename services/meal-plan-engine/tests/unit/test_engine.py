@@ -1,10 +1,10 @@
-
 """AI engine end-to-end scenarios (IMPL-004-c).
 
 The tests focus on nutritional logic implemented by individual leaf-modules.
 They avoid hitting external services by constructing deterministic inputs and
 verifying invariant guarantees defined in *ai-engine.md* (§ test scenarios).
 """
+
 from __future__ import annotations
 
 from typing import List
@@ -13,7 +13,13 @@ import math
 
 import pytest
 
-from src.engine import calorie_adjuster, macro_rebalancer, allergen_filter, variety_optimizer, nutrition_normalizer
+from src.engine import (
+    calorie_adjuster,
+    macro_rebalancer,
+    allergen_filter,
+    variety_optimizer,
+    nutrition_normalizer,
+)
 from src.engine.allergen_filter import RecipeSlot, count_allergen_conflicts
 from src.engine.pipeline import _build_weekly_plan, run_pipeline
 
@@ -36,9 +42,12 @@ def _mk_slot(rid: str, meal: str, allergens: List[str] | None = None) -> RecipeS
 # 1. 기본 생성 (Ronaldo diet archetype) -------------------------------------
 # ---------------------------------------------------------------------------
 
+
 def test_basic_generation_calories_and_macros():  # noqa: D401
     tdee = 2500  # kcal
-    kcal = calorie_adjuster.adjust_calories(tdee, primary_goal="maintenance", activity_level="moderate")
+    kcal = calorie_adjuster.adjust_calories(
+        tdee, primary_goal="maintenance", activity_level="moderate"
+    )
     assert 2000 <= kcal <= 2800, "Calorie target outside healthy range"
 
     macros = macro_rebalancer.rebalance_macros(
@@ -54,6 +63,7 @@ def test_basic_generation_calories_and_macros():  # noqa: D401
 # ---------------------------------------------------------------------------
 # 2. 알레르기 대체 ----------------------------------------------------------
 # ---------------------------------------------------------------------------
+
 
 def test_allergen_substitution():  # noqa: D401
     recipes = [
@@ -73,14 +83,18 @@ def test_allergen_substitution():  # noqa: D401
 # 3. 극단적 감량 ------------------------------------------------------------
 # ---------------------------------------------------------------------------
 
+
 def test_extreme_weight_loss_calorie_floor():  # noqa: D401
-    kcal = calorie_adjuster.adjust_calories(1400, primary_goal="weight_loss", activity_level="sedentary")
+    kcal = calorie_adjuster.adjust_calories(
+        1400, primary_goal="weight_loss", activity_level="sedentary"
+    )
     assert kcal >= 1200  # safety clamp
 
 
 # ---------------------------------------------------------------------------
 # 4. 고활동량 ---------------------------------------------------------------
 # ---------------------------------------------------------------------------
+
 
 def test_high_activity_protein_multiplier():  # noqa: D401
     macros = macro_rebalancer.rebalance_macros(
@@ -96,6 +110,7 @@ def test_high_activity_protein_multiplier():  # noqa: D401
 # ---------------------------------------------------------------------------
 # 5. GLP-1 모드 -------------------------------------------------------------
 # ---------------------------------------------------------------------------
+
 
 def test_glp1_support_deficit_and_protein():  # noqa: D401
     base_tdee = 2200
@@ -116,6 +131,7 @@ def test_glp1_support_deficit_and_protein():  # noqa: D401
 # 6. 비건 단백질 ------------------------------------------------------------
 # ---------------------------------------------------------------------------
 
+
 def test_vegan_high_protein_macros():  # noqa: D401
     macros = macro_rebalancer.rebalance_macros(
         target_kcal=2600,
@@ -131,6 +147,7 @@ def test_vegan_high_protein_macros():  # noqa: D401
 # ---------------------------------------------------------------------------
 # 7. 7일 다양성 -------------------------------------------------------------
 # ---------------------------------------------------------------------------
+
 
 def test_variety_optimizer_no_triple_repeats():  # noqa: D401
     # Build a weekly plan with 3 repeats of the same recipe (invalid)
@@ -148,6 +165,7 @@ def test_variety_optimizer_no_triple_repeats():  # noqa: D401
 # 8. 영양소 단위 변환 --------------------------------------------------------
 # ---------------------------------------------------------------------------
 
+
 def test_vitamin_d_unit_conversion():  # noqa: D401
     raw = {
         "calories": 100,
@@ -158,13 +176,16 @@ def test_vitamin_d_unit_conversion():  # noqa: D401
     }
     norm = nutrition_normalizer.normalize(raw, source="usda")
     d_ug = norm.micronutrients["vitamin_d_ug"]["value"]
-    d_iu = norm.micronutrients["vitamin_d_IU"]["value"] * (40 if norm.micronutrients["vitamin_d_IU"]["unit"] == "µg" else 1)
+    d_iu = norm.micronutrients["vitamin_d_IU"]["value"] * (
+        40 if norm.micronutrients["vitamin_d_IU"]["unit"] == "µg" else 1
+    )
     assert math.isclose(d_ug * 40, d_iu, rel_tol=0.01)
 
 
 # ---------------------------------------------------------------------------
 # 9. PHI 최소화 -------------------------------------------------------------
 # ---------------------------------------------------------------------------
+
 
 def test_phi_minimizer_fields():  # noqa: D401
     from src.engine.phi_minimizer import minimize_profile, get_allowed_fields

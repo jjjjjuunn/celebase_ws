@@ -1,0 +1,15 @@
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-4);
+  min-height: 200px;
+}
+
+.submitError {
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-danger-600);
+  padding: var(--cb-space-3);
+  border: 1px solid var(--cb-border-error);
+  border-radius: var(--cb-radius-sm);
+  background-color: var(--cb-danger-100);
+}

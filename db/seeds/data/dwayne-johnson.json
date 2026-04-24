@@ -2,10 +2,16 @@
   "slug": "dwayne-johnson",
   "display_name": "Dwayne Johnson",
   "short_bio": "Actor and former wrestler known for his massive 5000+ calorie mass-gain diet with structured macros, 7 daily meals, and meticulous portion control.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/dwayne-johnson/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/dwayne-johnson/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/dwayne-johnson/400/400",
+  "cover_image_url": "https://picsum.photos/seed/dwayne-johnson-cover/800/600",
   "category": "protein",
-  "tags": ["mass-gain", "bodybuilding", "structured-macros", "high-calorie", "7-meals"],
+  "tags": [
+    "mass-gain",
+    "bodybuilding",
+    "structured-macros",
+    "high-calorie",
+    "7-meals"
+  ],
   "is_featured": false,
   "sort_order": 6,
   "base_diet": {
@@ -14,245 +20,978 @@
     "philosophy": "Dwayne follows a highly structured meal plan designed for muscle hypertrophy. His diet revolves around lean proteins (especially cod fish), white rice, and vegetables, with cheat meals on Sundays.",
     "diet_type": "omnivore",
     "avg_daily_kcal": 4500,
-    "macro_ratio": { "protein_pct": 35, "carbs_pct": 40, "fat_pct": 25 },
-    "included_foods": ["cod", "chicken breast", "steak", "egg whites", "white rice", "sweet potato", "cream of rice", "asparagus", "broccoli"],
-    "excluded_foods": ["fried foods", "excessive dairy", "sugar", "alcohol", "processed snacks"],
-    "key_supplements": ["Whey Protein", "Casein", "Creatine", "Omega-3", "Glutamine", "Multivitamin"],
+    "macro_ratio": {
+      "protein_pct": 35,
+      "carbs_pct": 40,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "cod",
+      "chicken breast",
+      "steak",
+      "egg whites",
+      "white rice",
+      "sweet potato",
+      "cream of rice",
+      "asparagus",
+      "broccoli"
+    ],
+    "excluded_foods": [
+      "fried foods",
+      "excessive dairy",
+      "sugar",
+      "alcohol",
+      "processed snacks"
+    ],
+    "key_supplements": [
+      "Whey Protein",
+      "Casein",
+      "Creatine",
+      "Omega-3",
+      "Glutamine",
+      "Multivitamin"
+    ],
     "source_refs": [
-      { "type": "social-media", "outlet": "Instagram @therock", "date": "2021-04-18" },
-      { "type": "article", "outlet": "Muscle & Fitness", "date": "2022-01-10" }
+      {
+        "type": "social-media",
+        "outlet": "Instagram @therock",
+        "date": "2021-04-18"
+      },
+      {
+        "type": "article",
+        "outlet": "Muscle & Fitness",
+        "date": "2022-01-10"
+      }
     ]
   },
   "recipes": [
-    { "title": "Steak and Eggs Breakfast", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 580, "protein_g": 48, "carbs_g": 24, "fat_g": 32, "fiber_g": 2, "sugar_g": 1, "sodium_mg": 520 },
+    {
+      "title": "Steak and Eggs Breakfast",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 580,
+        "protein_g": 48,
+        "carbs_g": 24,
+        "fat_g": 32,
+        "fiber_g": 2,
+        "sugar_g": 1,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Pan-sear sirloin steak in a hot skillet, 4 minutes per side.", "duration_min": 8 },
-        { "step": 2, "text": "Cook egg whites in the same pan.", "duration_min": 4 },
-        { "step": 3, "text": "Serve with toasted Ezekiel bread.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Pan-sear sirloin steak in a hot skillet, 4 minutes per side.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Cook egg whites in the same pan.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Serve with toasted Ezekiel bread.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Beef Sirloin", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Egg Whites", "quantity": 4, "unit": "large" },
-        { "ingredient_name": "Ezekiel Bread", "quantity": 2, "unit": "slices" },
-        { "ingredient_name": "Avocado Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Beef Sirloin",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 4,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 2,
+          "unit": "slices"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Cod and Sweet Potato Breakfast", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 18, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 520, "protein_g": 42, "carbs_g": 56, "fat_g": 10, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 380 },
+    {
+      "title": "Cod and Sweet Potato Breakfast",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 18,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 42,
+        "carbs_g": 56,
+        "fat_g": 10,
+        "fiber_g": 6,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Bake cod fillet at 400°F.", "duration_min": 15 },
-        { "step": 2, "text": "Microwave sweet potato until tender.", "duration_min": 8 },
-        { "step": 3, "text": "Serve together with a side of steamed vegetables.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Bake cod fillet at 400°F.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Microwave sweet potato until tender.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Serve together with a side of steamed vegetables.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cod Fillet", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large" },
-        { "ingredient_name": "Asparagus", "quantity": 6, "unit": "spears", "preparation": "steamed" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 6,
+          "unit": "spears",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Egg White Omelette with Vegetables", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 10, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 320, "protein_g": 30, "carbs_g": 14, "fat_g": 16, "fiber_g": 4, "sugar_g": 4, "sodium_mg": 420 },
+    {
+      "title": "Egg White Omelette with Vegetables",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 30,
+        "carbs_g": 14,
+        "fat_g": 16,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté mushrooms, spinach, and bell pepper in olive oil.", "duration_min": 4 },
-        { "step": 2, "text": "Pour egg whites over vegetables. Cook until set, fold.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Sauté mushrooms, spinach, and bell pepper in olive oil.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Pour egg whites over vegetables. Cook until set, fold.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Egg Whites", "quantity": 6, "unit": "large" },
-        { "ingredient_name": "Mushrooms", "quantity": 3, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Bell Pepper", "quantity": 0.5, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 6,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 3,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Protein Oats with Egg Whites", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 12, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 480, "protein_g": 36, "carbs_g": 54, "fat_g": 12, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 280 },
+    {
+      "title": "Protein Oats with Egg Whites",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 12,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 36,
+        "carbs_g": 54,
+        "fat_g": 12,
+        "fiber_g": 6,
+        "sugar_g": 6,
+        "sodium_mg": 280
+      },
       "instructions": [
-        { "step": 1, "text": "Cook oats in water. Stir in cooked egg whites.", "duration_min": 10 },
-        { "step": 2, "text": "Top with blueberries and a drizzle of honey.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Cook oats in water. Stir in cooked egg whites.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Top with blueberries and a drizzle of honey.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Egg Whites", "quantity": 4, "unit": "large", "preparation": "scrambled" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 4,
+          "unit": "large",
+          "preparation": "scrambled"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Cod with White Rice and Broccoli", "meal_type": "lunch", "prep_time_min": 5, "cook_time_min": 20, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 560, "protein_g": 44, "carbs_g": 62, "fat_g": 10, "fiber_g": 4, "sugar_g": 2, "sodium_mg": 360 },
+    {
+      "title": "Cod with White Rice and Broccoli",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 44,
+        "carbs_g": 62,
+        "fat_g": 10,
+        "fiber_g": 4,
+        "sugar_g": 2,
+        "sodium_mg": 360
+      },
       "instructions": [
-        { "step": 1, "text": "Bake cod fillet seasoned with lemon and herbs.", "duration_min": 15 },
-        { "step": 2, "text": "Serve with steamed white rice and steamed broccoli.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Bake cod fillet seasoned with lemon and herbs.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Serve with steamed white rice and steamed broccoli.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cod Fillet", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "White Rice", "quantity": 1.5, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Chicken Breast with Basmati Rice", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 18, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 580, "protein_g": 46, "carbs_g": 58, "fat_g": 12, "fiber_g": 3, "sugar_g": 2, "sodium_mg": 420 },
+    {
+      "title": "Chicken Breast with Basmati Rice",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 18,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 580,
+        "protein_g": 46,
+        "carbs_g": 58,
+        "fat_g": 12,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Grill chicken breast seasoned with salt, pepper, and garlic.", "duration_min": 14 },
-        { "step": 2, "text": "Serve sliced over basmati rice with steamed asparagus.", "duration_min": 4 }
+        {
+          "step": 1,
+          "text": "Grill chicken breast seasoned with salt, pepper, and garlic.",
+          "duration_min": 14
+        },
+        {
+          "step": 2,
+          "text": "Serve sliced over basmati rice with steamed asparagus.",
+          "duration_min": 4
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Basmati Rice", "quantity": 1.5, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Asparagus", "quantity": 8, "unit": "spears", "preparation": "steamed" },
-        { "ingredient_name": "Garlic Powder", "quantity": 0.5, "unit": "tsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Basmati Rice",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 8,
+          "unit": "spears",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Ground Bison and Rice Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 560, "protein_g": 40, "carbs_g": 56, "fat_g": 16, "fiber_g": 4, "sugar_g": 3, "sodium_mg": 400 },
+    {
+      "title": "Ground Bison and Rice Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 40,
+        "carbs_g": 56,
+        "fat_g": 16,
+        "fiber_g": 4,
+        "sugar_g": 3,
+        "sodium_mg": 400
+      },
       "instructions": [
-        { "step": 1, "text": "Cook bison with garlic and onion until browned.", "duration_min": 10 },
-        { "step": 2, "text": "Serve over white rice with sautéed mushrooms.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Cook bison with garlic and onion until browned.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Serve over white rice with sautéed mushrooms.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bison", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "White Rice", "quantity": 1.5, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Mushrooms", "quantity": 4, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Yellow Onion", "quantity": 0.5, "unit": "medium", "preparation": "diced" }
+        {
+          "ingredient_name": "Bison",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        }
       ]
     },
-    { "title": "Turkey Breast and Sweet Potato Plate", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 520, "protein_g": 42, "carbs_g": 52, "fat_g": 12, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 380 },
+    {
+      "title": "Turkey Breast and Sweet Potato Plate",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 42,
+        "carbs_g": 52,
+        "fat_g": 12,
+        "fiber_g": 6,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Season turkey breast and bake at 375°F.", "duration_min": 20 },
-        { "step": 2, "text": "Serve with roasted sweet potato and green beans.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Season turkey breast and bake at 375°F.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Serve with roasted sweet potato and green beans.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Turkey Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "cubed and roasted" },
-        { "ingredient_name": "Green Beans", "quantity": 1, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Turkey Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "cubed and roasted"
+        },
+        {
+          "ingredient_name": "Green Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Grilled Sirloin with Potato and Veggies", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 600, "protein_g": 46, "carbs_g": 48, "fat_g": 22, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 420 },
+    {
+      "title": "Grilled Sirloin with Potato and Veggies",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 600,
+        "protein_g": 46,
+        "carbs_g": 48,
+        "fat_g": 22,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Grill sirloin steak to medium.", "duration_min": 10 },
-        { "step": 2, "text": "Serve with baked russet potato and steamed broccoli.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Grill sirloin steak to medium.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Serve with baked russet potato and steamed broccoli.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Beef Sirloin", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Russet Potato", "quantity": 1, "unit": "large", "preparation": "baked" },
-        { "ingredient_name": "Broccoli", "quantity": 1.5, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Beef Sirloin",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Russet Potato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "baked"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Cod with Rice and Mixed Greens", "meal_type": "dinner", "prep_time_min": 5, "cook_time_min": 18, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 540, "protein_g": 42, "carbs_g": 58, "fat_g": 12, "fiber_g": 3, "sugar_g": 2, "sodium_mg": 380 },
+    {
+      "title": "Cod with Rice and Mixed Greens",
+      "meal_type": "dinner",
+      "prep_time_min": 5,
+      "cook_time_min": 18,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 540,
+        "protein_g": 42,
+        "carbs_g": 58,
+        "fat_g": 12,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Bake seasoned cod fillet.", "duration_min": 15 },
-        { "step": 2, "text": "Serve with white rice and a simple mixed greens salad.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Bake seasoned cod fillet.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Serve with white rice and a simple mixed greens salad.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cod Fillet", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "White Rice", "quantity": 1.5, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Mixed Greens", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Chicken and Quinoa Power Plate", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 580, "protein_g": 44, "carbs_g": 52, "fat_g": 18, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 440 },
+    {
+      "title": "Chicken and Quinoa Power Plate",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 580,
+        "protein_g": 44,
+        "carbs_g": 52,
+        "fat_g": 18,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Grill chicken breast.", "duration_min": 14 },
-        { "step": 2, "text": "Serve over quinoa with roasted Brussels sprouts.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Grill chicken breast.",
+          "duration_min": 14
+        },
+        {
+          "step": 2,
+          "text": "Serve over quinoa with roasted Brussels sprouts.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Brussels Sprouts", "quantity": 1, "unit": "cup", "preparation": "roasted and halved" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Brussels Sprouts",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "roasted and halved"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Salmon with Sweet Potato Mash", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 560, "protein_g": 40, "carbs_g": 44, "fat_g": 24, "fiber_g": 5, "sugar_g": 6, "sodium_mg": 380 },
+    {
+      "title": "Salmon with Sweet Potato Mash",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 40,
+        "carbs_g": 44,
+        "fat_g": 24,
+        "fiber_g": 5,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Pan-sear salmon fillet.", "duration_min": 10 },
-        { "step": 2, "text": "Mash boiled sweet potato with a touch of olive oil.", "duration_min": 10 },
-        { "step": 3, "text": "Serve together with steamed asparagus.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Pan-sear salmon fillet.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Mash boiled sweet potato with a touch of olive oil.",
+          "duration_min": 10
+        },
+        {
+          "step": 3,
+          "text": "Serve together with steamed asparagus.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "boiled and mashed" },
-        { "ingredient_name": "Asparagus", "quantity": 6, "unit": "spears", "preparation": "steamed" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "boiled and mashed"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 6,
+          "unit": "spears",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Peanut Butter Rice Cakes", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 10, "carbs_g": 32, "fat_g": 14, "fiber_g": 3, "sugar_g": 4, "sodium_mg": 120 },
+    {
+      "title": "Peanut Butter Rice Cakes",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 10,
+        "carbs_g": 32,
+        "fat_g": 14,
+        "fiber_g": 3,
+        "sugar_g": 4,
+        "sodium_mg": 120
+      },
       "instructions": [
-        { "step": 1, "text": "Spread peanut butter on rice cakes. Drizzle with honey.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Spread peanut butter on rice cakes. Drizzle with honey.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rice Cakes", "quantity": 2, "unit": "pieces" },
-        { "ingredient_name": "Peanut Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Rice Cakes",
+          "quantity": 2,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Egg Whites and Toast", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 5, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 220, "protein_g": 22, "carbs_g": 24, "fat_g": 4, "fiber_g": 3, "sugar_g": 2, "sodium_mg": 380 },
+    {
+      "title": "Egg Whites and Toast",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 22,
+        "carbs_g": 24,
+        "fat_g": 4,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Scramble egg whites. Serve on Ezekiel toast.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Scramble egg whites. Serve on Ezekiel toast.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Egg Whites", "quantity": 5, "unit": "large" },
-        { "ingredient_name": "Ezekiel Bread", "quantity": 1, "unit": "slice", "preparation": "toasted" }
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 5,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 1,
+          "unit": "slice",
+          "preparation": "toasted"
+        }
       ]
     },
-    { "title": "Protein Pudding", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 250, "protein_g": 28, "carbs_g": 24, "fat_g": 6, "fiber_g": 2, "sugar_g": 10, "sodium_mg": 180 },
+    {
+      "title": "Protein Pudding",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 250,
+        "protein_g": 28,
+        "carbs_g": 24,
+        "fat_g": 6,
+        "fiber_g": 2,
+        "sugar_g": 10,
+        "sodium_mg": 180
+      },
       "instructions": [
-        { "step": 1, "text": "Mix whey protein with Greek yogurt until thick and creamy.", "duration_min": 2 },
-        { "step": 2, "text": "Top with berries.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Mix whey protein with Greek yogurt until thick and creamy.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Top with berries.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Greek Yogurt", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Strawberries", "quantity": 3, "unit": "pieces", "preparation": "sliced" }
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 3,
+          "unit": "pieces",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Almonds and Dried Fruit", "meal_type": "snack", "prep_time_min": 1, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 240, "protein_g": 8, "carbs_g": 22, "fat_g": 16, "fiber_g": 4, "sugar_g": 14, "sodium_mg": 10 },
+    {
+      "title": "Almonds and Dried Fruit",
+      "meal_type": "snack",
+      "prep_time_min": 1,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 240,
+        "protein_g": 8,
+        "carbs_g": 22,
+        "fat_g": 16,
+        "fiber_g": 4,
+        "sugar_g": 14,
+        "sodium_mg": 10
+      },
       "instructions": [
-        { "step": 1, "text": "Combine almonds with dried apricots.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Combine almonds with dried apricots.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Almonds", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Dried Apricots", "quantity": 4, "unit": "pieces" }
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Dried Apricots",
+          "quantity": 4,
+          "unit": "pieces"
+        }
       ]
     },
-    { "title": "Mass Gain Shake", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 520, "protein_g": 42, "carbs_g": 58, "fat_g": 14, "fiber_g": 5, "sugar_g": 22, "sodium_mg": 200 },
+    {
+      "title": "Mass Gain Shake",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 42,
+        "carbs_g": 58,
+        "fat_g": 14,
+        "fiber_g": 5,
+        "sugar_g": 22,
+        "sodium_mg": 200
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Whey Protein Powder", "quantity": 2, "unit": "scoops" },
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Peanut Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Oat Milk", "quantity": 1.5, "unit": "cup" }
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 2,
+          "unit": "scoops"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 1.5,
+          "unit": "cup"
+        }
       ]
     },
-    { "title": "Chocolate Protein Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 400, "protein_g": 36, "carbs_g": 42, "fat_g": 12, "fiber_g": 4, "sugar_g": 16, "sodium_mg": 180 },
+    {
+      "title": "Chocolate Protein Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 36,
+        "carbs_g": 42,
+        "fat_g": 12,
+        "fiber_g": 4,
+        "sugar_g": 16,
+        "sodium_mg": 180
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until thick and creamy.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until thick and creamy.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1.5, "unit": "scoops" },
-        { "ingredient_name": "Cacao Powder", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Oat Milk", "quantity": 1, "unit": "cup" }
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1.5,
+          "unit": "scoops"
+        },
+        {
+          "ingredient_name": "Cacao Powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 1,
+          "unit": "cup"
+        }
       ]
     }
   ]

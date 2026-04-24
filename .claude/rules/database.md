@@ -27,6 +27,23 @@ paths:
   - 컬럼 이름 변경: 금지. 새 컬럼 추가 → 복사 → 구 컬럼 삭제
   - 인덱스 생성: `CONCURRENTLY` 필수
 
+### `ON CONFLICT DO NOTHING` — UNIQUE constraint 전제 (IMPL-016-c1 교훈)
+
+`ON CONFLICT DO NOTHING` 은 대상 테이블에 UNIQUE constraint 또는 PRIMARY KEY 가 있어야 한다. 없으면 `ERROR: there is no unique or exclusion constraint matching the ON CONFLICT specification` 런타임 에러 발생:
+
+```sql
+-- ❌ instacart_orders 에 UNIQUE constraint 없는데 ON CONFLICT 사용
+INSERT INTO instacart_orders (user_id, meal_plan_id, items, status)
+VALUES ($1, $2, $3::jsonb, 'pending')
+ON CONFLICT DO NOTHING;  -- 런타임 에러!
+
+-- ✅ UNIQUE constraint 없으면 ON CONFLICT 절 제거
+INSERT INTO instacart_orders (user_id, meal_plan_id, items, status)
+VALUES ($1, $2, $3::jsonb, 'pending');
+```
+
+HANDOFF 에 DDL 인라인 규칙에 따라 해당 테이블의 CREATE TABLE 을 포함시키면 Codex 도 constraint 존재 여부를 확인할 수 있다.
+
 ## 성능
 
 - **N+1 금지**: JOIN 또는 배치 조회(`WHERE id IN (...)`) 사용.

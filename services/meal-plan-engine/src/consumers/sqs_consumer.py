@@ -8,6 +8,7 @@ Retry policy (spec §4.2):
 - 1 automatic retry on internal engine errors
 - After 2 consecutive failures the message moves to DLQ (SQS redrive)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -110,14 +111,19 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     )
 
     # Persist result
-    await repo.update_meal_plan(pool, plan_id, user_id, {
-        "status": "completed",
-        "daily_plans": result.get("weekly_plan", []),
-        "adjustments": {
-            "target_kcal": result.get("target_kcal"),
-            "macros": result.get("macros"),
+    await repo.update_meal_plan(
+        pool,
+        plan_id,
+        user_id,
+        {
+            "status": "completed",
+            "daily_plans": result.get("weekly_plan", []),
+            "adjustments": {
+                "target_kcal": result.get("target_kcal"),
+                "macros": result.get("macros"),
+            },
         },
-    })
+    )
 
     _logger.info("plan=%s generation completed", plan_id)
 
@@ -241,6 +247,6 @@ async def start_consumer(queue_url: str) -> None:
             raise
         except Exception:
             consecutive_errors += 1
-            backoff = min(5 * (2 ** consecutive_errors), 300)
+            backoff = min(5 * (2**consecutive_errors), 300)
             _logger.exception("SQS poll error, retrying in %ds", backoff)
             await asyncio.sleep(backoff)

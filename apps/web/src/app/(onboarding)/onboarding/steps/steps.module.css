@@ -1,0 +1,63 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-4);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-2);
+  margin-bottom: var(--cb-space-2);
+}
+
+.disclaimer {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-muted);
+  padding: var(--cb-space-3);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+}
+
+.chipGroupLabel {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-text);
+  line-height: var(--cb-line-height-snug);
+  margin-bottom: var(--cb-space-2);
+}
+
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-2);
+  margin-bottom: var(--cb-space-3);
+}
+
+.ghostInputRow {
+  margin-top: var(--cb-space-2);
+}
+
+.segmentField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-2);
+}
+
+.segmentLabel {
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-text);
+  line-height: var(--cb-line-height-snug);
+}
+
+.requiredMark {
+  color: var(--cb-danger-600);
+  font-weight: var(--cb-font-weight-semibold);
+}
+
+.segmentWrap > [role='radiogroup'] {
+  flex-wrap: wrap;
+}

@@ -50,6 +50,8 @@ paths:
 - 초기: English (en-US). i18n 프레임워크 Day 1 적용 (하드코딩 문자열 금지).
 - 숫자/단위: locale 기반 (미국 기본 lb/oz/°F, metric 전환 옵션).
 - **ARIA toggle consistency (IMPL-UI-002 교훈)**: toggle 버튼/칩 그룹의 모든 멤버는 `aria-pressed` 를 boolean 으로 항상 emit (selected=false 도 `"false"` 명시). attribute 생략은 display-only 일 때만 허용 — 스크린리더가 toggle 여부 자체를 인식하지 못하는 것을 방지한다. `:focus-visible` 로만 focus ring 제공, `:focus` 단독 사용은 마우스 클릭에도 노출되어 금지.
+- **ARIA radio / roving tabindex (IMPL-UI-003 교훈)**: `role="radiogroup"` + 자식 `role="radio"` 구조에서 `aria-checked` 는 `"true"` / `"false"` 양쪽 항상 emit. 그룹 내부 **오직 한 자식만 `tabIndex={0}`**, 나머지는 `tabIndex={-1}` — 키보드 Tab trap 방지. 키보드 nav 는 `←/→/↑/↓/Home/End/Space/Enter` 를 지원하고, wrap-around 이동을 기본으로 한다. All-disabled 시 `activeIndex` 없음 → wrapper 에 `aria-disabled="true"` emit + `onKeyDown` no-op + `onChange` 미호출.
+- **Disabled 상태는 `aria-disabled="true"` 로 통일 (IMPL-UI-003 교훈)**: `role="button"` / `role="radio"` 의 disabled 표현은 native HTML `disabled` 대신 `aria-disabled="true"` 를 사용한다. native disabled 는 roving tabindex 의 focus 이동 로직을 깨뜨리고, 스크린리더가 요소 자체를 건너뛰어 "선택 불가" 정보를 제공하지 못한다. `SlotChip` Full 상태 · 비활성 `SegmentedControl` segment 에서 적용. primitive `<button disabled>` 는 toggle/radio 가 아닐 때만 허용.
 
 ## Deployment & Infrastructure
 
