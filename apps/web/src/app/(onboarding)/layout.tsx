@@ -8,8 +8,7 @@ export default function OnboardingLayout({ children }: { children: ReactNode }) 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 16px',
+        padding: 'clamp(24px, 6vh, 72px) 16px',
         background: 'var(--cb-color-bg)',
       }}
     >

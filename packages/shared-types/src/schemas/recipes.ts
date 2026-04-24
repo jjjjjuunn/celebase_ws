@@ -4,8 +4,13 @@ import { z } from 'zod';
 import { MealType, RecipeDifficulty } from '../enums.js';
 import type { Recipe } from '../entities.js';
 import { IsoDateTime, UuidV7 } from './_utils.js';
-import { InstructionStepSchema, NutritionSchema } from '../jsonb/index.js';
+import { CitationSchema, InstructionStepSchema, NutritionSchema } from '../jsonb/index.js';
 
+// Plan 22 · Phase B — Meal Rationale Drawer data contract.
+// `citations` mirrors recipes.citations JSONB (migration 0011). Default [] preserves
+// backwards compatibility for rule-based engine output (no citations). `narrative`
+// is LLM-generated persona voice; lives on meal_plans.days[].meals[].narrative JSONB
+// but is also surfaced on recipe detail when the server hydrates the slot context.
 export const RecipeWireSchema = z.object({
   id: UuidV7,
   base_diet_id: UuidV7,
@@ -22,6 +27,8 @@ export const RecipeWireSchema = z.object({
   tips: z.string().nullable(),
   image_url: z.string().url().nullable(),
   video_url: z.string().url().nullable(),
+  citations: z.array(CitationSchema),
+  narrative: z.string().nullable().optional(),
   is_active: z.boolean(),
   created_at: IsoDateTime,
   updated_at: IsoDateTime,
@@ -40,6 +47,13 @@ export const RecipeDetailResponseSchema = z.object({
 });
 export type RecipeDetailResponse = z.infer<typeof RecipeDetailResponseSchema>;
 
+// Plan 22 · Phase D3 — batch lookup response for `GET /recipes?ids=...`.
+// Unordered; not paginated. Callers reassemble by id.
+export const RecipeBatchResponseSchema = z.object({
+  recipes: z.array(RecipeWireSchema),
+});
+export type RecipeBatchResponse = z.infer<typeof RecipeBatchResponseSchema>;
+
 // GET /recipes/:id/personalized — same recipe with user-specific serving/nutrition adjustments.
 // `scaling_factor` is the multiplier applied to ingredients/nutrition to meet the user's calorie
 // target. `adjusted_nutrition` reflects the scaled values for the user's serving size.
@@ -53,14 +67,15 @@ export const PersonalizedRecipeResponseSchema = z.object({
 });
 export type PersonalizedRecipeResponse = z.infer<typeof PersonalizedRecipeResponseSchema>;
 
-// Wire↔Row parity guard. `instructions` + `nutrition` are JSONB-shared via
-// InstructionStepSchema / NutritionSchema (same z.infer instance), so structural
-// parity is by construction — excluded from the top-level name/optionality check
-// to avoid false positives from Zod's `.optional() → T | undefined` inference
-// vs `entities.Recipe`'s `key: T | null` declaration.
+// Wire↔Row parity guard. `instructions` + `nutrition` + `citations` are JSONB-shared
+// via InstructionStepSchema / NutritionSchema / CitationSchema (same z.infer instance),
+// so structural parity is by construction — excluded from the top-level name/optionality
+// check to avoid false positives from Zod's `.optional() → T | undefined` inference
+// vs `entities.Recipe`'s `key: T | null` declaration. `narrative` is wire-only (lives
+// on meal_plans.days[].meals[].narrative JSONB, surfaced on recipe detail by the BFF).
 const _recipeWireRowParity = null as unknown as Omit<
   RecipeWire,
-  'instructions' | 'nutrition'
+  'instructions' | 'nutrition' | 'citations' | 'narrative'
 > satisfies {
   id: Recipe['id'];
   base_diet_id: Recipe['base_diet_id'];

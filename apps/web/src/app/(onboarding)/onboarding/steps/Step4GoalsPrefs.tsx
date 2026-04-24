@@ -1,31 +1,123 @@
 'use client';
 
+import { useState } from 'react';
 import type { ReactElement } from 'react';
-import { SegmentedControl } from '@celebbase/ui-kit';
-import type { SegmentedControlOption } from '@celebbase/ui-kit';
+import { Chip } from '@celebbase/ui-kit';
 import type { WizardStep4 } from '../wizard-schema.js';
 import styles from './steps.module.css';
 
 type PrimaryGoal = NonNullable<WizardStep4['primary_goal']>;
 type DietType = NonNullable<WizardStep4['diet_type']>;
 
-const PRIMARY_GOAL_OPTIONS: ReadonlyArray<SegmentedControlOption<PrimaryGoal>> = [
-  { value: 'weight_loss', label: '체중 감량' },
-  { value: 'muscle_gain', label: '근육 증가' },
-  { value: 'maintenance', label: '체중 유지' },
-  { value: 'longevity', label: '장수·건강' },
-  { value: 'energy', label: '에너지·컨디션' },
+interface ChipOption<T extends string> {
+  value: T;
+  label: string;
+}
+
+const PRIMARY_GOAL_OPTIONS: ReadonlyArray<ChipOption<PrimaryGoal>> = [
+  { value: 'weight_loss', label: 'Weight loss' },
+  { value: 'muscle_gain', label: 'Build muscle' },
+  { value: 'maintenance', label: 'Maintain weight' },
+  { value: 'longevity', label: 'Longevity' },
+  { value: 'energy', label: 'Daily energy' },
 ];
 
-const DIET_TYPE_OPTIONS: ReadonlyArray<SegmentedControlOption<DietType>> = [
-  { value: 'omnivore', label: '제한 없음' },
-  { value: 'pescatarian', label: '페스케테리언' },
-  { value: 'vegetarian', label: '채식' },
-  { value: 'vegan', label: '비건' },
-  { value: 'keto', label: '키토' },
-  { value: 'paleo', label: '팔레오' },
-  { value: 'mediterranean', label: '지중해식' },
+const DIET_TYPE_OPTIONS: ReadonlyArray<ChipOption<DietType>> = [
+  { value: 'omnivore', label: 'No restrictions' },
+  { value: 'pescatarian', label: 'Pescatarian' },
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'keto', label: 'Keto' },
+  { value: 'paleo', label: 'Paleo' },
+  { value: 'mediterranean', label: 'Mediterranean' },
 ];
+
+type SectionKey = 'primary_goal' | 'diet_type';
+
+interface SingleChipFieldProps<T extends string> {
+  id: string;
+  label: string;
+  addHint: string;
+  options: ReadonlyArray<ChipOption<T>>;
+  value: T | undefined;
+  onChange: (value: T) => void;
+  expanded: boolean;
+  onToggle: () => void;
+  onSelected: () => void;
+}
+
+function SingleChipField<T extends string>({
+  id,
+  label,
+  addHint,
+  options,
+  value,
+  onChange,
+  expanded,
+  onToggle,
+  onSelected,
+}: SingleChipFieldProps<T>): ReactElement {
+  const selectedOption = options.find((o) => o.value === value);
+
+  const handleSelect = (val: T): void => {
+    onChange(val);
+    onSelected();
+  };
+
+  return (
+    <section
+      className={styles.accordionSection}
+      data-expanded={expanded ? 'true' : 'false'}
+    >
+      <button
+        type="button"
+        className={styles.accordionHeader}
+        onClick={onToggle}
+        aria-expanded={expanded ? 'true' : 'false'}
+        aria-controls={`${id}-body`}
+      >
+        <span className={styles.accordionHeaderMain}>
+          <span className={styles.accordionLabel} id={`${id}-label`}>
+            {label}
+            <span aria-hidden="true" className={styles.requiredMark}>
+              *
+            </span>
+          </span>
+          {selectedOption ? (
+            <span className={styles.accordionSummary} aria-label={`${label} selected`}>
+              <span className={styles.summaryChip}>{selectedOption.label}</span>
+            </span>
+          ) : (
+            <span className={styles.accordionAddHint}>{addHint}</span>
+          )}
+        </span>
+      </button>
+
+      <div
+        id={`${id}-body`}
+        className={styles.accordionBody}
+        aria-hidden={!expanded}
+        inert={!expanded}
+      >
+        <div className={styles.accordionBodyInner}>
+          <div className={styles.accordionBodyContent}>
+            <div className={styles.chipGrid} role="group" aria-labelledby={`${id}-label`}>
+              {options.map((option) => (
+                <Chip
+                  key={option.value}
+                  label={option.label}
+                  size="sm"
+                  selected={option.value === value}
+                  onToggle={() => handleSelect(option.value)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export interface Step4Props {
   data: Partial<WizardStep4>;
@@ -33,49 +125,38 @@ export interface Step4Props {
 }
 
 export function Step4GoalsPrefs({ data, onChange }: Step4Props): ReactElement {
-  const primaryGoal = (data.primary_goal ?? '') as PrimaryGoal | '';
-  const dietType = (data.diet_type ?? '') as DietType | '';
+  const [expandedKey, setExpandedKey] = useState<SectionKey | null>(() =>
+    data.primary_goal ? null : 'primary_goal',
+  );
+
+  const toggle = (key: SectionKey) => (): void => {
+    setExpandedKey((current) => (current === key ? null : key));
+  };
 
   return (
     <div className={styles.root}>
-      <div className={styles.segmentField}>
-        <div className={styles.segmentLabel} id="primary-goal-label">
-          Primary health goal
-          <span aria-hidden="true" className={styles.requiredMark}>
-            {' '}
-            *
-          </span>
-        </div>
-        <div className={styles.segmentWrap}>
-          <SegmentedControl<PrimaryGoal>
-            id="primary-goal"
-            ariaLabel="Primary health goal"
-            options={PRIMARY_GOAL_OPTIONS}
-            value={primaryGoal as PrimaryGoal}
-            onChange={(val) => onChange({ ...data, primary_goal: val })}
-            size="sm"
-          />
-        </div>
-      </div>
-      <div className={styles.segmentField}>
-        <div className={styles.segmentLabel} id="diet-type-label">
-          Diet type
-          <span aria-hidden="true" className={styles.requiredMark}>
-            {' '}
-            *
-          </span>
-        </div>
-        <div className={styles.segmentWrap}>
-          <SegmentedControl<DietType>
-            id="diet-type"
-            ariaLabel="Diet type"
-            options={DIET_TYPE_OPTIONS}
-            value={dietType as DietType}
-            onChange={(val) => onChange({ ...data, diet_type: val })}
-            size="sm"
-          />
-        </div>
-      </div>
+      <SingleChipField<PrimaryGoal>
+        id="primary-goal"
+        label="Primary health goal"
+        addHint="Choose your goal"
+        options={PRIMARY_GOAL_OPTIONS}
+        value={data.primary_goal}
+        onChange={(primary_goal) => onChange({ ...data, primary_goal })}
+        expanded={expandedKey === 'primary_goal'}
+        onToggle={toggle('primary_goal')}
+        onSelected={() => setExpandedKey(data.diet_type ? null : 'diet_type')}
+      />
+      <SingleChipField<DietType>
+        id="diet-type"
+        label="Diet type"
+        addHint="Choose your diet"
+        options={DIET_TYPE_OPTIONS}
+        value={data.diet_type}
+        onChange={(diet_type) => onChange({ ...data, diet_type })}
+        expanded={expandedKey === 'diet_type'}
+        onToggle={toggle('diet_type')}
+        onSelected={() => setExpandedKey(null)}
+      />
     </div>
   );
 }
