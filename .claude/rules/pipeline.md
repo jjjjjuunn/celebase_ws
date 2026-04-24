@@ -49,6 +49,19 @@ scripts/pipeline.sh <TASK-ID> <step>
 - Anti-Patterns: 해당 작업에서 특히 주의할 패턴 명시
 - spec.md의 관련 섹션 번호를 Reference에 포함
 
+### BE Pydantic 필드명 실제 확인 후 Zod 작성 (IMPL-APP-005-b 교훈)
+
+shared-types의 Zod 스키마를 작성하기 전 **반드시 BE Pydantic 모델 파일을 직접 읽어** 실제 필드명을 확인한다:
+
+```bash
+# Python 모델 실제 필드명 확인
+grep -n "class Citation\|source_type\|title\|url\|celeb_persona" \
+  services/meal-plan-engine/src/engine/llm_schema.py
+```
+
+- Plan 문서의 이상적 계약 (`type/source/url`)과 실제 Python `model_dump()` 출력 (`source_type/title/url/celeb_persona`)이 다를 수 있다.
+- HANDOFF의 "BE Response Shape" 섹션은 실제 Python 모델 필드명 기준으로 작성한다 — 계획 단계의 이상화된 이름이 아닌 실제 출력 이름.
+
 ### DB Schema 인라인 규칙 (C3 교훈)
 
 Repository 또는 SQL 변경이 포함된 HANDOFF는 **대상 테이블 DDL을 인라인**해야 한다:
@@ -329,6 +342,22 @@ python3 -m venv services/meal-plan-engine/.venv
 Codex QA 프롬프트에 `.venv/bin/python -m pytest` 경로를 명시한다. 그래도 가짜 `pytest/` 디렉토리가 생성되면 `gate-check.sh`의 `check_fake_stubs()`가 자동 탐지하여 gate FAIL 처리한다.
 
 gate-qa 판정 시 Claude가 직접 `python3 -m pytest`를 실행해 실제 통과 여부를 이중 확인한다.
+
+### qa-exec 후 fake node_modules 탐지 필수 (IMPL-APP-005-b 교훈)
+
+Codex sandbox에 node_modules가 없을 때 `node_modules/.bin/tsc` 등 fake binary를 생성해 QA를 통과시키는 경우가 있다. `check_fake_stubs()`는 이를 감지하지 못할 수 있으므로 Claude가 직접 확인해야 한다:
+
+```bash
+# qa-exec 후 worktree에 node_modules가 생겼다면 크기 확인
+ls -la .worktrees/<TASK-ID>/node_modules/.bin/ 2>/dev/null
+# 실제 tsc: ~1.5KB, fake stub: ~84B
+```
+
+fake 탐지 시:
+1. `.worktrees/<TASK-ID>/node_modules/` 전체 삭제
+2. 실제 workspace tsc로 재검증: `node_modules/.bin/tsc -p packages/shared-types/tsconfig.json --noEmit`
+
+또한 Codex qa-exec이 구현 파일을 "개선"한다는 명목으로 수정하는 경우 `git diff HEAD` 로 확인 후 불필요한 변경은 `git checkout <file>` 로 revert한다.
 
 ### 신규 서비스 포트 할당 전 compose 상태 확인 (IMPL-016-c3 교훈)
 

@@ -30,6 +30,26 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-24
 agent: claude-sonnet-4-6
+task_id: IMPL-APP-005-b
+commit_sha: cd04370
+files_changed:
+  - packages/shared-types/src/enums/citation.ts
+  - packages/shared-types/src/schemas/meal-plans.ts
+  - packages/shared-types/src/index.ts
+verified_by: codex-review (PASS), tsc --noEmit 0 errors, fe_token_hardcode passed:true
+---
+### 완료: IMPL-APP-005-b — shared-types Citation enum + MealPlanDetailResponseSchema 확장
+- `enums/citation.ts` 신설: `CITATION_TYPES` (5개 값 as const), `CitationType`, `CITATION_LABELS_KO` 한국어 라벨 맵
+- `MealCitationSchema` 추가: Python `Citation.model_dump()` 필드 미러링 (`source_type/title/url/celeb_persona`)
+- `MealPlanDetailResponseSchema`를 alias에서 `MealPlanWireSchema.extend({...})`로 교체 — `mode/narrative/citations` 포함, 기존 필드 optional 유지 (하위 호환)
+- `index.ts` barrel에 `export * from './enums/citation.js'` 추가
+- Codex review CRITICAL=0 HIGH=0 PASS; qa-exec 후 fake node_modules/.bin/tsc stub 탐지·제거 후 실제 tsc 0 errors 확인
+### 미완료: IMPL-APP-005-c (FE UI — mode badge, narrative, citations), -d (E2E Playwright)
+### 연관 파일: packages/shared-types/src/
+
+---
+date: 2026-04-24
+agent: claude-sonnet-4-6
 task_id: IMPL-APP-005-a
 commit_sha: 8fd7403
 files_changed:
