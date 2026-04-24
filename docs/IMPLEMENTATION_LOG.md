@@ -30,6 +30,28 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-23
 agent: claude-opus-4-7
+task_id: IMPL-AI-001-c
+commit_sha: e483d8c
+files_changed:
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/engine/llm_schema.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/requirements.txt
+verified_by: python3 ast.parse (syntax check 5개 파일)
+---
+### 완료: IMPL-AI-001-c — OpenAI client + LLM schemas + phi_minimizer llm_ranking
+- llm_client.py: sanitize_celeb_source(XML escape/BS-NEW-01) · estimate_prompt_cost(tiktoken Gate0/BS-NEW-02) · Redis quota/kill switch · call_openai_ranker(structured output+Pydantic Gate1)
+- llm_schema.py: CitationSource(5 enum) · Citation(url|celeb_persona refine) · LlmRankedMeal(citations min=1) · LlmRankedMealList · LlmProvenance · LlmRerankResult
+- phi_minimizer.py: llm_ranking 슬라이스 추가 (3개 필드, allergies 제외)
+- config.py: 13개 LLM env 추가 (OPENAI_API_KEY 등)
+- requirements.txt: openai/tiktoken/Jinja2/pytest-recording 추가
+### 미완료: llm_reranker.py + llm_safety.py + pipeline.py 통합 (→ IMPL-AI-001-d)
+### 연관 파일: services/meal-plan-engine/src/clients/llm_client.py, src/engine/llm_schema.py
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
 task_id: IMPL-AI-001-b
 commit_sha: afa4ecc
 files_changed:
