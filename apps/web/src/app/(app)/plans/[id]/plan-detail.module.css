@@ -169,10 +169,17 @@
 
 .mealRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--cb-space-2);
   font-size: var(--cb-font-size-sm);
   color: var(--cb-color-text);
+}
+
+.mealRowMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cb-space-2);
 }
 
 .mealType {
@@ -192,4 +199,81 @@
 
 .recipeLink:hover {
   text-decoration: underline;
+}
+
+/* LLM mode badges */
+.modeBadgeLlm {
+  flex-shrink: 0;
+  padding: var(--cb-space-1) var(--cb-space-3);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-medium);
+  background: var(--cb-color-brand-subtle);
+  color: var(--cb-color-brand);
+}
+
+.modeBadgeStandard {
+  flex-shrink: 0;
+  padding: var(--cb-space-1) var(--cb-space-3);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-medium);
+  background: var(--cb-color-neutral-100);
+  color: var(--cb-color-text-subtle);
+}
+
+/* Standard mode info banner */
+.standardBanner {
+  padding: var(--cb-space-3) var(--cb-space-4);
+  background: var(--cb-info-100);
+  color: var(--cb-info-600);
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+}
+
+/* Narrative card */
+.narrativeCard {
+  margin: 0;
+  padding: var(--cb-space-2) var(--cb-space-3);
+  background: var(--cb-color-brand-subtle);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text);
+  line-height: var(--cb-line-height-relaxed);
+}
+
+.narrativeCard::before {
+  content: '"';
+  color: var(--cb-color-brand);
+  margin-right: var(--cb-space-1);
+}
+
+/* Citation chip list */
+.citationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cb-space-1);
+}
+
+.citationChip {
+  padding: var(--cb-space-1) var(--cb-space-2);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-subtle);
+  white-space: nowrap;
+}
+
+.citationChipOverflow {
+  padding: var(--cb-space-1) var(--cb-space-2);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-subtle);
+  white-space: nowrap;
 }
