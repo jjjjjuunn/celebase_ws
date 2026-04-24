@@ -28,6 +28,25 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-AI-001-a
+commit_sha: 9f1801d
+files_changed:
+  - docs/LLM-DESIGN.md
+  - spec.md
+verified_by: codex-review, gemini-review
+---
+### 완료: IMPL-AI-001-a — LLM Enhancement Layer 설계 문서 v1.0 확정
+- Plan v0.1 Codex 리뷰(FAIL) + Gemini 리뷰(PASS-WITH-COMMENTS) → Plan v0.2 반영
+- docs/LLM-DESIGN.md v1.0: S1-S17 전체 섹션 (PHI slice/Safety Gates/asyncpg tx/PolicyEngine 등)
+- Gemini 재리뷰 3개 발견 반영: sanitize_celeb_source()(BS-NEW-01), Gate 0 비용 pre-check(BS-NEW-02), final_out mode 필드(BS-NEW-03)
+- spec.md §5.8 신설: LLM Enhancement Layer 역할 경계·PHI boundary·Mode Flag·비용 cap·PolicyEngine
+- spec.md §5.7 TASK_FIELD_MAP: llm_ranking 슬라이스 추가
+### 미완료: Phase B HANDOFF (-b ~ -f) 구현 미착수
+### 연관 파일: docs/LLM-DESIGN.md, spec.md, pipeline/runs/IMPL-AI-001-a/CODEX-DESIGN-REVIEW.md, pipeline/runs/IMPL-AI-001-a/GEMINI-DESIGN-REVIEW.md
+
+---
 date: 2026-04-18
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-001b-1a
