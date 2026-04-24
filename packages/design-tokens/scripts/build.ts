@@ -38,8 +38,9 @@ function parseBlock(css: string, selector: string): TokenMap {
 }
 
 function formatMap(map: TokenMap, indent = '  '): string {
-  const keys = Object.keys(map).sort();
-  const entries = keys.map((k) => `${indent}'${k}': '${map[k]!.replace(/'/g, "\\'")}',`);
+  const entries = Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${indent}'${k}': '${v.replace(/'/g, "\\'")}',`);
   return `{\n${entries.join('\n')}\n}`;
 }
 
@@ -73,8 +74,11 @@ export function getToken(theme: 'light' | 'dark', name: TokenName): string {
 `;
 
   writeFileSync(OUTPUT_TS, `${header}\n${body}`, 'utf8');
+  const lightCount = String(Object.keys(light).length);
+  const darkCount = String(Object.keys(dark).length);
+  const overrideCount = String(Object.keys(darkOverrides).length);
   process.stdout.write(
-    `[design-tokens] emitted tokens.native.ts (light=${Object.keys(light).length}, dark=${Object.keys(dark).length}, overrides=${Object.keys(darkOverrides).length})\n`,
+    `[design-tokens] emitted tokens.native.ts (light=${lightCount}, dark=${darkCount}, overrides=${overrideCount})\n`,
   );
 }
 

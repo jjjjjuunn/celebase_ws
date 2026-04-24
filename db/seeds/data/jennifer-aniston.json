@@ -2,10 +2,15 @@
   "slug": "jennifer-aniston",
   "display_name": "Jennifer Aniston",
   "short_bio": "Beloved actress known for her intermittent fasting routine combined with a Mediterranean-style diet rich in fish, olive oil, vegetables, and whole grains.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/jennifer-aniston/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/jennifer-aniston/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/jennifer-aniston/400/400",
+  "cover_image_url": "https://picsum.photos/seed/jennifer-aniston-cover/800/600",
   "category": "general",
-  "tags": ["intermittent-fasting", "mediterranean", "anti-aging", "balanced"],
+  "tags": [
+    "intermittent-fasting",
+    "mediterranean",
+    "anti-aging",
+    "balanced"
+  ],
   "is_featured": true,
   "sort_order": 9,
   "base_diet": {
@@ -14,273 +19,1135 @@
     "philosophy": "Jennifer practices 16:8 intermittent fasting, typically eating between noon and 8pm. Within her eating window, she follows a Mediterranean approach with lean proteins, healthy fats, and abundant vegetables.",
     "diet_type": "pescatarian",
     "avg_daily_kcal": 1700,
-    "macro_ratio": { "protein_pct": 25, "carbs_pct": 40, "fat_pct": 35 },
-    "included_foods": ["salmon", "sardines", "eggs", "olive oil", "avocado", "leafy greens", "quinoa", "vegetables", "berries", "nuts"],
-    "excluded_foods": ["processed foods", "refined sugar", "fried foods", "excessive bread", "soda"],
-    "key_supplements": ["Collagen Peptides", "Omega-3", "Vitamin D", "Probiotics"],
+    "macro_ratio": {
+      "protein_pct": 25,
+      "carbs_pct": 40,
+      "fat_pct": 35
+    },
+    "included_foods": [
+      "salmon",
+      "sardines",
+      "eggs",
+      "olive oil",
+      "avocado",
+      "leafy greens",
+      "quinoa",
+      "vegetables",
+      "berries",
+      "nuts"
+    ],
+    "excluded_foods": [
+      "processed foods",
+      "refined sugar",
+      "fried foods",
+      "excessive bread",
+      "soda"
+    ],
+    "key_supplements": [
+      "Collagen Peptides",
+      "Omega-3",
+      "Vitamin D",
+      "Probiotics"
+    ],
     "source_refs": [
-      { "type": "interview", "outlet": "Radio Times", "date": "2019-10-24" },
-      { "type": "interview", "outlet": "InStyle", "date": "2021-09-15" }
+      {
+        "type": "interview",
+        "outlet": "Radio Times",
+        "date": "2019-10-24"
+      },
+      {
+        "type": "interview",
+        "outlet": "InStyle",
+        "date": "2021-09-15"
+      }
     ]
   },
   "recipes": [
-    { "title": "Smoked Salmon and Egg Plate", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 8, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 400, "protein_g": 28, "carbs_g": 12, "fat_g": 28, "fiber_g": 4, "sugar_g": 2, "sodium_mg": 580 },
+    {
+      "title": "Smoked Salmon and Egg Plate",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 8,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 28,
+        "carbs_g": 12,
+        "fat_g": 28,
+        "fiber_g": 4,
+        "sugar_g": 2,
+        "sodium_mg": 580
+      },
       "instructions": [
-        { "step": 1, "text": "Fry two eggs in olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Plate with smoked salmon, avocado slices, and cherry tomatoes.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Fry two eggs in olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Plate with smoked salmon, avocado slices, and cherry tomatoes.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large" },
-        { "ingredient_name": "Smoked Salmon", "quantity": 3, "unit": "oz" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 6, "unit": "pieces" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Smoked Salmon",
+          "quantity": 3,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 6,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Greek Yogurt Parfait", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 22, "carbs_g": 38, "fat_g": 12, "fiber_g": 4, "sugar_g": 18, "sodium_mg": 80 },
+    {
+      "title": "Greek Yogurt Parfait",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 22,
+        "carbs_g": 38,
+        "fat_g": 12,
+        "fiber_g": 4,
+        "sugar_g": 18,
+        "sodium_mg": 80
+      },
       "instructions": [
-        { "step": 1, "text": "Layer Greek yogurt with granola, berries, and a drizzle of honey.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Layer Greek yogurt with granola, berries, and a drizzle of honey.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Greek Yogurt", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Granola", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Strawberries", "quantity": 3, "unit": "pieces", "preparation": "sliced" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 3,
+          "unit": "pieces",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Veggie Omelette with Feta", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 10, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 24, "carbs_g": 8, "fat_g": 26, "fiber_g": 3, "sugar_g": 4, "sodium_mg": 520 },
+    {
+      "title": "Veggie Omelette with Feta",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 24,
+        "carbs_g": 8,
+        "fat_g": 26,
+        "fiber_g": 3,
+        "sugar_g": 4,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté spinach, tomato, and red onion in olive oil.", "duration_min": 4 },
-        { "step": 2, "text": "Pour beaten eggs over vegetables. Cook until set.", "duration_min": 5 },
-        { "step": 3, "text": "Fold and top with crumbled feta.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Sauté spinach, tomato, and red onion in olive oil.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Pour beaten eggs over vegetables. Cook until set.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Fold and top with crumbled feta.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Eggs", "quantity": 3, "unit": "large" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Tomato", "quantity": 0.5, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Red Onion", "quantity": 2, "unit": "tbsp", "preparation": "diced" },
-        { "ingredient_name": "Feta Cheese", "quantity": 1, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Red Onion",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Feta Cheese",
+          "quantity": 1,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Collagen Coffee Smoothie", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 18, "carbs_g": 26, "fat_g": 12, "fiber_g": 3, "sugar_g": 12, "sodium_mg": 100 },
+    {
+      "title": "Collagen Coffee Smoothie",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 18,
+        "carbs_g": 26,
+        "fat_g": 12,
+        "fiber_g": 3,
+        "sugar_g": 12,
+        "sodium_mg": 100
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until frothy and smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until frothy and smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Collagen Peptides", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Cinnamon", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Collagen Peptides",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Mediterranean Salmon Salad", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 12, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 480, "protein_g": 34, "carbs_g": 20, "fat_g": 30, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 440 },
+    {
+      "title": "Mediterranean Salmon Salad",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 34,
+        "carbs_g": 20,
+        "fat_g": 30,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Pan-sear salmon fillet.", "duration_min": 10 },
-        { "step": 2, "text": "Arrange over mixed greens with cucumber, olives, feta, and red onion.", "duration_min": 5 },
-        { "step": 3, "text": "Dress with olive oil and lemon.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Pan-sear salmon fillet.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Arrange over mixed greens with cucumber, olives, feta, and red onion.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Dress with olive oil and lemon.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 5, "unit": "oz" },
-        { "ingredient_name": "Mixed Greens", "quantity": 3, "unit": "cup" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Kalamata Olives", "quantity": 6, "unit": "pieces" },
-        { "ingredient_name": "Feta Cheese", "quantity": 1, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Red Onion", "quantity": 2, "unit": "tbsp", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 5,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Kalamata Olives",
+          "quantity": 6,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Feta Cheese",
+          "quantity": 1,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Red Onion",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Quinoa and Grilled Veggie Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 420, "protein_g": 14, "carbs_g": 52, "fat_g": 18, "fiber_g": 8, "sugar_g": 5, "sodium_mg": 340 },
+    {
+      "title": "Quinoa and Grilled Veggie Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 14,
+        "carbs_g": 52,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 5,
+        "sodium_mg": 340
+      },
       "instructions": [
-        { "step": 1, "text": "Grill zucchini, bell pepper, and eggplant.", "duration_min": 10 },
-        { "step": 2, "text": "Serve over quinoa with olive oil, lemon, and fresh basil.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Grill zucchini, bell pepper, and eggplant.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Serve over quinoa with olive oil, lemon, and fresh basil.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "quartered" },
-        { "ingredient_name": "Eggplant", "quantity": 0.5, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Basil", "quantity": 2, "unit": "tbsp", "preparation": "torn" }
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "quartered"
+        },
+        {
+          "ingredient_name": "Eggplant",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Basil",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "torn"
+        }
       ]
     },
-    { "title": "Tuna Niçoise Salad", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 12, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 440, "protein_g": 30, "carbs_g": 24, "fat_g": 26, "fiber_g": 5, "sugar_g": 4, "sodium_mg": 520 },
+    {
+      "title": "Tuna Niçoise Salad",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 30,
+        "carbs_g": 24,
+        "fat_g": 26,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Boil eggs and green beans. Cool.", "duration_min": 12 },
-        { "step": 2, "text": "Arrange seared tuna, eggs, green beans, olives, and tomatoes over greens.", "duration_min": 8 },
-        { "step": 3, "text": "Dress with olive oil and Dijon vinaigrette.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Boil eggs and green beans. Cool.",
+          "duration_min": 12
+        },
+        {
+          "step": 2,
+          "text": "Arrange seared tuna, eggs, green beans, olives, and tomatoes over greens.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Dress with olive oil and Dijon vinaigrette.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tuna Steak", "quantity": 6, "unit": "oz", "preparation": "seared" },
-        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large", "preparation": "hard-boiled" },
-        { "ingredient_name": "Green Beans", "quantity": 1, "unit": "cup", "preparation": "blanched" },
-        { "ingredient_name": "Kalamata Olives", "quantity": 8, "unit": "pieces" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Mixed Greens", "quantity": 3, "unit": "cup" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Dijon Mustard", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Tuna Steak",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "seared"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large",
+          "preparation": "hard-boiled"
+        },
+        {
+          "ingredient_name": "Green Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "blanched"
+        },
+        {
+          "ingredient_name": "Kalamata Olives",
+          "quantity": 8,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Dijon Mustard",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Sardine and Avocado Toast", "meal_type": "lunch", "prep_time_min": 5, "cook_time_min": 3, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 22, "carbs_g": 26, "fat_g": 22, "fiber_g": 7, "sugar_g": 2, "sodium_mg": 540 },
+    {
+      "title": "Sardine and Avocado Toast",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 22,
+        "carbs_g": 26,
+        "fat_g": 22,
+        "fiber_g": 7,
+        "sugar_g": 2,
+        "sodium_mg": 540
+      },
       "instructions": [
-        { "step": 1, "text": "Toast sourdough bread.", "duration_min": 3 },
-        { "step": 2, "text": "Top with mashed avocado and sardines. Season with lemon and pepper.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Toast sourdough bread.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Top with mashed avocado and sardines. Season with lemon and pepper.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sourdough Bread", "quantity": 2, "unit": "slices", "preparation": "toasted" },
-        { "ingredient_name": "Sardines", "quantity": 1, "unit": "can", "preparation": "drained" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Black Pepper", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Sourdough Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Sardines",
+          "quantity": 1,
+          "unit": "can",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Baked Salmon with Roasted Vegetables", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 25, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 460, "protein_g": 34, "carbs_g": 22, "fat_g": 26, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 400 },
+    {
+      "title": "Baked Salmon with Roasted Vegetables",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 34,
+        "carbs_g": 22,
+        "fat_g": 26,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 400
+      },
       "instructions": [
-        { "step": 1, "text": "Season salmon with herbs and lemon. Place on sheet pan.", "duration_min": 3 },
-        { "step": 2, "text": "Surround with asparagus, cherry tomatoes, and zucchini.", "duration_min": 3 },
-        { "step": 3, "text": "Roast at 400°F.", "duration_min": 20 }
+        {
+          "step": 1,
+          "text": "Season salmon with herbs and lemon. Place on sheet pan.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Surround with asparagus, cherry tomatoes, and zucchini.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Roast at 400°F.",
+          "duration_min": 20
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 10, "unit": "oz" },
-        { "ingredient_name": "Asparagus", "quantity": 1, "unit": "bunch", "preparation": "trimmed" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 1,
+          "unit": "bunch",
+          "preparation": "trimmed"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Shrimp and Quinoa Bowl", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 12, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 440, "protein_g": 30, "carbs_g": 42, "fat_g": 16, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 520 },
+    {
+      "title": "Shrimp and Quinoa Bowl",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 30,
+        "carbs_g": 42,
+        "fat_g": 16,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté shrimp with garlic and paprika in olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Serve over quinoa with arugula, cherry tomatoes, and lemon dressing.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Sauté shrimp with garlic and paprika in olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Serve over quinoa with arugula, cherry tomatoes, and lemon dressing.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Shrimp", "quantity": 8, "unit": "oz", "preparation": "peeled" },
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Arugula", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Paprika", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Shrimp",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "peeled"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Arugula",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Herb-Baked Cod with Artichokes", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 36, "carbs_g": 18, "fat_g": 16, "fiber_g": 6, "sugar_g": 3, "sodium_mg": 440 },
+    {
+      "title": "Herb-Baked Cod with Artichokes",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 36,
+        "carbs_g": 18,
+        "fat_g": 16,
+        "fiber_g": 6,
+        "sugar_g": 3,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Place cod in a baking dish with artichoke hearts and olives.", "duration_min": 3 },
-        { "step": 2, "text": "Drizzle with olive oil, lemon, and herbs. Bake at 375°F.", "duration_min": 18 }
+        {
+          "step": 1,
+          "text": "Place cod in a baking dish with artichoke hearts and olives.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Drizzle with olive oil, lemon, and herbs. Bake at 375°F.",
+          "duration_min": 18
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cod Fillet", "quantity": 10, "unit": "oz" },
-        { "ingredient_name": "Artichoke Hearts", "quantity": 1, "unit": "cup", "preparation": "quartered" },
-        { "ingredient_name": "Kalamata Olives", "quantity": 8, "unit": "pieces" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Oregano", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Artichoke Hearts",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "quartered"
+        },
+        {
+          "ingredient_name": "Kalamata Olives",
+          "quantity": 8,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
-    { "title": "Grilled Chicken with Mediterranean Salad", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 440, "protein_g": 36, "carbs_g": 14, "fat_g": 28, "fiber_g": 4, "sugar_g": 4, "sodium_mg": 480 },
+    {
+      "title": "Grilled Chicken with Mediterranean Salad",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 36,
+        "carbs_g": 14,
+        "fat_g": 28,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Grill chicken breast with oregano and lemon.", "duration_min": 14 },
-        { "step": 2, "text": "Serve over cucumber, tomato, olive, and feta salad.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Grill chicken breast with oregano and lemon.",
+          "duration_min": 14
+        },
+        {
+          "step": 2,
+          "text": "Serve over cucumber, tomato, olive, and feta salad.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Tomato", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Kalamata Olives", "quantity": 6, "unit": "pieces" },
-        { "ingredient_name": "Feta Cheese", "quantity": 1, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Oregano", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Kalamata Olives",
+          "quantity": 6,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Feta Cheese",
+          "quantity": 1,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Almonds and Dark Chocolate", "meal_type": "snack", "prep_time_min": 1, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 200, "protein_g": 6, "carbs_g": 14, "fat_g": 14, "fiber_g": 3, "sugar_g": 8, "sodium_mg": 10 },
+    {
+      "title": "Almonds and Dark Chocolate",
+      "meal_type": "snack",
+      "prep_time_min": 1,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 6,
+        "carbs_g": 14,
+        "fat_g": 14,
+        "fiber_g": 3,
+        "sugar_g": 8,
+        "sodium_mg": 10
+      },
       "instructions": [
-        { "step": 1, "text": "Pair a handful of almonds with dark chocolate squares.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Pair a handful of almonds with dark chocolate squares.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Almonds", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Dark Chocolate", "quantity": 1, "unit": "oz" }
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 1,
+          "unit": "oz"
+        }
       ]
     },
-    { "title": "Greek Yogurt with Cucumber and Dill", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 140, "protein_g": 14, "carbs_g": 10, "fat_g": 6, "fiber_g": 1, "sugar_g": 6, "sodium_mg": 120 },
+    {
+      "title": "Greek Yogurt with Cucumber and Dill",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 140,
+        "protein_g": 14,
+        "carbs_g": 10,
+        "fat_g": 6,
+        "fiber_g": 1,
+        "sugar_g": 6,
+        "sodium_mg": 120
+      },
       "instructions": [
-        { "step": 1, "text": "Mix Greek yogurt with diced cucumber, dill, and a squeeze of lemon.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Mix Greek yogurt with diced cucumber, dill, and a squeeze of lemon.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Greek Yogurt", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Cucumber", "quantity": 0.25, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Dill", "quantity": 1, "unit": "tsp", "preparation": "fresh" },
-        { "ingredient_name": "Lemon", "quantity": 0.25, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.25,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Dill",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.25,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Olives and Hummus Plate", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 180, "protein_g": 5, "carbs_g": 12, "fat_g": 14, "fiber_g": 3, "sugar_g": 1, "sodium_mg": 520 },
+    {
+      "title": "Olives and Hummus Plate",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 5,
+        "carbs_g": 12,
+        "fat_g": 14,
+        "fiber_g": 3,
+        "sugar_g": 1,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Arrange olives and hummus with vegetable sticks on a plate.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Arrange olives and hummus with vegetable sticks on a plate.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Kalamata Olives", "quantity": 10, "unit": "pieces" },
-        { "ingredient_name": "Hummus", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "small", "preparation": "sticks" },
-        { "ingredient_name": "Cucumber", "quantity": 0.25, "unit": "whole", "preparation": "sticks" }
+        {
+          "ingredient_name": "Kalamata Olives",
+          "quantity": 10,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "sticks"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.25,
+          "unit": "whole",
+          "preparation": "sticks"
+        }
       ]
     },
-    { "title": "Apple and Walnut Snack", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 220, "protein_g": 4, "carbs_g": 28, "fat_g": 12, "fiber_g": 5, "sugar_g": 18, "sodium_mg": 10 },
+    {
+      "title": "Apple and Walnut Snack",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 4,
+        "carbs_g": 28,
+        "fat_g": 12,
+        "fiber_g": 5,
+        "sugar_g": 18,
+        "sodium_mg": 10
+      },
       "instructions": [
-        { "step": 1, "text": "Slice apple and pair with walnut halves.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Slice apple and pair with walnut halves.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Green Mediterranean Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 14, "carbs_g": 34, "fat_g": 10, "fiber_g": 5, "sugar_g": 16, "sodium_mg": 100 },
+    {
+      "title": "Green Mediterranean Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 14,
+        "carbs_g": 34,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 16,
+        "sodium_mg": 100
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Collagen Peptides", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Walnuts", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Collagen Peptides",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Berry and Flax Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 260, "protein_g": 8, "carbs_g": 40, "fat_g": 8, "fiber_g": 7, "sugar_g": 20, "sodium_mg": 70 },
+    {
+      "title": "Berry and Flax Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 8,
+        "carbs_g": 40,
+        "fat_g": 8,
+        "fiber_g": 7,
+        "sugar_g": 20,
+        "sodium_mg": 70
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Mixed Berries", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Ground Flaxseed", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Ground Flaxseed",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     }
   ]

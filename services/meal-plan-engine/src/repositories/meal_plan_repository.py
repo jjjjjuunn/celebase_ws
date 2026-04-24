@@ -4,6 +4,7 @@ All queries use parameterized placeholders ($1, $2, …) — no string
 concatenation.  UUIDs are generated via the ``uuid7`` package.
 Soft-delete is enforced by filtering ``deleted_at IS NULL``.
 """
+
 from __future__ import annotations
 
 import json
@@ -172,7 +173,14 @@ async def update_meal_plan(
     if not updates:
         return await get_meal_plan(pool, plan_id, user_id)
 
-    allowed_columns = {"status", "daily_plans", "adjustments", "name", "start_date", "end_date"}
+    allowed_columns = {
+        "status",
+        "daily_plans",
+        "adjustments",
+        "name",
+        "start_date",
+        "end_date",
+    }
     filtered = {k: v for k, v in updates.items() if k in allowed_columns}
     if not filtered:
         return await get_meal_plan(pool, plan_id, user_id)
@@ -197,7 +205,7 @@ async def update_meal_plan(
 
     sql = f"""
         UPDATE meal_plans
-        SET {', '.join(set_parts)}
+        SET {", ".join(set_parts)}
         WHERE id = ${idx} AND user_id = ${idx + 1} AND deleted_at IS NULL
         RETURNING *
     """

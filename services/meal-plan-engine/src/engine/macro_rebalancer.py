@@ -77,12 +77,16 @@ def rebalance_macros(
 
     base_mult = ACTIVITY_BASE.get(activity_key)
     if base_mult is None:
-        _logger.warning("Unknown activity_level %r → defaulting to 'moderate'", activity_level)
+        _logger.warning(
+            "Unknown activity_level %r → defaulting to 'moderate'", activity_level
+        )
         base_mult = ACTIVITY_BASE["moderate"]
 
     goal_min = GOAL_MINIMUM.get(goal_key)
     if goal_min is None:
-        _logger.warning("Unknown primary_goal %r → assuming 'maintenance'", primary_goal)
+        _logger.warning(
+            "Unknown primary_goal %r → assuming 'maintenance'", primary_goal
+        )
         goal_min = GOAL_MINIMUM["maintenance"]
 
     # Step 1 & 2 — select effective multiplier then clamp to bounds.
@@ -125,4 +129,3 @@ def rebalance_macros(
         "carb_g": round(carb_g, 1),
         "protein_multiplier": round(effective, 2),
     }
-

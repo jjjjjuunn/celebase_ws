@@ -1,0 +1,102 @@
+.root {
+  width: 100%;
+  padding: var(--cb-space-4) var(--cb-space-5);
+  border-radius: var(--cb-radius-md);
+  border: 1px solid var(--cb-color-border);
+  background: var(--cb-color-surface);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text);
+}
+
+.connecting {
+  border-color: var(--cb-color-border);
+  color: var(--cb-color-text-subtle);
+}
+
+.streaming {
+  border-color: var(--cb-color-brand);
+  background: var(--cb-color-surface);
+}
+
+.error {
+  border-color: var(--cb-color-error);
+  background: var(--cb-color-error-subtle, var(--cb-color-surface));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-3);
+}
+
+.streamingBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--cb-color-border);
+  border-top-color: var(--cb-color-brand);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pct {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--cb-color-text-subtle);
+}
+
+.track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--cb-radius-md);
+  background: var(--cb-color-border);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--cb-color-brand);
+  border-radius: var(--cb-radius-md);
+  transition: width 0.3s ease;
+}
+
+.errorIcon {
+  color: var(--cb-color-error);
+}
+
+.errorText {
+  flex: 1;
+  color: var(--cb-color-error);
+}
+
+.retryBtn {
+  margin-left: auto;
+  padding: var(--cb-space-1) var(--cb-space-3);
+  border: 1px solid var(--cb-color-error);
+  border-radius: var(--cb-radius-sm);
+  background: transparent;
+  color: var(--cb-color-error);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.retryBtn:hover {
+  background: var(--cb-color-error-subtle, var(--cb-color-surface));
+}
+
+.retryBtn:focus-visible {
+  outline: 2px solid var(--cb-color-error);
+  outline-offset: 2px;
+}

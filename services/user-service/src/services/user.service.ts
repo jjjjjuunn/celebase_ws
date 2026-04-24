@@ -8,6 +8,7 @@ type UpdateableUserFields = {
   avatar_url?: string | null | undefined;
   locale?: string | undefined;
   timezone?: string | undefined;
+  preferred_celebrity_slug?: string | null | undefined;
 };
 
 export async function getMe(pool: pg.Pool, userId: string): Promise<User> {

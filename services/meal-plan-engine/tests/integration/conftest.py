@@ -6,18 +6,27 @@ Assumes:
 - meal-plan-engine on localhost:3003
 - LocalStack SQS on localhost:4566 with queue 'meal-plan-generation'
 """
+
 from __future__ import annotations
 
 import os
+
+import pytest
+
+if not os.getenv("LOCALSTACK_ENDPOINT"):
+    pytest.skip(
+        "integration tests require LOCALSTACK_ENDPOINT",
+        allow_module_level=True,
+    )
+
 import time
 import uuid
-from typing import Any, Dict
+from typing import Dict
 
 import asyncpg
 import boto3
 import httpx
 import jwt as pyjwt
-import pytest
 import pytest_asyncio
 from botocore.exceptions import ClientError
 
@@ -25,7 +34,7 @@ TEST_DB_URL = os.environ.get(
     "INTEGRATION_DATABASE_URL",
     "postgresql://celebbase:devpw@localhost:5432/celebbase_dev",
 )
-TEST_JWT_SECRET = os.environ.get("INTEGRATION_JWT_SECRET", "dev-secret-not-for-prod")
+TEST_JWT_SECRET = os.environ.get("INTERNAL_JWT_SECRET", "dev-secret-not-for-prod")
 USER_SERVICE_URL = os.environ.get("INTEGRATION_USER_SVC_URL", "http://localhost:3001")
 MPE_URL = os.environ.get("INTEGRATION_MPE_URL", "http://localhost:3003")
 SQS_ENDPOINT = os.environ.get("INTEGRATION_SQS_ENDPOINT", "http://localhost:4566")

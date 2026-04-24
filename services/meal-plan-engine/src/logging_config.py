@@ -1,4 +1,5 @@
 """Structured JSON logging — mirrors service-core/src/logger.ts (pino)."""
+
 from __future__ import annotations
 
 import logging

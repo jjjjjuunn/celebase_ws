@@ -5,6 +5,14 @@
       "dependsOn": [
         "^build"
       ],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "**/*.py",
+        "requirements.txt",
+        "pyproject.toml"
+      ],
       "outputs": [
         "dist/**"
       ]
@@ -16,15 +24,45 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
+    "lint": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "scripts/**",
+        "**/*.py",
+        "eslint.config*",
+        ".eslintrc*",
+        "tsconfig*.json",
+        "ruff.toml",
+        "pyproject.toml",
+        "package.json"
+      ]
+    },
     "typecheck": {
       "dependsOn": [
         "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json"
       ]
     },
     "test": {
       "dependsOn": [
         "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "test/**",
+        "**/*.py",
+        "jest.config*",
+        "package.json",
+        "requirements.txt"
       ],
       "outputs": [
         "coverage/**"
@@ -38,6 +76,12 @@
       "persistent": true
     },
     "build-storybook": {
+      "inputs": [
+        "src/**",
+        "stories/**",
+        "*.config.*",
+        "package.json"
+      ],
       "outputs": [
         "storybook-static/**"
       ]

@@ -4,6 +4,7 @@ Boot-time invariant: ``SQS_QUEUE_URL`` must be set.
 Test env (pytest in ``sys.modules`` or ``NODE_ENV=test``) is exempt to keep
 unit tests hermetic.
 """
+
 from __future__ import annotations
 
 import asyncio

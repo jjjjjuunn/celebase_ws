@@ -9,6 +9,16 @@ const UpdateMeSchema = z.object({
   avatar_url: z.string().url().optional(),
   locale: z.string().max(10).optional(),
   timezone: z.string().max(50).optional(),
+  // Plan 20-vast-adleman · Phase C-0 — persona-first onboarding selection.
+  // Validated as slug shape only; existence is checked at onboarding time by
+  // the BFF against content-service (Rule #10 no cross-service FK).
+  preferred_celebrity_slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9][a-z0-9-]*$/)
+    .nullable()
+    .optional(),
 }).strict();
 
 // eslint-disable-next-line @typescript-eslint/require-await

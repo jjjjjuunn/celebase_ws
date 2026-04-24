@@ -2,10 +2,16 @@
   "slug": "lebron-james",
   "display_name": "LeBron James",
   "short_bio": "NBA legend investing heavily in nutrition science, focusing on performance fuel, recovery meals, and strategic carb cycling to sustain elite-level play into his late career.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/lebron-james/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/lebron-james/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/lebron-james/400/400",
+  "cover_image_url": "https://picsum.photos/seed/lebron-james-cover/800/600",
   "category": "protein",
-  "tags": ["performance", "recovery", "carb-cycling", "athlete", "nba"],
+  "tags": [
+    "performance",
+    "recovery",
+    "carb-cycling",
+    "athlete",
+    "nba"
+  ],
   "is_featured": true,
   "sort_order": 5,
   "base_diet": {
@@ -14,274 +20,1132 @@
     "philosophy": "LeBron reportedly spends over $1.5M annually on his body, including a personal chef. He eliminated sugar and all processed carbs during his famous 67-day challenge, and continues to focus on quality whole foods.",
     "diet_type": "omnivore",
     "avg_daily_kcal": 3500,
-    "macro_ratio": { "protein_pct": 30, "carbs_pct": 45, "fat_pct": 25 },
-    "included_foods": ["chicken", "salmon", "eggs", "sweet potato", "quinoa", "leafy greens", "avocado", "berries", "bone broth"],
-    "excluded_foods": ["refined sugar", "processed foods", "fried foods", "soda", "candy"],
-    "key_supplements": ["Whey Protein", "Omega-3", "Turmeric/Curcumin", "Vitamin D", "Magnesium"],
+    "macro_ratio": {
+      "protein_pct": 30,
+      "carbs_pct": 45,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "chicken",
+      "salmon",
+      "eggs",
+      "sweet potato",
+      "quinoa",
+      "leafy greens",
+      "avocado",
+      "berries",
+      "bone broth"
+    ],
+    "excluded_foods": [
+      "refined sugar",
+      "processed foods",
+      "fried foods",
+      "soda",
+      "candy"
+    ],
+    "key_supplements": [
+      "Whey Protein",
+      "Omega-3",
+      "Turmeric/Curcumin",
+      "Vitamin D",
+      "Magnesium"
+    ],
     "source_refs": [
-      { "type": "interview", "outlet": "ESPN", "date": "2014-09-10" },
-      { "type": "article", "outlet": "Sports Illustrated", "date": "2018-11-20" }
+      {
+        "type": "interview",
+        "outlet": "ESPN",
+        "date": "2014-09-10"
+      },
+      {
+        "type": "article",
+        "outlet": "Sports Illustrated",
+        "date": "2018-11-20"
+      }
     ]
   },
   "recipes": [
-    { "title": "Power Egg Scramble with Sweet Potato", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 480, "protein_g": 30, "carbs_g": 42, "fat_g": 20, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 460 },
+    {
+      "title": "Power Egg Scramble with Sweet Potato",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 30,
+        "carbs_g": 42,
+        "fat_g": 20,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 460
+      },
       "instructions": [
-        { "step": 1, "text": "Roast diced sweet potato in avocado oil until golden.", "duration_min": 12 },
-        { "step": 2, "text": "Scramble eggs with spinach. Combine with sweet potato.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Roast diced sweet potato in avocado oil until golden.",
+          "duration_min": 12
+        },
+        {
+          "step": 2,
+          "text": "Scramble eggs with spinach. Combine with sweet potato.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Eggs", "quantity": 3, "unit": "large" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Avocado Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Protein Pancakes with Berries", "meal_type": "breakfast", "prep_time_min": 10, "cook_time_min": 12, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 420, "protein_g": 32, "carbs_g": 48, "fat_g": 12, "fiber_g": 5, "sugar_g": 12, "sodium_mg": 320 },
+    {
+      "title": "Protein Pancakes with Berries",
+      "meal_type": "breakfast",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 32,
+        "carbs_g": 48,
+        "fat_g": 12,
+        "fiber_g": 5,
+        "sugar_g": 12,
+        "sodium_mg": 320
+      },
       "instructions": [
-        { "step": 1, "text": "Blend oats, egg whites, banana, and protein powder into batter.", "duration_min": 3 },
-        { "step": 2, "text": "Cook pancakes on a griddle until golden on each side.", "duration_min": 10 },
-        { "step": 3, "text": "Top with fresh blueberries and a drizzle of maple syrup.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend oats, egg whites, banana, and protein powder into batter.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Cook pancakes on a griddle until golden on each side.",
+          "duration_min": 10
+        },
+        {
+          "step": 3,
+          "text": "Top with fresh blueberries and a drizzle of maple syrup.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Egg Whites", "quantity": 4, "unit": "large" },
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium" },
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Blueberries", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 4,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Avocado Toast with Smoked Salmon and Eggs", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 5, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 460, "protein_g": 28, "carbs_g": 30, "fat_g": 26, "fiber_g": 7, "sugar_g": 3, "sodium_mg": 560 },
+    {
+      "title": "Avocado Toast with Smoked Salmon and Eggs",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 28,
+        "carbs_g": 30,
+        "fat_g": 26,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "sodium_mg": 560
+      },
       "instructions": [
-        { "step": 1, "text": "Toast sourdough bread. Spread mashed avocado on top.", "duration_min": 3 },
-        { "step": 2, "text": "Layer smoked salmon and a poached egg. Season with pepper.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Toast sourdough bread. Spread mashed avocado on top.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Layer smoked salmon and a poached egg. Season with pepper.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sourdough Bread", "quantity": 2, "unit": "slices", "preparation": "toasted" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Smoked Salmon", "quantity": 3, "unit": "oz" },
-        { "ingredient_name": "Eggs", "quantity": 1, "unit": "large", "preparation": "poached" },
-        { "ingredient_name": "Black Pepper", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Sourdough Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Smoked Salmon",
+          "quantity": 3,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "poached"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Steel-Cut Oats with Nut Butter", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 20, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 440, "protein_g": 16, "carbs_g": 56, "fat_g": 18, "fiber_g": 8, "sugar_g": 10, "sodium_mg": 120 },
+    {
+      "title": "Steel-Cut Oats with Nut Butter",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 16,
+        "carbs_g": 56,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 10,
+        "sodium_mg": 120
+      },
       "instructions": [
-        { "step": 1, "text": "Cook steel-cut oats in water per package directions.", "duration_min": 20 },
-        { "step": 2, "text": "Swirl in almond butter, sliced banana, and a drizzle of honey.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Cook steel-cut oats in water per package directions.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Swirl in almond butter, sliced banana, and a drizzle of honey.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Steel-Cut Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Steel-Cut Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Grilled Chicken and Avocado Wrap", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 520, "protein_g": 38, "carbs_g": 40, "fat_g": 22, "fiber_g": 8, "sugar_g": 4, "sodium_mg": 520 },
+    {
+      "title": "Grilled Chicken and Avocado Wrap",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 38,
+        "carbs_g": 40,
+        "fat_g": 22,
+        "fiber_g": 8,
+        "sugar_g": 4,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Grill seasoned chicken breast and slice.", "duration_min": 14 },
-        { "step": 2, "text": "Load whole wheat tortilla with chicken, avocado, spinach, and salsa.", "duration_min": 3 },
-        { "step": 3, "text": "Roll tightly and slice in half.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Grill seasoned chicken breast and slice.",
+          "duration_min": 14
+        },
+        {
+          "step": 2,
+          "text": "Load whole wheat tortilla with chicken, avocado, spinach, and salsa.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Roll tightly and slice in half.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz", "preparation": "grilled and sliced" },
-        { "ingredient_name": "Whole Wheat Tortilla", "quantity": 1, "unit": "large" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Salsa", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "grilled and sliced"
+        },
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 1,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Salsa",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Salmon Rice Bowl with Greens", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 15, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 560, "protein_g": 38, "carbs_g": 50, "fat_g": 22, "fiber_g": 5, "sugar_g": 4, "sodium_mg": 440 },
+    {
+      "title": "Salmon Rice Bowl with Greens",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 38,
+        "carbs_g": 50,
+        "fat_g": 22,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Pan-sear salmon fillet in olive oil.", "duration_min": 10 },
-        { "step": 2, "text": "Flake salmon over brown rice, mixed greens, and cucumber.", "duration_min": 3 },
-        { "step": 3, "text": "Drizzle with lemon-olive oil dressing.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Pan-sear salmon fillet in olive oil.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Flake salmon over brown rice, mixed greens, and cucumber.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Drizzle with lemon-olive oil dressing.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 5, "unit": "oz" },
-        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Mixed Greens", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 5,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Turkey and Quinoa Stuffed Peppers", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 30, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 460, "protein_g": 34, "carbs_g": 42, "fat_g": 16, "fiber_g": 7, "sugar_g": 6, "sodium_mg": 480 },
+    {
+      "title": "Turkey and Quinoa Stuffed Peppers",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 34,
+        "carbs_g": 42,
+        "fat_g": 16,
+        "fiber_g": 7,
+        "sugar_g": 6,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Halve and deseed bell peppers.", "duration_min": 3 },
-        { "step": 2, "text": "Cook ground turkey with onion and garlic. Mix with cooked quinoa.", "duration_min": 10 },
-        { "step": 3, "text": "Stuff peppers and bake at 375°F.", "duration_min": 25 }
+        {
+          "step": 1,
+          "text": "Halve and deseed bell peppers.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Cook ground turkey with onion and garlic. Mix with cooked quinoa.",
+          "duration_min": 10
+        },
+        {
+          "step": 3,
+          "text": "Stuff peppers and bake at 375°F.",
+          "duration_min": 25
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bell Pepper", "quantity": 2, "unit": "large" },
-        { "ingredient_name": "Ground Turkey", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Quinoa", "quantity": 0.5, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Yellow Onion", "quantity": 0.5, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Tomato Sauce", "quantity": 0.5, "unit": "cup" }
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Ground Turkey",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Tomato Sauce",
+          "quantity": 0.5,
+          "unit": "cup"
+        }
       ]
     },
-    { "title": "Chicken Bone Broth Noodle Soup", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 30, "carbs_g": 36, "fat_g": 12, "fiber_g": 3, "sugar_g": 4, "sodium_mg": 580 },
+    {
+      "title": "Chicken Bone Broth Noodle Soup",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 30,
+        "carbs_g": 36,
+        "fat_g": 12,
+        "fiber_g": 3,
+        "sugar_g": 4,
+        "sodium_mg": 580
+      },
       "instructions": [
-        { "step": 1, "text": "Simmer bone broth with carrot, celery, and garlic.", "duration_min": 10 },
-        { "step": 2, "text": "Add shredded chicken and rice noodles. Cook until noodles are tender.", "duration_min": 8 },
-        { "step": 3, "text": "Garnish with parsley.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Simmer bone broth with carrot, celery, and garlic.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Add shredded chicken and rice noodles. Cook until noodles are tender.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Garnish with parsley.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bone Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Chicken Breast", "quantity": 6, "unit": "oz", "preparation": "cooked and shredded" },
-        { "ingredient_name": "Rice Noodles", "quantity": 4, "unit": "oz" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks", "preparation": "sliced" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Bone Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "cooked and shredded"
+        },
+        {
+          "ingredient_name": "Rice Noodles",
+          "quantity": 4,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Celery",
+          "quantity": 2,
+          "unit": "stalks",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
-    { "title": "Herb-Grilled Chicken with Quinoa Salad", "meal_type": "dinner", "prep_time_min": 15, "cook_time_min": 18, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 520, "protein_g": 42, "carbs_g": 38, "fat_g": 20, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 440 },
+    {
+      "title": "Herb-Grilled Chicken with Quinoa Salad",
+      "meal_type": "dinner",
+      "prep_time_min": 15,
+      "cook_time_min": 18,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 42,
+        "carbs_g": 38,
+        "fat_g": 20,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Marinate chicken in olive oil, lemon, garlic, rosemary, and thyme.", "duration_min": 10 },
-        { "step": 2, "text": "Grill chicken until internal temp reaches 165°F.", "duration_min": 14 },
-        { "step": 3, "text": "Toss quinoa with cherry tomatoes, cucumber, and olive oil. Serve alongside chicken.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Marinate chicken in olive oil, lemon, garlic, rosemary, and thyme.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Grill chicken until internal temp reaches 165°F.",
+          "duration_min": 14
+        },
+        {
+          "step": 3,
+          "text": "Toss quinoa with cherry tomatoes, cucumber, and olive oil. Serve alongside chicken.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Rosemary", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        }
       ]
     },
-    { "title": "Pan-Seared Salmon with Sweet Potato and Broccoli", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 540, "protein_g": 38, "carbs_g": 42, "fat_g": 24, "fiber_g": 7, "sugar_g": 6, "sodium_mg": 380 },
+    {
+      "title": "Pan-Seared Salmon with Sweet Potato and Broccoli",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 540,
+        "protein_g": 38,
+        "carbs_g": 42,
+        "fat_g": 24,
+        "fiber_g": 7,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Roast sweet potato cubes and broccoli at 400°F.", "duration_min": 18 },
-        { "step": 2, "text": "Pan-sear salmon in olive oil, skin-side down first.", "duration_min": 8 },
-        { "step": 3, "text": "Plate with vegetables and a squeeze of lemon.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Roast sweet potato cubes and broccoli at 400°F.",
+          "duration_min": 18
+        },
+        {
+          "step": 2,
+          "text": "Pan-sear salmon in olive oil, skin-side down first.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Plate with vegetables and a squeeze of lemon.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Broccoli", "quantity": 1.5, "unit": "cup", "preparation": "florets" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Lean Steak with Roasted Vegetables", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 20, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 520, "protein_g": 40, "carbs_g": 30, "fat_g": 24, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 420 },
+    {
+      "title": "Lean Steak with Roasted Vegetables",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 40,
+        "carbs_g": 30,
+        "fat_g": 24,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Season sirloin with salt, pepper, and garlic. Sear in a hot pan.", "duration_min": 8 },
-        { "step": 2, "text": "Rest steak 5 minutes, then slice.", "duration_min": 5 },
-        { "step": 3, "text": "Serve with roasted Brussels sprouts and sweet potato.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Season sirloin with salt, pepper, and garlic. Sear in a hot pan.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Rest steak 5 minutes, then slice.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Serve with roasted Brussels sprouts and sweet potato.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Beef Sirloin", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Brussels Sprouts", "quantity": 1, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "small", "preparation": "cubed and roasted" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove", "preparation": "minced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Beef Sirloin",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brussels Sprouts",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "cubed and roasted"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Baked Chicken Thighs with Root Vegetables", "meal_type": "dinner", "prep_time_min": 15, "cook_time_min": 35, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 500, "protein_g": 36, "carbs_g": 38, "fat_g": 22, "fiber_g": 6, "sugar_g": 7, "sodium_mg": 460 },
+    {
+      "title": "Baked Chicken Thighs with Root Vegetables",
+      "meal_type": "dinner",
+      "prep_time_min": 15,
+      "cook_time_min": 35,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 500,
+        "protein_g": 36,
+        "carbs_g": 38,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 7,
+        "sodium_mg": 460
+      },
       "instructions": [
-        { "step": 1, "text": "Season chicken thighs with paprika, garlic, and olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Arrange on a sheet pan with carrots, sweet potato, and onion.", "duration_min": 5 },
-        { "step": 3, "text": "Roast at 400°F until chicken is cooked through.", "duration_min": 30 }
+        {
+          "step": 1,
+          "text": "Season chicken thighs with paprika, garlic, and olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Arrange on a sheet pan with carrots, sweet potato, and onion.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Roast at 400°F until chicken is cooked through.",
+          "duration_min": 30
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "chunked" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "quartered" },
-        { "ingredient_name": "Paprika", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "chunked"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "quartered"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Almond Butter and Banana Rice Cake", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 240, "protein_g": 8, "carbs_g": 30, "fat_g": 10, "fiber_g": 3, "sugar_g": 10, "sodium_mg": 80 },
+    {
+      "title": "Almond Butter and Banana Rice Cake",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 240,
+        "protein_g": 8,
+        "carbs_g": 30,
+        "fat_g": 10,
+        "fiber_g": 3,
+        "sugar_g": 10,
+        "sodium_mg": 80
+      },
       "instructions": [
-        { "step": 1, "text": "Spread almond butter on rice cakes. Top with banana slices.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Spread almond butter on rice cakes. Top with banana slices.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rice Cakes", "quantity": 2, "unit": "pieces" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Banana", "quantity": 0.5, "unit": "medium", "preparation": "sliced" }
+        {
+          "ingredient_name": "Rice Cakes",
+          "quantity": 2,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Trail Mix Power Pack", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 260, "protein_g": 8, "carbs_g": 24, "fat_g": 16, "fiber_g": 4, "sugar_g": 12, "sodium_mg": 20 },
+    {
+      "title": "Trail Mix Power Pack",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 8,
+        "carbs_g": 24,
+        "fat_g": 16,
+        "fiber_g": 4,
+        "sugar_g": 12,
+        "sodium_mg": 20
+      },
       "instructions": [
-        { "step": 1, "text": "Mix almonds, walnuts, dried cranberries, and dark chocolate chunks.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Mix almonds, walnuts, dried cranberries, and dark chocolate chunks.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Almonds", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Dried Cranberries", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Dark Chocolate", "quantity": 0.5, "unit": "oz", "preparation": "chopped" }
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Dried Cranberries",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 0.5,
+          "unit": "oz",
+          "preparation": "chopped"
+        }
       ]
     },
-    { "title": "Protein Bar Smoothie Bowl", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 320, "protein_g": 24, "carbs_g": 36, "fat_g": 10, "fiber_g": 5, "sugar_g": 16, "sodium_mg": 140 },
+    {
+      "title": "Protein Bar Smoothie Bowl",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 24,
+        "carbs_g": 36,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 16,
+        "sodium_mg": 140
+      },
       "instructions": [
-        { "step": 1, "text": "Blend frozen banana, protein powder, and a splash of almond milk into a thick bowl consistency.", "duration_min": 2 },
-        { "step": 2, "text": "Top with granola and sliced strawberries.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend frozen banana, protein powder, and a splash of almond milk into a thick bowl consistency.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Top with granola and sliced strawberries.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Almond Milk", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Granola", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Strawberries", "quantity": 3, "unit": "pieces", "preparation": "sliced" }
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 3,
+          "unit": "pieces",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Greek Yogurt Protein Shake", "meal_type": "snack", "prep_time_min": 3, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 28, "carbs_g": 30, "fat_g": 6, "fiber_g": 2, "sugar_g": 18, "sodium_mg": 120 },
+    {
+      "title": "Greek Yogurt Protein Shake",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 28,
+        "carbs_g": 30,
+        "fat_g": 6,
+        "fiber_g": 2,
+        "sugar_g": 18,
+        "sodium_mg": 120
+      },
       "instructions": [
-        { "step": 1, "text": "Blend Greek yogurt, frozen berries, and honey until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend Greek yogurt, frozen berries, and honey until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Greek Yogurt", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Frozen Mixed Berries", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Green Recovery Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 28, "carbs_g": 38, "fat_g": 10, "fiber_g": 5, "sugar_g": 16, "sodium_mg": 160 },
+    {
+      "title": "Green Recovery Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 28,
+        "carbs_g": 38,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 16,
+        "sodium_mg": 160
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" }
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        }
       ]
     },
-    { "title": "Tropical Performance Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 26, "carbs_g": 46, "fat_g": 8, "fiber_g": 4, "sugar_g": 24, "sodium_mg": 140 },
+    {
+      "title": "Tropical Performance Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 26,
+        "carbs_g": 46,
+        "fat_g": 8,
+        "fiber_g": 4,
+        "sugar_g": 24,
+        "sodium_mg": 140
+      },
       "instructions": [
-        { "step": 1, "text": "Combine all ingredients in a blender and blend until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Combine all ingredients in a blender and blend until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Mango", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Pineapple", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Whey Protein Powder", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Coconut Water", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Frozen Mango",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Pineapple",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Coconut Water",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     }
   ]

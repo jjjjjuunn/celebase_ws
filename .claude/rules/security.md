@@ -20,6 +20,85 @@ paths:
   ```
 - **보안 정적 분석**: CI에 Semgrep 포함. `critical` 또는 `high` 발견 시 빌드 실패.
 
+### Stateful Token Rotation (IMPL-010-f 교훈)
+
+Refresh token rotation은 단일 트랜잭션 + UPDATE rowcount로 winner를 결정한다:
+
+```typescript
+// ❌ SELECT-then-UPDATE (race condition 허용)
+const row = await pool.query('SELECT ... WHERE jti=$1 AND revoked_at IS NULL');
+if (row) await pool.query('UPDATE ... SET revoked_at=now()');  // concurrent 통과 가능
+
+// ✅ Atomic UPDATE rowcount (winner-takes-all)
+await client.query('BEGIN');
+await issueInternalTokens(client, subject);  // INSERT new jti (tx 내부)
+const consumed = await revokeForRotation(client, { oldJti, newJti, userId });
+if (consumed) { await client.query('COMMIT'); }
+else { await client.query('ROLLBACK'); /* 401 분기 */ }
+// finally: client.release()
+```
+
+### Timing-Safe JWT Verify (IMPL-010-f 교훈)
+
+미검증 refresh token으로 DB 조회를 허용하면 토큰 존재 여부가 응답 타이밍으로 누출된다:
+
+```typescript
+// ❌ DB 조회 후 JWT 검증 — timing side-channel
+const row = await db.query('SELECT ... WHERE jti=$1');
+await jwtVerify(token, secret);  // 늦음
+
+// ✅ JWT 검증 먼저, DB 조회는 검증 성공 후에만
+try {
+  await jwtVerify(token, secret, { clockTolerance: 2 });
+} catch {
+  throw new UnauthorizedError('Invalid or expired');
+}
+// DB 접근은 이 아래에서만
+```
+
+### Audit Log Before Throw (IMPL-010-f 교훈)
+
+401을 throw하기 전에 감사 로그를 emit해야 한다. throw 이후의 코드는 실행되지 않는다:
+
+```typescript
+// ✅ emit BEFORE throw
+emitAuthLog(log, 'auth.token.reuse_detected', { ... }, 'warn');
+await revokeAllByUser(pool, { userId, reason: 'reuse_detected' });
+throw new UnauthorizedError('Token reuse detected');  // emit 완료 후 throw
+```
+
+### Internal HTTP Client SSRF Guard (IMPL-016-a2 교훈)
+
+`new URL(path, baseUrl)` 은 `path` 에 scheme 이 있으면 `baseUrl` 을 **무시**하고 절대 URL 로 해석한다. 내부 HTTP 클라이언트에서 `path` 를 외부 입력이 오염할 수 있다면 반드시 scheme 선두 정규식으로 먼저 거부해야 한다:
+
+```typescript
+// ✅ scheme 선두 탐지 → 절대 URL 주입 차단
+if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(path)) {
+  throw new Error('InternalClientError: absolute URLs are not allowed in path');
+}
+const url = new URL(path, opts.baseUrl);
+```
+
+적용 위치: `packages/service-core/src/lib/internal-http-client.ts` `doRequest()` 진입부.
+
+### CSP nonce 기반 설정 시 dev/prod 분기 필수 (2026-04-20 교훈)
+
+`middleware.ts`에서 nonce 기반 CSP를 구성할 때:
+
+```typescript
+// ❌ 개발 환경에서 React HMR 완전 차단
+`script-src 'self' 'nonce-${nonce}'`
+
+// ✅ dev 모드에 unsafe-eval 추가
+const isDev = process.env.NODE_ENV !== 'production';
+isDev ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
+      : `script-src 'self' 'nonce-${nonce}'`
+```
+
+- nonce를 지정하면 `unsafe-inline`/`unsafe-eval`이 자동 무효화된다 (CSP 스펙).
+- `unsafe-eval` 없이 배포하면 React가 하이드레이션되지 않아 모든 인터랙션이 작동하지 않는다.
+- 증상: 폼이 JS 없이 네이티브 GET으로 제출됨, Console에 `EvalError: Evaluating a string as JavaScript violates CSP`.
+
 ## 시크릿 하드코딩 금지
 
 코드, 설정 파일, 커밋에 다음 패턴이 포함되면 CI에서 차단한다:
@@ -43,11 +122,14 @@ paths:
 - **암호화**: `bio_profiles`의 `biomarkers`, `medical_conditions`, `medications` → application-level AES-256.
 - **감사 로그 필수 트리거**:
   - `GET /users/me/bio-profile` → READ
+  - `POST /users/me/bio-profile` (온보딩 생성 시) → WRITE
   - `PATCH /users/me/bio-profile` (PHI 변경 시) → WRITE
   - `POST /meal-plans/generate` → READ (phi_minimizer 추출 시)
   - `DELETE /users/me` → DELETE (파기 시작 시)
   - 관리자 건강 데이터 조회 → READ + 관리자 이메일 기록
-- **fail-closed**: 감사 로그 기록 실패 → 원래 요청도 500 반환.
+- **fail-closed**: 감사 로그 기록 실패 → 원래 요청도 500 반환. BFF는
+  `pickUpstreamError` 로 BE 의 `{error:{code:'AUDIT_LOG_FAILURE'}}` 500 을
+  그대로 전달한다 (별도 코드 변경 없음).
 
 ## 계정 삭제 (Right to Deletion)
 

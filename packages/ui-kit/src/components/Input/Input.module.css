@@ -23,14 +23,14 @@
 .input {
   height: var(--cb-input-height);
   padding: 0 var(--cb-space-3);
-  border: 1px solid var(--cb-border-strong);
+  border: var(--cb-border-input);
   border-radius: var(--cb-radius-sm);
   background: var(--cb-color-bg);
   color: var(--cb-color-text);
   font-family: var(--cb-font-family-body);
   font-size: var(--cb-font-size-md);
   line-height: var(--cb-line-height-body);
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .input::placeholder {
@@ -38,24 +38,19 @@
 }
 
 .input:hover:not(:disabled) {
-  border-color: var(--cb-color-text-muted);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--cb-border-focus);
+  border: var(--cb-border-input-hover);
 }
 
 .input:focus-visible {
+  outline: none;
+  border: var(--cb-border-input-focus);
   box-shadow: var(--cb-shadow-focus);
 }
 
-.inputError {
-  border-color: var(--cb-border-error);
-}
-
-.inputError:focus {
-  border-color: var(--cb-border-error);
+.inputError,
+.inputError:hover:not(:disabled),
+.inputError:focus-visible {
+  border: var(--cb-border-error);
 }
 
 .inputDisabled,

@@ -8,6 +8,7 @@ Retry policy (spec §4.2):
 - 1 automatic retry on internal engine errors
 - After 2 consecutive failures the message moves to DLQ (SQS redrive)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,6 +51,7 @@ async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlo
                 meal_type=r.get("meal_type", "lunch"),
                 allergens=r.get("allergens", []),
                 ingredients=r.get("ingredients", []),
+                nutrition=r.get("nutrition"),
             )
         )
     return slots
@@ -85,6 +87,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
             meal_type=r.get("meal_type", "lunch"),
             allergens=r.get("allergens", []),
             ingredients=r.get("ingredients", []),
+            nutrition=r.get("nutrition"),
         )
         for r in recipes
     ]
@@ -116,6 +119,9 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         "adjustments": {
             "target_kcal": result.get("target_kcal"),
             "macros": result.get("macros"),
+            "mode": result.get("mode", "standard"),
+            "ui_hint": result.get("ui_hint"),
+            **({"llm_provenance": result["llm_provenance"]} if result.get("llm_provenance") is not None else {}),
         },
     })
 
@@ -241,6 +247,6 @@ async def start_consumer(queue_url: str) -> None:
             raise
         except Exception:
             consecutive_errors += 1
-            backoff = min(5 * (2 ** consecutive_errors), 300)
+            backoff = min(5 * (2**consecutive_errors), 300)
             _logger.exception("SQS poll error, retrying in %ds", backoff)
             await asyncio.sleep(backoff)

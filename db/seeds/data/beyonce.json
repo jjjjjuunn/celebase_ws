@@ -2,10 +2,15 @@
   "slug": "beyonce",
   "display_name": "Beyoncé",
   "short_bio": "Music and cultural icon who popularized the 22-Day Vegan Reset challenge, emphasizing plant-based whole foods and disciplined nutrition.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/beyonce/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/beyonce/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/beyonce/400/400",
+  "cover_image_url": "https://picsum.photos/seed/beyonce-cover/800/600",
   "category": "diet",
-  "tags": ["vegan", "22-day-challenge", "plant-based", "discipline"],
+  "tags": [
+    "vegan",
+    "22-day-challenge",
+    "plant-based",
+    "discipline"
+  ],
   "is_featured": true,
   "sort_order": 2,
   "base_diet": {
@@ -14,13 +19,47 @@
     "philosophy": "Beyoncé and Jay-Z adopted the 22-Day Revolution diet created by Marco Borges, which is based on the idea that it takes 21 days to form a habit. The program emphasizes whole, plant-based foods.",
     "diet_type": "vegan",
     "avg_daily_kcal": 1800,
-    "macro_ratio": { "protein_pct": 20, "carbs_pct": 55, "fat_pct": 25 },
-    "included_foods": ["quinoa", "lentils", "chickpeas", "sweet potato", "leafy greens", "whole grains", "fruit", "nuts"],
-    "excluded_foods": ["meat", "dairy", "eggs", "processed foods", "refined sugar", "alcohol", "gluten-heavy breads"],
-    "key_supplements": ["B12", "Iron", "Zinc", "Omega-3"],
+    "macro_ratio": {
+      "protein_pct": 20,
+      "carbs_pct": 55,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "quinoa",
+      "lentils",
+      "chickpeas",
+      "sweet potato",
+      "leafy greens",
+      "whole grains",
+      "fruit",
+      "nuts"
+    ],
+    "excluded_foods": [
+      "meat",
+      "dairy",
+      "eggs",
+      "processed foods",
+      "refined sugar",
+      "alcohol",
+      "gluten-heavy breads"
+    ],
+    "key_supplements": [
+      "B12",
+      "Iron",
+      "Zinc",
+      "Omega-3"
+    ],
     "source_refs": [
-      { "type": "book", "outlet": "The 22-Day Revolution by Marco Borges", "date": "2015-04-28" },
-      { "type": "social-media", "outlet": "Instagram", "date": "2018-01-09" }
+      {
+        "type": "book",
+        "outlet": "The 22-Day Revolution by Marco Borges",
+        "date": "2015-04-28"
+      },
+      {
+        "type": "social-media",
+        "outlet": "Instagram",
+        "date": "2018-01-09"
+      }
     ]
   },
   "recipes": [
@@ -31,18 +70,60 @@
       "cook_time_min": 15,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 14, "carbs_g": 55, "fat_g": 12, "fiber_g": 8, "sugar_g": 12, "sodium_mg": 85 },
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 14,
+        "carbs_g": 55,
+        "fat_g": 12,
+        "fiber_g": 8,
+        "sugar_g": 12,
+        "sodium_mg": 85
+      },
       "instructions": [
-        { "step": 1, "text": "Cook quinoa in almond milk until fluffy.", "duration_min": 15 },
-        { "step": 2, "text": "Top with sliced banana, blueberries, walnuts, and a drizzle of maple syrup.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Cook quinoa in almond milk until fluffy.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Top with sliced banana, blueberries, walnuts, and a drizzle of maple syrup.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Quinoa", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -52,18 +133,61 @@
       "cook_time_min": 20,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 320, "protein_g": 6, "carbs_g": 42, "fat_g": 15, "fiber_g": 9, "sugar_g": 7, "sodium_mg": 150 },
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 6,
+        "carbs_g": 42,
+        "fat_g": 15,
+        "fiber_g": 9,
+        "sugar_g": 7,
+        "sodium_mg": 150
+      },
       "instructions": [
-        { "step": 1, "text": "Slice sweet potato lengthwise into 1/4-inch slabs.", "duration_min": 3 },
-        { "step": 2, "text": "Toast in toaster or oven at 400°F until tender and lightly browned.", "duration_min": 15 },
-        { "step": 3, "text": "Top with mashed avocado, chili flakes, and a squeeze of lime.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Slice sweet potato lengthwise into 1/4-inch slabs.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Toast in toaster or oven at 400°F until tender and lightly browned.",
+          "duration_min": 15
+        },
+        {
+          "step": 3,
+          "text": "Top with mashed avocado, chili flakes, and a squeeze of lime.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "sliced lengthwise" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Chili Flakes", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Lime", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced lengthwise"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Chili Flakes",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -73,19 +197,64 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 350, "protein_g": 12, "carbs_g": 52, "fat_g": 11, "fiber_g": 9, "sugar_g": 14, "sodium_mg": 110 },
+      "nutrition": {
+        "calories": 350,
+        "protein_g": 12,
+        "carbs_g": 52,
+        "fat_g": 11,
+        "fiber_g": 9,
+        "sugar_g": 14,
+        "sodium_mg": 110
+      },
       "instructions": [
-        { "step": 1, "text": "Combine oats, chia seeds, almond milk, and maple syrup in a jar.", "duration_min": 3 },
-        { "step": 2, "text": "Refrigerate overnight.", "duration_min": null },
-        { "step": 3, "text": "Top with fresh strawberries and almond butter before serving.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Combine oats, chia seeds, almond milk, and maple syrup in a jar.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Refrigerate overnight.",
+          "duration_min": null
+        },
+        {
+          "step": 3,
+          "text": "Top with fresh strawberries and almond butter before serving.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Strawberries", "quantity": 0.5, "unit": "cup", "preparation": "sliced" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -95,22 +264,78 @@
       "cook_time_min": 15,
       "servings": 2,
       "difficulty": "medium",
-      "nutrition": { "calories": 360, "protein_g": 10, "carbs_g": 48, "fat_g": 14, "fiber_g": 6, "sugar_g": 10, "sodium_mg": 200 },
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 10,
+        "carbs_g": 48,
+        "fat_g": 14,
+        "fiber_g": 6,
+        "sugar_g": 10,
+        "sodium_mg": 200
+      },
       "instructions": [
-        { "step": 1, "text": "Blend oats, banana, spinach, almond milk, and flaxseed into a smooth batter.", "duration_min": 3 },
-        { "step": 2, "text": "Heat a non-stick pan over medium heat with a touch of coconut oil.", "duration_min": 2 },
-        { "step": 3, "text": "Pour batter into small circles. Cook until bubbles form, then flip.", "duration_min": 10 },
-        { "step": 4, "text": "Serve with fresh berries and maple syrup.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend oats, banana, spinach, almond milk, and flaxseed into a smooth batter.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Heat a non-stick pan over medium heat with a touch of coconut oil.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour batter into small circles. Cook until bubbles form, then flip.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Serve with fresh berries and maple syrup.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Almond Milk", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Ground Flaxseed", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Coconut Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Ground Flaxseed",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -120,24 +345,93 @@
       "cook_time_min": 30,
       "servings": 4,
       "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 16, "carbs_g": 52, "fat_g": 7, "fiber_g": 12, "sugar_g": 8, "sodium_mg": 480 },
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 16,
+        "carbs_g": 52,
+        "fat_g": 7,
+        "fiber_g": 12,
+        "sugar_g": 8,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté onion, garlic, and ginger in olive oil until fragrant.", "duration_min": 4 },
-        { "step": 2, "text": "Add cubed sweet potato, red lentils, cumin, and turmeric. Stir.", "duration_min": 2 },
-        { "step": 3, "text": "Pour in vegetable broth. Bring to a boil, then simmer until lentils are tender.", "duration_min": 25 },
-        { "step": 4, "text": "Season with salt and pepper. Serve with a squeeze of lemon.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Sauté onion, garlic, and ginger in olive oil until fragrant.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add cubed sweet potato, red lentils, cumin, and turmeric. Stir.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour in vegetable broth. Bring to a boil, then simmer until lentils are tender.",
+          "duration_min": 25
+        },
+        {
+          "step": 4,
+          "text": "Season with salt and pepper. Serve with a squeeze of lemon.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Red Lentils", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "large", "preparation": "cubed" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Red Lentils",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
     {
@@ -147,23 +441,91 @@
       "cook_time_min": 0,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 420, "protein_g": 18, "carbs_g": 52, "fat_g": 16, "fiber_g": 11, "sugar_g": 5, "sodium_mg": 380 },
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 18,
+        "carbs_g": 52,
+        "fat_g": 16,
+        "fiber_g": 11,
+        "sugar_g": 5,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Combine cooked quinoa, chickpeas, cucumber, cherry tomatoes, and red onion in a large bowl.", "duration_min": 5 },
-        { "step": 2, "text": "Whisk olive oil, lemon juice, cumin, and salt for the dressing.", "duration_min": 3 },
-        { "step": 3, "text": "Toss salad with dressing. Top with avocado slices and parsley.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Combine cooked quinoa, chickpeas, cucumber, cherry tomatoes, and red onion in a large bowl.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Whisk olive oil, lemon juice, cumin, and salt for the dressing.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Toss salad with dressing. Top with avocado slices and parsley.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Chickpeas", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Red Onion", "quantity": 0.25, "unit": "whole", "preparation": "thinly sliced" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Red Onion",
+          "quantity": 0.25,
+          "unit": "whole",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
@@ -173,21 +535,76 @@
       "cook_time_min": 10,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 400, "protein_g": 14, "carbs_g": 56, "fat_g": 14, "fiber_g": 12, "sugar_g": 4, "sodium_mg": 420 },
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 14,
+        "carbs_g": 56,
+        "fat_g": 14,
+        "fiber_g": 12,
+        "sugar_g": 4,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Heat black beans in a pan with cumin, smoked paprika, and garlic.", "duration_min": 5 },
-        { "step": 2, "text": "Warm corn tortillas in a dry skillet.", "duration_min": 2 },
-        { "step": 3, "text": "Fill tortillas with beans, guacamole, salsa, and fresh cilantro.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Heat black beans in a pan with cumin, smoked paprika, and garlic.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Warm corn tortillas in a dry skillet.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Fill tortillas with beans, guacamole, salsa, and fresh cilantro.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Black Beans", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Corn Tortillas", "quantity": 4, "unit": "pieces" },
-        { "ingredient_name": "Guacamole", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Salsa", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Smoked Paprika", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove", "preparation": "minced" }
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Corn Tortillas",
+          "quantity": 4,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Guacamole",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Salsa",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        }
       ]
     },
     {
@@ -197,21 +614,76 @@
       "cook_time_min": 15,
       "servings": 2,
       "difficulty": "medium",
-      "nutrition": { "calories": 380, "protein_g": 14, "carbs_g": 36, "fat_g": 22, "fiber_g": 6, "sugar_g": 3, "sodium_mg": 440 },
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 14,
+        "carbs_g": 36,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 3,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Toss chickpeas with olive oil, garlic powder, and salt. Roast at 400°F until crispy.", "duration_min": 15 },
-        { "step": 2, "text": "Blend tahini, lemon juice, garlic, nutritional yeast, and water for the dressing.", "duration_min": 3 },
-        { "step": 3, "text": "Massage kale with a bit of olive oil. Toss with dressing and top with roasted chickpeas.", "duration_min": 4 }
+        {
+          "step": 1,
+          "text": "Toss chickpeas with olive oil, garlic powder, and salt. Roast at 400°F until crispy.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Blend tahini, lemon juice, garlic, nutritional yeast, and water for the dressing.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Massage kale with a bit of olive oil. Toss with dressing and top with roasted chickpeas.",
+          "duration_min": 4
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Kale", "quantity": 4, "unit": "cup", "preparation": "destemmed and chopped" },
-        { "ingredient_name": "Chickpeas", "quantity": 0.75, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove" },
-        { "ingredient_name": "Nutritional Yeast", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Garlic Powder", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Kale",
+          "quantity": 4,
+          "unit": "cup",
+          "preparation": "destemmed and chopped"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -221,22 +693,82 @@
       "cook_time_min": 35,
       "servings": 4,
       "difficulty": "medium",
-      "nutrition": { "calories": 380, "protein_g": 16, "carbs_g": 52, "fat_g": 12, "fiber_g": 12, "sugar_g": 8, "sodium_mg": 420 },
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 16,
+        "carbs_g": 52,
+        "fat_g": 12,
+        "fiber_g": 12,
+        "sugar_g": 8,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Cut tops off bell peppers and remove seeds. Place in a baking dish.", "duration_min": 5 },
-        { "step": 2, "text": "Mix cooked quinoa, black beans, corn, salsa, and cumin.", "duration_min": 5 },
-        { "step": 3, "text": "Stuff peppers with the mixture. Cover with foil and bake at 375°F.", "duration_min": 30 },
-        { "step": 4, "text": "Remove foil for the last 5 minutes. Top with avocado and cilantro.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Cut tops off bell peppers and remove seeds. Place in a baking dish.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Mix cooked quinoa, black beans, corn, salsa, and cumin.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Stuff peppers with the mixture. Cover with foil and bake at 375°F.",
+          "duration_min": 30
+        },
+        {
+          "step": 4,
+          "text": "Remove foil for the last 5 minutes. Top with avocado and cilantro.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bell Pepper", "quantity": 4, "unit": "large" },
-        { "ingredient_name": "Quinoa", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Black Beans", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Corn", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Salsa", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 4,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Corn",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Salsa",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
@@ -246,28 +778,113 @@
       "cook_time_min": 30,
       "servings": 4,
       "difficulty": "medium",
-      "nutrition": { "calories": 420, "protein_g": 18, "carbs_g": 48, "fat_g": 18, "fiber_g": 10, "sugar_g": 6, "sodium_mg": 520 },
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 18,
+        "carbs_g": 48,
+        "fat_g": 18,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté onion, garlic, and ginger in coconut oil.", "duration_min": 4 },
-        { "step": 2, "text": "Add curry powder, cumin, and turmeric. Toast spices for 1 minute.", "duration_min": 1 },
-        { "step": 3, "text": "Add lentils, coconut milk, and vegetable broth. Bring to a boil.", "duration_min": 3 },
-        { "step": 4, "text": "Reduce heat and simmer until lentils are tender.", "duration_min": 22 },
-        { "step": 5, "text": "Stir in spinach. Season with salt and lime juice. Serve over rice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Sauté onion, garlic, and ginger in coconut oil.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add curry powder, cumin, and turmeric. Toast spices for 1 minute.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Add lentils, coconut milk, and vegetable broth. Bring to a boil.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Reduce heat and simmer until lentils are tender.",
+          "duration_min": 22
+        },
+        {
+          "step": 5,
+          "text": "Stir in spinach. Season with salt and lime juice. Serve over rice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Lentils", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Canned Coconut Milk", "quantity": 1, "unit": "can" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tbsp", "preparation": "grated" },
-        { "ingredient_name": "Curry Powder", "quantity": 2, "unit": "tsp" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Coconut Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lime", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" }
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Canned Coconut Milk",
+          "quantity": 1,
+          "unit": "can"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Curry Powder",
+          "quantity": 2,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        }
       ]
     },
     {
@@ -277,22 +894,82 @@
       "cook_time_min": 35,
       "servings": 3,
       "difficulty": "medium",
-      "nutrition": { "calories": 360, "protein_g": 14, "carbs_g": 42, "fat_g": 16, "fiber_g": 10, "sugar_g": 6, "sodium_mg": 380 },
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 14,
+        "carbs_g": 42,
+        "fat_g": 16,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Toss cauliflower florets and chickpeas with olive oil, cumin, paprika, and turmeric.", "duration_min": 5 },
-        { "step": 2, "text": "Spread on a sheet pan and roast at 425°F until golden.", "duration_min": 30 },
-        { "step": 3, "text": "Drizzle with tahini dressing and garnish with fresh parsley.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Toss cauliflower florets and chickpeas with olive oil, cumin, paprika, and turmeric.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Spread on a sheet pan and roast at 425°F until golden.",
+          "duration_min": 30
+        },
+        {
+          "step": 3,
+          "text": "Drizzle with tahini dressing and garnish with fresh parsley.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cauliflower", "quantity": 1, "unit": "head", "preparation": "cut into florets" },
-        { "ingredient_name": "Chickpeas", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Paprika", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Turmeric", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Cauliflower",
+          "quantity": 1,
+          "unit": "head",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
@@ -302,23 +979,88 @@
       "cook_time_min": 30,
       "servings": 3,
       "difficulty": "medium",
-      "nutrition": { "calories": 440, "protein_g": 20, "carbs_g": 60, "fat_g": 12, "fiber_g": 10, "sugar_g": 8, "sodium_mg": 480 },
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 20,
+        "carbs_g": 60,
+        "fat_g": 12,
+        "fiber_g": 10,
+        "sugar_g": 8,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté diced onion and garlic in olive oil until softened.", "duration_min": 4 },
-        { "step": 2, "text": "Add finely chopped mushrooms and cook until moisture evaporates.", "duration_min": 6 },
-        { "step": 3, "text": "Stir in cooked lentils, tomato sauce, oregano, and basil. Simmer.", "duration_min": 20 },
-        { "step": 4, "text": "Serve over whole wheat pasta.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Sauté diced onion and garlic in olive oil until softened.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add finely chopped mushrooms and cook until moisture evaporates.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Stir in cooked lentils, tomato sauce, oregano, and basil. Simmer.",
+          "duration_min": 20
+        },
+        {
+          "step": 4,
+          "text": "Serve over whole wheat pasta.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Mushrooms", "quantity": 8, "unit": "oz", "preparation": "finely chopped" },
-        { "ingredient_name": "Lentils", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Tomato Sauce", "quantity": 1.5, "unit": "cup" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Oregano", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Basil", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Whole Wheat Pasta", "quantity": 8, "unit": "oz" }
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "finely chopped"
+        },
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Tomato Sauce",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Basil",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 8,
+          "unit": "oz"
+        }
       ]
     },
     {
@@ -328,18 +1070,59 @@
       "cook_time_min": 25,
       "servings": 3,
       "difficulty": "easy",
-      "nutrition": { "calories": 170, "protein_g": 8, "carbs_g": 22, "fat_g": 6, "fiber_g": 6, "sugar_g": 2, "sodium_mg": 200 },
+      "nutrition": {
+        "calories": 170,
+        "protein_g": 8,
+        "carbs_g": 22,
+        "fat_g": 6,
+        "fiber_g": 6,
+        "sugar_g": 2,
+        "sodium_mg": 200
+      },
       "instructions": [
-        { "step": 1, "text": "Drain chickpeas and pat dry thoroughly.", "duration_min": 3 },
-        { "step": 2, "text": "Toss with olive oil, smoked paprika, cumin, and cayenne.", "duration_min": 2 },
-        { "step": 3, "text": "Roast at 400°F, shaking pan halfway through, until crunchy.", "duration_min": 25 }
+        {
+          "step": 1,
+          "text": "Drain chickpeas and pat dry thoroughly.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Toss with olive oil, smoked paprika, cumin, and cayenne.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Roast at 400°F, shaking pan halfway through, until crunchy.",
+          "duration_min": 25
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chickpeas", "quantity": 1.5, "unit": "cup", "preparation": "drained and dried" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Smoked Paprika", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Cayenne Pepper", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "drained and dried"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cayenne Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -349,18 +1132,59 @@
       "cook_time_min": 0,
       "servings": 8,
       "difficulty": "easy",
-      "nutrition": { "calories": 150, "protein_g": 4, "carbs_g": 20, "fat_g": 7, "fiber_g": 3, "sugar_g": 14, "sodium_mg": 30 },
+      "nutrition": {
+        "calories": 150,
+        "protein_g": 4,
+        "carbs_g": 20,
+        "fat_g": 7,
+        "fiber_g": 3,
+        "sugar_g": 14,
+        "sodium_mg": 30
+      },
       "instructions": [
-        { "step": 1, "text": "Blend dates, almond butter, oats, and cacao powder in a food processor.", "duration_min": 5 },
-        { "step": 2, "text": "Roll mixture into 1-inch balls.", "duration_min": 5 },
-        { "step": 3, "text": "Roll in coconut flakes. Refrigerate for 30 minutes before serving.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Blend dates, almond butter, oats, and cacao powder in a food processor.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Roll mixture into 1-inch balls.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Roll in coconut flakes. Refrigerate for 30 minutes before serving.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Medjool Dates", "quantity": 8, "unit": "pieces", "preparation": "pitted" },
-        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Cacao Powder", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Coconut Flakes", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 8,
+          "unit": "pieces",
+          "preparation": "pitted"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cacao Powder",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Coconut Flakes",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -370,15 +1194,44 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 220, "protein_g": 5, "carbs_g": 30, "fat_g": 10, "fiber_g": 5, "sugar_g": 20, "sodium_mg": 40 },
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 5,
+        "carbs_g": 30,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 20,
+        "sodium_mg": 40
+      },
       "instructions": [
-        { "step": 1, "text": "Slice apple into wedges.", "duration_min": 2 },
-        { "step": 2, "text": "Serve with cashew butter and a sprinkle of cinnamon.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Slice apple into wedges.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Serve with cashew butter and a sprinkle of cinnamon.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "large", "preparation": "sliced" },
-        { "ingredient_name": "Cashew Butter", "quantity": 1.5, "unit": "tbsp" },
-        { "ingredient_name": "Cinnamon", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Cashew Butter",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -388,16 +1241,51 @@
       "cook_time_min": 0,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 190, "protein_g": 7, "carbs_g": 22, "fat_g": 9, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 320 },
+      "nutrition": {
+        "calories": 190,
+        "protein_g": 7,
+        "carbs_g": 22,
+        "fat_g": 9,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 320
+      },
       "instructions": [
-        { "step": 1, "text": "Arrange carrot sticks, cucumber slices, bell pepper strips, and celery around a bowl of hummus.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Arrange carrot sticks, cucumber slices, bell pepper strips, and celery around a bowl of hummus.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Hummus", "quantity": 0.33, "unit": "cup" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "cut into sticks" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks" }
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 0.33,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "cut into sticks"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Celery",
+          "quantity": 2,
+          "unit": "stalks"
+        }
       ]
     },
     {
@@ -407,18 +1295,59 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 300, "protein_g": 8, "carbs_g": 52, "fat_g": 8, "fiber_g": 7, "sugar_g": 28, "sodium_mg": 90 },
+      "nutrition": {
+        "calories": 300,
+        "protein_g": 8,
+        "carbs_g": 52,
+        "fat_g": 8,
+        "fiber_g": 7,
+        "sugar_g": 28,
+        "sodium_mg": 90
+      },
       "instructions": [
-        { "step": 1, "text": "Combine all ingredients in a blender.", "duration_min": 1 },
-        { "step": 2, "text": "Blend on high until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Combine all ingredients in a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend on high until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Frozen Mango", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Pineapple", "quantity": 0.5, "unit": "cup", "preparation": "diced" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Coconut Water", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Ground Flaxseed", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Mango",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Pineapple",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Coconut Water",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Ground Flaxseed",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -428,17 +1357,54 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 14, "carbs_g": 42, "fat_g": 14, "fiber_g": 6, "sugar_g": 18, "sodium_mg": 130 },
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 14,
+        "carbs_g": 42,
+        "fat_g": 14,
+        "fiber_g": 6,
+        "sugar_g": 18,
+        "sodium_mg": 130
+      },
       "instructions": [
-        { "step": 1, "text": "Add all ingredients to a blender.", "duration_min": 1 },
-        { "step": 2, "text": "Blend until thick and creamy.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Add all ingredients to a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend until thick and creamy.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Peanut Butter", "quantity": 1.5, "unit": "tbsp" },
-        { "ingredient_name": "Cacao Powder", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Oat Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Medjool Dates", "quantity": 1, "unit": "piece", "preparation": "pitted" }
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cacao Powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 1,
+          "unit": "piece",
+          "preparation": "pitted"
+        }
       ]
     }
   ]

@@ -647,7 +647,7 @@ Free                  Premium ★           Elite ★★
 - **Activity level**: 5-segment visual cards with icon + label (not dropdown)
 - **Allergen multi-select**: pill grid — selected: `--cb-brand-100` bg + `--cb-brand-700` text
 - **Goal selector**: large radio cards — icon + title + description, selected: `--cb-brand-600` left border + `--cb-brand-50` bg
-- **File upload (S7)**: dropzone 180px min-height, 2px dashed `--cb-neutral-200`, active: `--cb-brand-600`
+- **Biomarker file upload (Phase 2, post-onboarding `/settings/health/biomarkers/upload`)**: dropzone 180px min-height, 2px dashed `--cb-neutral-200`, active: `--cb-brand-600`. Phase 1 onboarding 에서는 사용하지 않음 (spec §7.1 참조)
 
 ### 7.5 Health Disclaimer
 
@@ -969,23 +969,24 @@ Spec §8 quotas: Free 3 base diets/month, Premium 4 AI plans/month, Elite unlimi
 
 ## 8. Screen-by-Screen Design
 
-### 8.1 Onboarding (S1–S11)
+### 8.1 Onboarding (S0–S7, persona-first · Plan 20 Phase C)
+
+> 2026-04-22 개정: 새 MD 전략 (Aspirational Optimizer wedge) 반영. `S2 Persona Select` 를 wizard 최상단으로 이동하여 PHI 수집 이전에 aspirational intent 를 고정한다. `S5 Activity` + `S6 Health Info` 는 단일 `Activity & Health` 스텝으로 병합, 기존 `S10 Summary` + `S11 Category` 는 단일 `Blueprint Reveal` 로 대체되었다. `S7 Biomarker` 는 Phase 2 로 이연 (spec §7.1 참조).
 
 | Screen | Layout | Key Component | Persona Note |
 |--------|--------|---------------|-------------|
-| S1 Welcome | Full-viewport dark bg, celebrity mosaic | Primary CTA "Get Started" | CEO: "ready in 2 minutes" subtitle |
-| S2 Auth | Centered card | SSO (Apple/Google) + email link | — |
+| S0 Welcome | Full-viewport dark bg, celebrity mosaic | Primary CTA "Get Started" | CEO: "ready in 2 minutes" subtitle |
+| S1 Auth | Centered card | SSO (Apple/Google) + email link | — |
+| S2 Persona Select | 2-col grid (1-col ≤720px) | `PersonaHero` + `CelebrityCard` grid | Aspirational Optimizer: "Who would you like to live like?" (Fraunces display-xl); selection required to advance |
 | S3 Basic Info | 1 question/screen | Name, birth year, sex inputs | — |
-| S4 Body Metrics | 1 question/screen | Height/weight + unit toggle + optional waist (cm/in) | Biohacker: live BMI calc + waist-to-height ratio |
-| S5 Activity | 1 question/screen | 5-level visual cards | A11y: keyboard-selectable |
-| S6 Health Info | 1 question/screen | Allergen pill grid + conditions + medications (searchable tag input) | First disclaimer appearance; GLP-1 auto-detection triggers §7.5 conditional text |
-| S7 Biomarker | 1 question/screen | Manual input (Phase 1) / Upload (Phase 2) | Biohacker: prominent, not buried |
-| S8 Wellness Goal | 1 question/screen | Large radio cards | GLP-1: purple accent + explanation |
-| S9 Dietary Pref | 1 question/screen | Diet type + cuisine chips | Photo-backed cuisine chips |
-| S10 Summary | Review card | Editable chips, completeness meter | "Personalization confidence" indicator |
-| S11 Category | 2×2 grid | 4 category cards with celeb faces | Disclaimer before CTA |
+| S4 Body Metrics | 1 question/screen | Height/weight + unit toggle + optional waist (cm/in) | Biohacker: live BMI + waist-to-height ratio |
+| S5 Activity & Health | Merged single step | 5-level activity cards + allergen pill grid + conditions + medications (searchable tag input) | First disclaimer appears here; GLP-1 auto-detection triggers §7.5 Lavender chip (`--cb-accent-glp1`) |
+| S6 Goals & Diet Pref | 1 question/screen | Large radio cards for primary/secondary goal + diet type + cuisine chips | GLP-1: purple accent + explanation; photo-backed cuisine chips |
+| S7 Blueprint Reveal | 3-column reveal + bottom cart | Mifflin-St Jeor TDEE + `NutritionRing` 3-ring cluster + `IdentitySyncScore` overlay + `MealCard` preview + `InstacartCartPreview` | "Personalization confidence" indicator replaced by Identity Sync Score; loads < 3s p50 |
 
-**Rules**: One input per screen. No scrolling within step. Each loads < 150ms.
+**Rules**: One input per screen **except S5** (activity + health grouped by design). No scrolling within step. Each step loads < 150ms; S7 loads < 3s. All composites render through `--cb-*` tokens (raw hex 0).
+
+**Phase 2 deferred**: Biomarker Upload (old S7) — relocated to `/settings/health` post-onboarding; no longer in core wizard.
 
 ### 8.2 Tab 1: Discover
 
@@ -1539,17 +1540,21 @@ const [fontsLoaded] = useFonts({
 | 9 | `CheckoutSummary`, `DeliverySlotPicker`, `PaymentReview` |
 | 10 | `ReportCard`, `DeltaIndicator`, `AccordionRow` |
 
-### 14.6 Screen Build Order
+### 14.6 Screen Build Order (persona-first · Plan 20 Phase C)
 
-1. S1–S3 (Welcome, Auth, Basic Info)
-2. S4–S7 (Body Metrics, Activity, Health, Biomarker)
-3. S8–S11 (Goals, Diet Pref, Summary, Category)
-4. Tab 1: Discover + Celebrity Detail
-5. Tab 2: My Plan + Meal Plan Preview
-6. Recipe Detail
-7. Checkout (4 stages)
-8. Tab 3: Track
-9. Tab 4: Profile + Subscription
+1. S0–S1 (Welcome, Auth)
+2. S2 (Persona Select — `PersonaHero` + `CelebrityCard` grid)
+3. S3–S4 (Basic Info, Body Metrics)
+4. S5 (Activity & Health — merged single step)
+5. S6 (Goals & Diet Preferences)
+6. S7 (Blueprint Reveal — 3-column: TDEE · `IdentitySyncScore` · `MealCard` preview · `InstacartCartPreview`)
+7. Tab 1: Discover + Celebrity Detail
+8. Tab 2: My Plan + Meal Plan Preview
+9. Recipe Detail
+10. Checkout (4 stages)
+11. Tab 3: Track
+12. Tab 4: Profile + Subscription
+13. Phase 2: Biomarker Upload (`/settings/health/biomarkers/upload` — OCR + S3)
 
 ### 14.7 Definition of Done per Screen
 
