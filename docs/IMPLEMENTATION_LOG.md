@@ -30,6 +30,45 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-23
 agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-f
+commit_sha: 6ea30df
+files_changed:
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: code review (T1~T6 시나리오 커버리지, mock 경로 검토)
+---
+### 완료: IMPL-AI-001-f — LLM 단위 테스트 LLM-T1~T6
+- LLM-T1: citations=[] → Pydantic ValidationError (Gate 1)
+- LLM-T3: sanitize_celeb_source XML escape (indirect injection 방어 검증)
+- LLM-T4: endorsement regex 탐지 + Gate 6 standard mode 폴백
+- LLM-T5: unknown recipe_id → Gate 2 PoolViolationError standard mode 폴백
+- LLM-T6: allergen → Gate 3 AllergenViolationError standard mode 폴백
+- 추가: kill switch/quota/cost_cap/rollout_pct 분기 · 성공 경로(disclaimer+provenance) 검증
+### 미완료: VCR cassette 기반 실제 API replay 테스트 (real API key 필요, 선택 사항)
+### 연관 파일: services/meal-plan-engine/tests/unit/test_llm_reranker.py
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-e
+commit_sha: ab62b95
+files_changed:
+  - services/meal-plan-engine/src/engine/llm_metrics.py
+  - services/meal-plan-engine/prompts/v1/ranker_system.md
+  - services/meal-plan-engine/prompts/v1/ranker_user.md.j2
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+verified_by: code review (Jinja2 경로 검증, rollout pct 로직 검토)
+---
+### 완료: IMPL-AI-001-e — LLM 메트릭 + Jinja2 프롬프트 + rollout 로직
+- llm_metrics.py: 10종 메트릭 (LlmMetrics singleton, structured JSON, 스레드 안전)
+- prompts/v1/ranker_system.md: persona/goal injection 방어 포함 시스템 프롬프트
+- prompts/v1/ranker_user.md.j2: Jinja2 recipe_ids loop 유저 프롬프트
+- llm_reranker.py: Jinja2 템플릿 로딩 · LLM_ROLLOUT_PCT sha256 결정론적 rollout · 모든 분기 metrics 기록 · latency 측정
+### 미완료: pytest VCR cassette + LLM-T1~T6 테스트 시나리오 (→ IMPL-AI-001-f)
+### 연관 파일: services/meal-plan-engine/src/engine/llm_metrics.py, prompts/v1/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
 task_id: IMPL-AI-001-d
 commit_sha: 23c2760
 files_changed:
