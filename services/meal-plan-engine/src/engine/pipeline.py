@@ -190,7 +190,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     daily_totals: Dict[str, float] = {}
     for slot in safe_recipes:
         # Assume each slot has nutrition dict for simplification purposes.
-        nutr = getattr(slot, "nutrition", {})  # type: ignore[attr-defined]
+        nutr = slot.nutrition or {}
         for k, v in nutr.items():
             daily_totals[k] = daily_totals.get(k, 0.0) + float(v)
 
