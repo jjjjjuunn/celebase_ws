@@ -148,7 +148,7 @@ export function PlanPreviewClient({ planId }: Props): React.ReactElement {
   const visibleDays = useMemo(() => {
     if (plan === null) return [];
     if (viewMode === 'summary') return plan.daily_plans;
-    return plan.daily_plans.filter((d) => weekIndexFor(d.day) === activeWeek);
+    return plan.daily_plans.filter((d, i) => weekIndexFor(d.day ?? i + 1) === activeWeek);
   }, [plan, viewMode, activeWeek]);
 
   const totalMealCount = useMemo(() => {
