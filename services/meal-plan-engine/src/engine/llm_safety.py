@@ -7,17 +7,35 @@ import re
 __all__ = [
     "AllergenViolationError",
     "PoolViolationError",
+    "LlmProfileInjectionError",
     "assert_recipe_ids_in_pool",
     "assert_no_allergen_violation",
     "check_endorsement_regex",
     "append_disclaimer",
+    "sanitize_llm_profile",
 ]
 
-# Gate 6: 의료 효능 주장 금지 패턴 — LLM-DESIGN §S7
+# Gate 6: 의료 효능 주장 금지 패턴 — LLM-DESIGN §S7, Gemini BS-01 확장
 _ENDORSEMENT_RE = re.compile(
     r"(치료|완치|치유|예방|완화|억제|근치|의약|처방|진단|임상\s*증거|의학적으로"
-    r"|cure|treat|diagnose|prescri|medically\s*proven)",
+    r"|cure|treat|diagnose|prescri|medically\s*proven"
+    r"|prevent|heal|reverse|manage.*blood|reduce.*risk"
+    r"|anti.?inflammator|clinically.?test)",
     re.IGNORECASE,
+)
+
+# Gate BS-03: llm_profile 화이트리스트 — Gemini BS-03
+_ALLOWED_PRIMARY_GOAL = frozenset(
+    {"weight_loss", "muscle_gain", "maintenance", "endurance", "flexibility", "general_health"}
+)
+_ALLOWED_ACTIVITY_LEVEL = frozenset(
+    {"sedentary", "lightly_active", "moderate", "active", "very_active"}
+)
+_ALLOWED_DIET_TYPE = frozenset(
+    {
+        "balanced", "low_carb", "high_protein", "vegan", "vegetarian",
+        "keto", "mediterranean", "paleo", "gluten_free", "dairy_free",
+    }
 )
 
 # Gate 5: 법적 면책 문구 — LLM-DESIGN §S11 UI 계약
@@ -33,6 +51,10 @@ class AllergenViolationError(ValueError):
 
 class PoolViolationError(ValueError):
     """Gate 2: LLM 반환 recipe_id가 후보 pool 외부인 경우 — fail-closed."""
+
+
+class LlmProfileInjectionError(ValueError):
+    """BS-03: llm_profile 필드가 허용 화이트리스트 밖인 경우 — fail-closed."""
 
 
 def assert_recipe_ids_in_pool(
@@ -90,3 +112,35 @@ def check_endorsement_regex(narrative: str) -> bool:
 def append_disclaimer(narrative: str) -> str:
     """Gate 5: 법적 면책 문구 자동 첨부 — LLM-DESIGN §S7 Gate 5."""
     return narrative + _DISCLAIMER
+
+
+def sanitize_llm_profile(llm_profile: dict[str, object]) -> dict[str, str]:
+    """BS-03: llm_profile 필드를 화이트리스트로 검증 후 안전한 문자열로 반환 — Gemini BS-03.
+
+    primary_goal / activity_level / diet_type 이 허용 enum 밖인 경우
+    LlmProfileInjectionError 를 raise 한다.
+
+    Returns:
+        Sanitized dict with only the 3 allowed fields as strings.
+    """
+    primary_goal = str(llm_profile.get("primary_goal", "maintenance"))
+    activity_level = str(llm_profile.get("activity_level", "moderate"))
+    diet_type = str(llm_profile.get("diet_type", "balanced"))
+
+    if primary_goal not in _ALLOWED_PRIMARY_GOAL:
+        raise LlmProfileInjectionError(
+            f"primary_goal '{primary_goal}' not in allowlist"
+        )
+    if activity_level not in _ALLOWED_ACTIVITY_LEVEL:
+        raise LlmProfileInjectionError(
+            f"activity_level '{activity_level}' not in allowlist"
+        )
+    if diet_type not in _ALLOWED_DIET_TYPE:
+        raise LlmProfileInjectionError(
+            f"diet_type '{diet_type}' not in allowlist"
+        )
+    return {
+        "primary_goal": primary_goal,
+        "activity_level": activity_level,
+        "diet_type": diet_type,
+    }

@@ -19,6 +19,8 @@ __all__ = [
     "estimate_prompt_cost",
     "check_global_kill_switch",
     "check_elite_quota",
+    "try_claim_elite_quota",
+    "increment_elite_quota",
     "call_openai_ranker",
 ]
 
@@ -106,6 +108,31 @@ async def increment_elite_quota(
     pipe.incr(key)
     pipe.expire(key, 86400)
     await pipe.execute()
+
+
+async def try_claim_elite_quota(
+    redis_client: Any,
+    user_id_hash: str,
+    date_str: str,
+    limit: int,
+) -> bool:
+    """원자적 quota 예약 — TOCTOU 방지 (Gemini BS-02).
+
+    Redis INCR 로 먼저 예약하고, 초과 시 DECR 로 되돌린다.
+    이렇게 하면 check + increment 사이의 race condition 이 없다.
+
+    Returns:
+        True if quota slot successfully claimed (proceed with LLM call).
+        False if over limit (return standard mode).
+    """
+    key = _QUOTA_KEY_TMPL.format(user_id_hash=user_id_hash, date=date_str)
+    new_count: int = await redis_client.incr(key)
+    if new_count == 1:
+        await redis_client.expire(key, 86400)
+    if new_count > limit:
+        await redis_client.decr(key)
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------

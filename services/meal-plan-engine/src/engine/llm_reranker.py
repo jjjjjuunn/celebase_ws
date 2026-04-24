@@ -19,21 +19,22 @@ from pydantic import ValidationError
 
 from ..clients.llm_client import (
     call_openai_ranker,
-    check_elite_quota,
     check_global_kill_switch,
     estimate_prompt_cost,
-    increment_elite_quota,
+    try_claim_elite_quota,
 )
 from ..config import settings
 from .allergen_filter import RecipeSlot
 from .llm_metrics import metrics
 from .llm_safety import (
     AllergenViolationError,
+    LlmProfileInjectionError,
     PoolViolationError,
     append_disclaimer,
     assert_no_allergen_violation,
     assert_recipe_ids_in_pool,
     check_endorsement_regex,
+    sanitize_llm_profile,
 )
 from .llm_schema import LlmProvenance, LlmRerankResult
 
@@ -103,13 +104,17 @@ _OUTPUT_SCHEMA: dict[str, Any] = {
 
 
 def _build_system_prompt(persona_id: str, llm_profile: dict[str, Any]) -> str:
-    """Jinja2 템플릿 기반 시스템 프롬프트 — prompts/v1/ranker_system.md."""
+    """Jinja2 템플릿 기반 시스템 프롬프트 — prompts/v1/ranker_system.md.
+
+    llm_profile 필드를 화이트리스트 검증 후 프롬프트에 삽입 (Gemini BS-03).
+    """
+    safe_profile = sanitize_llm_profile(llm_profile)
     tmpl = _jinja_env.get_template("ranker_system.md")
     return tmpl.render(
         persona_id=persona_id,
-        primary_goal=llm_profile.get("primary_goal", "maintenance"),
-        activity_level=llm_profile.get("activity_level", "moderate"),
-        diet_type=llm_profile.get("diet_type", "balanced"),
+        primary_goal=safe_profile["primary_goal"],
+        activity_level=safe_profile["activity_level"],
+        diet_type=safe_profile["diet_type"],
     )
 
 
@@ -186,9 +191,11 @@ async def llm_rerank_and_narrate(
         metrics.record_call(mode="standard", reason="kill_switch_error")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
-    # ── Elite daily quota (LLM-DESIGN §S8, Gemini BS-04) ─────────────────────
+    # ── Elite daily quota — 원자적 INCR 예약 (Gemini BS-02 TOCTOU 방지) ────────
     try:
-        if await check_elite_quota(redis_client, user_id_hash, _date):
+        if not await try_claim_elite_quota(
+            redis_client, user_id_hash, _date, settings.ELITE_DAILY_LLM_SOFT_LIMIT
+        ):
             _logger.info(
                 "llm_reranker quota_exceeded user=%s plan=%s", user_id_hash, plan_id
             )
@@ -214,8 +221,13 @@ async def llm_rerank_and_narrate(
     if not recipe_ids:
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
-    # ── Build prompts (Jinja2 템플릿) ─────────────────────────────────────────
-    system_prompt = _build_system_prompt(persona_id, llm_profile)
+    # ── Build prompts (Jinja2 템플릿) — injection 방어 포함 (Gemini BS-03) ──────
+    try:
+        system_prompt = _build_system_prompt(persona_id, llm_profile)
+    except LlmProfileInjectionError:
+        _logger.warning("llm_reranker profile_injection_blocked plan=%s", plan_id)
+        metrics.record_call(mode="standard", reason="profile_injection")
+        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
     user_prompt = _build_user_prompt(recipe_ids, plan_id, persona_id)
 
     # ── Gate 0: tiktoken 비용 사전 추정 (Gemini BS-NEW-02) ────────────────────
@@ -261,8 +273,13 @@ async def llm_rerank_and_narrate(
 
     elapsed = time.monotonic() - t0
 
-    # ── Gate 2: Pool 검증 ─────────────────────────────────────────────────────
+    # ── Gate 2: Pool 검증 + 중복 recipe_id 검사 (Gemini BS-05) ─────────────────
     llm_ids = [m.recipe_id for m in parsed.meals]
+    if len(llm_ids) != len(set(llm_ids)):
+        _logger.warning("llm_reranker gate2_duplicate_ids plan=%s", plan_id)
+        metrics.record_gate_failure("2")
+        metrics.record_call(mode="standard", reason="gate_fail")
+        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
     try:
         assert_recipe_ids_in_pool(llm_ids, pool_ids)
     except PoolViolationError:
@@ -309,12 +326,6 @@ async def llm_rerank_and_narrate(
             "narrative": append_disclaimer(meal.narrative),
             "citations": [c.model_dump() for c in meal.citations],
         }
-
-    # ── Quota increment (성공 후 카운트) ──────────────────────────────────────
-    try:
-        await increment_elite_quota(redis_client, user_id_hash, _date)
-    except Exception:  # noqa: BLE001
-        _logger.exception("llm_reranker quota_increment_failed (non-fatal) plan=%s", plan_id)
 
     # ── ranked_plan 재구성 ─────────────────────────────────────────────────────
     ranked_plan: list[list[dict[str, Any]]] = []
