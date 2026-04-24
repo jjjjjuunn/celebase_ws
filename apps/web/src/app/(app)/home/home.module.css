@@ -1,0 +1,384 @@
+.page {
+  max-width: 720px;
+  margin: var(--cb-space-8) auto;
+  padding: 0 var(--cb-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-7);
+}
+
+.hint {
+  color: var(--cb-color-text-subtle);
+  font-size: var(--cb-font-size-sm);
+}
+
+/* Greeting */
+.greetingRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-1);
+}
+
+.greetingText {
+  margin: 0;
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-display-md);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.personaSubline {
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+}
+
+/* Week strip */
+.weekStrip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-2);
+}
+
+.weekList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--cb-space-2);
+}
+
+.weekCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cb-space-1);
+  padding: var(--cb-space-3) 0;
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-md);
+  text-align: center;
+}
+
+.weekCellToday {
+  border-color: var(--cb-color-brand);
+  background: var(--cb-color-brand-soft, var(--cb-color-surface));
+  box-shadow: 0 0 0 1px var(--cb-color-brand);
+}
+
+.weekCellFuture {
+  opacity: 0.6;
+}
+
+.weekCellLabel {
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.weekCellDot {
+  font-size: var(--cb-font-size-lg);
+  line-height: 1;
+  color: var(--cb-color-brand);
+}
+
+/* Today Hero */
+.todayHero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+  padding: var(--cb-space-6);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-lg);
+}
+
+.todayHeroBadge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cb-space-2);
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nihBadge {
+  padding: var(--cb-space-1) var(--cb-space-2);
+  background: var(--cb-color-neutral-100);
+  border-radius: var(--cb-radius-sm);
+  color: var(--cb-color-text);
+  letter-spacing: 0.02em;
+  font-weight: var(--cb-font-weight-medium);
+}
+
+.todayHeroTitle {
+  margin: 0;
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-font-size-2xl);
+  font-weight: var(--cb-font-weight-bold);
+  color: var(--cb-color-text);
+  line-height: 1.2;
+}
+
+.todayHeroMeta {
+  margin: 0;
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text-muted);
+}
+
+.dayZeroHint {
+  margin: 0;
+  padding: var(--cb-space-3) var(--cb-space-4);
+  background: var(--cb-color-neutral-100);
+  border-radius: var(--cb-radius-sm);
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-text);
+  line-height: var(--cb-line-height-relaxed);
+}
+
+.todayHeroCta {
+  align-self: flex-start;
+  padding: var(--cb-space-3) var(--cb-space-5);
+  background: var(--cb-color-brand);
+  color: var(--cb-color-on-brand, var(--cb-color-surface));
+  border: none;
+  border-radius: var(--cb-radius-md);
+  font-family: inherit;
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms ease-out;
+}
+
+.todayHeroCta:hover {
+  background: var(--cb-color-brand-strong, var(--cb-color-brand));
+}
+
+.todayHeroCta:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+/* Rest of today */
+.restGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-3);
+}
+
+.sectionLabel {
+  margin: 0;
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.restList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--cb-space-3);
+}
+
+.restCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-2);
+  padding: var(--cb-space-4);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-md);
+}
+
+.restType {
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+}
+
+.restKcal {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+}
+
+.restLink {
+  align-self: flex-start;
+  margin-top: var(--cb-space-1);
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-brand);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.restLink:hover {
+  text-decoration: underline;
+}
+
+.restLink:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+/* Alignment footer */
+.alignmentFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-5);
+  padding: var(--cb-space-5);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-lg);
+}
+
+.alignmentCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cb-space-1);
+}
+
+.alignmentTitle {
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.alignmentSub {
+  font-size: var(--cb-font-size-md);
+  color: var(--cb-color-text);
+  line-height: var(--cb-line-height-relaxed);
+}
+
+/* Empty state */
+.emptyHero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cb-space-4);
+  padding: var(--cb-space-8) var(--cb-space-6);
+  background: var(--cb-color-surface);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-display-md);
+  font-weight: var(--cb-font-weight-semibold);
+  color: var(--cb-color-text);
+  line-height: 1.2;
+}
+
+.emptyBody {
+  margin: 0;
+  color: var(--cb-color-text-subtle);
+  line-height: var(--cb-line-height-relaxed);
+}
+
+.primaryCta {
+  padding: var(--cb-space-3) var(--cb-space-5);
+  background: var(--cb-color-brand);
+  color: var(--cb-color-on-brand, var(--cb-color-surface));
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  text-decoration: none;
+}
+
+.primaryCta:hover {
+  background: var(--cb-color-brand-strong, var(--cb-color-brand));
+}
+
+.primaryCta:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+/* Undo toast (Phase C2 — silent-skip) */
+.undoToast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--cb-space-6);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cb-space-3);
+  padding: var(--cb-space-3) var(--cb-space-4);
+  background: var(--cb-color-text);
+  color: var(--cb-color-surface);
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  box-shadow: var(--cb-shadow-3);
+  z-index: 100;
+  animation: undoToastIn 180ms ease-out;
+}
+
+.undoToastLabel {
+  font-weight: var(--cb-font-weight-medium);
+}
+
+.undoButton {
+  padding: var(--cb-space-1) var(--cb-space-3);
+  background: transparent;
+  color: var(--cb-color-brand-soft, var(--cb-color-surface));
+  border: 1px solid currentColor;
+  border-radius: var(--cb-radius-sm);
+  font-family: inherit;
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-semibold);
+  cursor: pointer;
+  transition: opacity 120ms ease;
+  opacity: 0.92;
+}
+
+.undoButton:hover {
+  opacity: 1;
+}
+
+.undoButton:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+@keyframes undoToastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .todayHeroCta,
+  .primaryCta {
+    transition: none;
+  }
+  .undoToast {
+    animation: none;
+  }
+  .undoButton {
+    transition: none;
+  }
+}
