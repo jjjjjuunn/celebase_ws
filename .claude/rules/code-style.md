@@ -222,6 +222,24 @@ const items = React.Children.toArray(children).filter(
   ```
 - `cloneElement` 로 주입하는 prop 은 최소한 (`selected`, `onSelect`, `tabIndex`, `ref`) 로 제한 — 자식 내부 state 는 불변으로 보존.
 
+### optional field 조건부 렌더 — `!= null` 느슨한 비교 (IMPL-APP-005-c 교훈)
+
+optional (`string | null | undefined`) 필드의 존재 여부를 렌더 조건으로 쓸 때 `!= null` 한 줄로 null + undefined 동시 처리:
+
+```tsx
+// ❌ undefined를 놓침
+{meal.narrative !== null && <p>{meal.narrative}</p>}
+
+// ❌ 두 줄 중복
+{meal.narrative !== null && meal.narrative !== undefined && <p>{meal.narrative}</p>}
+
+// ✅ 느슨한 비교 — null + undefined 모두 처리
+{meal.narrative != null && <p>{meal.narrative}</p>}
+```
+
+- `!= null`은 `null`과 `undefined` 둘 다 잡는다 (ECMAScript 스펙).
+- 단, 빈 문자열(`""`)은 잡지 않는다. 빈 문자열도 숨겨야 하면 truthy 체크(`meal.narrative`) 사용.
+
 ## 공통 품질 규칙
 
 - `any` 타입 금지 → `unknown` + type guard

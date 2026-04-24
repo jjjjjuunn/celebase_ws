@@ -30,6 +30,25 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-04-24
 agent: claude-sonnet-4-6
+task_id: IMPL-APP-005-c
+commit_sha: b25ffa8
+files_changed:
+  - apps/web/src/app/(app)/plans/[id]/page.tsx
+  - apps/web/src/app/(app)/plans/[id]/CitationChipList.tsx
+  - apps/web/src/app/(app)/plans/[id]/plan-detail.module.css
+verified_by: codex-review (PASS, Critical=0 High=0), fe_token_hardcode passed:true, qa-exec grep static checks all passed
+---
+### 완료: IMPL-APP-005-c — mode badge + inline narrative card + CitationChipList + standard banner
+- `page.tsx`: mode badge (`modeBadgeLlm` / `modeBadgeStandard`) + aria-label 각각 추가; standard banner (`role="status"` + `aria-live="polite"`) 조건부 렌더; mealRow 블록 구조로 변경 + narrative/citations 인라인 추가
+- `CitationChipList.tsx` 신규: `CITATION_LABELS_KO` 한국어 라벨, overflow `+N` chip + `aria-label="외 N개"`, `'use client';` 없음 (server-compatible), `String(overflowCount)` (`restrict-template-expressions` 준수)
+- `plan-detail.module.css`: mealRow column layout, mealRowMain, modeBadgeLlm/Standard, standardBanner, narrativeCard(`::before` quote), citationList/Chip/ChipOverflow 신규 추가; raw hex 0건
+- Codex implement 실패 (JSX heredoc shell escape) → Claude hybrid fallback으로 직접 구현 (LESSONS.md 기록)
+### 미완료: IMPL-APP-005-d (E2E Playwright), Gemini #1 review (L3 rubric)
+### 연관 파일: apps/web/src/app/(app)/plans/[id]/
+
+---
+date: 2026-04-24
+agent: claude-sonnet-4-6
 task_id: IMPL-APP-005-b
 commit_sha: cd04370
 files_changed:
