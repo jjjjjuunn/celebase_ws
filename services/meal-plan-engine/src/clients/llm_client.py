@@ -21,19 +21,26 @@ __all__ = [
     "check_elite_quota",
     "try_claim_elite_quota",
     "increment_elite_quota",
+    "increment_monthly_cost",
     "call_openai_ranker",
 ]
 
 _logger = logging.getLogger(__name__)
 
-# LLM-DESIGN §S8 — 토큰 카운팅 인코딩 (GPT-4.1-mini/GPT-5-nano 모두 cl100k_base)
-_ENCODING = tiktoken.get_encoding("cl100k_base")
+# LLM-DESIGN §S8 — 토큰 카운팅 인코딩: 모델별 인코딩 자동 선택 (BS-04)
+try:
+    _ENCODING = tiktoken.encoding_for_model(settings.OPENAI_MODEL)
+except KeyError:
+    _ENCODING = tiktoken.get_encoding("o200k_base")
 
 # LLM-DESIGN §S9 — Redis key 패턴
 _QUOTA_KEY_TMPL = "llm:quota:{user_id_hash}:{date}"
 _KILL_SWITCH_KEY = "llm_disabled"
 _COST_KILL_KEY = "llm_cost_kill"
 _MONTHLY_COST_KEY = "llm:cost:monthly"
+
+# 월별 비용 key TTL: 32일 (월 경계 넘기지 않도록 충분히)
+_MONTHLY_TTL_SECONDS = 32 * 86400
 
 
 # ---------------------------------------------------------------------------
@@ -116,23 +123,54 @@ async def try_claim_elite_quota(
     date_str: str,
     limit: int,
 ) -> bool:
-    """원자적 quota 예약 — TOCTOU 방지 (Gemini BS-02).
+    """원자적 quota 예약 — TOCTOU 방지 (Gemini BS-02), TTL 원자적 설정 (BS-13).
 
-    Redis INCR 로 먼저 예약하고, 초과 시 DECR 로 되돌린다.
-    이렇게 하면 check + increment 사이의 race condition 이 없다.
+    pipeline()으로 INCR + EXPIRE를 원자적으로 실행한다.
+    이렇게 하면 INCR 후 프로세스 종료 시 TTL 미설정으로 영구 quota 소진 버그를 방지한다.
+    TTL은 매 호출마다 갱신되므로 실질적으로 24시간 rolling window가 된다.
 
     Returns:
         True if quota slot successfully claimed (proceed with LLM call).
         False if over limit (return standard mode).
     """
     key = _QUOTA_KEY_TMPL.format(user_id_hash=user_id_hash, date=date_str)
-    new_count: int = await redis_client.incr(key)
-    if new_count == 1:
-        await redis_client.expire(key, 86400)
+    pipe = redis_client.pipeline()
+    pipe.incr(key)
+    pipe.expire(key, 86400)
+    results = await pipe.execute()
+    new_count: int = results[0]
     if new_count > limit:
         await redis_client.decr(key)
         return False
     return True
+
+
+async def increment_monthly_cost(redis_client: Any, cost_usd: float) -> None:
+    """월별 LLM 비용 누적 + kill switch 자동 발화 — BS-10, LLM-DESIGN §S13.
+
+    INCRBYFLOAT로 `llm:cost:monthly` 키에 비용을 누적하고,
+    LLM_MONTHLY_KILL_USD 초과 시 `llm_cost_kill` 키를 자동 설정한다.
+    """
+    new_total: float = float(
+        await redis_client.incrbyfloat(_MONTHLY_COST_KEY, cost_usd)
+    )
+    # 첫 기록 시 TTL 설정 (epsilon 범위 내에서 첫 누적 판단)
+    if abs(new_total - cost_usd) < 1e-6:
+        await redis_client.expire(_MONTHLY_COST_KEY, _MONTHLY_TTL_SECONDS)
+
+    if new_total >= settings.LLM_MONTHLY_KILL_USD:
+        await redis_client.set(_COST_KILL_KEY, "1")
+        _logger.error(
+            "llm_monthly_kill_triggered total_usd=%.2f limit=%.2f",
+            new_total,
+            settings.LLM_MONTHLY_KILL_USD,
+        )
+    elif new_total >= settings.LLM_MONTHLY_WARN_USD:
+        _logger.warning(
+            "llm_monthly_warn total_usd=%.2f limit=%.2f",
+            new_total,
+            settings.LLM_MONTHLY_WARN_USD,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +190,8 @@ async def call_openai_ranker(
 ) -> tuple[LlmRankedMealList, str, str]:
     """OpenAI Structured Output 호출 — LLM-DESIGN §S5, §S8.
 
+    async with 로 httpx 연결을 명시적으로 닫는다 (BS-11).
+
     Returns:
         (parsed_result, prompt_hash, output_hash)
 
@@ -160,27 +200,26 @@ async def call_openai_ranker(
         ValidationError: Pydantic 파싱 실패 (Safety Gate 1).
     """
     _model = model or settings.OPENAI_MODEL
-    client = AsyncOpenAI(
+    prompt_hash = _hash16(system_prompt + user_prompt)
+
+    async with AsyncOpenAI(
         api_key=settings.OPENAI_API_KEY,
         timeout=settings.LLM_TIMEOUT_SECONDS,
         max_retries=1,
-    )
-
-    prompt_hash = _hash16(system_prompt + user_prompt)
-
-    response = await client.chat.completions.create(
-        model=_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        response_format={
-            "type": "json_schema",
-            "json_schema": {"name": "llm_ranked_meal_list", "schema": json_schema},
-        },
-        max_tokens=settings.LLM_MAX_OUTPUT_TOKENS,
-        temperature=0.3,
-    )
+    ) as client:
+        response = await client.chat.completions.create(
+            model=_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "llm_ranked_meal_list", "schema": json_schema},
+            },
+            max_tokens=settings.LLM_MAX_OUTPUT_TOKENS,
+            temperature=0.3,
+        )
 
     raw_content: str = response.choices[0].message.content or ""
     output_hash = _hash16(raw_content)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # OPENAI_API_KEY pattern sk-* is blocked by security.md Semgrep rules — env only
     OPENAI_API_KEY: str = ""
     ENABLE_LLM_MEAL_PLANNER: bool = False
-    LLM_ROLLOUT_PCT: int = 0               # 0/10/50/100 점진적 rollout
+    LLM_ROLLOUT_PCT: int = Field(default=0, ge=0, le=100)  # 0/10/50/100 점진적 rollout
     LLM_COST_CAP_USD: float = 0.05         # per-plan hard cap (Proposal line 305)
     LLM_INPUT_PRICE_PER_1M_USD: float = 0.10   # GPT-4.1-mini 기준, 갱신 필요 시 코드 변경
     LLM_OUTPUT_PRICE_PER_1M_USD: float = 0.40

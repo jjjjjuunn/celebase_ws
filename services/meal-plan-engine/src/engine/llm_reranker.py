@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
 import time
 from datetime import date
 from pathlib import Path
@@ -21,6 +22,7 @@ from ..clients.llm_client import (
     call_openai_ranker,
     check_global_kill_switch,
     estimate_prompt_cost,
+    increment_monthly_cost,
     try_claim_elite_quota,
 )
 from ..config import settings
@@ -41,6 +43,9 @@ from .llm_schema import LlmProvenance, LlmRerankResult
 __all__ = ["llm_rerank_and_narrate"]
 
 _logger = logging.getLogger(__name__)
+
+# BS-14: persona_id 프롬프트 주입 방지 — 소문자 알파벳/숫자/하이픈/밑줄, 최대 50자
+_PERSONA_ID_RE = re.compile(r"^[a-z0-9_-]{1,50}$")
 
 # Jinja2 환경 초기화 — prompts/v1/ 디렉터리 기준
 _PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts" / "v1"
@@ -221,6 +226,14 @@ async def llm_rerank_and_narrate(
     if not recipe_ids:
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
+    # ── persona_id 검증 — 프롬프트 주입 방지 (BS-14) ─────────────────────────────
+    if not _PERSONA_ID_RE.match(persona_id):
+        _logger.warning(
+            "llm_reranker persona_id_invalid persona=%s plan=%s", persona_id, plan_id
+        )
+        metrics.record_call(mode="standard", reason="persona_id_invalid")
+        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
+
     # ── Build prompts (Jinja2 템플릿) — injection 방어 포함 (Gemini BS-03) ──────
     try:
         system_prompt = _build_system_prompt(persona_id, llm_profile)
@@ -284,6 +297,18 @@ async def llm_rerank_and_narrate(
         assert_recipe_ids_in_pool(llm_ids, pool_ids)
     except PoolViolationError:
         _logger.warning("llm_reranker gate2_pool_violation plan=%s", plan_id)
+        metrics.record_gate_failure("2")
+        metrics.record_call(mode="standard", reason="gate_fail")
+        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
+
+    # ── Gate 2.5: 부분 응답 검증 — LLM이 입력 recipe 전부를 반환했는지 확인 (BS-16) ──
+    if len(llm_ids) < len(recipe_ids):
+        _logger.warning(
+            "llm_reranker gate2_partial_response llm=%d expected=%d plan=%s",
+            len(llm_ids),
+            len(recipe_ids),
+            plan_id,
+        )
         metrics.record_gate_failure("2")
         metrics.record_call(mode="standard", reason="gate_fail")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
@@ -358,6 +383,12 @@ async def llm_rerank_and_narrate(
         input_tokens=len(system_prompt.split()) + len(user_prompt.split()),  # 근사치
         latency_s=elapsed,
     )
+
+    # ── 월별 비용 누적 + kill switch 자동 발화 (BS-10) ──────────────────────────
+    try:
+        await increment_monthly_cost(redis_client, estimated_cost)
+    except Exception:  # noqa: BLE001
+        _logger.exception("llm_reranker monthly_cost_tracking_error plan=%s", plan_id)
 
     _logger.info(
         "llm_reranker success mode=llm plan=%s prompt_hash=%s latency=%.2fs cost=%.5f",
