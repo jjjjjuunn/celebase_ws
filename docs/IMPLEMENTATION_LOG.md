@@ -29,6 +29,24 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-d
+commit_sha: 23c2760
+files_changed:
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+verified_by: code review (Safety Gates 2/3/5/6 검증, pipeline 폴백 경로 검토)
+---
+### 완료: IMPL-AI-001-d — LLM Safety Gates + Reranker + Pipeline 통합
+- llm_safety.py: Gate2(assert_recipe_ids_in_pool) · Gate3(assert_no_allergen_violation, mutate 금지/Codex FINDING-02) · Gate5(append_disclaimer) · Gate6(check_endorsement_regex)
+- llm_reranker.py: kill switch → quota → Gate0 비용 추정 → call_openai_ranker → Gate2~6 전체 시퀀스 → LlmRerankResult 반환. 모든 오류 standard mode 폴백(Gemini BS-01)
+- pipeline.py: Step 5.5 LLM 블록 삽입(varied_plan~nutrition_normalizer 사이). final_out에 mode/ui_hint/quota_exceeded/llm_provenance 추가(Gemini BS-NEW-03). 옵셔널 redis_client+llm_context 파라미터
+### 미완료: llm_metrics.py + Jinja2 프롬프트 템플릿 + shadow mode (→ IMPL-AI-001-e)
+### 연관 파일: services/meal-plan-engine/src/engine/llm_safety.py, llm_reranker.py, pipeline.py
+
+---
+date: 2026-04-23
 agent: claude-opus-4-7
 task_id: IMPL-AI-001-c
 commit_sha: e483d8c
