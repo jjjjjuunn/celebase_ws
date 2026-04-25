@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { postJson } from '@/lib/fetcher.js';
+import { WIZARD_DRAFT_KEY } from '@/app/(onboarding)/onboarding/wizard-schema.js';
 
 export function LogoutButton(): React.ReactElement {
   const router = useRouter();
@@ -15,6 +16,13 @@ export function LogoutButton(): React.ReactElement {
     try {
       await postJson('/api/auth/logout', {});
     } finally {
+      if (typeof window !== 'undefined') {
+        try {
+          window.sessionStorage.removeItem(WIZARD_DRAFT_KEY);
+        } catch {
+          // ignore storage failures (quota, privacy mode)
+        }
+      }
       router.replace('/login');
     }
   };
