@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { postJson, FetcherError } from '@/lib/fetcher.js';
+import { WIZARD_DRAFT_KEY } from '@/app/(onboarding)/onboarding/wizard-schema.js';
 import styles from './EmailSignupForm.module.css';
 
 export function EmailSignupForm(): React.ReactElement {
@@ -21,6 +22,13 @@ export function EmailSignupForm(): React.ReactElement {
     setError(null);
     try {
       await postJson('/api/auth/signup', { email, display_name: displayName });
+      if (typeof window !== 'undefined') {
+        try {
+          window.sessionStorage.removeItem(WIZARD_DRAFT_KEY);
+        } catch {
+          // ignore storage failures (quota, privacy mode)
+        }
+      }
       router.replace('/onboarding');
     } catch (err) {
       if (err instanceof FetcherError && err.status === 409) {
