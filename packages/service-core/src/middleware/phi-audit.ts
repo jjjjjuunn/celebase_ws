@@ -32,7 +32,13 @@ export async function writePhiAuditLog(pool: pg.Pool, entry: PhiAuditEntry): Pro
         entry.ipAddress,
       ],
     );
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[phi-audit] INSERT failed', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      entry,
+    });
     throw new AuditFailureError('Failed to write PHI audit log — request blocked (fail-closed)');
   }
 }
