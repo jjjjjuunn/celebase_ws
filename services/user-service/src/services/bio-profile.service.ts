@@ -59,7 +59,8 @@ export async function createOrUpdateBioProfile(
   data: Parameters<typeof bioProfileRepo.upsert>[2],
   keyProvider: PhiKeyProvider,
 ): Promise<BioProfile> {
-  return bioProfileRepo.upsert(pool, userId, data, keyProvider);
+  await bioProfileRepo.upsert(pool, userId, data, keyProvider);
+  return recalculate(pool, userId, keyProvider);
 }
 
 export async function recalculate(
