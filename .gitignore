@@ -28,12 +28,16 @@ coverage/
 .env.*.local
 .env.staging
 .env.production
+**/.env.staging
 
-# Terraform state (local only)
+# Terraform (local state — use remote backend in CI/prod)
 *.tfstate
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.backup
 
 # Claude Code session lock
 .claude/scheduled_tasks.lock
