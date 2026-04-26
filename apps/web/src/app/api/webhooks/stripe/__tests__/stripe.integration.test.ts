@@ -65,7 +65,7 @@ describe('POST /api/webhooks/stripe', () => {
     expect(res.status).toBe(200);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [calledUrl, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(calledUrl).toBe('http://localhost:3001/webhooks/stripe');
+    expect(calledUrl).toBe('http://localhost:3004/webhooks/stripe');
     expect(init.method).toBe('POST');
     expect(init.body).toBe(rawBody);
     const headers = init.headers as Record<string, string>;
