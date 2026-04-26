@@ -6,6 +6,13 @@ import {
   toBffErrorResponse,
   type BffError,
 } from './bff-error.js';
+import { readEnv } from './env.js';
+import { clearSessionCookies, setSessionCookies } from './cookies.js';
+import { attemptSilentRefresh } from './refresh.js';
+
+// Re-exported so existing BFF routes that import readEnv from session.js keep
+// working. New code should import from './env.js' directly.
+export { readEnv };
 
 export interface Session {
   user_id: string;
@@ -20,14 +27,6 @@ export type ProtectedHandler = (
 ) => Promise<Response> | Response;
 
 export type PublicHandler = (req: NextRequest) => Promise<Response> | Response;
-
-export function readEnv(name: string): string {
-  const value = process.env[name];
-  if (value === undefined || value === '') {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return value;
-}
 
 const DEFAULT_DEV_SECRET = 'dev-secret-not-for-prod';
 const INTERNAL_ISSUER =
@@ -129,8 +128,15 @@ export function createProtectedRoute(
 ): (req: NextRequest) => Promise<Response> {
   return async (req) => {
     const requestId = ensureRequestId(req);
+    // Single padding anchor covers verify → refresh → handler → response.
+    // Every exit below runs padToMinLatency(handlerStart) so the outer
+    // response timing can't distinguish missing-cookie / expired / refresh
+    // success vs. handler-level branches.
+    const handlerStart = performance.now();
+
     const token = req.cookies.get('cb_access')?.value;
     if (token === undefined || token === '') {
+      await padToMinLatency(handlerStart);
       return unauthorizedResponse(
         requestId,
         'UNAUTHORIZED',
@@ -138,29 +144,78 @@ export function createProtectedRoute(
         false,
       );
     }
+
     let session: Session;
+    // Holds Set-Cookie headers to append to the final response when silent
+    // refresh succeeds. Null when no refresh happened — handler's response
+    // flows through unchanged.
+    let newCookies: string[] | null = null;
     try {
       session = await verifyAccessToken(token);
     } catch (err) {
       if (err instanceof joseErrors.JWTExpired) {
-        // Client should clear cookie locally and re-login via Cognito.
-        // TODO(Phase C): attempt silent refresh before returning 401.
+        const refreshCookie = req.cookies.get('cb_refresh')?.value;
+        if (refreshCookie === undefined || refreshCookie === '') {
+          await padToMinLatency(handlerStart);
+          return unauthorizedResponse(
+            requestId,
+            'TOKEN_EXPIRED',
+            'Access token expired',
+            true,
+          );
+        }
+        const refreshed = await attemptSilentRefresh(refreshCookie, requestId);
+        if (!refreshed.ok) {
+          const res = unauthorizedResponse(
+            requestId,
+            'TOKEN_EXPIRED',
+            'Access token expired',
+            true,
+          );
+          for (const c of clearSessionCookies()) {
+            res.headers.append('Set-Cookie', c);
+          }
+          await padToMinLatency(handlerStart);
+          return res;
+        }
+        try {
+          // Discriminated union narrows refreshed.newAccess to string — no `!`.
+          session = await verifyAccessToken(refreshed.newAccess);
+        } catch (verifyErr) {
+          log.warn(
+            { err: verifyErr },
+            'Silent refresh returned unverifiable access token',
+          );
+          const res = unauthorizedResponse(
+            requestId,
+            'TOKEN_EXPIRED',
+            'Access token expired',
+            true,
+          );
+          for (const c of clearSessionCookies()) {
+            res.headers.append('Set-Cookie', c);
+          }
+          await padToMinLatency(handlerStart);
+          return res;
+        }
+        newCookies = setSessionCookies({
+          accessToken: refreshed.newAccess,
+          refreshToken: refreshed.newRefresh,
+          accessMaxAgeSec: refreshed.accessExpSec,
+          refreshMaxAgeSec: refreshed.refreshExpSec,
+        });
+      } else {
+        log.warn({ err }, 'Token verification failed');
+        await padToMinLatency(handlerStart);
         return unauthorizedResponse(
           requestId,
-          'TOKEN_EXPIRED',
-          'Access token expired',
-          true,
+          'UNAUTHORIZED',
+          'Invalid session',
+          false,
         );
       }
-      log.warn({ err }, 'Token verification failed');
-      return unauthorizedResponse(
-        requestId,
-        'UNAUTHORIZED',
-        'Invalid session',
-        false,
-      );
     }
-    const handlerStart = performance.now();
+
     let handlerRes: Response;
     try {
       handlerRes = withRequestId(await handler(req, session), requestId);
@@ -176,8 +231,20 @@ export function createProtectedRoute(
           'Access token expired',
           true,
         );
+        // Second expiry after a successful refresh → the refreshed session
+        // is already dead upstream. Drop the newly-issued cookies instead of
+        // leaving stale ones on the client.
+        if (newCookies !== null) newCookies = null;
+        for (const c of clearSessionCookies()) {
+          handlerRes.headers.append('Set-Cookie', c);
+        }
       } else {
         handlerRes = withRequestId(toBffErrorResponse(err, requestId), requestId);
+      }
+    }
+    if (newCookies !== null) {
+      for (const c of newCookies) {
+        handlerRes.headers.append('Set-Cookie', c);
       }
     }
     await padToMinLatency(handlerStart);

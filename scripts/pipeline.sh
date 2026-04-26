@@ -218,7 +218,7 @@ Check for each of the following and assign severity CRITICAL / HIGH / MEDIUM / L
 
 1. Security: hardcoded secrets, SQL injection, XSS, SSRF, missing Zod validation
 2. Architecture: cross-service DB access, missing parameterized queries
-3. Code quality: `any` types, empty `catch {}`, `console.log`, magic numbers
+3. Code quality: `any` types, empty `catch {}`, stray debug logging, magic numbers
 4. Test coverage: new logic without corresponding tests
 5. PHI handling: health fields without AES-256 encryption, missing audit logs, fail-open patterns
 6. Database rules: UUID v4 used instead of v7, missing soft-delete, potential N+1 queries

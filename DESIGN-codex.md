@@ -578,7 +578,7 @@ Required Text (exact):
 
 Placement Rules:
 - Mandatory on all nutrition/diet screens:
-  - S11 Category Selection
+  - S7 Blueprint Reveal (onboarding TDEE + persona meal preview)
   - Discover celebrity diet detail
   - Meal Plan Preview
   - My Plan (overview + day detail)
@@ -668,7 +668,9 @@ Trust block:
 - Secure checkout row with lock icon + short text.
 - Instacart handoff note in 12px caption.
 
-Section 8. Screen-by-Screen Design (S1-S11 onboarding + Tab1-4 + Recipe Detail + Checkout)
+Section 8. Screen-by-Screen Design (S0-S7 persona-first onboarding + Tab1-4 + Recipe Detail + Checkout)
+
+> Updated 2026-04-22 (Plan 20 Phase C-1). Onboarding switched from 11-step data-first to 8-step persona-first flow. Canonical source: spec.md §7.1 + DESIGN.md §8.1. Biomarker Upload moved to Phase 2 post-onboarding at `/settings/health/biomarkers/upload`.
 
 Global screen template constraints:
 - One primary CTA only.
@@ -676,130 +678,77 @@ Global screen template constraints:
 - Skeleton states defined for all network/data screens.
 - HealthDisclaimer mandatory on nutrition/diet contexts.
 
-S1 Welcome
+S0 Welcome
 - Goal: entry + value proposition.
 - Layout:
-  - Hero image top 58% height.
+  - Hero image top 58% height with celebrity mosaic.
   - Brand statement centered.
   - Persona chips scroll row.
 - Primary CTA: `Get Started`.
 - Secondary: `Sign in` text link.
-- Components:
-  - Editorial Discovery Card variant.
-  - Trust microcopy row.
 - Spacing:
   - top 48px, sides 24px, bottom CTA inset 32px.
 
-S2 Auth
+S1 Auth
 - Goal: authenticate quickly.
 - Layout:
   - Header title + short subtitle.
   - SSO buttons (Apple, Google).
   - Divider and email form.
-- Primary CTA: `Continue` (email or selected SSO flow).
+- Primary CTA: `Continue`.
 - Secondary: `Use phone instead` text link.
 - States:
   - Loading spinner in button.
   - Inline error labels (error token set).
 
+S2 Persona Select (NEW · persona-first wedge)
+- Goal: lock aspirational intent BEFORE PHI collection.
+- Layout:
+  - Fraunces display-xl prompt: `Who would you like to live like?`
+  - 2-col grid (desktop) / 1-col (≤720px) of CelebrityCard + PersonaHero composite.
+- Card contents: hero image, name, 1-line wellness philosophy, optional match-score chip with persona accent token.
+- Primary CTA: `Continue` (disabled until selection).
+- Persistence: `PATCH /api/users/me { preferred_celebrity_slug }` on confirm.
+- Persona-match call is NOT triggered here (moved to S6 Continue per Codex Round 1 HIGH-1).
+
 S3 Basic Info
-- Fields:
-  - First name
-  - Last name
-  - Birth year
-  - Sex
+- Fields: display_name, birth_year, sex (enum).
 - Primary CTA: `Next: Body Metrics`.
-- Form details:
-  - Input vertical gap 12px.
-  - Two-column layout on >=768px.
-- Validation:
-  - Real-time per field.
+- Validation: real-time per field.
+- Persistence: client state only — final write at S7 Confirm.
 
 S4 Body Metrics
-- Fields:
-  - Height
-  - Weight
-  - Waist (optional)
-  - Unit toggle (lb/oz/ft-in vs kg/cm)
-- Primary CTA: `Next: Activity Level`.
-- Secondary: `Skip Waist` text.
-- UI:
-  - Segmented control for units.
-  - Inline helper text on conversions.
+- Fields: height_cm (100-250), weight_kg (30-300), waist_cm (optional 40-200), unit toggle (cm↔in, kg↔lb).
+- Primary CTA: `Next: Activity & Health`.
+- UI: segmented control for units; display conversion only, persist metric.
 
-S5 Activity Level
-- Selector:
-  - 5 level visual cards (Sedentary, Light, Moderate, Active, Very Active)
-- Primary CTA: `Next: Health Info`.
-- Interaction:
-  - Single select with check animation.
-- Accessibility:
-  - Card selectable via keyboard/screen reader labels.
+S5 Activity & Health (MERGED · replaces prior S5 Activity + S6 Health)
+- Top: 5-level visual cards (Sedentary, Light, Moderate, Active, Very Active) with roving tabindex.
+- Bottom: Allergies / Intolerances / Conditions / Medications tag inputs.
+- First HealthDisclaimer appearance on wizard.
+- GLP-1 medication detected → Digital Lavender chip (`--cb-accent-glp1`) + §7.5 link.
+- Primary CTA: `Next: Goals & Diet`.
+- Accessibility: card selectable via keyboard, ARIA `aria-disabled="true"` for disabled states.
 
-S6 Health Info
-- Fields:
-  - Allergies multi-select chips
-  - Conditions multi-select
-  - Medications text + suggestions
-- Primary CTA: `Next: Biomarkers`.
-- Secondary: `Prefer to add later`.
-- Clinical caution:
-  - Non-diagnostic copy block beneath medications.
+S6 Goals & Diet Preferences
+- Fields: primary_goal (radio cards), secondary_goals chips (≤3), diet_type, cuisine_preferences, disliked_ingredients (optional).
+- Primary CTA: `Reveal my Blueprint`.
+- On Continue:
+  1. Fire async `POST /api/persona-match { celebritySlug, goal, wellnessKeywords }` (AbortController on re-entry).
+  2. Navigate to S7 immediately.
+- Body MUST omit PHI fields (bioProfile*, biomarkers, medications, medicalConditions, age, weightKg, heightCm, sex) — enforced client-side + BFF denylist.
 
-S7 Biomarker Upload
-- Supports:
-  - JPEG, PNG, PDF single file
-  - Max 10MB
-  - PDF <=5 pages
-- Primary CTA: `Upload and Continue`.
-- Secondary: `Enter values manually`.
-- Components:
-  - File upload dropzone
-  - OCR confidence status row
-  - Manual edit preview card (phase 2)
-- Skeleton:
-  - OCR parsing skeleton with doc thumbnail placeholders.
-
-S8 Wellness Goal
-- Selector:
-  - Primary goal cards
-  - Secondary goals chips
-- Goals include:
-  - Weight management
-  - Muscle preservation
-  - Energy
-  - Metabolic health
-- Primary CTA: `Next: Dietary Preference`.
-- Secondary: `Skip secondary goals`.
-
-S9 Dietary Preference
-- Inputs:
-  - Diet type (omnivore, pescatarian, vegetarian, etc.)
-  - Cuisine preference chips
-  - Exclusion list
-- Primary CTA: `Next: Profile Summary`.
-- UI:
-  - Photo-backed cuisine chips.
-
-S10 Profile Summary
-- Content:
-  - Collapsible sections for entered data.
-  - Edit links for each section.
-  - Completeness meter.
-- Primary CTA: `Confirm Profile`.
-- Secondary: `Edit Details`.
-- Quality signal:
-  - “Personalization confidence” indicator (info token color).
-
-S11 Category Selection
-- Content:
-  - Categories: Diet / Protein / Vegetarian / General
-  - Top picks per category.
-- Primary CTA: `Enter Discover`.
-- Required component:
-  - HealthDisclaimer shown before CTA.
-- Visual:
-  - 2x2 responsive category tiles.
+S7 Blueprint Reveal (NEW · replaces prior S10 Summary + S11 Category)
+- Layout: hero display-xl "Your CelebBase Blueprint" + 3-column reveal (stacked ≤720px) + bottom Instacart preview.
+- Left: Mifflin-St Jeor TDEE + 3-ring NutritionRing cluster.
+- Center: IdentitySyncScore overlay (Fraunces display-md). While persona-match is in flight: `aria-live="polite"` placeholder "Calculating your sync…"; no duplicate `aria-live` on the score component itself (single source announcement).
+- Right: First persona meal plan preview (MealCard + TrafficLightIndicator + SourceTrackingBadge).
+- Bottom: InstacartCartPreview (dismissible if 503 INSTACART_UNCONFIGURED).
+- HealthDisclaimer required (between meal preview and primary CTA).
+- Primary CTA: `Start my blueprint` → `POST /api/users/me/bio-profile` (201) → `/dashboard`. On 5xx, preserve wizard client state (sessionStorage draft) and offer inline retry.
+- Secondary: `Adjust goals` → back to S6.
+- Load Budget: p50 < 3s on staging.
+- Observability: emit `onboarding.s7.persona_match_timeout` event if placeholder still visible at +3s.
 
 Tab1 Discover
 - Modules:
@@ -1084,7 +1033,7 @@ Section 12. Accessibility (WCAG 2.1 AA)
 
 12.7 QA Checklist
 - Contrast audit pass for all tokenized combinations.
-- Screen reader walkthrough S1-S11 + Tab1-4 + Recipe + Checkout.
+- Screen reader walkthrough S0-S7 + Tab1-4 + Recipe + Checkout.
 - Keyboard-only completion for web onboarding and checkout.
 - Touch target audit for RN.
 
@@ -1190,16 +1139,20 @@ Example JSON schema:
 7. `CelebrityHero`
 8. `CheckoutSummary`
 
-14.6 Screen Build Order
-1. S1-S3
-2. S4-S7
-3. S8-S11
-4. Tab1 Discover + Celebrity Detail
-5. Tab2 My Plan + Meal Plan Preview
-6. Recipe Detail
-7. Checkout
-8. Tab3 Track
-9. Tab4 Profile + Subscription
+14.6 Screen Build Order (persona-first, S0-S7)
+1. S0 Welcome + S1 Auth
+2. S2 Persona Select (celebrity grid + PATCH /api/users/me { preferred_celebrity_slug })
+3. S3 Basic Info + S4 Body Metrics
+4. S5 Activity & Health (merged from retired Activity + Health Intake)
+5. S6 Goals & Diet Preferences (fires async POST /api/persona-match on Continue)
+6. S7 Blueprint Reveal (TDEE + persona meal preview + Identity Sync Score placeholder)
+7. Tab1 Discover + Celebrity Detail
+8. Tab2 My Plan + Meal Plan Preview
+9. Recipe Detail
+10. Checkout
+11. Tab3 Track
+12. Tab4 Profile + Subscription
+13. Phase 2 biomarker upload (`/settings/health/biomarkers/upload`, post-onboarding)
 
 14.7 Definition of Done per Screen
 - Uses token-only styles.
@@ -1219,7 +1172,7 @@ Example JSON schema:
 - Explicit hex values: complete.
 - Explicit spacing/radius/shadows: complete.
 - WCAG contrast calculations: complete.
-- S1-S11 + Tab1-4 + Recipe + Checkout coverage: complete.
+- S0-S7 + Tab1-4 + Recipe + Checkout coverage: complete (persona-first, post-spec §7.1 revision 2026-04-22).
 - Max one primary CTA per screen rule: defined and enforced.
 - Skeleton UI mandatory: defined globally + per-screen.
 - Subscription tiers visual differentiation: complete.

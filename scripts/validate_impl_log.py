@@ -80,7 +80,9 @@ def main() -> int:
             elif isinstance(sha, str):
                 sha_str = sha
             else:
-                errors.append(f"Entry #{i}: commit_sha must be string or int, got {type(sha).__name__}")
+                errors.append(
+                    f"Entry #{i}: commit_sha must be string or int, got {type(sha).__name__}"
+                )
                 continue
 
             if sha_str == "PENDING":

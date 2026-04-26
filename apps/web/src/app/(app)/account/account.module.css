@@ -45,7 +45,7 @@
   width: 56px;
   height: 56px;
   border-radius: var(--cb-radius-pill);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-cta-text);
   font-family: var(--cb-font-family-display);
   font-size: var(--cb-font-size-xl);
@@ -150,7 +150,7 @@
   font-size: var(--cb-font-size-sm);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border: none;
   border-radius: var(--cb-radius-pill);
   cursor: pointer;
@@ -211,7 +211,7 @@
   font-size: var(--cb-font-size-sm);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border: none;
   border-radius: var(--cb-radius-md);
   cursor: pointer;
@@ -345,7 +345,7 @@
   font-size: var(--cb-label-lg);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border: none;
   border-radius: var(--cb-radius-pill);
   cursor: pointer;

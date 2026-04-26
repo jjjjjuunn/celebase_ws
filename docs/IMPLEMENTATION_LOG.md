@@ -28,6 +28,170 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-review-g2
+commit_sha: 0426ecc
+files_changed:
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: Gemini #2 blind spot review (28 tests PASS)
+---
+### 완료: IMPL-AI-001 Gemini #2 리뷰 수정 — BS-04/10/11/13/14/16/17
+- BS-04: tiktoken cl100k_base → encoding_for_model(OPENAI_MODEL) (fallback o200k_base)
+- BS-10: increment_monthly_cost() 구현 — Redis INCRBYFLOAT + kill switch 자동 발화
+- BS-11: AsyncOpenAI per-call 생성 → async with 컨텍스트 매니저 (httpx aclose 보장)
+- BS-13: try_claim_elite_quota INCR+EXPIRE → pipeline() 원자적 실행
+- BS-14: persona_id allowlist regex ^[a-z0-9_-]{1,50}$ 검증 (프롬프트 주입 방지)
+- BS-16: Gate 2.5 partial response check (LLM 반환 수 < 입력 수 시 standard mode)
+- BS-17: LLM_ROLLOUT_PCT Field(ge=0, le=100) bounds validation
+- 테스트: 28개 (기존 24 + 신규 4: BS-14×2, BS-16, BS-10) 전부 PASS
+### 미완료: BS-12(SQS auth_token 아키텍처 개선), BS-06/08/09 deferred
+### 연관 파일: services/meal-plan-engine/src/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-review-g1
+commit_sha: 23a92bd
+files_changed:
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: Gemini #1 arch review + Codex #2/#3 review (24 tests PASS)
+---
+### 완료: IMPL-AI-001 Gemini #1 + Codex #2/#3 리뷰 수정 — BS-01/02/03/05/07
+- BS-01: endorsement regex 영어 의료 주장 패턴 확장 (prevent/heal/reverse/manage.*blood 등)
+- BS-02: check_elite_quota + increment_elite_quota TOCTOU → try_claim_elite_quota() (INCR+compare 원자적)
+- BS-03: sanitize_llm_profile() primary_goal/activity_level/diet_type 화이트리스트 검증 추가
+- BS-05: Gate 2 앞 중복 recipe_id dedup 체크 추가
+- BS-07: OPENAI_MODEL config 필드 + OPENAI_API_KEY startup validator 추가
+- 테스트: 24개 (신규 4: BS-01, BS-03×3, BS-05) 전부 PASS
+### 미완료: BS-04/06/08/09 deferred
+### 연관 파일: services/meal-plan-engine/src/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-f
+commit_sha: 6ea30df
+files_changed:
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+verified_by: code review (T1~T6 시나리오 커버리지, mock 경로 검토)
+---
+### 완료: IMPL-AI-001-f — LLM 단위 테스트 LLM-T1~T6
+- LLM-T1: citations=[] → Pydantic ValidationError (Gate 1)
+- LLM-T3: sanitize_celeb_source XML escape (indirect injection 방어 검증)
+- LLM-T4: endorsement regex 탐지 + Gate 6 standard mode 폴백
+- LLM-T5: unknown recipe_id → Gate 2 PoolViolationError standard mode 폴백
+- LLM-T6: allergen → Gate 3 AllergenViolationError standard mode 폴백
+- 추가: kill switch/quota/cost_cap/rollout_pct 분기 · 성공 경로(disclaimer+provenance) 검증
+### 미완료: VCR cassette 기반 실제 API replay 테스트 (real API key 필요, 선택 사항)
+### 연관 파일: services/meal-plan-engine/tests/unit/test_llm_reranker.py
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-e
+commit_sha: ab62b95
+files_changed:
+  - services/meal-plan-engine/src/engine/llm_metrics.py
+  - services/meal-plan-engine/prompts/v1/ranker_system.md
+  - services/meal-plan-engine/prompts/v1/ranker_user.md.j2
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+verified_by: code review (Jinja2 경로 검증, rollout pct 로직 검토)
+---
+### 완료: IMPL-AI-001-e — LLM 메트릭 + Jinja2 프롬프트 + rollout 로직
+- llm_metrics.py: 10종 메트릭 (LlmMetrics singleton, structured JSON, 스레드 안전)
+- prompts/v1/ranker_system.md: persona/goal injection 방어 포함 시스템 프롬프트
+- prompts/v1/ranker_user.md.j2: Jinja2 recipe_ids loop 유저 프롬프트
+- llm_reranker.py: Jinja2 템플릿 로딩 · LLM_ROLLOUT_PCT sha256 결정론적 rollout · 모든 분기 metrics 기록 · latency 측정
+### 미완료: pytest VCR cassette + LLM-T1~T6 테스트 시나리오 (→ IMPL-AI-001-f)
+### 연관 파일: services/meal-plan-engine/src/engine/llm_metrics.py, prompts/v1/
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: IMPL-AI-001-d
+commit_sha: 23c2760
+files_changed:
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+verified_by: code review (Safety Gates 2/3/5/6 검증, pipeline 폴백 경로 검토)
+---
+### 완료: IMPL-AI-001-d — LLM Safety Gates + Reranker + Pipeline 통합
+- llm_safety.py: Gate2(assert_recipe_ids_in_pool) · Gate3(assert_no_allergen_violation, mutate 금지/Codex FINDING-02) · Gate5(append_disclaimer) · Gate6(check_endorsement_regex)
+- llm_reranker.py: kill switch → quota → Gate0 비용 추정 → call_openai_ranker → Gate2~6 전체 시퀀스 → LlmRerankResult 반환. 모든 오류 standard mode 폴백(Gemini BS-01)
+- pipeline.py: Step 5.5 LLM 블록 삽입(varied_plan~nutrition_normalizer 사이). final_out에 mode/ui_hint/quota_exceeded/llm_provenance 추가(Gemini BS-NEW-03). 옵셔널 redis_client+llm_context 파라미터
+### 미완료: llm_metrics.py + Jinja2 프롬프트 템플릿 + shadow mode (→ IMPL-AI-001-e)
+### 연관 파일: services/meal-plan-engine/src/engine/llm_safety.py, llm_reranker.py, pipeline.py
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-AI-001-c
+commit_sha: e483d8c
+files_changed:
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/engine/llm_schema.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/requirements.txt
+verified_by: python3 ast.parse (syntax check 5개 파일)
+---
+### 완료: IMPL-AI-001-c — OpenAI client + LLM schemas + phi_minimizer llm_ranking
+- llm_client.py: sanitize_celeb_source(XML escape/BS-NEW-01) · estimate_prompt_cost(tiktoken Gate0/BS-NEW-02) · Redis quota/kill switch · call_openai_ranker(structured output+Pydantic Gate1)
+- llm_schema.py: CitationSource(5 enum) · Citation(url|celeb_persona refine) · LlmRankedMeal(citations min=1) · LlmRankedMealList · LlmProvenance · LlmRerankResult
+- phi_minimizer.py: llm_ranking 슬라이스 추가 (3개 필드, allergies 제외)
+- config.py: 13개 LLM env 추가 (OPENAI_API_KEY 등)
+- requirements.txt: openai/tiktoken/Jinja2/pytest-recording 추가
+### 미완료: llm_reranker.py + llm_safety.py + pipeline.py 통합 (→ IMPL-AI-001-d)
+### 연관 파일: services/meal-plan-engine/src/clients/llm_client.py, src/engine/llm_schema.py
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-AI-001-b
+commit_sha: afa4ecc
+files_changed:
+  - db/migrations/0011_recipes-citation-columns.sql
+  - packages/shared-types/src/jsonb/citation.ts
+  - packages/shared-types/src/jsonb/index.ts
+verified_by: pnpm --filter shared-types build (tsc 0 errors)
+---
+### 완료: IMPL-AI-001-b — recipes citation columns + CitationSchema
+- 0011_recipes-citation-columns.sql: recipes/ingredients에 citations JSONB NOT NULL DEFAULT '[]' 추가 (0-downtime)
+- citation.ts: CitationSourceSchema(5개 enum: celebrity_interview/cookbook/clinical_study/usda_db/nih_standard) + CitationSchema(url|celeb_persona 필수 refine) + CitationArraySchema
+- jsonb/index.ts: citation.ts re-export 추가
+- pnpm --filter shared-types build 통과
+### 미완료: Python llm_schema.py Citation Pydantic 모델 (→ IMPL-AI-001-c)
+### 연관 파일: db/migrations/0011_recipes-citation-columns.sql, packages/shared-types/src/jsonb/citation.ts
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-AI-001-a
+commit_sha: 9f1801d
+files_changed:
+  - docs/LLM-DESIGN.md
+  - spec.md
+verified_by: codex-review, gemini-review
+---
+### 완료: IMPL-AI-001-a — LLM Enhancement Layer 설계 문서 v1.0 확정
+- Plan v0.1 Codex 리뷰(FAIL) + Gemini 리뷰(PASS-WITH-COMMENTS) → Plan v0.2 반영
+- docs/LLM-DESIGN.md v1.0: S1-S17 전체 섹션 (PHI slice/Safety Gates/asyncpg tx/PolicyEngine 등)
+- Gemini 재리뷰 3개 발견 반영: sanitize_celeb_source()(BS-NEW-01), Gate 0 비용 pre-check(BS-NEW-02), final_out mode 필드(BS-NEW-03)
+- spec.md §5.8 신설: LLM Enhancement Layer 역할 경계·PHI boundary·Mode Flag·비용 cap·PolicyEngine
+- spec.md §5.7 TASK_FIELD_MAP: llm_ranking 슬라이스 추가
+### 미완료: Phase B HANDOFF (-b ~ -f) 구현 미착수
+### 연관 파일: docs/LLM-DESIGN.md, spec.md, pipeline/runs/IMPL-AI-001-a/CODEX-DESIGN-REVIEW.md, pipeline/runs/IMPL-AI-001-a/GEMINI-DESIGN-REVIEW.md
+
+---
 date: 2026-04-18
 agent: claude-sonnet-4-6
 task_id: IMPL-APP-001b-1a
@@ -913,6 +1077,36 @@ verified_by: claude-opus-4-7
 - Pre-Step 커밋으로 검증기 변경과 기능 변경을 분리 (IMPL-UI-002 Pre-Step 3 전례).
 ### 미완료: G1~G5 composite chunks (InputField / SelectField / SegmentedControl / Chip / SlotChip), `/slice/composites/page.tsx` showcase, `chore(gate): require /slice/composites 200` follow-up.
 ### 연관 파일: scripts/gate-check.sh
+
+---
+date: 2026-04-17
+agent: claude-opus-4-7 + codex-o3 (adversarial review ×4)
+task_id: IMPL-016
+commit_sha: aa4e2fa
+files_changed:
+  - .github/workflows/ci.yml
+  - docker/docker-compose.ci.yml
+  - .github/CODEOWNERS
+verified_by: claude-opus-4-7 + codex-review (rounds 1-4)
+---
+### 완료: Compose-based E2E Integration Tests in GitHub Actions CI — IMPL-016
+- **신규 `e2e-integration` job** (`ci.yml:253-394`): `needs: [validate-docs, validate-schemas, validate-compliance]`, `timeout-minutes: 60`, `if: hashFiles('services/**', 'docker-compose.yml', 'docker/**', 'db/**', '.github/workflows/**') != ''`. 기존 contract-tests (ci.yml:235-251) 와 security-scan (ci.yml:398-) 사이 삽입.
+- **빌드 캐시 전략**: `docker/build-push-action@v5` + `type=gha,scope=<service>` per-service isolation — postgres / user-service / content-service / meal-plan-engine 4개. `requirements.txt` / `pnpm-lock.yaml` / Dockerfile 변경 시 해당 서비스만 캐시 무효화. Warm run 기대: 5-8 분, cold run: 18-22 분.
+- **CI override** (`docker/docker-compose.ci.yml`): 4개 서비스에 `:ci` image tag 고정 + `build: !reset null` 로 inherited build 블록 제거. 로컬 verify 중 발견: plain `build: null` 은 compose v2.23+ 에서도 inherited stanza 를 **제거하지 않음** → `!reset` YAML 태그 필수 (Codex r1 BLOCKER 재발견). Volumes: postgres `!override` (init bind only) + redis `!reset []` → 명명 볼륨 pgdata/redisdata 생성 생략, CI 간 상태 누수 방지.
+- **LocalStack SQS 큐 대기**: ready.d 스크립트가 healthcheck 후 async 로 큐 생성 → `boto3.get_queue_url` 폴링 (30 시도 × 2s = 60s). IMPL-014-d2 regression pattern.
+- **테스트 실행**: Python 3.12 venv + `pip install -r services/meal-plan-engine/requirements.txt` → `pytest tests/integration/` (T1 happy-path + T2 DLQ retry + T3 WS ticket reuse, `--tb=short`, 20-min step cap).
+- **PHI 누출 방지 (Codex r4 #1 HIGH fix)**: 실패 artifact 업로드 전 compose logs 를 double-grep sanitize — `'"?phi[_-]?encryption[_-]?key"?[[:space:]]*[:=]'` (optional quotes 로 JSON 덤프 커버) + `'0{60,}'` (belt-and-suspenders). 초기 패턴은 JSON-shape `"PHI_ENCRYPTION_KEY": "..."` 를 통과시켰음 — round 4 adversarial review 에서 차단.
+- **CODEOWNERS 범위 확장 (Codex r4 #2 HIGH fix)**: `docker/docker-compose.ci.yml` 과 `docker-compose.yml` 에 `@junwon` ownership 추가. 기존 CODEOWNERS 는 `.github/workflows/**` 만 보호 → docker compose stack 은 CI guard 밖이었음. Narrow fix (경로 2개만) 로 범위 유지.
+- **`notify-on-failure.needs` 확장**: `e2e-integration` 을 `ci.yml:365` needs 리스트에 추가 → PR 실패 코멘트에 포함.
+- **Codex 적대적 리뷰 4 라운드**: r1 (BLOCKING: build:null 필요 / HIGH: pytest 10→20분, LocalStack 30→60s poll / MEDIUM: 볼륨 override / LOW: PHI grep) → r2 (CONVERGED on BLOCKER/HIGH; MEDIUM 1 만) → r3 (HIGH: compose-up 6→12분, job 50→60분; 거부: "shared Docker daemon" 사실오류 — GHA hosted runner 는 job 당 VM 할당) → r4 (HIGH: PHI grep JSON bypass, HIGH: CODEOWNERS docker/ gap). 모두 반영 또는 rejected-with-rationale 기록.
+- **F1~F4 self-audit** (Revision 4): 플랜 재검증에서 4개 컨텍스트 항목 추가 — CODEOWNERS `.github/workflows/**` gate (R9), `require-log-entry` CODE_PATTERNS 본 PR 비매치 (수동 주의), `websockets>=12.0` range spec (R10), 삽입 seam 라인 251/253 정밀화.
+- **검증 근거**: 
+  - `python3 -c "yaml.safe_load(open('.github/workflows/ci.yml'))"` → valid.
+  - `docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml config` → 4개 override 서비스 모두 `build:` 키 제거 확인 (`image:` 만 남음).
+  - CODEOWNERS diff → 기존 rules 보존, 2줄만 추가.
+- **2-commit 패턴 (`require-log-entry` 갭 보강)**: 본 PR 의 변경 파일 셋 (`ci.yml`, `docker/docker-compose.ci.yml`, `.github/CODEOWNERS`, `docs/IMPLEMENTATION_LOG.md`) 은 `ci.yml:293` `CODE_PATTERNS="src/|services/|packages/|\.sql$|\.claude/rules/"` 어느 것도 매치하지 않음 → CI 자동 검출 불가. CLAUDE.md §4 mandate 수동 준수로 보강.
+### 미완료: Semgrep strict-mode flip (`ci.yml:268` `continue-on-error: true` 제거 — 별도 `chore(ci): enable-semgrep-strict` PR 로 분리; CLAUDE.md Rule 12 미완), `test_dlq_retry.py:30` 하드코딩 SQS URL → `conftest.py` env 패턴 일원화 (별도 cleanup), `websockets>=12,<14` pin (R10 관측 시).
+### 연관 파일: .github/workflows/ci.yml, docker/docker-compose.ci.yml, .github/CODEOWNERS, docker-compose.yml, services/meal-plan-engine/tests/integration/, docker/localstack/init/01-create-sqs-queue.sh
 
 ---
 date: 2026-04-18
@@ -2334,3 +2528,347 @@ verified_by: human-junwon
   - pnpm --filter web exec playwright install chromium (브라우저 설치)
   - PLAYWRIGHT_BASE_URL + E2E_SMOKE_EMAIL + E2E_SMOKE_PASSWORD 설정 후 pnpm --filter web test:e2e
 ### 연관 파일: .github/workflows/cd.yml, infra/bootstrap/, infra/cognito/main.tf, apps/web/tests/e2e/
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-002
+commit_sha: 231040b
+files_changed:
+  - apps/web/src/features/persona/index.ts
+  - apps/web/src/features/safety/index.ts
+  - apps/web/src/features/fulfillment/index.ts
+  - apps/web/src/features/wellness-log/index.ts
+  - apps/web/src/features/wellness-log/IdentitySyncScore.tsx
+  - apps/web/src/features/wellness-log/IdentitySyncScore.module.css
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-APP-002 — features/ 도메인 폴더 재편 (plan 20 Phase D-1)
+- `apps/web/src/features/{persona,safety,fulfillment,wellness-log}/index.ts` barrel 4종 신규
+  - persona: ui-kit `PersonaHero` re-export
+  - safety: `TrafficLightIndicator`, `IngredientSwapCard`, `SourceTrackingBadge` re-export
+  - fulfillment: `InstacartCartPreview`, `StockSubstitutionPopup`, `SavingsBanner` re-export
+  - wellness-log: `NutritionRing` + 로컬 `IdentitySyncScore` composite re-export
+- 신규 composite `IdentitySyncScore` (client-side):
+  - 3-state (`ready` / `pending` / `error`) — pending 은 "계산 중" 플레이스홀더 (plan M1 async 패턴)
+  - aria-live="polite" 로 스코어 변화를 스크린리더 공지
+  - Fraunces display-md + `--cb-color-brand` gold 토큰 사용 (raw hex 0)
+- dashboard Phase E 에서 `preferred_celebrity_slug` 영속 + persona-match 결과 연결 이전까지 heuristic 사용
+### 미완료: spec §7.1 persona-first 개정 (Phase C-1), onboarding step 재정렬 + PersonaSelect (Phase C-2)
+### 연관 파일: apps/web/src/features/, plan 20 Phase D-1
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-BFF-001
+commit_sha: 231040b
+files_changed:
+  - apps/web/src/app/api/persona-match/route.ts
+  - apps/web/src/app/api/meal-plans/[id]/safety/route.ts
+  - apps/web/src/app/api/instacart/cart/route.ts
+  - apps/web/src/app/api/instacart/status/route.ts
+  - apps/web/src/app/api/instacart/substitutions/route.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-BFF-001 — persona-match / safety / Instacart BFF 라우트 (plan 20 Phase D-2/D-3)
+- `POST /api/persona-match`:
+  - 요청 바디는 `{ celebritySlug, goal, wellnessKeywords }` 만 허용 (Zod `.strict()`)
+  - PHI 필드 (`bioProfile*`, `biomarkers`, `medications`, `medicalConditions`, `age`, `weightKg`, `heightCm`, `sex`) 감지 시 400 `PHI_EXPOSURE` — CLAUDE.md Absolute Rule #4 준수 (plan C2 조치)
+  - 실체 upstream (`analytics-service` `/internal/persona-match`) 계약 대기 → 503 `NOT_IMPLEMENTED` mock
+- `GET /api/meal-plans/[id]/safety`:
+  - mealPlanId UUID 검증 후 upstream `meal-plan-engine` 으로 fan-out 예정 (plan C1 정정)
+  - 503 `NOT_IMPLEMENTED` mock — 실체 엔드포인트 부재 (Phase D-0 rg 확인 결과)
+- Instacart 3종 route:
+  - 공통 env gate: `INSTACART_IDP_KEY` 미설정 시 503 `INSTACART_UNCONFIGURED` (plan H3 조치)
+  - `POST /api/instacart/cart`: items + meal_plan_id Zod 검증
+  - `GET /api/instacart/status?orderId=...`: orderId UUID 검증
+  - `POST /api/instacart/substitutions`: `{ substitutionOptionId, decision: 'approve'|'reject' }` refinement
+- 모든 라우트 공통 구조: BFF session → Zod validate → upstream 호출 (현재 503) → `pickUpstreamError` 변환
+### 미완료: analytics `/internal/persona-match` BE 계약 (IMPL-BE-analytics-persona-match 선행), meal-plan-engine safety 엔드포인트 구현 (IMPL-BE-mealplan-safety), Instacart IDP 실제 연동 (credential 확보 후)
+### 연관 파일: apps/web/src/app/api/{persona-match,meal-plans,instacart}/, plan 20 Phase D-2/D-3
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: IMPL-APP-003
+commit_sha: 3bb2adf
+files_changed:
+  - apps/web/src/app/(app)/dashboard/page.tsx
+  - apps/web/src/app/(app)/dashboard/dashboard.module.css
+  - packages/shared-types/src/schemas/users.ts
+verified_by: claude-sonnet-4-6
+---
+### 완료: IMPL-APP-003 — Dashboard 3-ring + Identity Sync Score (plan 20 Phase E)
+- `apps/web/src/app/(app)/dashboard/page.tsx` "This Week" stat cards → 3-ring 클러스터로 교체:
+  - Ring 1 Adherence (`tone='brand'`, gold) — `summary.completion_rate × 100`
+  - Ring 2 Energy (`tone='persona'`) — `summary.avg_energy_level / 5 × 100`
+  - Ring 3 Recovery (`tone='brand'`) — 데이터 있을 때만, `avg_weight_kg === null` 이면 dashed circular fallback 카드 ("Log weight or sleep to unlock recovery tracking")
+- `IdentitySyncScore` 중앙 overlay — Fraunces display-md 로 "00% tuned to Tom Brady" 형태 렌더:
+  - `computeIdentitySync()` heuristic: adherence 70% + energyNorm 15% + moodNorm 15%, 0-100 정규화 — `IMPL-BE-analytics-persona-match` 계약 확정까지 임시 (plan H2 async 패턴)
+  - `personaSlug === null` → error state + "페르소나 미선택" 메시지 (plan H2 null-safe fallback)
+  - `summaryLoading` → pending state (aria-live placeholder)
+- `UserWireSchema` 에 `preferred_celebrity_slug: z.string().min(1).max(100).nullable()` 필드 추가 + `satisfies` entity parity guard 확장 — `/api/me` 응답에서 persona slug 를 받을 수 있도록 wire 계약 확장
+- `dashboard.module.css`: `.ringStage`, `.ringCluster` (grid 3-col / 1-col @720px), `.identitySync`, `.recoveryFallback` (dashed circular aspect-ratio 1/1)
+- 모든 색상은 `--cb-*` 토큰 사용 (raw hex 0, `scripts/gate-check.sh fe_token_hardcode` 통과)
+### 미완료: persona-match 실체 계약 (L3 review loop 후 heuristic 교체), Oura-style 3-level progressive disclosure (ring tap → drill-down → long-term trend, plan Phase E 후속)
+### 연관 파일: apps/web/src/app/(app)/dashboard/, packages/shared-types/src/schemas/users.ts, plan 20 Phase E
+
+---
+date: 2026-04-22
+agent: claude-sonnet-4-6
+task_id: PLAN-20-PHASE-F-STUB
+commit_sha: c8825cf
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-sonnet-4-6
+---
+### 완료: Plan 20 Phase F — 장기 로드맵 stub 기록 (3년차 이후 타깃)
+Plan 20 "Celebase FE Optimization" Phase F 는 현재 plan 스코프 밖으로 규정되어 있으며, 본 엔트리는 향후 작업 분해가 재개될 때의 진입 조건을 고정한다.
+
+**F-1. PHI Privacy Center** — 계정 설정 내 ePHI 사용 내역 + 권한 철회 UI
+- spec 참조: `spec.md §9.3 — PHI & Right to Deletion`
+- 진입 조건: 30일 유예 + DEK 폐기 절차가 production 에서 1회 이상 execute 됨 + 법무 검토 (HIPAA 6년 보관 확인)
+- 예상 범위: `apps/web/src/app/(app)/settings/privacy/`, `services/user-service/src/routes/privacy.ts`, migration (audit view) + GDPR/CCPA DSAR export endpoint
+
+**F-2. B2B Enterprise Health Insight** — 관리자 대시보드 (익명화 지표)
+- 진입 조건: B2C MAU ≥ 10k + 첫 엔터프라이즈 파일럿 LOI
+- 예상 범위: `packages/ui` 별도 워크스페이스로 분리 가능. `services/enterprise-analytics-service` (신규). 개인 식별 필드 제외된 집계 API + role-based 접근 제어
+
+**F-3. 웨어러블 통합** — Oura / Apple Watch / WHOOP 양방향 동기화
+- spec 참조: `.claude/rules/domain/content.md#Wearable Data (Phase 2+)`
+- 진입 조건: 기기 로컬 집계 정책 확정 + 일일 요약값 스키마 합의 + CGM 암호화 정책 검토
+- 예상 범위: `services/wearable-sync-service` (가칭) 신규, `db/migrations/*_wearable_aggregates.sql`, IMPL-WEARABLE-* 태스크 분기
+
+**현 plan 채택 커버리지 재확인**: 전략 4축 (Aspirational Optimizer 쐐기 / Identity Sync Score / Source Tracking Badge + Safety Bridge / Zero-Friction Fulfillment) 100% 반영. 장기 로드맵 3종은 stub 문서화만 수행, 구현 작업 분해 없음.
+### 미완료: 위 F-1/F-2/F-3 모두 — 각 진입 조건 충족 전까지 작업 분해하지 않음
+### 연관 파일: docs/IMPLEMENTATION_LOG.md (본 엔트리), plan 20 Phase F
+
+---
+date: 2026-04-22
+agent: claude-opus-4-7
+task_id: IMPL-APP-001
+commit_sha: 2383842
+files_changed:
+  - apps/web/src/app/(onboarding)/onboarding/page.tsx
+  - apps/web/src/app/(onboarding)/onboarding/wizard-schema.ts
+  - apps/web/src/features/persona/components/PersonaSelect.tsx
+  - apps/web/src/features/persona/components/BlueprintReveal.tsx
+  - apps/web/src/features/persona/components/BlueprintReveal.module.css
+  - packages/shared-types/src/schemas/users.ts
+  - spec.md
+  - DESIGN.md
+  - DESIGN-codex.md
+  - docs/FE-ROADMAP.md
+verified_by: claude-opus-4-7, codex-review-r1, codex-review-r2, gemini-adversarial (proxy; see provenance)
+---
+### 완료: IMPL-APP-001 — Persona-first Onboarding + spec §7.1 revision (plan 20 Phase C-1 + C-2, L3)
+
+**Phase C-1 — spec §7.1 revision (L3: Codex×2 + Gemini×1, commit e2dca53)**
+- spec.md `§7.1 Onboarding Wizard` 를 persona-first (S0 Welcome → S1 Auth → S2 PersonaSelect → S3 BasicInfo → S4 BodyMetrics → S5 Activity&Health → S6 Goals&Diet → S7 BlueprintReveal) 로 전면 개정. 각 스크린에 DoD 3층 구조 (Functional / Verification / Provenance) 준수
+- DESIGN.md + DESIGN-codex.md + docs/FE-ROADMAP.md 의 S1-S11 참조를 S0-S7 로 일괄 정정
+- Gemini adversarial 로 6개 finding 반영: S2 GDPR orphan slug 정리 조항, S6 AbortController race-condition 계약, S7 single aria-live 패턴 (placeholder replaced, not nested), S7 sessionStorage 5xx retry (`cb.onboarding.draft.v1`), `onboarding.s7.persona_match_timeout` observability 이벤트 +3s, S7 verification 3종 확장
+- Codex Round 2 PASS (0 new HIGH/CRITICAL, 6/6 Round 1 + 6/6 Gemini 모두 해소) — `pipeline/runs/IMPL-APP-001/spec-review-r2.md`
+- Disclosure: native Gemini 불가 → general-purpose agent proxy 로 대체. `pipeline/runs/IMPL-APP-001/pipeline-log.jsonl` 에 `reviewer: gemini-proxy` + `disclosure: true` 기록
+
+**Phase C-2 — 온보딩 코드 변경 (L2, commit 2383842)**
+- `wizard-schema.ts`: `WizardStep0Schema` 추가 (`preferred_celebrity_slug` regex + 1-100 chars), `WIZARD_STEPS` 를 6-step persona-first 배열로 재편, `WIZARD_DRAFT_KEY = 'cb.onboarding.draft.v1'` 상수 추가, `emptyWizardForm()` 에 `step0: {}` 포함
+- `features/persona/components/PersonaSelect.tsx` 신설: `GET /api/celebrities?limit=12` → `CelebrityWire[]` → `PersonaHero` 렌더, 선택 시 `onChange(slug)` 발화. Loading / error / selected footnote 상태 분기
+- `features/persona/components/BlueprintReveal.tsx` + `.module.css` 신설: Mifflin-St Jeor TDEE (male/female/other 분기 + activity multiplier 5종) + MealCard (persona-tagged breakfast, kcal = TDEE×30%) + SourceTrackingBadge + InstacartCartPreview (mock 3 items) + IdentitySyncScore overlay + HealthDisclaimer `role="note"` + "Start my blueprint" Button (variant=primary, loading=isSubmitting)
+- `page.tsx` 재작성: 6-step 스위치, S2 확정 시 `PATCH /api/users/me { preferred_celebrity_slug }` + `GET /api/celebrities/{slug}` 로 displayName resolve, S6→S7 전환 시 `POST /api/persona-match { celebritySlug, goal, wellnessKeywords }` with `AbortController` (3s timeout → `emitPersonaMatchTimeoutEvent` beacon), sessionStorage `cb.onboarding.draft.v1` 에 `{form, currentStep, personaDisplayName}` 영속 (each step change), successful submit 시 clear, 5xx 시 draft 유지 + 인라인 에러
+- `packages/shared-types/src/schemas/users.ts`: `UpdateMeRequestSchema` 에 `preferred_celebrity_slug: z.string().min(1).max(100).regex(...).nullable().optional()` 추가 — user-service IMPL-BE-users-preferred-celebrity (commit ba03d58) 계약 정렬
+
+**Verification**
+- `pnpm --filter web typecheck`: pass (0 errors)
+- `pnpm --filter web lint`: pass (pre-existing warnings only, no new findings)
+- `pnpm --filter web build`: pass (onboarding route size 7.11 kB / 136 kB first load)
+- `scripts/gate-check.sh fe_token_hardcode`: `{"passed":true}`
+- PHI minimization (Absolute Rule #4) 보존: 클라이언트 request body 는 `{celebritySlug, goal, wellnessKeywords}` 로 제한, `bioProfile*` / `biomarkers` / `medications` denylist 는 BFF `/api/persona-match/route.ts` 가 400 `PHI_EXPOSURE` 로 거부 (plan C2 조치, 이미 IMPL-BFF-001 에서 landed)
+
+**Provenance (review_tier L3)**
+- Codex Round 1: `pipeline/runs/IMPL-APP-001/spec-review-r1.md` (6 findings, 6 addressed in v2)
+- Gemini adversarial: `pipeline/runs/IMPL-APP-001/spec-review-gemini.md` (6 findings, 6 addressed in v3; disclosure: proxy via general-purpose agent)
+- Codex Round 2: `pipeline/runs/IMPL-APP-001/spec-review-r2.md` (0 new HIGH/CRITICAL, verdict PASS)
+- Pipeline log: `pipeline/runs/IMPL-APP-001/pipeline-log.jsonl` (4 JSONL entries: spec-draft → codex-review-r1 → gemini-review → codex-review-r2)
+
+### 미완료: `/api/persona-match` upstream (`analytics-service /internal/persona-match`) 계약 확정 전까지 클라이언트는 IdentitySyncScore `error`/`pending` 상태로 degrade — Plan D-2 후속 IMPL-BE-analytics-persona-match 대기. E2E Playwright persona-first 시나리오 (페르소나 선택 → 3분 내 BlueprintReveal + IdentitySyncScore placeholder) 는 별도 QA 태스크로 분기.
+
+### 연관 파일: apps/web/src/app/(onboarding)/onboarding/, apps/web/src/features/persona/components/, packages/shared-types/src/schemas/users.ts, spec.md §7.1, DESIGN.md §8.1, plan 20 Phase C-1 + C-2
+
+---
+date: 2026-04-23
+agent: claude-sonnet-4-6
+task_id: CHORE-FE-21A
+commit_sha: ab8f9e1
+files_changed:
+  - services/user-service/src/routes/auth.routes.ts
+  - turbo.json
+  - packages/ui-kit/src/components/InstacartCartPreview/SavingsBanner.tsx
+  - packages/ui-kit/src/components/InstacartCartPreview/StockSubstitutionPopup.tsx
+  - services/meal-plan-engine/requirements.txt
+  - ruff.toml
+  - services/meal-plan-engine/tests/conftest.py
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - .github/workflows/ci.yml
+verified_by: claude-sonnet-4-6, GitHub Actions CI (run #24820023966, all green)
+---
+### 완료: CHORE-FE-21A — Plan 20 PR CI 수정 + main 머지 (Plan 21 Phase A, L1)
+
+**CI 수정 항목 (PR #4 `feat/fe-optimization-gold-plus-domain` → main)**
+
+1. **rate-limit 테스트 회귀 수정** (`auth.routes.ts`): `max: process.env['NODE_ENV'] === 'production' ? 3 : 100` → `max: 3`. integration 환경에서 max=100 이라 4번째 POST /auth/signup 에 429 미반환 → 테스트 실패. `allowList` 콜백이 test 환경 bypass 를 독립적으로 처리하므로 max 를 flat 3으로 고정.
+
+2. **Turbo lint 의존성 누락** (`turbo.json`): `lint` 태스크에 `dependsOn: ["^build"]` 추가. 빌드 없이 ESLint 실행 시 `@celebbase/eslint-plugin-celebbase` 모듈 미빌드 → `Cannot find module` CI 실패.
+
+3. **TypeScript `restrict-template-expressions`** (`SavingsBanner.tsx`, `StockSubstitutionPopup.tsx`): CSS module class 가 `string | undefined` 타입이라 template literal 에 직접 삽입 불가 → `.filter(Boolean).join(' ')` 배열 패턴으로 교체.
+
+4. **pytest-timeout 패키지 누락** (`requirements.txt`): E2E CI가 `pytest --timeout=120` 으로 실행하나 `pytest-timeout==2.3.1` 이 requirements.txt 에 없어 `unrecognized arguments` 실패 → 추가.
+
+5. **Python ruff 린트 수정**: E401(복수 import) + F401(미사용 import) `--fix` 적용. `ruff format .` 으로 30개 파일 포맷 통일. E402(의도적 import 순서) 는 `ruff.toml` per-file-ignores 로 suppression.
+
+6. **Generate Progress 권한 오류** (`ci.yml`): `permissions: pull-requests: write` 만 명시 시 기본 `contents: read` 가 박탈되어 GITHUB_TOKEN 으로 저장소 clone 불가 ("Repository not found"). `contents: read` 추가. 또한 `actions/checkout@v4` 가 `GITHUB_REPOSITORY` 환경변수의 공백 (`celebase ws/`) 을 URL 에 그대로 사용해 실패 → raw git 초기화 + hardcoded URL 방식으로 교체. `notify-on-failure` 잡은 저장소 파일 불필요하여 checkout 제거.
+
+**머지**: PR #4 squash merge → main HEAD `ab8f9e1`. `IdentitySyncScore` + 3-ring dashboard (Plan 20) main 반영 확인.
+
+### 미완료: dev 환경 배포 후 /dashboard Playwright MCP 스크린샷 검증 (CI CD 파이프라인 자동 배포 대기)
+
+### 연관 파일: .github/workflows/ci.yml, turbo.json, ruff.toml, services/user-service/src/routes/auth.routes.ts, packages/ui-kit/src/components/InstacartCartPreview/
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7 (Auto mode)
+task_id: IMPL-BFF-003
+commit_sha: 9b2e9d3
+files_changed:
+  - apps/web/src/app/api/_lib/env.ts
+  - apps/web/src/app/api/_lib/cookies.ts
+  - apps/web/src/app/api/_lib/forward-raw.ts
+  - apps/web/src/app/api/_lib/refresh.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/__tests__/refresh.test.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/auth/logout/__tests__/logout.integration.test.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/src/app/api/auth/refresh/__tests__/refresh.integration.test.ts
+  - apps/web/src/app/api/webhooks/stripe/route.ts
+  - apps/web/src/app/api/webhooks/stripe/__tests__/stripe.integration.test.ts
+  - apps/web/jest.setup.ts
+verified_by: claude-opus-4-7 (typecheck + jest 90 tests + coverage)
+---
+### 완료: BFF 레이어 내부 완성도 — IMPL-BFF-000/001/002/003/004/006 통합 구현 (Plan humble-wandering-squid)
+
+**Scope**: 순수 BFF 레이어 (`apps/web/src/app/api/**`) 만 수정. FE 세션 (`middleware.ts`, `src/lib`, `src/components`, `packages/ui-kit`) 및 BE 서비스 (`services/**`) 는 건드리지 않음. upstream 서비스 미구현 라우트는 기존 503 stub 유지.
+
+**IMPL-BFF-000 — 공용 _lib 모듈 분리 (L1, 선행)**
+- `env.ts` 신규: `readEnv(name)` 을 `session.ts` 에서 이동. `session.ts` 는 `env.ts` 를 re-export 해 backward-compat 유지.
+- `cookies.ts` 신규: `setSessionCookies({ accessToken, refreshToken, accessMaxAgeSec, refreshMaxAgeSec })` + `clearSessionCookies()` 공용 helper. `cb_access` Path=/, `cb_refresh` Path=/api/auth, HttpOnly + SameSite=Lax + Secure(prod only).
+- `bff-fetch.ts` 에 `resetRateLimitBucketsForTest()` export 추가 (singleton 누적 방지, 테스트 격리용).
+
+**IMPL-BFF-001 — logout forward 를 fetchBff 경유로 통일 (L2)**
+- `auth/logout/route.ts` 가 raw `fetch` 대신 `fetchBff('user', '/auth/logout', { method: 'POST', body: JSON.stringify({ refresh_token }), ... })` 호출. rate-limit / Zod / 에러 매핑 통일.
+- user-service `LogoutSchema` 필수 `refresh_token` body 전달 (plan v1 누락 버그 수정). `cb_refresh` 미존재 시 forward skip + 204.
+- `SessionExpiredError` / network / timeout / 5xx 모두 best-effort 204 유지 (사용자 세션 정리는 항상 성공).
+- 통합 테스트: 정상 204 / no-refresh 204 / 5xx 204 / timeout 204 / upstream 401 204 / body payload 검증 총 6 케이스.
+
+**IMPL-BFF-002 — Stripe webhook 을 forward-raw helper 로 통일 (L2)**
+- `_lib/forward-raw.ts` 신규: status-preserving raw forwarder. `fetchBff` 가 `Result<T>` 로 status 를 소거하므로 Stripe 재시도 판단이 깨지는 문제 대응. timeout→504, network→502 envelope.
+- `webhooks/stripe/route.ts` 가 `forwardRaw` 로 교체. `readEnv('USER_SERVICE_URL')` 직접 참조 삭제, `baseUrlFor` 재사용.
+- rate-limit 미적용 (Stripe retry burst 보호) — webhook 경로는 `rateLimitBuckets` 를 건드리지 않음.
+- 통합 테스트: signature 전달 / upstream 200 / upstream 400 / timeout 504 / network 502 / missing signature 400 등.
+
+**IMPL-BFF-003 — Silent token refresh (L3, 보안 민감)**
+- `_lib/refresh.ts` 신규: `attemptSilentRefresh(refreshToken, requestId)` → discriminated union `SilentRefreshResult`. 2s timeout (`AbortSignal.timeout`), `RefreshResponseSchema` (@celebbase/shared-types) 재사용 (별도 inline schema 금지 — 계약 일관성).
+- 로거 whitelist: `{ reason, requestId, ok, status? }` 만. 토큰 값 (`newAccess`, `newRefresh`, `refreshToken`) 은 payload 에 절대 미등장 (Rule #8).
+- `session.ts` `createProtectedRoute` 재작성:
+  - Timing padding anchor (`handlerStart = performance.now()`) 를 루트 진입 시점으로 이동 → refresh 소요시간도 100ms 최소 latency 에 포함 (timing side-channel 차단).
+  - JWTExpired catch → `cb_refresh` 쿠키 확인 → `attemptSilentRefresh` 1회 호출. 재진입 루프 방지 (request 당 최대 1회).
+  - Refresh 성공 → `verifyAccessToken(refreshed.newAccess)` 로 session 생성 (discriminated union 으로 `!` 비단언 불필요). `setSessionCookies` 결과를 `newCookies` 에 보관, handler Response 에 `Set-Cookie` 2건 append.
+  - Refresh 성공 후 handler 가 `SessionExpiredError` 재발생 → `newCookies = null` drop + `clearSessionCookies()` 로 교체 (무한 루프 없이 401 + clear cookies 로 즉시 종료).
+  - Refresh 실패 (upstream 5xx / 4xx / timeout / network / no-cookie / schema-mismatch) → 401 `TOKEN_EXPIRED` + `clearSessionCookies()` 2건 + `X-Token-Expired: true`.
+- Concurrent refresh race (다수 탭 동시 만료) 는 user-service `performRotation` atomic winner-takes-all + reuse-detected revoke-all 로 수용 가능한 트레이드오프. 프론트엔드 query-client 의 `/login?reason=session_expired` redirect 가 UX 처리.
+- 단위 테스트 9 케이스 (`refresh.test.ts`): ok=true / no_cookie / upstream_4xx / upstream_5xx / timeout / network / schema_mismatch(wrong shape) / schema_mismatch(invalid JSON) / X-Request-Id 전파. 100% coverage.
+- `session.test.ts` 에 silent-refresh describe 블록 6 케이스 추가: 성공 retry + 2 Set-Cookie / upstream 5xx→clear 2건 / upstream 401→clear 2건 / no cb_refresh→401 + fetch 미호출 / handler SessionExpiredError→ cookies dropped / no-cookie padding ≥ 95ms.
+
+**IMPL-BFF-004 — commerce BffTarget 추가 (L1)**
+- `bff-fetch.ts` `BffTarget` union 에 `'commerce'` 추가. `COMMERCE_SERVICE_URL` module-level 상수 + `baseUrlFor` switch case 추가.
+- `jest.setup.ts` 에 `COMMERCE_SERVICE_URL = http://localhost:3004` test stub 추가 (주석: "Test stub only — commerce-service is not deployed at runtime yet").
+
+**IMPL-BFF-006 — `/api/auth/refresh` SessionExpiredError 경로 수정 (L2)**
+- `auth/refresh/route.ts` 가 `fetchBff` 호출 시 upstream 401 을 `!result.ok` 분기로 처리하려 했으나 `fetchBff` 는 401 시 `SessionExpiredError` throw → `createPublicRoute` 기본 envelope 로 떨어지는 버그.
+- `try/catch` 로 `SessionExpiredError` 명시 catch → 401 `TOKEN_EXPIRED` + `X-Token-Expired: true` + `clearSessionCookies()` 반환.
+- 통합 테스트 3 케이스: upstream 200→set cookies / upstream 401→clear + X-Token-Expired / upstream 5xx→envelope.
+
+**설계 결정 (plan v2 review 반영)**
+- **순환 import 해결**: `refresh.ts` → `env.ts` 단방향. `bff-fetch.ts` 도 `env.ts` 만 참조.
+- **Discriminated union**: `SilentRefreshResult` `ok: true` 분기에서 TypeScript 가 `newAccess: string` 으로 자동 narrow → non-null assertion 불필요.
+- **BFF audit log 없음**: 토큰 이벤트 감사는 user-service `emitAuthLog` 담당. BFF 는 HTTP status 만 전달. user-service 5xx (`AUDIT_LOG_FAILURE` 포함) 는 1회 시도 후 401 로 종료 — Rule #5 fail-closed 준수.
+- **Raw webhook forwarding**: status-preserving `forwardRaw` helper 분리 (vs. `fetchBff` 의 Result<T>) — Stripe 재시도 계약 보존.
+
+**Verification (매 sub-task 공통 게이트)**
+- `pnpm --filter web typecheck`: pass (0 errors)
+- `pnpm --filter web lint`: pass (IMPL-BFF 범위 신규 warning 0건; 기존 `<img>` / unused-disable-directive warning 은 범위 외)
+- `pnpm --filter web test`: 90 tests passed, 9 suites, 0 failures
+- Coverage (`_lib/` 하위): `refresh.ts` 100%, `session.ts` 92.07%, `bff-error.ts` 98.36%, `cookies.ts` 100%, `env.ts` 80%, `forward-raw.ts` 95.23%, `bff-fetch.ts` 78.89%.
+- `grep -rn "fetch(" apps/web/src/app/api/ --include='*.ts' | grep -v fetchBff | grep -v forwardRaw` → helper 외 직접 `fetch` 호출 0건 (테스트 파일 제외).
+- 로그 토큰 누출 grep: `refresh.ts` 모든 log 호출이 whitelist field 만 사용 — 수동 확인.
+
+### 미완료: IMPL-BFF-005 (BFF 통합 테스트 보강 — auth/users/subscriptions/meal-plans/celebrities 5개 신규 integration test). `fe_bff_smoke` 200/400 probe 는 BE 기동 필요로 본 스코프 제외.
+
+### 연관 파일: apps/web/src/app/api/_lib/, apps/web/src/app/api/auth/, apps/web/src/app/api/webhooks/stripe/, apps/web/jest.setup.ts, /Users/junwon/.claude/plans/humble-wandering-squid.md
+
+---
+date: 2026-04-23
+agent: claude-opus-4-7
+task_id: IMPL-BFF-005
+commit_sha: 2f63440
+files_changed:
+  - apps/web/src/app/api/_lib/__tests__/test-helpers.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/__tests__/auth-bff.integration.test.ts
+  - apps/web/src/app/api/users/__tests__/users-bff.integration.test.ts
+  - apps/web/src/app/api/subscriptions/__tests__/subscriptions-bff.integration.test.ts
+  - apps/web/src/app/api/meal-plans/__tests__/meal-plans-bff.integration.test.ts
+  - apps/web/src/app/api/celebrities/__tests__/celebrities-bff.integration.test.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BFF 통합 테스트 보강 — auth/users/subscriptions/meal-plans/celebrities (Plan humble-wandering-squid IMPL-BFF-005)
+
+**Scope**: `apps/web/src/app/api/**/__tests__/**` 만 수정 (테스트 전용). 런타임 코드 변경 없음. FE 세션 및 BE 서비스는 건드리지 않음.
+
+**공용 테스트 헬퍼 분리**
+- `apps/web/src/app/api/_lib/__tests__/test-helpers.ts` 신규 — `makeRequest({ cookie?, body?, forwardedFor?, search? })` + `upstreamResponse(body, status)` + `VALID_SESSION_PAYLOAD` export. jest `testMatch: '*.test.ts'` 패턴 밖이라 collection 미대상 (`jest --listTests | grep test-helpers` → empty 확인).
+- `session.test.ts` 의 private `makeRequest()` 함수 + inline `VALID_PAYLOAD` 상수 제거 → 공용 helper import 로 DRY 리팩토링. 기존 20 케이스 모두 회귀 없음.
+
+**신규 통합 테스트 (5 파일, 총 34 케이스)**
+- `auth/__tests__/auth-bff.integration.test.ts` (8 케이스) — `/api/auth/login` + `/api/auth/signup` 공용. 정상 200/201 (URL=`http://localhost:3001/auth/login|signup`, cookies 2건 set), 400 VALIDATION_ERROR (email/display_name missing), 502 UPSTREAM_UNREACHABLE, 504 UPSTREAM_TIMEOUT, upstream 401→X-Token-Expired=true, 429 RATE_LIMITED (burst of 21 → 20/min `/auth/*` 한도 초과, retry_after=60).
+- `users/__tests__/users-bff.integration.test.ts` — protected route (`jose` hoisted mock 필요). `GET /api/users/me` 200 / 401 (no cookie) / 502 / 504. `PATCH /api/users/me` 200 (method=PATCH 검증) / 400 VALIDATION_ERROR.
+- `subscriptions/__tests__/subscriptions-bff.integration.test.ts` (5 케이스) — `GET /api/subscriptions/me` protected. URL=`http://localhost:3001/subscriptions/me`. Fixture `{subscription: null}` (free tier = nullable). 401 UNAUTHORIZED (no cookie, fetch 미호출), 502, 504, upstream 401→TOKEN_EXPIRED + X-Token-Expired: true.
+- `meal-plans/__tests__/meal-plans-bff.integration.test.ts` (7 케이스) — protected. GET list (URL=`http://localhost:3003/meal-plans?limit=10`) 200 / 401 / 502 / 504. POST generate (URL=`http://localhost:3003/meal-plans/generate`, method=POST, 201 envelope `{id, status, estimated_completion_sec, poll_url, ws_channel}`) / 400 base_diet_id missing / 400 duration_days > 30.
+- `celebrities/__tests__/celebrities-bff.integration.test.ts` (7 케이스) — public route (jose mock 불필요). List 200 (URL=`http://localhost:3002/celebrities?limit=20`), 502, 504, 502 BFF_CONTRACT_VIOLATION (wrong_shape). Detail 200 (Next.js 15 deferred params: `{ params: Promise.resolve({ slug }) }`), 404 upstream propagate, 502 network.
+
+**공통 테스트 보일러플레이트**
+- `jest.spyOn(globalThis, 'fetch')` 기반 mock (CJS 모드 `jest.config.cjs` `useESM: false` — `@jest/globals` import 금지, jest 전역 자동 주입).
+- `beforeEach(resetRateLimitBucketsForTest)` + `afterEach(jest.restoreAllMocks)` 로 singleton / spy 격리.
+- Protected route 는 hoisted `jest.mock('jose', factory)` 로 `JWTExpired`/`JWSSignatureVerificationFailed` fresh class + `jwtVerify` jest.fn — `VALID_SESSION_PAYLOAD` 를 성공 경로에서 resolve.
+
+**스키마 정합성 수정 (초기 3 failures → 해결)**
+1. `subscriptions` 200 테스트 → `tier: 'free'` 는 `PaidTier` 위반 → `{ subscription: null }` 로 교체 (스키마가 nullable 허용).
+2. `celebrities` detail 200 → 필수 필드 누락 (`short_bio`, `avatar_url`=URL, `cover_image_url`, `category`, `tags[]`, `is_featured`, `sort_order`, `is_active`) → fixture 재구성.
+3. `meal-plans` POST 201 → `{meal_plan: {...}}` 래핑 오답 → `GenerateMealPlanResponseSchema` 의 평탄 envelope `{id, status, estimated_completion_sec, poll_url, ws_channel}` 로 교체.
+
+**Lint 정리**
+- 5 신규 테스트 파일에서 daily-logs 패턴 복붙으로 따라온 미사용 `// eslint-disable-next-line @typescript-eslint/no-unsafe-*` directive 전량 제거 (cast 가 `as string` / `as RequestInit` 이라 unsafe 규칙 미발동).
+- `auth-bff.integration.test.ts` line 108 `// eslint-disable-next-line no-await-in-loop` 미사용 제거.
+
+**Verification**
+- `pnpm --filter web typecheck`: pass (0 errors).
+- `pnpm --filter web test`: 14 suites / 124 tests all pass. Coverage `_lib/` 93.51% stmts / 94.4% lines.
+- `scripts/gate-check.sh fe_token_hardcode`: `{"status":"pass","passed":true}`.
+- `grep -rn "fetch(" apps/web/src/app/api/ --include='*.ts' | grep -v fetchBff | grep -v forwardRaw | grep -v _tests__` → Cognito OAuth / refresh.ts helper / bff-fetch.ts 내부 구현 4건 모두 plan-approved.
+- `pnpm exec jest --listTests | grep test-helpers` → empty (collection 미대상 확인).
+- Auto mode 대체 증거 (수동 smoke 불가): 각 신규 테스트의 `fetchSpy.mock.calls[0][0]` URL assertion 으로 upstream 라우팅 정확도 확인.
+
+### 미완료: `fe_bff_smoke` 200/400 probe (BE 기동 필요, 본 스코프 제외). commerce 라우팅 마이그레이션 (/api/subscriptions/** user→commerce) — upstream commerce-service 배포 선행 필요.
+
+### 연관 파일: apps/web/src/app/api/_lib/__tests__/, apps/web/src/app/api/{auth,users,subscriptions,meal-plans,celebrities}/__tests__/, /Users/junwon/.claude/plans/humble-wandering-squid.md

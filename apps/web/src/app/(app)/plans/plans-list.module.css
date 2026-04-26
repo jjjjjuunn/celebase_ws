@@ -26,7 +26,7 @@
   display: inline-flex;
   align-items: center;
   padding: var(--cb-space-2) var(--cb-space-4);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-color-on-brand);
   border-radius: var(--cb-radius-md);
   font-size: var(--cb-font-size-sm);

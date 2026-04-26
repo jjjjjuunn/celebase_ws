@@ -91,4 +91,3 @@ def check_micronutrients(daily_totals: dict[str, float]) -> MicronutrientReport:
         compliance_pct=compliance_pct,
         supplement_suggestions=supplement_suggestions,
     )
-

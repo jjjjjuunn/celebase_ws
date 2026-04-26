@@ -310,6 +310,140 @@ jobs:
         run: pytest tests/contract/test_spec_contracts.py -v
 
   # ============================================
+  # Job 4b: E2E Integration Tests (compose stack)
+  # ============================================
+  e2e-integration:
+    name: "🔗 E2E Integration"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    # Cold path: 4 cached builds 20-25 min + compose up 7-9 min + pytest 20 min
+    # + setup/teardown ~5 min ≈ 52-59 min. 60-min cap leaves ~1-8 min headroom.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build postgres+pg_uuidv7 (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: docker/postgres
+          load: true
+          tags: celebbase_ws-postgres:ci
+          cache-from: type=gha,scope=postgres
+          cache-to: type=gha,scope=postgres,mode=max
+
+      - name: Build user-service (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/user-service/Dockerfile
+          load: true
+          tags: celebbase_ws-user-service:ci
+          cache-from: type=gha,scope=user-service
+          cache-to: type=gha,scope=user-service,mode=max
+
+      - name: Build content-service (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/content-service/Dockerfile
+          load: true
+          tags: celebbase_ws-content-service:ci
+          cache-from: type=gha,scope=content-service
+          cache-to: type=gha,scope=content-service,mode=max
+
+      - name: Build meal-plan-engine (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/meal-plan-engine/Dockerfile
+          load: true
+          tags: celebbase_ws-meal-plan-engine:ci
+          cache-from: type=gha,scope=meal-plan-engine
+          cache-to: type=gha,scope=meal-plan-engine,mode=max
+
+      - name: Start compose stack
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            up -d --wait --wait-timeout 180
+        # Cold runners need 7-9 min for image pulls + 7-service health chain
+        # + --wait-timeout 180 (3 min) headroom. 12 min cap leaves ~3-5 min slack.
+        timeout-minutes: 12
+
+      - name: Sanity — dump ps + migrate logs
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml ps
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml logs db-migrate --no-color
+
+      - name: Wait for LocalStack SQS queue
+        # 30 attempts × 2s = 60s. LocalStack ready.d script typically finishes
+        # 35-40s after healthcheck first returns 200; 30s was too tight historically.
+        run: |
+          python3 -m pip install --quiet boto3
+          python3 - <<'PY'
+          import boto3, time, sys
+          c = boto3.client("sqs", endpoint_url="http://localhost:4566",
+                           region_name="us-east-1",
+                           aws_access_key_id="test", aws_secret_access_key="test")
+          for _ in range(30):
+              try:
+                  c.get_queue_url(QueueName="meal-plan-generation")
+                  sys.exit(0)
+              except Exception:
+                  time.sleep(2)
+          sys.exit(1)
+          PY
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install integration test deps (venv)
+        working-directory: services/meal-plan-engine
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Run E2E integration tests
+        working-directory: services/meal-plan-engine
+        run: .venv/bin/python -m pytest tests/integration/ -v --tb=short
+        # T1 polls up to 60s + T2 polls up to 75s + cold asyncpg first-connect ~10s.
+        timeout-minutes: 20
+
+      - name: Collect + sanitize compose logs on failure
+        if: failure()
+        # Strip lines where PHI_ENCRYPTION_KEY appears in key=value / "key": value
+        # shape (where leak risk is concentrated). Quoted variant catches JSON dumps.
+        # 60-zero value grep is belt-and-suspenders for any line containing the
+        # dummy key value (benign false positives OK).
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            logs --no-color --timestamps 2>&1 \
+            | grep -Eiv '"?phi[_-]?encryption[_-]?key"?[[:space:]]*[:=]' \
+            | grep -Ev '0{60,}' \
+            > /tmp/compose-logs-sanitized.txt
+          wc -l /tmp/compose-logs-sanitized.txt
+
+      - name: Upload compose logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-compose-logs-${{ github.run_id }}
+          path: /tmp/compose-logs-sanitized.txt
+          retention-days: 7
+
+      - name: Tear down compose stack
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            down --volumes --remove-orphans
+
+  # ============================================
   # Job 5: Security Scan (즉시 활성)
   # ============================================
   security-scan:
@@ -382,8 +516,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        run: |
+          git init
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjjjuunn/celebase_ws.git"
+          git fetch --depth 1 origin "${{ github.sha }}"
+          git checkout FETCH_HEAD
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -421,6 +561,7 @@ jobs:
       - validate-schemas
       - validate-compliance
       - contract-tests
+      - e2e-integration
       - security-scan
       - require-log-entry
       - lint-typecheck
@@ -432,8 +573,6 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Post failure comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7

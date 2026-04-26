@@ -18,6 +18,7 @@ Usable-session definition: helper returns ``pong=True`` only after a full
 ``send("ping") → recv() → {"event":"pong"}`` round-trip within 2s. A recv
 timeout is not treated as a usable session.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -69,7 +70,11 @@ async def _attempt_ws_connect(uri: str) -> Dict[str, Any]:
             return {"ok": True, "pong": pong}
     except Exception as exc:  # noqa: BLE001 — classify below
         if InvalidStatus is not None and isinstance(exc, InvalidStatus):
-            return {"ok": False, "reason": "http_reject", "status": exc.response.status_code}
+            return {
+                "ok": False,
+                "reason": "http_reject",
+                "status": exc.response.status_code,
+            }
         if InvalidStatusCode is not None and isinstance(exc, InvalidStatusCode):
             return {"ok": False, "reason": "http_reject", "status": exc.status_code}
         if isinstance(exc, ConnectionClosedError):

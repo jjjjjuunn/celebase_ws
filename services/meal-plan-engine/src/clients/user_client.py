@@ -3,6 +3,7 @@
 Returns the raw bio-profile dict.  Callers are expected to run
 ``phi_minimizer.minimize_profile()`` before passing data to engine modules.
 """
+
 from __future__ import annotations
 
 import logging
@@ -67,8 +68,15 @@ async def get_bio_profile(user_id: str, auth_token: str) -> Dict[str, Any]:
         resp.raise_for_status()
         data: Dict[str, Any] = resp.json()
         # node-postgres serialises NUMERIC as str; engine modules require float.
-        for field in ("height_cm", "weight_kg", "waist_cm", "body_fat_pct",
-                      "sleep_hours_avg", "tdee", "bmr_kcal"):
+        for field in (
+            "height_cm",
+            "weight_kg",
+            "waist_cm",
+            "body_fat_pct",
+            "sleep_hours_avg",
+            "tdee",
+            "bmr_kcal",
+        ):
             val = data.get(field)
             if isinstance(val, str):
                 try:

@@ -5,5 +5,9 @@ harness/ @junwon
 # CI 파이프라인 보호 — 에이전트가 CI를 약화시켜 guard 우회 방지
 .github/workflows/** @junwon
 
+# Compose 스택 보호 — CI 통합 테스트 (IMPL-016) 의 build/deps/tag pin 우회 방지
+/docker-compose.yml @junwon
+/docker/docker-compose.ci.yml @junwon
+
 # CODEOWNERS 자기보호
 .github/CODEOWNERS @junwon

@@ -1,0 +1,118 @@
+.ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cb-font-family-body);
+  color: var(--cb-color-text);
+}
+
+.svg {
+  display: block;
+  transform-origin: center;
+}
+
+.track {
+  stroke: var(--cb-color-border);
+}
+
+.progress {
+  transition: stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toneBrand .progress {
+  stroke: var(--cb-brand-600);
+}
+
+.tonePersona .progress {
+  stroke: var(--cb-accent-glp1);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.value {
+  font-family: var(--cb-font-family-display);
+  font-weight: var(--cb-font-weight-semibold);
+  line-height: 1;
+  color: var(--cb-color-text);
+}
+
+.label {
+  font-size: var(--cb-font-size-xs);
+  font-weight: var(--cb-font-weight-medium);
+  color: var(--cb-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.subLabel {
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-subtle);
+  margin-top: 2px;
+}
+
+.sizeSM {
+  width: 72px;
+  height: 72px;
+}
+.sizeSM .value {
+  font-size: var(--cb-h4);
+}
+.sizeSM .label {
+  font-size: 9px;
+  margin-top: 2px;
+}
+.sizeSM .subLabel {
+  display: none;
+}
+
+.sizeMD {
+  width: 120px;
+  height: 120px;
+}
+.sizeMD .value {
+  font-size: var(--cb-display-md);
+}
+
+.sizeLG {
+  width: 176px;
+  height: 176px;
+}
+.sizeLG .value {
+  font-size: var(--cb-display-lg);
+}
+
+/* Lemon Grass glow on completion — honors prefers-reduced-motion */
+.complete .svg {
+  filter: drop-shadow(0 0 8px var(--cb-cta-accent));
+  animation: cbNutritionRingGlow 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes cbNutritionRingGlow {
+  from {
+    filter: drop-shadow(0 0 6px var(--cb-cta-accent));
+  }
+  to {
+    filter: drop-shadow(0 0 14px var(--cb-cta-accent));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress {
+    transition: none;
+  }
+  .complete .svg {
+    animation: none;
+    filter: none;
+  }
+}

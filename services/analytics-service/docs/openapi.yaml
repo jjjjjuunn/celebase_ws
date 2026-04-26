@@ -197,6 +197,67 @@ components:
         - message
         - requestId
 
+    PersonaMatchInput:
+      type: object
+      description: |
+        Minimized persona-match request. `bioProfile` is NEVER sent from clients;
+        BFF enriches internally via user-service /internal/bio-profile-minimal
+        (CLAUDE.md Rule #4 PHI minimization).
+      properties:
+        celebritySlug:
+          type: string
+          example: "tom-brady"
+        goal:
+          type: string
+          enum: [fat_loss, maintenance, muscle_gain, endurance, longevity]
+        wellnessKeywords:
+          type: array
+          maxItems: 16
+          items:
+            type: string
+        bioProfileMinimal:
+          type: object
+          description: Minimized non-ePHI bio fields (age_band, sex, allergy_flags, goals).
+          properties:
+            age_band:
+              type: string
+              enum: ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"]
+            sex:
+              type: string
+              enum: [male, female, other, prefer_not_say]
+            allergy_flags:
+              type: array
+              items:
+                type: string
+            goals:
+              type: array
+              items:
+                type: string
+      required:
+        - celebritySlug
+        - goal
+
+    PersonaMatchResult:
+      type: object
+      properties:
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        identitySyncScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Composite score for dashboard central overlay.
+        rationale:
+          type: array
+          items:
+            type: string
+      required:
+        - matchScore
+        - identitySyncScore
+        - rationale
+
 security:
   - CognitoJWT: []
 
@@ -417,6 +478,41 @@ paths:
                 $ref: '#/components/schemas/MonthlyReport'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+  /internal/persona-match:
+    post:
+      summary: Compute persona match + Identity Sync Score (internal)
+      description: |
+        Internal endpoint called only by BFF (service-to-service internal JWT).
+        Returns matchScore + identitySyncScore + rationale for a given
+        celebrity / goal / minimized bio profile. IMPL-BE-analytics-persona-match
+        ships the 503 NOT_IMPLEMENTED stub first to unblock BFF; scoring is
+        plan Phase D-2 / Phase E follow-up work.
+      tags: [Internal]
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonaMatchInput'
+      responses:
+        '200':
+          description: Persona match result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaMatchResult'
+        '503':
+          description: Scoring engine not yet implemented (stub contract).
           content:
             application/json:
               schema:

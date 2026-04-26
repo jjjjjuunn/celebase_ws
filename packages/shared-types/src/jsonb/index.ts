@@ -94,3 +94,6 @@ export const QuotaOverrideSchema = z.object({
   max_diet_views_per_month: z.number().int().min(0).nullable().optional(),
 });
 export type QuotaOverride = z.infer<typeof QuotaOverrideSchema>;
+
+// spec §5.8 LLM Enhancement Layer — Citation
+export * from './citation.js';

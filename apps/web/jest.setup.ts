@@ -4,6 +4,9 @@ process.env['USER_SERVICE_URL'] = 'http://localhost:3001';
 process.env['CONTENT_SERVICE_URL'] = 'http://localhost:3002';
 process.env['MEAL_PLAN_URL'] = 'http://localhost:3003';
 process.env['ANALYTICS_SERVICE_URL'] = 'http://localhost:3005';
+// Test stub only — commerce-service is not deployed at runtime yet.
+// When commerce-service is added to docker-compose, update to the actual port.
+process.env['COMMERCE_SERVICE_URL'] = 'http://localhost:3004';
 process.env['LOG_LEVEL'] = 'silent';
 process.env['COGNITO_HOSTED_UI_DOMAIN'] = 'test.auth.us-east-1.amazoncognito.com';
 process.env['COGNITO_CLIENT_ID'] = 'test-client-id';

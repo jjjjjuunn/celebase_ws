@@ -214,7 +214,7 @@
 }
 
 .ratingBtnActive {
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border-color: var(--cb-color-brand);
   color: var(--cb-cta-text);
 }
@@ -226,7 +226,7 @@
   font-size: var(--cb-font-size-md);
   font-weight: var(--cb-font-weight-semibold);
   color: var(--cb-cta-text);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   border: none;
   border-radius: var(--cb-radius-md);
   cursor: pointer;
@@ -293,7 +293,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-cta-text);
   border: none;
   cursor: pointer;
@@ -384,7 +384,7 @@
 
 .drawerSaveBtn {
   padding: var(--cb-space-3) var(--cb-space-6);
-  background: var(--cb-color-brand);
+  background: var(--cb-color-brand-bg);
   color: var(--cb-cta-text);
   border: none;
   border-radius: var(--cb-radius-md);

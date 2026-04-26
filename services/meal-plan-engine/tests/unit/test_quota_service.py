@@ -1,4 +1,5 @@
 """Unit tests for quota_service — pure business logic, no DB required."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -25,7 +26,11 @@ from src.services.quota_service import (
 
 class TestValidateSubscription:
     def test_valid_response(self) -> None:
-        raw = {"tier": "premium", "status": "active", "quota_override": {"max_plans_per_month": 10}}
+        raw = {
+            "tier": "premium",
+            "status": "active",
+            "quota_override": {"max_plans_per_month": 10},
+        }
         result = validate_subscription(raw)
         assert isinstance(result, SubscriptionResponse)
         assert result.tier == "premium"
@@ -177,7 +182,13 @@ class TestCheckQuotaAtomic:
         pool = MagicMock()
 
         allowed, count, row = await check_quota_atomic(
-            pool, "u1", None, "d1", 7, {}, "key1",
+            pool,
+            "u1",
+            None,
+            "d1",
+            7,
+            {},
+            "key1",
         )
 
         assert allowed is True
@@ -188,7 +199,13 @@ class TestCheckQuotaAtomic:
     async def test_free_skips_db(self) -> None:
         pool = MagicMock()
         allowed, count, row = await check_quota_atomic(
-            pool, "u1", 0, "d1", 7, {}, "key1",
+            pool,
+            "u1",
+            0,
+            "d1",
+            7,
+            {},
+            "key1",
         )
         assert allowed is False
         assert count == 0
@@ -196,8 +213,12 @@ class TestCheckQuotaAtomic:
 
     @pytest.mark.asyncio
     @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
-    @patch("src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock)
-    async def test_under_limit(self, mock_count: AsyncMock, mock_create: AsyncMock) -> None:
+    @patch(
+        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+    )
+    async def test_under_limit(
+        self, mock_count: AsyncMock, mock_create: AsyncMock
+    ) -> None:
         mock_count.return_value = 3
         mock_create.return_value = {"id": "plan-new"}
 
@@ -205,13 +226,21 @@ class TestCheckQuotaAtomic:
         pool = _make_pool_with_conn(mock_conn)
 
         allowed, count, row = await check_quota_atomic(
-            pool, "u1", 4, "d1", 7, {}, "key1",
+            pool,
+            "u1",
+            4,
+            "d1",
+            7,
+            {},
+            "key1",
         )
         assert allowed is True
         assert count == 3
 
     @pytest.mark.asyncio
-    @patch("src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock)
+    @patch(
+        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+    )
     async def test_at_limit(self, mock_count: AsyncMock) -> None:
         mock_count.return_value = 4
 
@@ -219,14 +248,22 @@ class TestCheckQuotaAtomic:
         pool = _make_pool_with_conn(mock_conn)
 
         allowed, count, row = await check_quota_atomic(
-            pool, "u1", 4, "d1", 7, {}, "key1",
+            pool,
+            "u1",
+            4,
+            "d1",
+            7,
+            {},
+            "key1",
         )
         assert allowed is False
         assert count == 4
         assert row is None
 
     @pytest.mark.asyncio
-    @patch("src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock)
+    @patch(
+        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+    )
     async def test_over_limit(self, mock_count: AsyncMock) -> None:
         mock_count.return_value = 5
 
@@ -234,7 +271,13 @@ class TestCheckQuotaAtomic:
         pool = _make_pool_with_conn(mock_conn)
 
         allowed, count, row = await check_quota_atomic(
-            pool, "u1", 4, "d1", 7, {}, "key1",
+            pool,
+            "u1",
+            4,
+            "d1",
+            7,
+            {},
+            "key1",
         )
         assert allowed is False
         assert count == 5

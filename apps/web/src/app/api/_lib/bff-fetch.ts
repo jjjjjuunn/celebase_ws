@@ -5,11 +5,11 @@ import {
   SessionExpiredError,
   type BffError,
 } from './bff-error.js';
-import { readEnv } from './session.js';
+import { readEnv } from './env.js';
 
 export { SessionExpiredError } from './bff-error.js';
 
-export type BffTarget = 'user' | 'content' | 'meal-plan' | 'analytics';
+export type BffTarget = 'user' | 'content' | 'meal-plan' | 'analytics' | 'commerce';
 
 // D29: Use this helper ONLY in Server Components after awaiting fetchBff.
 // RSCs MUST pattern-match the error specifically — NEVER a bare `catch`
@@ -49,6 +49,7 @@ const USER_SERVICE_URL = readEnv('USER_SERVICE_URL');
 const CONTENT_SERVICE_URL = readEnv('CONTENT_SERVICE_URL');
 const MEAL_PLAN_URL = readEnv('MEAL_PLAN_URL');
 const ANALYTICS_SERVICE_URL = readEnv('ANALYTICS_SERVICE_URL');
+const COMMERCE_SERVICE_URL = readEnv('COMMERCE_SERVICE_URL');
 const log = createLogger('bff-fetch');
 
 interface Bucket {
@@ -58,12 +59,20 @@ interface Bucket {
 
 const rateLimitBuckets = new Map<string, Bucket>();
 
+// Test-only helper. Module-level Map accumulates between Jest runs within a
+// single process, so integration tests that exercise rate-limit behavior must
+// reset it in beforeEach. Not exported from a test-only file because tests
+// import bff-fetch for the real implementation under test.
+export function resetRateLimitBucketsForTest(): void {
+  rateLimitBuckets.clear();
+}
+
 const DEFAULT_TIMEOUT_MS = 5_000;
 const MAX_RESPONSE_BYTES = 1 * 1024 * 1024;
 const RATE_PUBLIC_PER_MIN = 60;
 const RATE_AUTH_PER_MIN = 20;
 
-function baseUrlFor(target: BffTarget): string {
+export function baseUrlFor(target: BffTarget): string {
   switch (target) {
     case 'user':
       return USER_SERVICE_URL;
@@ -73,6 +82,8 @@ function baseUrlFor(target: BffTarget): string {
       return MEAL_PLAN_URL;
     case 'analytics':
       return ANALYTICS_SERVICE_URL;
+    case 'commerce':
+      return COMMERCE_SERVICE_URL;
   }
 }
 
