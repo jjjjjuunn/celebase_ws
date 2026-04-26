@@ -3338,3 +3338,51 @@ verified_by: claude-sonnet-4-6, GitHub Actions CI (run #24820023966, all green)
 ### 연관 파일: .github/workflows/ci.yml, turbo.json, ruff.toml, services/user-service/src/routes/auth.routes.ts, packages/ui-kit/src/components/InstacartCartPreview/
 
 ### 연관 파일: apps/web/src/app/api/_lib/__tests__/, apps/web/src/app/api/{auth,users,subscriptions,meal-plans,celebrities}/__tests__/, /Users/junwon/.claude/plans/humble-wandering-squid.md
+
+---
+date: 2026-04-26
+agent: claude-opus-4-7
+task_id: BRANCH-CONSOLIDATION-2026-04-25
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/webhooks/stripe/__tests__/stripe.integration.test.ts
+  - services/user-service/src/services/bio-profile.service.ts
+  - apps/web/src/app/(app)/_components/LogoutButton.tsx
+  - apps/web/src/app/(auth)/_components/EmailSignupForm.tsx
+  - packages/service-core/src/database.ts
+  - packages/service-core/src/middleware/phi-audit.ts
+verified_by: claude-opus-4-7
+---
+### 완료: BRANCH-CONSOLIDATION-2026-04-25 — 49 브랜치 → main 통합 정리 (plan v0.4)
+
+**Phase 0+ (zero-loss insurance)**: alive 11 브랜치 origin push 일괄 보장 + `archive/<branch>-2026-04-25` 태그 11개 생성·push (30일 보존). worktree dirty 점검 0건.
+
+**Phase 1 (dead 브랜치/worktree 정리)**: 38개 머지된 브랜치 (`backup/*`, `pipeline/IMPL-002~017`, `pipeline/IMPL-APP-001*`, `pipeline/IMPL-UI-003`, `pipeline/TEST-001`) `git worktree remove --force` + `git branch -d` 일괄 삭제.
+
+**Phase 2-1 (clean merge)**: `feat/impl-016-e2e-ci` → main `--no-ff` 머지로 IMPL-AI-001 LLM 레이어 + IMPL-APP-005 a~d 일괄 흡수.
+
+**Phase 2-2 (수동 충돌 해결)**: `chore/log-chore-fe-21a` → main 머지 시 `tokens.css` (chore 골드 토큰 채택, DESIGN.md §13.4 정답지) + `pipeline.py` (main LLM 통합본 채택) 충돌 해결. PR #5 verify-only 처리 (functional duplicate of main).
+
+**Phase 1.5 (alive feat/* divergence resolution)**: 4개 feat/* 브랜치 diff 추출 → (a) patch-id 동등 / (b) 누락된 의미 변경 / (c) 폐기 안전 분류. (b) cherry-pick 완료, typecheck pass.
+
+**Phase 2-3 (demo cherry-pick)**: `demo/mvp-showcase` allowlist 6 SHA (`f3f28ae`, `e5406c7`, `20078c4`, `691087e`, `b73b556`, `055112b`) cherry-pick으로 Plan 22 (users_preferences + meal_plans_confirmed_at + /home + /plans/[id]/preview + 온보딩 picker + UI/UX 리팩토링) 흡수. CD SSH/ECR 실험 10건은 폐기.
+
+**Phase 2-4 (rebase + merge)**: `pipeline/IMPL-016-c3` rebase main → `--no-ff` 머지. commerce-service Dockerfile + docker-compose 추가 + Stripe webhook BFF target을 user-service:3001 → commerce-service:3004로 전환. `apps/web/src/app/api/webhooks/stripe/__tests__/stripe.integration.test.ts` URL assertion 수정 (commit `36d9872`).
+
+**Phase 2-5 (verify-only)**: `pipeline/CHORE-006` (Cognito staging activation) functional duplicate of main 확인 후 worktree 제거 + branch -D.
+
+**Phase 2 → 3 전환 게이트**: `pnpm install --frozen-lockfile` lock drift 0, `pnpm -r build && pnpm -r typecheck && pnpm -r test` exit 0 (TS 12 workspaces). pgmigrations 테이블에서 0010~0013 적용 확인. dev compose smoke `/login=200`, `/home=200`, `/=307` 정상. (Next.js webpack chunk cache 리셋 후 `kill <pid> && rm -rf apps/web/.next/{cache,server,static} && pnpm --filter web dev` — IMPL-UI-002 교훈).
+
+**Phase 3-A**: `fix/demo-regressions-2026-04-24` 3 fix 커밋 (`407a317`, `1761100`, `f1f07a8`) main에 cherry-pick — bio-profile macro 재계산 / 온보딩 draft 클리어 / NUMERIC coerce + phi-audit 진단 로그.
+
+**Phase 3-B**: `demo/mvp-showcase` -D 삭제 (cherry-pick으로 SHA 다름, archive tag 보존).
+
+**Phase 3-C (1주일 유예)**: alive feat/* 4개 (`impl-app-004-onboarding-chip-hybrid`, `impl-ui-008-persona-selection-feedback`, `impl-ui-009-input-outlined-border`, `fe-optimization-gold-plus-domain`) verify-only 완료. 1주일 dev 사용 후 회귀 0 확인 시 2026-05-02 이후 -D 예정.
+
+**Zero-loss insurance**: archive 태그 11개 (`archive/*-2026-04-25`) 30일 보존 → 2026-05-25에 별도 정리 작업.
+
+**main HEAD 흡수 확인**: IMPL-AI-001 LLM 레이어 + IMPL-APP-005 a~d + IMPL-016 commerce-service + Plan 22 (users_preferences + /home + /plans/[id]/preview) + 골드 UI 토큰 + onboarding chip-hybrid 모두 단일 main 트리에 통합.
+
+### 미완료: 2026-05-02 이후 — alive feat/* 4개 -D 실삭제 (1주일 dev 회귀 0 확인 후); 2026-05-25 이후 — archive/*-2026-04-25 태그 11개 일괄 정리
+
+### 연관 파일: docs/IMPLEMENTATION_LOG.md, /Users/junwon/.claude/plans/lucky-soaring-platypus.md, pipeline/runs/BRANCH-CONSOLIDATION-2026-04-25/
