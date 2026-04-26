@@ -4,7 +4,7 @@
 # 사용법:
 #   scripts/session-start.sh <ROLE> <TASK-ID>
 #     ROLE: fe | be | bff
-#     TASK-ID: 예) IMPL-AI-002, IMPL-UI-010, IMPL-BFF-003
+#     TASK-ID: docs/IMPLEMENTATION_LOG.md 의 다음 작업 ID (자유 형식, 케밥/언더스코어 모두 가능)
 #
 # 효과:
 #   1. origin fetch + prune
@@ -22,7 +22,7 @@ TASK_ID="${2:-}"
 
 if [[ -z "$ROLE" || -z "$TASK_ID" ]]; then
   echo "Usage: $0 <fe|be|bff> <TASK-ID>" >&2
-  echo "Example: $0 be IMPL-AI-002" >&2
+  echo "  TASK-ID 는 docs/IMPLEMENTATION_LOG.md 다음 항목 ID (자유 형식)" >&2
   exit 1
 fi
 

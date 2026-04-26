@@ -37,7 +37,7 @@ paths:
 ```bash
 scripts/session-start.sh <SESSION_ROLE> <TASK-ID>
 # SESSION_ROLE: fe | be | bff
-# TASK-ID: 예) IMPL-AI-002, IMPL-UI-010, IMPL-BFF-003
+# TASK-ID: docs/IMPLEMENTATION_LOG.md 다음 작업 ID (자유 형식)
 ```
 
 스크립트가 수행하는 것:
