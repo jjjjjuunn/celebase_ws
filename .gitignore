@@ -26,6 +26,17 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.staging
+.env.production
+
+# Terraform state (local only)
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Claude Code session lock
+.claude/scheduled_tasks.lock
 
 # IDE
 .idea/
