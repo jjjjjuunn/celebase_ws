@@ -122,7 +122,7 @@ async function pollMealPlanStatus(
   const tick = async (): Promise<void> => {
     if (signal.aborted) return;
 
-    let plan: schemas.MealPlanWire;
+    let plan: schemas.MealPlanDetailResponse;
     try {
       plan = await fetcher(`/api/meal-plans/${mealPlanId}`, {
         schema: schemas.MealPlanDetailResponseSchema,

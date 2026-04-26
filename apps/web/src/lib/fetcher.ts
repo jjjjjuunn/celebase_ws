@@ -1,4 +1,4 @@
-import type { ZodType } from 'zod';
+import type { ZodType, ZodTypeDef } from 'zod';
 
 export class FetcherError extends Error {
   constructor(
@@ -24,7 +24,7 @@ interface BffErrorEnvelope {
 }
 
 export interface FetcherOptions<T> extends Omit<RequestInit, 'signal'> {
-  schema?: ZodType<T>;
+  schema?: ZodType<T, ZodTypeDef, unknown>;
   signal?: AbortSignal;
 }
 

@@ -117,7 +117,9 @@ export default function PlanDetailPage(): React.ReactElement {
               <div className={styles.dayHeader}>
                 <span className={styles.dayLabel}>Day {String(day.day)}</span>
                 <span className={styles.dayDate}>{day.date}</span>
-                <span className={styles.dayKcal}>{String(day.daily_totals.calories)} kcal</span>
+                {day.daily_totals !== undefined && (
+                  <span className={styles.dayKcal}>{String(day.daily_totals.calories)} kcal</span>
+                )}
               </div>
               <ul className={styles.mealList}>
                 {day.meals.map((meal, idx) => (
