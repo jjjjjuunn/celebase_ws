@@ -3,13 +3,13 @@ import { createPublicRoute } from '../../_lib/session.js';
 import { forwardRaw } from '../../_lib/forward-raw.js';
 
 // Stripe webhook endpoint — no Cognito JWT auth. Stripe authenticates via the
-// Stripe-Signature header; the user-service verifies the signature using the
+// Stripe-Signature header; commerce-service verifies the signature using the
 // webhook secret. The BFF's sole job is:
 //   1. Read raw body as string (signature verification requires the exact bytes)
-//   2. Forward Stripe-Signature + raw body to user-service
-//   3. Return user-service's response with upstream status preserved
+//   2. Forward Stripe-Signature + raw body to commerce-service
+//   3. Return commerce-service's response with upstream status preserved
 //
-// SSRF note: target is resolved from USER_SERVICE_URL env var (internal allowlist).
+// SSRF note: target is resolved from COMMERCE_SERVICE_URL env var (internal allowlist).
 // `path` below is a static string constant — not user-controlled.
 
 const WEBHOOK_TIMEOUT_MS = 10_000;
@@ -58,7 +58,7 @@ export const POST = createPublicRoute(async (req: NextRequest) => {
   }
 
   const result = await forwardRaw({
-    target: 'user',
+    target: 'commerce',
     path: '/webhooks/stripe',
     method: 'POST',
     rawBody,
