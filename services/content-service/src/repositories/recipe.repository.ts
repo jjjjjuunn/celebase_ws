@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { Recipe, RecipeIngredient, Ingredient } from '@celebbase/shared-types';
+import type { Recipe, RecipeIngredient, Ingredient, Citation } from '@celebbase/shared-types';
 import type { ListResult } from './celebrity.repository.js';
 
 export interface RecipeWithIngredients extends Recipe {
@@ -36,6 +36,7 @@ interface RecipeJoinRow {
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
+  citations: unknown;
   // recipe_ingredient columns (prefixed)
   ri_id: string | null;
   ri_ingredient_id: string | null;
@@ -81,6 +82,7 @@ function assembleRecipe(rows: RecipeJoinRow[]): RecipeWithIngredients | null {
     is_active: first.is_active,
     created_at: first.created_at,
     updated_at: first.updated_at,
+    citations: (first.citations as Citation[] | null) ?? [],
     recipe_ingredients: [],
   };
 
@@ -136,7 +138,7 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at,
+       r.is_active, r.created_at, r.updated_at, r.citations,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,
@@ -178,7 +180,7 @@ export async function findByIds(
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at,
+       r.is_active, r.created_at, r.updated_at, r.citations,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,
