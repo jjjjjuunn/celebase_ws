@@ -8,7 +8,7 @@ PipelineTask = Literal[
 
 TASK_FIELD_MAP: dict[str, list[str]] = {
     "calorie_adjustment": ["weight_kg", "height_cm", "activity_level", "primary_goal"],
-    "macro_rebalance": ["weight_kg", "activity_level", "diet_type"],
+    "macro_rebalance": ["weight_kg", "activity_level", "diet_type", "medications"],
     "allergen_filter": ["allergies", "intolerances"],
     "glp1_adjustment": ["weight_kg", "primary_goal"],
 }
