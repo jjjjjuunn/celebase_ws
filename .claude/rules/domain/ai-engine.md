@@ -31,10 +31,74 @@ NUTRITION_TOLERANCE = {
 - 알레르기: 대체 재료 불가 시 레시피 통째로 교체. 알레르겐 포함 레시피 제공 절대 금지.
 - GLP-1 모드: 단백질 최소 체중 x 2.0g 강제.
 
+### `final_out` 4 필드 invariant (IMPL-AI-002 교훈)
+
+`pipeline.py` 의 모든 early-return 경로는 다음 4 필드를 **항상** set 해야 한다:
+
+| 필드 | 타입 | 의미 |
+|------|------|------|
+| `mode` | `"llm"` \| `"standard"` | LLM 사용 여부 |
+| `quota_exceeded` | `bool` | cost cap 또는 monthly kill switch 도달 |
+| `ui_hint` | `str \| None` | FE 에서 사용자에게 보여줄 안내 ("LLM 일시 중단" 등) |
+| `llm_provenance` | `dict` | model / prompt_hash / total_tokens / cost_usd |
+
+LLM 실패·cost cap·kill switch 어떤 경로든 deterministic fallback 으로 fail-closed 해야 BFF/FE 가 성공·실패를 동일 schema 로 받는다.
+
+```python
+# ✅ 모든 early-return 경로에서 _build_final_out() 호출
+def _build_final_out(meals, mode, quota_exceeded=False, ui_hint=None, llm_provenance=None):
+    return {
+        "meals": meals,
+        "mode": mode,
+        "quota_exceeded": quota_exceeded,
+        "ui_hint": ui_hint,
+        "llm_provenance": llm_provenance or {},
+    }
+```
+
 ## PHI 최소화
 
 - 각 파이프라인 단계는 `phi_minimizer.py`로 필요 최소 건강 데이터만 수신.
 - 전체 `bio_profiles` 객체 통째로 전달 금지 (spec.md § 5.7 참조).
+
+### VCR cassette PHI redact (IMPL-AI-002 교훈)
+
+`vcrpy` 의 `filter_headers` config 옵션은 **request 헤더에만 적용**된다. response 헤더는 `before_record_response` 콜백 (`_scrub_response`) 안에서 직접 dict 키를 마스킹해야 한다:
+
+```python
+# ✅ services/meal-plan-engine/tests/llm/conftest.py 패턴
+_RESPONSE_HEADER_REDACT = (
+    "openai-organization",
+    "openai-project",
+    "set-cookie",
+    "cf-ray",
+    "x-request-id",
+)
+
+def _scrub_response(response: dict[str, Any]) -> dict[str, Any]:
+    headers = response.get("headers")
+    if isinstance(headers, dict):
+        for key in list(headers.keys()):
+            if key.lower() in _RESPONSE_HEADER_REDACT:
+                headers[key] = ["[REDACTED]"]
+    # ... body scrub continues
+    return response
+
+# vcr 등록 시 양방향 콜백 명시
+vcr_config = {
+    "filter_headers": [...],          # request 측
+    "before_record_response": _scrub_response,  # response 측
+    "before_record_request": _scrub_request,
+}
+```
+
+cassette 녹화 후 grep gate 5단 tier 로 검증:
+- `kmu-[a-z0-9]+` (OpenAI org)
+- `proj_[A-Za-z0-9]{20,}` (OpenAI project)
+- `sk-[a-zA-Z0-9]{20,}` (API key)
+- `Bearer\s+[A-Za-z0-9._-]{20,}`
+- `eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}` (JWT)
+- `__cf_bm=[A-Za-z0-9.-]{40,}` (Cloudflare bot session)
 
 ## 영양 데이터 표준화
 
@@ -59,3 +123,30 @@ NUTRITION_TOLERANCE = {
 7. **7일 다양성**: 동일 레시피 3회 이상 반복 없음
 8. **영양소 단위 검증**: USDA + Instacart 혼합 시 단위 변환 정확성
 9. **PHI 최소화**: 각 단계에서 불필요 건강 필드 미전달 확인
+
+## Observability — gate sub-reason 라벨링 (IMPL-AI-002 교훈)
+
+LLM 파이프라인 gate 실패는 단일 metric 에 `gate` + `reason` 두 라벨을 동시 붙여 sub-reason 별 alert 가능하게 한다 (cardinality 폭발 없이):
+
+```python
+# ✅ packages/llm_metrics.py
+def record_gate_failure(gate_num: int, reason: str, gate: str):
+    """
+    gate_num: 1, 2, 3, ...
+    reason: "citation_excerpt_missing" | "duplicate_ids" | "schema_invalid" | ...
+    gate: "gate1" | "gate2" | "gate3"
+    """
+    GATE_FAILURE_COUNTER.labels(gate=gate, reason=reason).inc()
+
+# 호출 예시
+record_gate_failure(2, reason="citation_excerpt_missing", gate="gate2")
+record_gate_failure(2, reason="duplicate_ids", gate="gate2")
+```
+
+이렇게 라벨링하면 Prometheus 에서:
+- `sum by (reason) (gate_failure_total{gate="gate2"})` → gate2 의 reason 분포
+- alert: `gate_failure_total{reason="citation_excerpt_missing"} > 5` (지속 발생 시)
+
+cardinality 안전 가이드라인:
+- `reason` 은 **enum 처럼 폐쇄 집합** (10~20개 이하). 자유 문자열 절대 금지
+- `user_id` / `prompt_hash` 등 high-cardinality 값은 metric label 에 넣지 않는다 (log 로만)
