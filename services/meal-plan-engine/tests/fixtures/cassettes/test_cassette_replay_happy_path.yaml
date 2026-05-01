@@ -81,17 +81,15 @@ interactions:
       content-length:
       - '2152'
       openai-organization:
-      - kmu-ejfdki
+      - '[REDACTED]'
       openai-processing-ms:
       - '3959'
       openai-project:
-      - proj_cNsfoXJftOvALXirhes7lUrH
+      - '[REDACTED]'
       openai-version:
       - '2020-10-01'
       set-cookie:
-      - __cf_bm=DRRWQ54zMHNimGmSF8Dmgw8gU589Kud5mjMlJnyinRE-1777617544.8155677-1.0.1.1-t7T64M0p6jTvp3R..RsGDseozEmql0.ajiSTmUk4lxYr8r5N_tJSE0KW_J1zSPkRMghvXhdBbVuxEamhp_PYAvrQJVW3wUCk412onQgBWvfeMVGVqr49o7YqRioN437n;
-        HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 01 May 2026
-        07:09:09 GMT
+      - '[REDACTED]'
       x-openai-proxy-wasm:
       - v0.1
       x-ratelimit-limit-requests:
@@ -107,7 +105,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_ebbfafe2276e4b099f77169040466525
+      - '[REDACTED]'
     status:
       code: 200
       message: OK

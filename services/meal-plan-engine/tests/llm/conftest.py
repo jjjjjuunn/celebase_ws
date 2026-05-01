@@ -80,7 +80,21 @@ def _scrub_request(request: Any) -> Any:
     return request
 
 
+_RESPONSE_HEADER_REDACT = (
+    "openai-organization",
+    "openai-project",
+    "set-cookie",
+    "cf-ray",
+    "x-request-id",
+)
+
+
 def _scrub_response(response: dict[str, Any]) -> dict[str, Any]:
+    headers = response.get("headers")
+    if isinstance(headers, dict):
+        for key in list(headers.keys()):
+            if key.lower() in _RESPONSE_HEADER_REDACT:
+                headers[key] = ["[REDACTED]"]
     body = response.get("body", {})
     raw = body.get("string")
     if raw is None:
