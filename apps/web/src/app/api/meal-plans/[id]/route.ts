@@ -6,7 +6,15 @@ import { createProtectedRoute, type Session } from '../../_lib/session.js';
 import { toBffErrorResponse } from '../../_lib/bff-error.js';
 
 const EmptyBodySchema = z.object({}).passthrough();
-const ConfirmRequestSchema = z.object({ status: z.literal('active') });
+const PatchRequestSchema = z
+  .object({
+    status: z.enum(['active', 'archived']).optional(),
+    name: z.string().min(1).max(120).optional(),
+  })
+  .refine(
+    (v) => v.status !== undefined || v.name !== undefined,
+    { message: 'At least one of status or name is required' },
+  );
 
 export async function GET(
   req: NextRequest,
@@ -42,7 +50,7 @@ export async function PATCH(
   return createProtectedRoute(async (innerReq: NextRequest, session: Session) => {
     const requestId = innerReq.headers.get('x-request-id') ?? crypto.randomUUID();
     const body: unknown = await innerReq.json().catch(() => ({}));
-    const parsed = ConfirmRequestSchema.safeParse(body);
+    const parsed = PatchRequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
         JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input', requestId } }),

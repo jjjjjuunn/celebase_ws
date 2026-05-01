@@ -73,9 +73,18 @@ class LlmMetrics:
             self.inc("llm_latency_seconds_total", value=latency_s)
             self.inc("llm_latency_calls")
 
-    def record_gate_failure(self, gate: str) -> None:
-        """Safety Gate 위반 1건 기록."""
-        self.inc("llm_safety_gate_failures_total", gate=gate)
+    def record_gate_failure(self, gate: str, reason: str | None = None) -> None:
+        """Safety Gate 위반 1건 기록.
+
+        gate=2 처럼 한 게이트가 여러 sub-원인(duplicate_ids / pool_violation /
+        partial_response)을 가지면 ``reason`` 으로 세분한다. 알람 룰에서
+        ``llm_safety_gate_failures_total{gate="2",reason="pool_violation"}``
+        형태로 dispatch 가능.
+        """
+        if reason is None:
+            self.inc("llm_safety_gate_failures_total", gate=gate)
+        else:
+            self.inc("llm_safety_gate_failures_total", gate=gate, reason=reason)
 
     def snapshot(self) -> dict[str, Any]:
         """현재 카운터 스냅샷 반환 (테스트 + 운영 감사용)."""

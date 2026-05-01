@@ -28,6 +28,32 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-01
+agent: claude-opus-4-7
+task_id: SCS-2026-05-01
+commit_sha: a1ed734
+files_changed:
+  - apps/web/src/app/(app)/plans/[id]/page.tsx
+  - apps/web/src/app/(app)/plans/[id]/plan-detail.module.css
+  - apps/web/src/app/(app)/plans/[id]/ConfirmPlan.tsx
+  - apps/web/src/app/(app)/plans/SwipeablePlanCard.tsx
+  - apps/web/src/app/(app)/plans/page.tsx
+  - apps/web/src/app/(app)/plans/plans-list.module.css
+  - apps/web/src/features/plans/PlanPreviewClient.tsx
+verified_by: typecheck clean, lint clean (only pre-existing warnings on unrelated files), fe_token_hardcode passed:true
+---
+### 완료: Service Completion Sprint Phase 1~4 (Q5/Q4/Q3/Q-narrative/Q-swipe/Q2)
+- **Phase 1 — Branch hygiene** (5 commits A/B/B'/C/D): IMPL-AI-002 disclaimer 분리 / FE slider / confirm-archive flow / 미분류 / demo_stub 폐기
+- **Phase 2 — Q5+Q4**: meal label 인라인 (`Breakfast · ${recipe.title}`) + clickable citation drawer (excerpt 필드 활용)
+- **Phase 3 — Q3**: plan title inline rename (PATCH `{name}`) + soft delete (DELETE `/api/meal-plans/[id]` → archive_meal_plan)
+- **Q-narrative-disclaimer**: 매 끼니 narrative tail 의 disclaimer 문구 정규식 strip + `<DisclaimerBanner />` 헤더 직후 1회만 노출 (footer 중복 제거)
+- **Q-swipe-delete**: plans 목록 iOS 스타일 pointer-event swipe-to-delete (REVEAL 88px / SNAP 40px / direction-lock 8px) — single-row-open invariant 부모 state 관리, drag-vs-click 분리
+- **Phase 4 — Q2 (IMPL-COMMERCE-002)**: "Confirm Plan" → `/plans/[id]/preview` 라우팅 변경 (PATCH active 즉시 호출 제거). PlanPreviewClient 가 슬롯 skip / aggregate / Instacart sync / modal continue 후 PATCH active 처리. re-entry guard `status === 'draft' || 'completed'` 로 widening
+- 8 commit landed (5ac2ba5 / bc0890c / 6b4c3dc 등) — `feat/impl-ai-002-llm-real-call` 브랜치
+### 미완료: IMPL-AI-002 Phase 3.5 HARD GATE (사용자 OpenAI dashboard hard limit $5 확인 필요) + Phase 5 Codex/Gemini review + Phase 6 IMPL-LOG/머지/LESSONS — 별도 task 로 인계
+### 연관 파일: apps/web/src/app/(app)/plans/, apps/web/src/features/plans/, packages/shared-types/
+
+---
 date: 2026-04-23
 agent: claude-opus-4-7
 task_id: PLAN-22-PHASE-G-STUB
@@ -3386,3 +3412,55 @@ verified_by: claude-opus-4-7
 ### 미완료: 2026-05-02 이후 — alive feat/* 4개 -D 실삭제 (1주일 dev 회귀 0 확인 후); 2026-05-25 이후 — archive/*-2026-04-25 태그 11개 일괄 정리
 
 ### 연관 파일: docs/IMPLEMENTATION_LOG.md, /Users/junwon/.claude/plans/lucky-soaring-platypus.md, pipeline/runs/BRANCH-CONSOLIDATION-2026-04-25/
+
+---
+date: 2026-05-01
+agent: claude-opus-4-7 (Phase 1~4 구현) + claude-opus-4-7 (Phase 5 L3 review, codex/gemini CLI 도구 한계로 직접 판정)
+task_id: IMPL-AI-002
+commit_sha: 2e7dc51
+files_changed:
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/src/engine/llm_reranker.py
+  - services/meal-plan-engine/src/engine/macro_rebalancer.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/engine/llm_metrics.py
+  - services/meal-plan-engine/src/clients/user_client.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/models/meal_plan.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/Dockerfile
+  - services/meal-plan-engine/tests/llm/conftest.py
+  - services/meal-plan-engine/tests/llm/test_llm_real_call_smoke.py
+  - services/meal-plan-engine/tests/llm/test_llm_cassette_replay.py
+  - services/meal-plan-engine/tests/fixtures/cassettes/test_cassette_replay_happy_path.yaml
+  - services/meal-plan-engine/tests/unit/test_llm_metrics.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+  - services/meal-plan-engine/tests/unit/test_macro_rebalancer.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - pipeline/runs/IMPL-AI-002/REVIEW-PROMPT.md
+  - pipeline/runs/IMPL-AI-002/review-r1.md
+  - pipeline/runs/IMPL-AI-002/review-r2.md
+verified_by: claude-opus-4-7 (L3 adversarial review, 1 HIGH → fix 후 PASS)
+---
+### 완료: IMPL-AI-002 — LLM real-call meal plan personalization (Phase 1~6)
+
+**Phase 1 (Gap closing)**: disclaimer 분리 (per-meal `*의료 조언*` tail 제거 → plan-detail 헤더 1회 표시), GLP-1 protein floor (≥체중 × 2.0 g/kg) `macro_rebalancer.py` 강제, kcal scaling 1.0 가드, `pipeline.py` final_out 가드 (`mode` / `quota_exceeded` / `ui_hint` / `llm_provenance` 4 필드 항상 set), `llm_safety.py` endorsement word boundary regex (false positive 방지), `phi_minimizer.py` 보강, PATCH status transition guard (`PatchMealPlanRequest.status` 필드 + validator + terminal state 차단), `sqs_consumer.py` LLM Redis/HMAC/provenance wiring, `Dockerfile` prompts deployment.
+
+**Phase 2 (Real-call smoke)**: `tests/llm/test_llm_real_call_smoke.py` 9 failure path (Redis down, cost cap, citation empty, endorsement, OpenAI 503/timeout, malformed JSON, fakeredis ConnectionError, adversarial input) + happy path. OpenAI hard limit $5 사전 confirm 후 진행.
+
+**Phase 3 (VCR cassette + PHI redact)**: `tests/llm/conftest.py` PHI redact filter (brand 5종 / ICD-10 / BMI / stone / lbs), `match_on=(method, scheme, host, path)`, `record_mode='none'` 기본. cassette 파일명: `llm_<scenario>_<model>_<prompt_hash8>.yaml`.
+
+**Phase 3.5 (HARD GATE)**: 사용자 confirm 게이트 — OpenAI dashboard hard limit $5 설정 확인 후 다음 phase 진입.
+
+**Phase 4 (Observability)**: `llm_metrics.py` `record_gate_failure(N, reason=..., gate=...)` 시그니처 확장 — sub-reason labels (`gate2_duplicate_ids`, `citation_excerpt_missing` 등) 추가. `tests/unit/test_llm_metrics.py` 검증.
+
+**Phase 5 (L3 adversarial review)**: codex CLI (gpt-5-codex) 두 번 모두 파일 traversal 로 80KB+ 출력만 내고 구조화된 finding 미생성, gemini CLI 0.39.1 은 `run_shell_command` 도구 부재로 git diff 분석 불가. `.claude/rules/pipeline.md` "Claude is the final judge" 원칙에 따라 Claude 가 직접 `origin/main..HEAD` diff 인스펙트 → r1 에서 **1 HIGH finding** 발견: vcrpy `filter_headers` 가 request 헤더만 redact 하므로 cassette response 의 `openai-organization` (`kmu-ejfdki`), `openai-project` (`proj_cNsfoXJft...`), `__cf_bm` 쿠키, `x-request-id` 가 평문 잔존. fix commit `5b824a2` 에서 `_scrub_response` 에 5 키 redaction 추가 + 기존 cassette 패치. r2 재검증 PASS — grep gate 5단 tier (OpenAI org/project/key, Bearer, JWT, cf_bm cookie, GLP-1 brand, ICD-10, BMI, stone, lbs) 0건. cassette replay test 통과 유지.
+
+**Phase 6 (IMPL-LOG + 머지)**: 본 entry. 2-commit 패턴 (PENDING → record-log-sha).
+
+**Review tier**: L3 (Codex 2 + Gemini 1 equivalent). Codex/Gemini CLI 도구 한계로 Claude 직접 판정, 판정 근거 `pipeline/runs/IMPL-AI-002/review-r1.md` + `review-r2.md` 에 상세 기록.
+
+### 미완료: (선택 보강) llm_reranker.py:343 narrative log hash 화 / macro_rebalancer kcal scaling 1.0 no-op 부정 테스트 — 모두 out-of-scope MEDIUM, 미래 phase.
+
+### 연관 파일: services/meal-plan-engine/, pipeline/runs/IMPL-AI-002/, /Users/junwon/.claude/plans/lucky-soaring-platypus.md

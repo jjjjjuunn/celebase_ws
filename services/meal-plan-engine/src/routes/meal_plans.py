@@ -67,7 +67,7 @@ def _serialize_meal_plan_row(row: Dict[str, Any]) -> Dict[str, Any]:
                 "narrative": meal.get("narrative") if is_llm else None,
                 "citations": meal.get("citations", []) if is_llm else [],
             })
-        day_out: Dict[str, Any] = {"date": day.get("date"), "meals": meals}
+        day_out: Dict[str, Any] = {"day": day.get("day"), "date": day.get("date"), "meals": meals}
         if "daily_totals" in day:
             day_out["daily_totals"] = day["daily_totals"]
         daily_plans.append(day_out)
@@ -353,17 +353,40 @@ async def patch_meal_plan(
             "NOT_FOUND", "Meal plan not found", await get_request_id(request), 404
         )
 
-    if current["status"] != "draft":
+    updates: Dict[str, Any] = {
+        k: v for k, v in body.model_dump(exclude_unset=True).items() if v is not None
+    }
+
+    # status transition guards: terminal states block all PATCH; structural edits
+    # (daily_plans/adjustments) require draft; status can be set to 'active' from
+    # draft or completed (confirm flow), or 'archived' from any non-terminal state.
+    current_status = current["status"]
+    target_status = updates.get("status")
+    structural_edit = bool(set(updates.keys()) & {"daily_plans", "adjustments"})
+
+    if current_status in {"failed", "expired", "archived"}:
         return _error_response(
             "INVALID_STATE",
-            "Only draft plans can be modified",
+            f"Cannot modify plan in '{current_status}' state",
             await get_request_id(request),
             400,
         )
 
-    updates: Dict[str, Any] = {
-        k: v for k, v in body.model_dump(exclude_unset=True).items() if v is not None
-    }
+    if structural_edit and current_status != "draft":
+        return _error_response(
+            "INVALID_STATE",
+            "daily_plans/adjustments can only be modified on draft plans",
+            await get_request_id(request),
+            400,
+        )
+
+    if target_status == "active" and current_status not in {"draft", "completed"}:
+        return _error_response(
+            "INVALID_STATE",
+            f"Cannot transition from '{current_status}' to 'active'",
+            await get_request_id(request),
+            400,
+        )
 
     updated = await repo.update_meal_plan(pool, plan_id, user_id, updates)
     return updated

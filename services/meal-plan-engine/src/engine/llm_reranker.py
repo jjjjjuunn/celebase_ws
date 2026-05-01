@@ -32,7 +32,6 @@ from .llm_safety import (
     AllergenViolationError,
     LlmProfileInjectionError,
     PoolViolationError,
-    append_disclaimer,
     assert_no_allergen_violation,
     assert_recipe_ids_in_pool,
     check_endorsement_regex,
@@ -290,15 +289,15 @@ async def llm_rerank_and_narrate(
     llm_ids = [m.recipe_id for m in parsed.meals]
     if len(llm_ids) != len(set(llm_ids)):
         _logger.warning("llm_reranker gate2_duplicate_ids plan=%s", plan_id)
-        metrics.record_gate_failure("2")
-        metrics.record_call(mode="standard", reason="gate_fail")
+        metrics.record_gate_failure("2", reason="duplicate_ids")
+        metrics.record_call(mode="standard", reason="gate2_duplicate_ids")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
     try:
         assert_recipe_ids_in_pool(llm_ids, pool_ids)
     except PoolViolationError:
         _logger.warning("llm_reranker gate2_pool_violation plan=%s", plan_id)
-        metrics.record_gate_failure("2")
-        metrics.record_call(mode="standard", reason="gate_fail")
+        metrics.record_gate_failure("2", reason="pool_violation")
+        metrics.record_call(mode="standard", reason="gate2_pool_violation")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
     # ── Gate 2.5: 부분 응답 검증 — LLM이 입력 recipe 전부를 반환했는지 확인 (BS-16) ──
@@ -309,8 +308,8 @@ async def llm_rerank_and_narrate(
             len(recipe_ids),
             plan_id,
         )
-        metrics.record_gate_failure("2")
-        metrics.record_call(mode="standard", reason="gate_fail")
+        metrics.record_gate_failure("2", reason="partial_response")
+        metrics.record_call(mode="standard", reason="gate2_partial_response")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
     # ── Gate 3: 알레르겐 순수 검증 (mutate 금지 — Codex FINDING-02) ───────────
@@ -318,8 +317,8 @@ async def llm_rerank_and_narrate(
         assert_no_allergen_violation(llm_ids, recipe_allergen_map, user_allergies)
     except AllergenViolationError:
         _logger.warning("llm_reranker gate3_allergen_violation plan=%s", plan_id)
-        metrics.record_gate_failure("3")
-        metrics.record_call(mode="standard", reason="gate_fail")
+        metrics.record_gate_failure("3", reason="allergen_violation")
+        metrics.record_call(mode="standard", reason="gate3_allergen_violation")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
     # ── Gate 4: Bounds 검증 ───────────────────────────────────────────────────
@@ -330,8 +329,8 @@ async def llm_rerank_and_narrate(
             len(pool_ids),
             plan_id,
         )
-        metrics.record_gate_failure("4")
-        metrics.record_call(mode="standard", reason="gate_fail")
+        metrics.record_gate_failure("4", reason="bounds_violation")
+        metrics.record_call(mode="standard", reason="gate4_bounds_violation")
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
     # ── Gate 5 + 6: disclaimer 첨부 + endorsement 탐지 ───────────────────────
@@ -339,16 +338,17 @@ async def llm_rerank_and_narrate(
     for meal in parsed.meals:
         if check_endorsement_regex(meal.narrative):
             _logger.warning(
-                "llm_reranker gate6_endorsement recipe=%s plan=%s",
+                "llm_reranker gate6_endorsement recipe=%s plan=%s narrative=%r",
                 meal.recipe_id,
                 plan_id,
+                meal.narrative[:300],
             )
-            metrics.record_gate_failure("6")
-            metrics.record_call(mode="standard", reason="gate_fail")
+            metrics.record_gate_failure("6", reason="endorsement")
+            metrics.record_call(mode="standard", reason="gate6_endorsement")
             return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
         enriched[meal.recipe_id] = {
             "rank": meal.rank,
-            "narrative": append_disclaimer(meal.narrative),
+            "narrative": meal.narrative,
             "citations": [c.model_dump() for c in meal.citations],
         }
 

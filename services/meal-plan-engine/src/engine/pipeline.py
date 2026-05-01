@@ -137,7 +137,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
-    tdee = prof_cal.get("tdee", preferences.get("tdee", 2000))  # fallback heuristic
+    tdee = prof_cal.get("tdee_kcal", prof_cal.get("tdee", preferences.get("tdee", 2000)))
     primary_goal = prof_cal.get(
         "primary_goal", preferences.get("primary_goal", "maintenance")
     )
@@ -175,6 +175,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         primary_goal=primary_goal,
         fat_ratio=preferences.get("fat_ratio", 0.35),
         diet_type=prof_macro.get("diet_type", "balanced"),
+        medications=prof_macro.get("medications") or [],
     )
 
     await _emit(on_progress, {"pass": 2, "pct": 25})
@@ -254,6 +255,12 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     ui_hint: str | None = (
         "일시적인 지연으로 기본 식단을 제공합니다." if llm_mode == "standard" else None
     )
+    # BS-NEW-03 final_out 가드 — standard/llm 양쪽 경로에서 항상 set.
+    llm_provenance: Dict[str, Any] | None = (
+        llm_result.provenance.model_dump()
+        if (llm_result is not None and llm_result.provenance is not None)
+        else None
+    )
 
     # ── weekly_plan 직렬화 ────────────────────────────────────────────────────
     display_plan: List[Any] = (
@@ -279,6 +286,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "mode": llm_mode,
         "quota_exceeded": quota_exceeded,
         "ui_hint": ui_hint,
+        "llm_provenance": llm_provenance,
         "target_kcal": target_kcal,
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,

@@ -12,11 +12,13 @@ Retry policy (spec §4.2):
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
 import json
 import logging
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import boto3
 
@@ -38,6 +40,35 @@ _VISIBILITY_TIMEOUT: int = int(os.environ.get("SQS_VISIBILITY_TIMEOUT", "120"))
 # Per-message retry tracking keyed by SQS MessageId.
 # Entries are removed on success or terminal failure to prevent memory growth.
 _retry_counts: dict[str, int] = {}
+
+# Lazy redis singleton for LLM Step 5.5 (rollout sampling, quota counter, cost cap).
+# None = LLM disabled this process; pipeline 분기에서 standard mode 폴백.
+_redis_client: Optional[Any] = None
+
+
+async def _get_redis_client() -> Optional[Any]:
+    global _redis_client
+    if _redis_client is not None:
+        return _redis_client
+    try:
+        import redis.asyncio as redis_asyncio  # type: ignore[import-not-found]
+
+        client = redis_asyncio.from_url(settings.REDIS_URL, decode_responses=True)
+        await client.ping()
+        _redis_client = client
+        return _redis_client
+    except Exception as exc:  # noqa: BLE001
+        _logger.warning("redis init failed (%s) — LLM disabled, standard mode", exc)
+        return None
+
+
+def _hash_user_id(user_id: str) -> str:
+    """HMAC-SHA256(user_id) using INTERNAL_JWT_SECRET — PHI-safe pseudo ID."""
+    return hmac.new(
+        settings.INTERNAL_JWT_SECRET.encode(),
+        user_id.encode(),
+        hashlib.sha256,
+    ).hexdigest()
 
 
 async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlot]:
@@ -101,6 +132,13 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         _logger.info("plan=%s progress: %s", plan_id, payload)
         await broadcast_progress(plan_id, payload)
 
+    # LLM Step 5.5 wiring (spec §5.8): redis_client + llm_context 미주입 시 standard 폴백.
+    redis_client = await _get_redis_client()
+    llm_context: Dict[str, Any] = {
+        "persona_id": str(base_diet.get("celebrity_id") or ""),
+        "user_id_hash": _hash_user_id(user_id),
+    }
+
     # Run engine
     result = await run_pipeline(
         plan_id=plan_id,
@@ -110,9 +148,11 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         candidate_pool=candidate_pool,
         duration_days=duration_days,
         on_progress=on_progress,
+        redis_client=redis_client,
+        llm_context=llm_context,
     )
 
-    # Persist result
+    # Persist result — BS-NEW-03 final_out 가드: standard/llm 양쪽 mode 필드 모두 보존.
     await repo.update_meal_plan(
         pool,
         plan_id,
@@ -123,6 +163,10 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
             "adjustments": {
                 "target_kcal": result.get("target_kcal"),
                 "macros": result.get("macros"),
+                "mode": result.get("mode", "standard"),
+                "quota_exceeded": result.get("quota_exceeded", False),
+                "ui_hint": result.get("ui_hint"),
+                "llm_provenance": result.get("llm_provenance"),
             },
         },
     )

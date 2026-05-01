@@ -62,11 +62,8 @@ export function PlanPreviewClient({ planId }: Props): React.ReactElement {
         schema: schemas.MealPlanDetailResponseSchema,
       });
 
-      // Plan 22 Phase E — re-entry guard. If the user already confirmed this plan
-      // (status !== 'draft' or confirmed_at stamped), skip the preview entirely
-      // and land them on the plan detail page. This prevents a redirect loop
-      // when the user bookmarks /plans/:id/preview or browser-backs into it.
-      if (planData.status !== 'draft' || planData.confirmed_at != null) {
+      const previewable = planData.status === 'draft' || planData.status === 'completed';
+      if (!previewable || planData.confirmed_at != null) {
         router.replace(`/plans/${encodeURIComponent(planData.id)}`);
         return;
       }

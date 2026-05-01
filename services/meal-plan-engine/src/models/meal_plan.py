@@ -76,3 +76,13 @@ class PatchMealPlanRequest(BaseModel):
     name: str | None = None
     daily_plans: list[Any] | None = None
     adjustments: dict[str, Any] | None = None
+    status: str | None = None
+
+    @field_validator("status")
+    @classmethod
+    def _validate_status(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if v not in {"active", "archived"}:
+            raise ValueError("status can only be set to 'active' or 'archived' via PATCH")
+        return v

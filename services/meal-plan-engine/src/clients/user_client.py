@@ -74,8 +74,9 @@ async def get_bio_profile(user_id: str, auth_token: str) -> Dict[str, Any]:
             "waist_cm",
             "body_fat_pct",
             "sleep_hours_avg",
-            "tdee",
+            "tdee_kcal",
             "bmr_kcal",
+            "target_kcal",
         ):
             val = data.get(field)
             if isinstance(val, str):
