@@ -274,7 +274,7 @@ export default function PlanDetailPage(): React.ReactElement {
       )}
 
       {isConfirmable && (
-        <ConfirmPlan planId={plan.id} onConfirmed={loadPlan} />
+        <ConfirmPlan planId={plan.id} />
       )}
 
       <section aria-labelledby="days-heading">
