@@ -16,11 +16,16 @@ __all__ = [
 ]
 
 # Gate 6: 의료 효능 주장 금지 패턴 — LLM-DESIGN §S7, Gemini BS-01 확장
+# 영어는 word boundary 필수 — `heal` 이 "healthy" 에, `treat` 이 "treats" 에
+# 매치되는 false positive 방지 (IMPL-AI-002 교훈, 2026-04-30).
+# 한국어 의료 용어는 word boundary 개념이 다르므로 그대로 유지.
 _ENDORSEMENT_RE = re.compile(
     r"(치료|완치|치유|예방|완화|억제|근치|의약|처방|진단|임상\s*증거|의학적으로"
-    r"|cure|treat|diagnose|prescri|medically\s*proven"
-    r"|prevent|heal|reverse|manage.*blood|reduce.*risk"
-    r"|anti.?inflammator|clinically.?test)",
+    r"|\bcures?\b|\btreats?\b|\btreatment\b|\bdiagnos(?:e|es|is|ing)\b"
+    r"|\bprescri\w*|\bmedically\s+proven\b"
+    r"|\bprevents?\b|\bheal(?:s|ed|ing)?\b|\breverses?\b"
+    r"|\bmanage[s]?\s+\w*\s*blood\s+(?:sugar|pressure)|\breduce[s]?\s+\w*\s*risk"
+    r"|\banti.?inflammator\w*|\bclinically.?tested?\b)",
     re.IGNORECASE,
 )
 

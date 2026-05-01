@@ -21,6 +21,7 @@ COPY --from=builder /install /usr/local
 
 COPY --chown=app:app services/meal-plan-engine/main.py ./
 COPY --chown=app:app services/meal-plan-engine/src ./src
+COPY --chown=app:app services/meal-plan-engine/prompts ./prompts
 
 USER app
 ENV PYTHONUNBUFFERED=1 \

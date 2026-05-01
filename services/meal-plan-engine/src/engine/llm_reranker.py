@@ -32,7 +32,6 @@ from .llm_safety import (
     AllergenViolationError,
     LlmProfileInjectionError,
     PoolViolationError,
-    append_disclaimer,
     assert_no_allergen_violation,
     assert_recipe_ids_in_pool,
     check_endorsement_regex,
@@ -339,16 +338,17 @@ async def llm_rerank_and_narrate(
     for meal in parsed.meals:
         if check_endorsement_regex(meal.narrative):
             _logger.warning(
-                "llm_reranker gate6_endorsement recipe=%s plan=%s",
+                "llm_reranker gate6_endorsement recipe=%s plan=%s narrative=%r",
                 meal.recipe_id,
                 plan_id,
+                meal.narrative[:300],
             )
             metrics.record_gate_failure("6")
             metrics.record_call(mode="standard", reason="gate_fail")
             return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
         enriched[meal.recipe_id] = {
             "rank": meal.rank,
-            "narrative": append_disclaimer(meal.narrative),
+            "narrative": meal.narrative,
             "citations": [c.model_dump() for c in meal.citations],
         }
 

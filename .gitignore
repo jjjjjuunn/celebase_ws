@@ -35,9 +35,14 @@ coverage/
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+.terraform.lock.sentinel
 **/.terraform/
 **/terraform.tfstate
 **/terraform.tfstate.backup
+**/.terraform.lock.sentinel
+
+# Pipeline operational logs (transient, do not track)
+pipeline-log.jsonl
 
 # Claude Code session lock
 .claude/scheduled_tasks.lock

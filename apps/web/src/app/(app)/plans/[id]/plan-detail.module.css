@@ -231,21 +231,16 @@
   font-size: var(--cb-font-size-sm);
 }
 
-/* Narrative card */
+/* Narrative — AI insight as pull-quote, not alert box */
 .narrativeCard {
   margin: 0;
-  padding: var(--cb-space-2) var(--cb-space-3);
-  background: var(--cb-color-brand-subtle);
-  border-radius: var(--cb-radius-sm);
+  padding: var(--cb-space-1) 0 var(--cb-space-1) var(--cb-space-3);
+  border-left: 2px solid var(--cb-color-brand);
+  background: transparent;
   font-size: var(--cb-font-size-sm);
-  color: var(--cb-color-text);
+  color: var(--cb-color-text-subtle);
   line-height: var(--cb-line-height-relaxed);
-}
-
-.narrativeCard::before {
-  content: '"';
-  color: var(--cb-color-brand);
-  margin-right: var(--cb-space-1);
+  font-style: italic;
 }
 
 /* Citation chip list */

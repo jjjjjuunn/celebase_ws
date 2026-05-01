@@ -137,7 +137,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
-    tdee = prof_cal.get("tdee", preferences.get("tdee", 2000))  # fallback heuristic
+    tdee = prof_cal.get("tdee_kcal", prof_cal.get("tdee", preferences.get("tdee", 2000)))
     primary_goal = prof_cal.get(
         "primary_goal", preferences.get("primary_goal", "maintenance")
     )

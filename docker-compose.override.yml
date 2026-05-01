@@ -8,8 +8,7 @@ services:
   # OPENAI_API_KEY에 실제 키를 넣고 ENABLE_LLM_MEAL_PLANNER를 true로 변경 후 재기동.
   # staging/prod는 이 블록 사용 금지 — 롤아웃 게이트(IMPL-APP-006) 완료 전까지 off 유지.
   meal-plan-engine:
-    environment:
-      ENABLE_LLM_MEAL_PLANNER: "false"
-      # ENABLE_LLM_MEAL_PLANNER: "true"   # dev 활성화 시 주석 해제
-      OPENAI_API_KEY: "sk-xxx"
-      # OPENAI_API_KEY: "sk-실제키"        # dev 활성화 시 실제 키로 교체 (커밋 금지)
+    # IMPL-AI-002 Phase 2.1 — .env 파일을 컨테이너에 마운트하여 OPENAI_API_KEY +
+    # ENABLE_LLM_MEAL_PLANNER + LLM_* 변수를 한 곳(.env, gitignored)에서 관리.
+    env_file:
+      - services/meal-plan-engine/.env

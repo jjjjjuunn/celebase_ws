@@ -6,7 +6,13 @@ import * as baseDietRepo from '../repositories/baseDiet.repository.js';
 import type { RecipeWithIngredients, ListRecipesOptions } from '../repositories/recipe.repository.js';
 import type { ListResult } from '../repositories/celebrity.repository.js';
 
-export interface PersonalizedRecipe extends RecipeWithIngredients {
+export interface PersonalizedRecipe {
+  recipe: RecipeWithIngredients;
+  personalization: {
+    scaling_factor: number;
+    adjusted_nutrition: RecipeWithIngredients['nutrition'];
+    adjusted_servings: number;
+  };
   allergen_conflicts: string[];
 }
 
@@ -56,5 +62,13 @@ export async function getPersonalized(
     }
   }
 
-  return { ...recipe, allergen_conflicts: allergenConflicts };
+  return {
+    recipe,
+    personalization: {
+      scaling_factor: 1.0,
+      adjusted_nutrition: recipe.nutrition,
+      adjusted_servings: recipe.servings,
+    },
+    allergen_conflicts: allergenConflicts,
+  };
 }

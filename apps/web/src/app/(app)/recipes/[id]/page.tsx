@@ -11,7 +11,7 @@ import styles from './recipe-detail.module.css';
 
 type PersonalizedData = schemas.PersonalizedRecipeResponse['personalization'];
 
-function PersonalizedSection({ recipeId }: { recipeId: string }): React.ReactElement {
+function PersonalizedSection({ recipeId }: { recipeId: string }): React.ReactElement | null {
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [data, setData] = useState<PersonalizedData | null>(null);
 
@@ -32,23 +32,17 @@ function PersonalizedSection({ recipeId }: { recipeId: string }): React.ReactEle
     return () => { cancelled = true; };
   }, [recipeId]);
 
-  if (status === 'loading') {
-    return (
-      <div className={styles.personalizedSection} aria-busy="true">
-        <p className={styles.personalizedHeading}>Loading personalized data…</p>
-      </div>
-    );
-  }
-
-  if (status === 'error' || data === null) {
-    return (
-      <div className={styles.personalizedSection}>
-        <p className={styles.personalizedHeading}>Personalized data unavailable.</p>
-      </div>
-    );
+  if (status !== 'success' || data === null) {
+    return null;
   }
 
   const { scaling_factor, adjusted_nutrition, adjusted_servings } = data;
+
+  // Hide section when no real personalization — values would mirror the base
+  // nutrition card and add no information for the user.
+  if (Math.abs(scaling_factor - 1.0) < 0.01) {
+    return null;
+  }
 
   return (
     <div className={styles.personalizedSection} aria-labelledby="personalized-heading">

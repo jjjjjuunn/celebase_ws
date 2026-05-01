@@ -341,7 +341,7 @@ async def test_t4_endorsement_in_narrative_triggers_gate6_fallback() -> None:
 
 @pytest.mark.asyncio
 async def test_success_path_mode_llm_with_disclaimer() -> None:
-    """정상 경로: mode=llm, disclaimer 첨부, provenance 기록."""
+    """정상 경로: mode=llm, provenance 기록 (disclaimer 는 FE page-level 처리)."""
     pool = [_slot("r1"), _slot("r2")]
     plan = [[pool[0]], [pool[1]]]
     parsed = _parsed(["r1", "r2"])
@@ -379,10 +379,11 @@ async def test_success_path_mode_llm_with_disclaimer() -> None:
     assert result.provenance is not None
     assert result.provenance.prompt_hash == "prompt_hash_abc"
     assert result.provenance.output_hash == "output_hash_def"
-    # Gate 5: disclaimer 첨부 확인
+    # Narrative 본문은 disclaimer 없이 전달 (page-level DisclaimerBanner 가 처리)
     for day_slots in result.ranked_plan:
         for slot in day_slots:
-            assert "의료 조언을 대체하지 않습니다" in slot["narrative"]
+            assert "의료 조언을 대체하지 않습니다" not in slot["narrative"]
+            assert slot["narrative"]  # 비어있지 않아야 함
 
 
 @pytest.mark.asyncio
