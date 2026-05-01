@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { schemas } from '@celebbase/shared-types';
 import { fetcher } from '../../../../lib/fetcher.js';
 import { CitationChipList } from './CitationChipList.js';
+import { CitationDrawer } from './CitationDrawer.js';
 import { ConfirmPlan } from './ConfirmPlan.js';
 import { DisclaimerBanner } from '../../_components/DisclaimerBanner.js';
 import styles from './plan-detail.module.css';
@@ -34,6 +35,8 @@ export default function PlanDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const [loadStatus, setLoadStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [recipeTitles, setRecipeTitles] = useState<Record<string, string>>({});
+  const [activeCitation, setActiveCitation] = useState<schemas.MealCitation | null>(null);
 
   const loadPlan = useCallback((): void => {
     setLoadStatus('loading');
@@ -52,6 +55,35 @@ export default function PlanDetailPage(): React.ReactElement {
   useEffect(() => {
     loadPlan();
   }, [loadPlan]);
+
+  const recipeIds = useMemo(() => {
+    if (plan === null) return [];
+    const ids = new Set<string>();
+    for (const day of plan.daily_plans) {
+      for (const meal of day.meals) {
+        ids.add(meal.recipe_id);
+      }
+    }
+    return Array.from(ids);
+  }, [plan]);
+
+  useEffect(() => {
+    if (recipeIds.length === 0) return;
+    const query = new URLSearchParams({ ids: recipeIds.join(',') });
+    fetcher(`/api/recipes?${query.toString()}`, {
+      schema: schemas.RecipeBatchResponseSchema,
+    })
+      .then((data) => {
+        const map: Record<string, string> = {};
+        for (const recipe of data.recipes) {
+          map[recipe.id] = recipe.title;
+        }
+        setRecipeTitles(map);
+      })
+      .catch(() => {
+        setRecipeTitles({});
+      });
+  }, [recipeIds]);
 
   if (loadStatus === 'loading') {
     return (
@@ -122,37 +154,54 @@ export default function PlanDetailPage(): React.ReactElement {
                 )}
               </div>
               <ul className={styles.mealList}>
-                {day.meals.map((meal, idx) => (
-                  <li key={idx} className={styles.mealRow}>
-                    <div className={styles.mealRowMain}>
-                      <span className={styles.mealType}>
-                        {MEAL_TYPE_LABEL[meal.meal_type] ?? meal.meal_type}
-                      </span>
-                      {meal.adjusted_nutrition !== undefined ? (
-                        <span className={styles.mealKcal}>
-                          {String(meal.adjusted_nutrition.calories)} kcal
+                {day.meals.map((meal, idx) => {
+                  const mealTypeLabel = MEAL_TYPE_LABEL[meal.meal_type] ?? meal.meal_type;
+                  const recipeTitle = recipeTitles[meal.recipe_id];
+                  const fullLabel =
+                    recipeTitle != null && recipeTitle !== ''
+                      ? `${mealTypeLabel} · ${recipeTitle}`
+                      : mealTypeLabel;
+                  return (
+                    <li key={idx} className={styles.mealRow}>
+                      <div className={styles.mealRowMain}>
+                        <span className={styles.mealType} title={fullLabel}>
+                          {fullLabel}
                         </span>
-                      ) : null}
-                      <Link
-                        href={`/recipes/${meal.recipe_id}`}
-                        className={styles.recipeLink}
-                      >
-                        View recipe →
-                      </Link>
-                    </div>
-                    {meal.narrative != null && (
-                      <p className={styles.narrativeCard}>{meal.narrative}</p>
-                    )}
-                    {(meal.citations ?? []).length > 0 && (
-                      <CitationChipList citations={meal.citations ?? []} maxVisible={3} />
-                    )}
-                  </li>
-                ))}
+                        {meal.adjusted_nutrition !== undefined ? (
+                          <span className={styles.mealKcal}>
+                            {String(meal.adjusted_nutrition.calories)} kcal
+                          </span>
+                        ) : null}
+                        <Link
+                          href={`/recipes/${meal.recipe_id}`}
+                          className={styles.recipeLink}
+                        >
+                          View recipe →
+                        </Link>
+                      </div>
+                      {meal.narrative != null && (
+                        <p className={styles.narrativeCard}>{meal.narrative}</p>
+                      )}
+                      {(meal.citations ?? []).length > 0 && (
+                        <CitationChipList
+                          citations={meal.citations ?? []}
+                          maxVisible={3}
+                          onSelect={setActiveCitation}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </li>
           ))}
         </ol>
       </section>
+
+      <CitationDrawer
+        citation={activeCitation}
+        onClose={() => setActiveCitation(null)}
+      />
 
       <DisclaimerBanner />
     </div>
