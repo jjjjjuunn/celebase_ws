@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-01
 agent: claude-opus-4-7
 task_id: SCS-2026-05-01
-commit_sha: PENDING
+commit_sha: a1ed734
 files_changed:
   - apps/web/src/app/(app)/plans/[id]/page.tsx
   - apps/web/src/app/(app)/plans/[id]/plan-detail.module.css
