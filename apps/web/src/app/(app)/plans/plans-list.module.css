@@ -70,7 +70,45 @@
   gap: var(--cb-space-3);
 }
 
+.swipeRow {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--cb-radius-md);
+}
+
+.deleteRevealBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--cb-color-error);
+  color: var(--cb-color-on-brand);
+  border: none;
+  border-top-right-radius: var(--cb-radius-md);
+  border-bottom-right-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.deleteRevealBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteRevealBtn:focus-visible {
+  outline: 2px solid var(--cb-color-error);
+  outline-offset: -4px;
+}
+
 .card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--cb-space-4);
@@ -81,6 +119,8 @@
   text-decoration: none;
   color: inherit;
   transition: border-color 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .card:hover {
