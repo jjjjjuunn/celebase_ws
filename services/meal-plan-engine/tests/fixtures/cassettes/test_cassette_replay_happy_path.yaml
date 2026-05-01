@@ -1,0 +1,114 @@
+interactions:
+- request:
+    body: '{"messages":[{"role":"system","content":"You are a wellness coach. Rank
+      recipes for the ronaldo persona. Return JSON matching the provided schema. Set
+      mode=llm. Each meal must include at least 1 citation."},{"role":"user","content":"Recipes
+      available:\n- r-001: grilled chicken breast with quinoa\n- r-002: salmon bowl
+      with brown rice\n- r-003: tofu stir-fry with vegetables\nConstraints: plan_id=plan-cassette-001,
+      persona_id=ronaldo, primary_goal=weight_loss. Include all 3 recipes."}],"model":"gpt-4.1-mini","max_tokens":2500,"response_format":{"type":"json_schema","json_schema":{"name":"llm_ranked_meal_list","schema":{"type":"object","properties":{"meals":{"type":"array","minItems":1,"items":{"type":"object","required":["recipe_id","rank","narrative","citations"],"properties":{"recipe_id":{"type":"string","minLength":1},"rank":{"type":"integer","minimum":1,"maximum":50},"narrative":{"type":"string","minLength":10,"maxLength":300},"citations":{"type":"array","minItems":1,"items":{"type":"object","required":["source_type","title"],"properties":{"source_type":{"type":"string","enum":["celebrity_interview","cookbook","clinical_study","usda_db","nih_standard"]},"title":{"type":"string","minLength":1,"maxLength":200},"url":{"type":"string"},"celeb_persona":{"type":"string"}},"additionalProperties":false}}},"additionalProperties":false}},"mode":{"type":"string","pattern":"^(llm|standard)$"}},"required":["meals","mode"],"additionalProperties":false}}},"temperature":0.3}'
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1484'
+      Content-Type:
+      - application/json
+      Host:
+      - api.openai.com
+      User-Agent:
+      - AsyncOpenAI/Python 2.32.0
+      X-Stainless-Async:
+      - async:asyncio
+      authorization:
+      - '[REDACTED]'
+      x-stainless-read-timeout:
+      - '30.0'
+      x-stainless-retry-count:
+      - '0'
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-DabofCvkTtGfuFUr3yViHmogY6OYo\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1777617545,\n  \"model\": \"gpt-4.1-mini-2025-04-14\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"{\\\"meals\\\":[{\\\"recipe_id\\\":\\\"r-002\\\",\\\"rank\\\":1,\\\"narrative\\\":\\\"Salmon
+        bowl with brown rice is ranked highest for Ronaldo's weight loss goal due
+        to its high protein content and omega-3 fatty acids, which support fat loss
+        and muscle maintenance.\\\",\\\"citations\\\":[{\\\"source_type\\\":\\\"clinical_study\\\",\\\"title\\\":\\\"Effects
+        of Omega-3 Fatty Acids on Weight Loss and Metabolic Health\\\",\\\"url\\\":\\\"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5796020/\\\",\\\"celeb_persona\\\":\\\"ronaldo\\\"}]},{\\\"recipe_id\\\":\\\"r-001\\\",\\\"rank\\\":2,\\\"narrative\\\":\\\"Grilled
+        chicken breast with quinoa provides a lean protein source and complex carbohydrates,
+        ideal for sustaining energy during weight loss.\\\",\\\"citations\\\":[{\\\"source_type\\\":\\\"nih_standard\\\",\\\"title\\\":\\\"Protein
+        Intake and Weight Management\\\",\\\"url\\\":\\\"https://www.niddk.nih.gov/health-information/weight-management/protein\\\",\\\"celeb_persona\\\":\\\"ronaldo\\\"}]},{\\\"recipe_id\\\":\\\"r-003\\\",\\\"rank\\\":3,\\\"narrative\\\":\\\"Tofu
+        stir-fry with vegetables offers plant-based protein and fiber, supporting
+        satiety and weight control, though slightly lower in protein compared to animal
+        sources.\\\",\\\"citations\\\":[{\\\"source_type\\\":\\\"usda_db\\\",\\\"title\\\":\\\"Nutrient
+        Profile of Tofu and Vegetables\\\",\\\"url\\\":\\\"https://fdc.nal.usda.gov/fdc-app.html#/food-details/169910/nutrients\\\",\\\"celeb_persona\\\":\\\"ronaldo\\\"}]}],\\\"mode\\\":\\\"llm\\\"}\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        262,\n    \"completion_tokens\": 312,\n    \"total_tokens\": 574,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": \"fp_79e612c4e8\"\n}\n"
+    headers:
+      CF-Cache-Status:
+      - DYNAMIC
+      CF-Ray:
+      - 9f4cc9771da51400-LAX
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 01 May 2026 06:39:09 GMT
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      content-length:
+      - '2152'
+      openai-organization:
+      - kmu-ejfdki
+      openai-processing-ms:
+      - '3959'
+      openai-project:
+      - proj_cNsfoXJftOvALXirhes7lUrH
+      openai-version:
+      - '2020-10-01'
+      set-cookie:
+      - __cf_bm=DRRWQ54zMHNimGmSF8Dmgw8gU589Kud5mjMlJnyinRE-1777617544.8155677-1.0.1.1-t7T64M0p6jTvp3R..RsGDseozEmql0.ajiSTmUk4lxYr8r5N_tJSE0KW_J1zSPkRMghvXhdBbVuxEamhp_PYAvrQJVW3wUCk412onQgBWvfeMVGVqr49o7YqRioN437n;
+        HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 01 May 2026
+        07:09:09 GMT
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '10000'
+      x-ratelimit-limit-tokens:
+      - '10000000'
+      x-ratelimit-remaining-requests:
+      - '9999'
+      x-ratelimit-remaining-tokens:
+      - '9999894'
+      x-ratelimit-reset-requests:
+      - 6ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_ebbfafe2276e4b099f77169040466525
+    status:
+      code: 200
+      message: OK
+version: 1
