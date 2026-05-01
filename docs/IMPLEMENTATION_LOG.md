@@ -3417,7 +3417,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-01
 agent: claude-opus-4-7 (Phase 1~4 구현) + claude-opus-4-7 (Phase 5 L3 review, codex/gemini CLI 도구 한계로 직접 판정)
 task_id: IMPL-AI-002
-commit_sha: PENDING
+commit_sha: 2e7dc51
 files_changed:
   - services/meal-plan-engine/src/engine/llm_safety.py
   - services/meal-plan-engine/src/engine/llm_reranker.py
