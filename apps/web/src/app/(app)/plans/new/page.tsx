@@ -9,6 +9,10 @@ import { postJson } from '../../../../lib/fetcher.js';
 import { schemas } from '@celebbase/shared-types';
 import styles from './plans-new.module.css';
 
+const MIN_DAYS = 1;
+const MAX_DAYS = 7;
+const DEFAULT_DAYS = 3;
+
 function PlansNewContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -16,19 +20,22 @@ function PlansNewContent(): React.ReactElement {
   const baseDietId = searchParams.get('diet');
   const celebrity = searchParams.get('celebrity');
 
+  const [duration, setDuration] = useState<number>(DEFAULT_DAYS);
+  const [generationStarted, setGenerationStarted] = useState(false);
   const [mealPlanId, setMealPlanId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [isPosting, setIsPosting] = useState(false);
   const didPost = useRef(false);
 
-  useEffect(() => {
+  const startGeneration = (): void => {
     if (!baseDietId || didPost.current) return;
     didPost.current = true;
+    setGenerationStarted(true);
     setIsPosting(true);
 
     postJson<schemas.GenerateMealPlanResponse>(
       '/api/meal-plans',
-      { base_diet_id: baseDietId, duration_days: 7 },
+      { base_diet_id: baseDietId, duration_days: duration },
       { schema: schemas.GenerateMealPlanResponseSchema },
     )
       .then((data) => {
@@ -40,14 +47,12 @@ function PlansNewContent(): React.ReactElement {
       .finally(() => {
         setIsPosting(false);
       });
-  }, [baseDietId]);
+  };
 
   const streamState = useMealPlanStream(mealPlanId);
 
   useEffect(() => {
     if (streamState.completedMealPlanId !== null) {
-      // Plan 22 Phase E — land on preview so the user can inspect + skip meals
-      // before we confirm the plan and push them to Home.
       router.replace(`/plans/${streamState.completedMealPlanId}/preview`);
     }
   }, [streamState.completedMealPlanId, router]);
@@ -57,6 +62,7 @@ function PlansNewContent(): React.ReactElement {
     setInitError(null);
     setMealPlanId(null);
     setIsPosting(false);
+    setGenerationStarted(false);
   };
 
   if (!baseDietId) {
@@ -69,6 +75,61 @@ function PlansNewContent(): React.ReactElement {
           </Link>{' '}
           first.
         </p>
+      </div>
+    );
+  }
+
+  if (!generationStarted) {
+    const heading = celebrity !== null
+      ? `Plan your ${decodeURIComponent(celebrity)} meal plan`
+      : 'Plan your meal plan';
+
+    const fillPct = ((duration - MIN_DAYS) / (MAX_DAYS - MIN_DAYS)) * 100;
+
+    return (
+      <div className={styles.page}>
+        <h1 className={styles.heading}>{heading}</h1>
+        <p className={styles.hint}>How many days would you like to plan?</p>
+
+        <div className={styles.durationCard}>
+          <div className={styles.durationValue}>
+            <span className={styles.durationNumber}>{duration}</span>
+            <span className={styles.durationUnit}>{duration === 1 ? 'day' : 'days'}</span>
+          </div>
+
+          <div className={styles.sliderWrap}>
+            <div className={styles.sliderTrack} aria-hidden="true">
+              <div className={styles.sliderFill} style={{ width: `${String(fillPct)}%` }} />
+            </div>
+            <input
+              type="range"
+              min={MIN_DAYS}
+              max={MAX_DAYS}
+              step={1}
+              value={duration}
+              onChange={(e) => { setDuration(Number(e.target.value)); }}
+              className={styles.sliderInput}
+              aria-label="Plan duration in days"
+              aria-valuemin={MIN_DAYS}
+              aria-valuemax={MAX_DAYS}
+              aria-valuenow={duration}
+              aria-valuetext={`${String(duration)} ${duration === 1 ? 'day' : 'days'}`}
+            />
+          </div>
+
+          <div className={styles.sliderTicks} aria-hidden="true">
+            <span>1d</span>
+            <span>1 week</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={styles.generateBtn}
+          onClick={startGeneration}
+        >
+          Generate plan
+        </button>
       </div>
     );
   }
