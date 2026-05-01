@@ -375,3 +375,146 @@
   outline: 2px solid var(--cb-color-brand);
   outline-offset: 2px;
 }
+
+/* Inline rename */
+.planNameBtn {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  border-radius: var(--cb-radius-sm);
+}
+
+.planNameBtn:hover .planName {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 4px;
+}
+
+.planNameBtn:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 4px;
+}
+
+.renameForm {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--cb-space-2);
+}
+
+.renameInput {
+  flex: 1;
+  min-width: 0;
+  padding: var(--cb-space-2) var(--cb-space-3);
+  background: var(--cb-color-surface);
+  color: var(--cb-color-text);
+  border: 1px solid var(--cb-color-border);
+  border-radius: var(--cb-radius-md);
+  font-family: var(--cb-font-family-display);
+  font-size: var(--cb-display-md);
+  font-weight: var(--cb-font-weight-semibold);
+  line-height: 1.24;
+}
+
+.renameInput:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 1px;
+}
+
+.renameInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.renameSaveBtn {
+  flex-shrink: 0;
+  padding: var(--cb-space-2) var(--cb-space-4);
+  background: var(--cb-color-brand-bg);
+  color: var(--cb-color-on-brand);
+  border: none;
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.renameSaveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.renameSaveBtn:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+.renameCancelBtn {
+  flex-shrink: 0;
+  padding: var(--cb-space-2) var(--cb-space-4);
+  background: var(--cb-color-neutral-100);
+  color: var(--cb-color-text);
+  border: none;
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.renameCancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.renameCancelBtn:focus-visible {
+  outline: 2px solid var(--cb-color-brand);
+  outline-offset: 2px;
+}
+
+.renameError {
+  margin: 0;
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-error);
+}
+
+/* Danger zone — delete plan */
+.dangerZone {
+  margin-top: var(--cb-space-6);
+  padding-top: var(--cb-space-5);
+  border-top: 1px solid var(--cb-color-border);
+}
+
+.deleteBtn {
+  padding: var(--cb-space-2) var(--cb-space-5);
+  background: transparent;
+  color: var(--cb-color-error);
+  border: 1px solid var(--cb-color-error);
+  border-radius: var(--cb-radius-md);
+  font-size: var(--cb-font-size-sm);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: var(--cb-color-error);
+  color: var(--cb-color-on-brand);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteBtn:focus-visible {
+  outline: 2px solid var(--cb-color-error);
+  outline-offset: 2px;
+}
