@@ -57,6 +57,11 @@
   color: var(--cb-color-text-subtle);
 }
 
+.headerDisclaimer {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .hint {
   color: var(--cb-color-text-subtle);
 }

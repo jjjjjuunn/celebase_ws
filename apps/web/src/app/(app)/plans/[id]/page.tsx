@@ -31,6 +31,13 @@ const MEAL_TYPE_LABEL: Record<string, string> = {
   snack: 'Snack',
 };
 
+const NARRATIVE_DISCLAIMER_TAIL_RE =
+  /\s*\*[^*]*(?:의료\s*조언|medical\s+advice)[^*]*\*\s*$/i;
+
+function stripNarrativeDisclaimer(narrative: string): string {
+  return narrative.replace(NARRATIVE_DISCLAIMER_TAIL_RE, '').trimEnd();
+}
+
 export default function PlanDetailPage(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -258,6 +265,8 @@ export default function PlanDetailPage(): React.ReactElement {
         {plan.start_date} – {plan.end_date}
       </p>
 
+      <DisclaimerBanner className={styles.headerDisclaimer} />
+
       {plan.mode !== 'llm' && (
         <div className={styles.standardBanner} role="status" aria-live="polite">
           자세한 맞춤 분석이 진행되는 동안, 먼저 추천 기본 식단을 확인해 보세요.
@@ -308,9 +317,12 @@ export default function PlanDetailPage(): React.ReactElement {
                           View recipe →
                         </Link>
                       </div>
-                      {meal.narrative != null && (
-                        <p className={styles.narrativeCard}>{meal.narrative}</p>
-                      )}
+                      {meal.narrative != null && (() => {
+                        const cleaned = stripNarrativeDisclaimer(meal.narrative);
+                        return cleaned !== '' ? (
+                          <p className={styles.narrativeCard}>{cleaned}</p>
+                        ) : null;
+                      })()}
                       {(meal.citations ?? []).length > 0 && (
                         <CitationChipList
                           citations={meal.citations ?? []}
@@ -342,8 +354,6 @@ export default function PlanDetailPage(): React.ReactElement {
           {isDeleting ? '삭제 중…' : '식단 삭제'}
         </button>
       </div>
-
-      <DisclaimerBanner />
     </div>
   );
 }
