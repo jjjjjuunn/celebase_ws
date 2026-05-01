@@ -28,6 +28,32 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-01
+agent: claude-opus-4-7
+task_id: SCS-2026-05-01
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/(app)/plans/[id]/page.tsx
+  - apps/web/src/app/(app)/plans/[id]/plan-detail.module.css
+  - apps/web/src/app/(app)/plans/[id]/ConfirmPlan.tsx
+  - apps/web/src/app/(app)/plans/SwipeablePlanCard.tsx
+  - apps/web/src/app/(app)/plans/page.tsx
+  - apps/web/src/app/(app)/plans/plans-list.module.css
+  - apps/web/src/features/plans/PlanPreviewClient.tsx
+verified_by: typecheck clean, lint clean (only pre-existing warnings on unrelated files), fe_token_hardcode passed:true
+---
+### 완료: Service Completion Sprint Phase 1~4 (Q5/Q4/Q3/Q-narrative/Q-swipe/Q2)
+- **Phase 1 — Branch hygiene** (5 commits A/B/B'/C/D): IMPL-AI-002 disclaimer 분리 / FE slider / confirm-archive flow / 미분류 / demo_stub 폐기
+- **Phase 2 — Q5+Q4**: meal label 인라인 (`Breakfast · ${recipe.title}`) + clickable citation drawer (excerpt 필드 활용)
+- **Phase 3 — Q3**: plan title inline rename (PATCH `{name}`) + soft delete (DELETE `/api/meal-plans/[id]` → archive_meal_plan)
+- **Q-narrative-disclaimer**: 매 끼니 narrative tail 의 disclaimer 문구 정규식 strip + `<DisclaimerBanner />` 헤더 직후 1회만 노출 (footer 중복 제거)
+- **Q-swipe-delete**: plans 목록 iOS 스타일 pointer-event swipe-to-delete (REVEAL 88px / SNAP 40px / direction-lock 8px) — single-row-open invariant 부모 state 관리, drag-vs-click 분리
+- **Phase 4 — Q2 (IMPL-COMMERCE-002)**: "Confirm Plan" → `/plans/[id]/preview` 라우팅 변경 (PATCH active 즉시 호출 제거). PlanPreviewClient 가 슬롯 skip / aggregate / Instacart sync / modal continue 후 PATCH active 처리. re-entry guard `status === 'draft' || 'completed'` 로 widening
+- 8 commit landed (5ac2ba5 / bc0890c / 6b4c3dc 등) — `feat/impl-ai-002-llm-real-call` 브랜치
+### 미완료: IMPL-AI-002 Phase 3.5 HARD GATE (사용자 OpenAI dashboard hard limit $5 확인 필요) + Phase 5 Codex/Gemini review + Phase 6 IMPL-LOG/머지/LESSONS — 별도 task 로 인계
+### 연관 파일: apps/web/src/app/(app)/plans/, apps/web/src/features/plans/, packages/shared-types/
+
+---
 date: 2026-04-23
 agent: claude-opus-4-7
 task_id: PLAN-22-PHASE-G-STUB
