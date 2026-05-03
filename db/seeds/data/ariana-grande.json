@@ -2,10 +2,15 @@
   "slug": "ariana-grande",
   "display_name": "Ariana Grande",
   "short_bio": "Global pop icon who adopted a fully plant-based, Japanese-inspired diet in 2013, emphasizing whole foods like tofu, tempeh, and seasonal vegetables.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/ariana-grande/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/ariana-grande/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/ariana-grande/400/400",
+  "cover_image_url": "https://picsum.photos/seed/ariana-grande-cover/800/600",
   "category": "diet",
-  "tags": ["plant-based", "japanese", "vegan-friendly", "whole-foods"],
+  "tags": [
+    "plant-based",
+    "japanese",
+    "vegan-friendly",
+    "whole-foods"
+  ],
   "is_featured": true,
   "sort_order": 1,
   "base_diet": {
@@ -14,13 +19,46 @@
     "philosophy": "Ariana adopted a vegan diet in 2013, motivated by her love for animals. She incorporates Japanese flavors including miso, edamame, and daikon, and focuses on nutrient-dense whole foods.",
     "diet_type": "vegan",
     "avg_daily_kcal": 2000,
-    "macro_ratio": { "protein_pct": 15, "carbs_pct": 60, "fat_pct": 25 },
-    "included_foods": ["tofu", "tempeh", "edamame", "brown rice", "sweet potato", "miso", "seasonal vegetables", "berries", "nuts"],
-    "excluded_foods": ["meat", "dairy", "eggs", "processed sugar", "artificial additives"],
-    "key_supplements": ["B12", "Vitamin D", "Omega-3 (algae-based)", "Iron"],
+    "macro_ratio": {
+      "protein_pct": 15,
+      "carbs_pct": 60,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "tofu",
+      "tempeh",
+      "edamame",
+      "brown rice",
+      "sweet potato",
+      "miso",
+      "seasonal vegetables",
+      "berries",
+      "nuts"
+    ],
+    "excluded_foods": [
+      "meat",
+      "dairy",
+      "eggs",
+      "processed sugar",
+      "artificial additives"
+    ],
+    "key_supplements": [
+      "B12",
+      "Vitamin D",
+      "Omega-3 (algae-based)",
+      "Iron"
+    ],
     "source_refs": [
-      { "type": "interview", "outlet": "The Mirror", "date": "2013-11-15" },
-      { "type": "social-media", "outlet": "Twitter", "date": "2014-04-10" }
+      {
+        "type": "interview",
+        "outlet": "The Mirror",
+        "date": "2013-11-15"
+      },
+      {
+        "type": "social-media",
+        "outlet": "Twitter",
+        "date": "2014-04-10"
+      }
     ]
   },
   "recipes": [
@@ -31,20 +69,66 @@
       "cook_time_min": 10,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 350, "protein_g": 12, "carbs_g": 55, "fat_g": 9, "fiber_g": 7, "sugar_g": 4, "sodium_mg": 380 },
+      "nutrition": {
+        "calories": 350,
+        "protein_g": 12,
+        "carbs_g": 55,
+        "fat_g": 9,
+        "fiber_g": 7,
+        "sugar_g": 4,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Bring 1.5 cups of water to a boil in a small saucepan.", "duration_min": 3 },
-        { "step": 2, "text": "Add rolled oats and reduce heat to medium-low. Cook, stirring occasionally.", "duration_min": 5 },
-        { "step": 3, "text": "Dissolve miso paste in 2 tbsp warm water, then stir into the oats.", "duration_min": 1 },
-        { "step": 4, "text": "Top with sesame seeds, scallions, and a drizzle of sesame oil.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Bring 1.5 cups of water to a boil in a small saucepan.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Add rolled oats and reduce heat to medium-low. Cook, stirring occasionally.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Dissolve miso paste in 2 tbsp warm water, then stir into the oats.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Top with sesame seeds, scallions, and a drizzle of sesame oil.",
+          "duration_min": 1
+        }
       ],
       "tips": "Use white miso for a milder flavor. Add a soft-cooked sweet potato for extra heartiness.",
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "White Miso Paste", "quantity": 1, "unit": "tbsp", "preparation": "dissolved in warm water" },
-        { "ingredient_name": "Sesame Seeds", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Scallions", "quantity": 2, "unit": "tbsp", "preparation": "thinly sliced" },
-        { "ingredient_name": "Sesame Oil", "quantity": 0.5, "unit": "tsp" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "White Miso Paste",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "dissolved in warm water"
+        },
+        {
+          "ingredient_name": "Sesame Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -54,21 +138,76 @@
       "cook_time_min": 20,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 420, "protein_g": 18, "carbs_g": 52, "fat_g": 16, "fiber_g": 8, "sugar_g": 6, "sodium_mg": 310 },
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 18,
+        "carbs_g": 52,
+        "fat_g": 16,
+        "fiber_g": 8,
+        "sugar_g": 6,
+        "sodium_mg": 310
+      },
       "instructions": [
-        { "step": 1, "text": "Dice sweet potato into small cubes. Crumble tempeh into bite-sized pieces.", "duration_min": 5 },
-        { "step": 2, "text": "Heat coconut oil in a large skillet over medium-high heat.", "duration_min": 1 },
-        { "step": 3, "text": "Add sweet potato cubes and cook until golden and tender, stirring occasionally.", "duration_min": 10 },
-        { "step": 4, "text": "Add crumbled tempeh, cumin, and smoked paprika. Cook until tempeh is crispy.", "duration_min": 5 },
-        { "step": 5, "text": "Season with salt and pepper. Serve with sliced avocado.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Dice sweet potato into small cubes. Crumble tempeh into bite-sized pieces.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat coconut oil in a large skillet over medium-high heat.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Add sweet potato cubes and cook until golden and tender, stirring occasionally.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Add crumbled tempeh, cumin, and smoked paprika. Cook until tempeh is crispy.",
+          "duration_min": 5
+        },
+        {
+          "step": 5,
+          "text": "Season with salt and pepper. Serve with sliced avocado.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Tempeh", "quantity": 4, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Coconut Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Smoked Paprika", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        }
       ]
     },
     {
@@ -78,21 +217,69 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 310, "protein_g": 10, "carbs_g": 35, "fat_g": 15, "fiber_g": 12, "sugar_g": 8, "sodium_mg": 95 },
+      "nutrition": {
+        "calories": 310,
+        "protein_g": 10,
+        "carbs_g": 35,
+        "fat_g": 15,
+        "fiber_g": 12,
+        "sugar_g": 8,
+        "sodium_mg": 95
+      },
       "instructions": [
-        { "step": 1, "text": "Whisk matcha powder into almond milk until smooth.", "duration_min": 2 },
-        { "step": 2, "text": "Stir in chia seeds and maple syrup.", "duration_min": 1 },
-        { "step": 3, "text": "Refrigerate for at least 4 hours or overnight.", "duration_min": null },
-        { "step": 4, "text": "Top with fresh berries and coconut flakes before serving.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Whisk matcha powder into almond milk until smooth.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Stir in chia seeds and maple syrup.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Refrigerate for at least 4 hours or overnight.",
+          "duration_min": null
+        },
+        {
+          "step": 4,
+          "text": "Top with fresh berries and coconut flakes before serving.",
+          "duration_min": 1
+        }
       ],
       "tips": "Prepare the night before for a quick grab-and-go breakfast.",
       "ingredients": [
-        { "ingredient_name": "Matcha Powder", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 3, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Coconut Flakes", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Matcha Powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Coconut Flakes",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -102,20 +289,71 @@
       "cook_time_min": 25,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 290, "protein_g": 8, "carbs_g": 50, "fat_g": 6, "fiber_g": 3, "sugar_g": 2, "sodium_mg": 420 },
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 8,
+        "carbs_g": 50,
+        "fat_g": 6,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Combine cooked rice and vegetable broth in a pot. Bring to a simmer.", "duration_min": 5 },
-        { "step": 2, "text": "Cook on low, stirring often, until porridge-like consistency.", "duration_min": 15 },
-        { "step": 3, "text": "Sauté sliced shiitake mushrooms in sesame oil until golden.", "duration_min": 5 },
-        { "step": 4, "text": "Serve porridge topped with mushrooms, scallions, and a dash of tamari.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Combine cooked rice and vegetable broth in a pot. Bring to a simmer.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Cook on low, stirring often, until porridge-like consistency.",
+          "duration_min": 15
+        },
+        {
+          "step": 3,
+          "text": "Sauté sliced shiitake mushrooms in sesame oil until golden.",
+          "duration_min": 5
+        },
+        {
+          "step": 4,
+          "text": "Serve porridge topped with mushrooms, scallions, and a dash of tamari.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "White Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 3, "unit": "cup" },
-        { "ingredient_name": "Shiitake Mushrooms", "quantity": 4, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Scallions", "quantity": 2, "unit": "tbsp", "preparation": "sliced" },
-        { "ingredient_name": "Tamari", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Shiitake Mushrooms",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -125,23 +363,88 @@
       "cook_time_min": 20,
       "servings": 1,
       "difficulty": "medium",
-      "nutrition": { "calories": 520, "protein_g": 22, "carbs_g": 68, "fat_g": 16, "fiber_g": 6, "sugar_g": 12, "sodium_mg": 680 },
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 22,
+        "carbs_g": 68,
+        "fat_g": 16,
+        "fiber_g": 6,
+        "sugar_g": 12,
+        "sodium_mg": 680
+      },
       "instructions": [
-        { "step": 1, "text": "Press tofu for 10 minutes and cut into cubes.", "duration_min": 10 },
-        { "step": 2, "text": "Pan-fry tofu in sesame oil until golden on all sides.", "duration_min": 8 },
-        { "step": 3, "text": "Mix tamari, maple syrup, rice vinegar, and ginger for teriyaki sauce.", "duration_min": 2 },
-        { "step": 4, "text": "Toss tofu in sauce. Serve over brown rice with steamed broccoli and edamame.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Press tofu for 10 minutes and cut into cubes.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Pan-fry tofu in sesame oil until golden on all sides.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Mix tamari, maple syrup, rice vinegar, and ginger for teriyaki sauce.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Toss tofu in sauce. Serve over brown rice with steamed broccoli and edamame.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tofu", "quantity": 7, "unit": "oz", "preparation": "pressed and cubed" },
-        { "ingredient_name": "Brown Rice", "quantity": 0.75, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Broccoli", "quantity": 1, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Edamame", "quantity": 0.5, "unit": "cup", "preparation": "shelled" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Rice Vinegar", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Tofu",
+          "quantity": 7,
+          "unit": "oz",
+          "preparation": "pressed and cubed"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Edamame",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "shelled"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Rice Vinegar",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -151,22 +454,82 @@
       "cook_time_min": 15,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 14, "carbs_g": 55, "fat_g": 10, "fiber_g": 5, "sugar_g": 4, "sodium_mg": 720 },
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 14,
+        "carbs_g": 55,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 720
+      },
       "instructions": [
-        { "step": 1, "text": "Bring vegetable broth to a simmer. Add sliced shiitake mushrooms and bok choy.", "duration_min": 5 },
-        { "step": 2, "text": "Cook soba noodles according to package directions. Drain and set aside.", "duration_min": 6 },
-        { "step": 3, "text": "Remove broth from heat and whisk in miso paste.", "duration_min": 2 },
-        { "step": 4, "text": "Divide noodles into bowls, pour broth over top. Garnish with scallions, sesame seeds, and nori.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Bring vegetable broth to a simmer. Add sliced shiitake mushrooms and bok choy.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Cook soba noodles according to package directions. Drain and set aside.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Remove broth from heat and whisk in miso paste.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Divide noodles into bowls, pour broth over top. Garnish with scallions, sesame seeds, and nori.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Vegetable Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Soba Noodles", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "White Miso Paste", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Shiitake Mushrooms", "quantity": 4, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Bok Choy", "quantity": 2, "unit": "cup", "preparation": "chopped" },
-        { "ingredient_name": "Scallions", "quantity": 2, "unit": "tbsp", "preparation": "sliced" },
-        { "ingredient_name": "Nori Sheets", "quantity": 1, "unit": "sheet", "preparation": "torn" },
-        { "ingredient_name": "Sesame Seeds", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Soba Noodles",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "White Miso Paste",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Shiitake Mushrooms",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bok Choy",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Nori Sheets",
+          "quantity": 1,
+          "unit": "sheet",
+          "preparation": "torn"
+        },
+        {
+          "ingredient_name": "Sesame Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -176,23 +539,89 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 480, "protein_g": 18, "carbs_g": 58, "fat_g": 20, "fiber_g": 10, "sugar_g": 5, "sodium_mg": 520 },
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 18,
+        "carbs_g": 58,
+        "fat_g": 20,
+        "fiber_g": 10,
+        "sugar_g": 5,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Place cooked brown rice in a bowl. Drizzle with rice vinegar.", "duration_min": 2 },
-        { "step": 2, "text": "Arrange edamame, sliced avocado, cucumber, and carrot over rice.", "duration_min": 5 },
-        { "step": 3, "text": "Sprinkle with sesame seeds and nori strips.", "duration_min": 2 },
-        { "step": 4, "text": "Drizzle with tamari and serve.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Place cooked brown rice in a bowl. Drizzle with rice vinegar.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Arrange edamame, sliced avocado, cucumber, and carrot over rice.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Sprinkle with sesame seeds and nori strips.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Drizzle with tamari and serve.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Edamame", "quantity": 0.5, "unit": "cup", "preparation": "shelled" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "julienned" },
-        { "ingredient_name": "Nori Sheets", "quantity": 1, "unit": "sheet", "preparation": "cut into strips" },
-        { "ingredient_name": "Rice Vinegar", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Tamari", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Sesame Seeds", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Edamame",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "shelled"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "julienned"
+        },
+        {
+          "ingredient_name": "Nori Sheets",
+          "quantity": 1,
+          "unit": "sheet",
+          "preparation": "cut into strips"
+        },
+        {
+          "ingredient_name": "Rice Vinegar",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sesame Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -202,23 +631,89 @@
       "cook_time_min": 10,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 20, "carbs_g": 28, "fat_g": 18, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 480 },
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 20,
+        "carbs_g": 28,
+        "fat_g": 18,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Crumble tempeh and sauté in sesame oil with garlic and ginger.", "duration_min": 5 },
-        { "step": 2, "text": "Add tamari and a splash of rice vinegar. Cook until lightly caramelized.", "duration_min": 4 },
-        { "step": 3, "text": "Spoon into romaine lettuce cups. Top with shredded carrot, cucumber, and cilantro.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Crumble tempeh and sauté in sesame oil with garlic and ginger.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add tamari and a splash of rice vinegar. Cook until lightly caramelized.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Spoon into romaine lettuce cups. Top with shredded carrot, cucumber, and cilantro.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tempeh", "quantity": 6, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Romaine Lettuce", "quantity": 6, "unit": "leaves" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Tamari", "quantity": 1.5, "unit": "tbsp" },
-        { "ingredient_name": "Rice Vinegar", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "small", "preparation": "shredded" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 6,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Rice Vinegar",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
@@ -228,24 +723,94 @@
       "cook_time_min": 15,
       "servings": 2,
       "difficulty": "medium",
-      "nutrition": { "calories": 450, "protein_g": 22, "carbs_g": 48, "fat_g": 18, "fiber_g": 8, "sugar_g": 7, "sodium_mg": 620 },
+      "nutrition": {
+        "calories": 450,
+        "protein_g": 22,
+        "carbs_g": 48,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 7,
+        "sodium_mg": 620
+      },
       "instructions": [
-        { "step": 1, "text": "Press and cube tofu. Toss with cornstarch for crispiness.", "duration_min": 5 },
-        { "step": 2, "text": "Heat sesame oil in a wok over high heat. Stir-fry tofu until golden.", "duration_min": 5 },
-        { "step": 3, "text": "Add broccoli, bell pepper, and snow peas. Stir-fry for 3-4 minutes.", "duration_min": 4 },
-        { "step": 4, "text": "Add tamari, ginger, and garlic sauce. Toss to coat.", "duration_min": 2 },
-        { "step": 5, "text": "Serve over brown rice.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Press and cube tofu. Toss with cornstarch for crispiness.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat sesame oil in a wok over high heat. Stir-fry tofu until golden.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Add broccoli, bell pepper, and snow peas. Stir-fry for 3-4 minutes.",
+          "duration_min": 4
+        },
+        {
+          "step": 4,
+          "text": "Add tamari, ginger, and garlic sauce. Toss to coat.",
+          "duration_min": 2
+        },
+        {
+          "step": 5,
+          "text": "Serve over brown rice.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Tofu", "quantity": 8, "unit": "oz", "preparation": "pressed and cubed" },
-        { "ingredient_name": "Brown Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Broccoli", "quantity": 1.5, "unit": "cup", "preparation": "florets" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Snow Peas", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Tofu",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "pressed and cubed"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Snow Peas",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -255,24 +820,93 @@
       "cook_time_min": 25,
       "servings": 3,
       "difficulty": "medium",
-      "nutrition": { "calories": 480, "protein_g": 12, "carbs_g": 62, "fat_g": 20, "fiber_g": 9, "sugar_g": 10, "sodium_mg": 540 },
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 12,
+        "carbs_g": 62,
+        "fat_g": 20,
+        "fiber_g": 9,
+        "sugar_g": 10,
+        "sodium_mg": 540
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté diced onion and garlic in coconut oil until soft.", "duration_min": 4 },
-        { "step": 2, "text": "Add cubed sweet potato, red curry paste, and coconut milk. Stir well.", "duration_min": 3 },
-        { "step": 3, "text": "Bring to a boil, then reduce heat and simmer until sweet potato is tender.", "duration_min": 18 },
-        { "step": 4, "text": "Stir in spinach and tamari. Serve over jasmine rice with cilantro.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Sauté diced onion and garlic in coconut oil until soft.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add cubed sweet potato, red curry paste, and coconut milk. Stir well.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Bring to a boil, then reduce heat and simmer until sweet potato is tender.",
+          "duration_min": 18
+        },
+        {
+          "step": 4,
+          "text": "Stir in spinach and tamari. Serve over jasmine rice with cilantro.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Canned Coconut Milk", "quantity": 1, "unit": "can" },
-        { "ingredient_name": "Red Curry Paste", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Coconut Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Tamari", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Jasmine Rice", "quantity": 1, "unit": "cup", "preparation": "cooked" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Canned Coconut Milk",
+          "quantity": 1,
+          "unit": "can"
+        },
+        {
+          "ingredient_name": "Red Curry Paste",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Jasmine Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
@@ -282,21 +916,78 @@
       "cook_time_min": 15,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 440, "protein_g": 20, "carbs_g": 58, "fat_g": 12, "fiber_g": 7, "sugar_g": 6, "sodium_mg": 580 },
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 20,
+        "carbs_g": 58,
+        "fat_g": 12,
+        "fiber_g": 7,
+        "sugar_g": 6,
+        "sodium_mg": 580
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté shiitake mushrooms in sesame oil until caramelized.", "duration_min": 6 },
-        { "step": 2, "text": "Add edamame and tamari-mirin sauce. Simmer briefly.", "duration_min": 4 },
-        { "step": 3, "text": "Serve over steamed white rice. Top with scallions and nori.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Sauté shiitake mushrooms in sesame oil until caramelized.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Add edamame and tamari-mirin sauce. Simmer briefly.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Serve over steamed white rice. Top with scallions and nori.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "White Rice", "quantity": 1, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Shiitake Mushrooms", "quantity": 5, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Edamame", "quantity": 0.5, "unit": "cup", "preparation": "shelled" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Scallions", "quantity": 2, "unit": "tbsp", "preparation": "sliced" },
-        { "ingredient_name": "Nori Sheets", "quantity": 0.5, "unit": "sheet", "preparation": "shredded" }
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Shiitake Mushrooms",
+          "quantity": 5,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Edamame",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "shelled"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Nori Sheets",
+          "quantity": 0.5,
+          "unit": "sheet",
+          "preparation": "shredded"
+        }
       ]
     },
     {
@@ -306,22 +997,82 @@
       "cook_time_min": 15,
       "servings": 2,
       "difficulty": "medium",
-      "nutrition": { "calories": 490, "protein_g": 24, "carbs_g": 56, "fat_g": 18, "fiber_g": 7, "sugar_g": 5, "sodium_mg": 610 },
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 24,
+        "carbs_g": 56,
+        "fat_g": 18,
+        "fiber_g": 7,
+        "sugar_g": 5,
+        "sodium_mg": 610
+      },
       "instructions": [
-        { "step": 1, "text": "Cook rice noodles according to package. Drain and toss with a drop of sesame oil.", "duration_min": 6 },
-        { "step": 2, "text": "Slice tempeh and pan-fry in sesame oil until crispy.", "duration_min": 6 },
-        { "step": 3, "text": "Stir-fry bok choy, carrot, and bean sprouts in the same pan.", "duration_min": 3 },
-        { "step": 4, "text": "Combine noodles, tempeh, and veggies. Toss with tamari-lime dressing.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Cook rice noodles according to package. Drain and toss with a drop of sesame oil.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Slice tempeh and pan-fry in sesame oil until crispy.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Stir-fry bok choy, carrot, and bean sprouts in the same pan.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Combine noodles, tempeh, and veggies. Toss with tamari-lime dressing.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rice Noodles", "quantity": 6, "unit": "oz" },
-        { "ingredient_name": "Tempeh", "quantity": 6, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Bok Choy", "quantity": 2, "unit": "cup", "preparation": "chopped" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "julienned" },
-        { "ingredient_name": "Bean Sprouts", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lime", "quantity": 1, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Rice Noodles",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bok Choy",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "julienned"
+        },
+        {
+          "ingredient_name": "Bean Sprouts",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
     {
@@ -331,21 +1082,78 @@
       "cook_time_min": 0,
       "servings": 4,
       "difficulty": "easy",
-      "nutrition": { "calories": 180, "protein_g": 10, "carbs_g": 14, "fat_g": 10, "fiber_g": 5, "sugar_g": 2, "sodium_mg": 280 },
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 10,
+        "carbs_g": 14,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 2,
+        "sodium_mg": 280
+      },
       "instructions": [
-        { "step": 1, "text": "Blend edamame, tahini, lemon juice, garlic, and a splash of water in a food processor until smooth.", "duration_min": 5 },
-        { "step": 2, "text": "Season with salt and a drizzle of sesame oil.", "duration_min": 1 },
-        { "step": 3, "text": "Serve with sliced cucumber, carrot sticks, and bell pepper strips.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Blend edamame, tahini, lemon juice, garlic, and a splash of water in a food processor until smooth.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Season with salt and a drizzle of sesame oil.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Serve with sliced cucumber, carrot sticks, and bell pepper strips.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Edamame", "quantity": 1, "unit": "cup", "preparation": "shelled and cooked" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove" },
-        { "ingredient_name": "Sesame Oil", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sliced into sticks" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "sliced into sticks" },
-        { "ingredient_name": "Bell Pepper", "quantity": 0.5, "unit": "whole", "preparation": "sliced into strips" }
+        {
+          "ingredient_name": "Edamame",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "shelled and cooked"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced into sticks"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced into sticks"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced into strips"
+        }
       ]
     },
     {
@@ -355,18 +1163,59 @@
       "cook_time_min": 5,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 160, "protein_g": 4, "carbs_g": 28, "fat_g": 4, "fiber_g": 1, "sugar_g": 3, "sodium_mg": 320 },
+      "nutrition": {
+        "calories": 160,
+        "protein_g": 4,
+        "carbs_g": 28,
+        "fat_g": 4,
+        "fiber_g": 1,
+        "sugar_g": 3,
+        "sodium_mg": 320
+      },
       "instructions": [
-        { "step": 1, "text": "Mix miso paste with a bit of maple syrup and water to make a thin glaze.", "duration_min": 2 },
-        { "step": 2, "text": "Spread glaze on rice cakes. Toast in oven or toaster oven at 375°F until lightly crisped.", "duration_min": 4 },
-        { "step": 3, "text": "Sprinkle with sesame seeds and nori flakes.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Mix miso paste with a bit of maple syrup and water to make a thin glaze.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Spread glaze on rice cakes. Toast in oven or toaster oven at 375°F until lightly crisped.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Sprinkle with sesame seeds and nori flakes.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rice Cakes", "quantity": 4, "unit": "pieces" },
-        { "ingredient_name": "White Miso Paste", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Sesame Seeds", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Nori Sheets", "quantity": 0.5, "unit": "sheet", "preparation": "crumbled" }
+        {
+          "ingredient_name": "Rice Cakes",
+          "quantity": 4,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "White Miso Paste",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sesame Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Nori Sheets",
+          "quantity": 0.5,
+          "unit": "sheet",
+          "preparation": "crumbled"
+        }
       ]
     },
     {
@@ -376,19 +1225,64 @@
       "cook_time_min": 25,
       "servings": 4,
       "difficulty": "easy",
-      "nutrition": { "calories": 200, "protein_g": 8, "carbs_g": 24, "fat_g": 9, "fiber_g": 6, "sugar_g": 4, "sodium_mg": 180 },
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 8,
+        "carbs_g": 24,
+        "fat_g": 9,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 180
+      },
       "instructions": [
-        { "step": 1, "text": "Drain and pat dry chickpeas. Toss with olive oil, cumin, and smoked paprika.", "duration_min": 3 },
-        { "step": 2, "text": "Spread on a baking sheet and roast at 400°F until crunchy.", "duration_min": 25 },
-        { "step": 3, "text": "Cool completely, then mix with almonds and dried cranberries.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Drain and pat dry chickpeas. Toss with olive oil, cumin, and smoked paprika.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Spread on a baking sheet and roast at 400°F until crunchy.",
+          "duration_min": 25
+        },
+        {
+          "step": 3,
+          "text": "Cool completely, then mix with almonds and dried cranberries.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chickpeas", "quantity": 1.5, "unit": "cup", "preparation": "drained and dried" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Smoked Paprika", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Almonds", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Dried Cranberries", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "drained and dried"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Dried Cranberries",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
     {
@@ -398,16 +1292,48 @@
       "cook_time_min": 0,
       "servings": 2,
       "difficulty": "easy",
-      "nutrition": { "calories": 210, "protein_g": 6, "carbs_g": 28, "fat_g": 10, "fiber_g": 4, "sugar_g": 14, "sodium_mg": 45 },
+      "nutrition": {
+        "calories": 210,
+        "protein_g": 6,
+        "carbs_g": 28,
+        "fat_g": 10,
+        "fiber_g": 4,
+        "sugar_g": 14,
+        "sodium_mg": 45
+      },
       "instructions": [
-        { "step": 1, "text": "Slice banana into 1-inch rounds.", "duration_min": 2 },
-        { "step": 2, "text": "Spread almond butter on each round and sprinkle with chia seeds and cacao nibs.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Slice banana into 1-inch rounds.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Spread almond butter on each round and sprinkle with chia seeds and cacao nibs.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "large" },
-        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Cacao Nibs", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -417,18 +1343,58 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 8, "carbs_g": 42, "fat_g": 10, "fiber_g": 5, "sugar_g": 18, "sodium_mg": 110 },
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 8,
+        "carbs_g": 42,
+        "fat_g": 10,
+        "fiber_g": 5,
+        "sugar_g": 18,
+        "sodium_mg": 110
+      },
       "instructions": [
-        { "step": 1, "text": "Add all ingredients to a blender.", "duration_min": 1 },
-        { "step": 2, "text": "Blend on high until smooth and creamy.", "duration_min": 2 },
-        { "step": 3, "text": "Pour into a glass and serve immediately.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Add all ingredients to a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend on high until smooth and creamy.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour into a glass and serve immediately.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Matcha Powder", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Maple Syrup", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Matcha Powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
@@ -438,17 +1404,53 @@
       "cook_time_min": 0,
       "servings": 1,
       "difficulty": "easy",
-      "nutrition": { "calories": 260, "protein_g": 6, "carbs_g": 48, "fat_g": 6, "fiber_g": 8, "sugar_g": 24, "sodium_mg": 65 },
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 6,
+        "carbs_g": 48,
+        "fat_g": 6,
+        "fiber_g": 8,
+        "sugar_g": 24,
+        "sodium_mg": 65
+      },
       "instructions": [
-        { "step": 1, "text": "Combine all ingredients in a high-speed blender.", "duration_min": 1 },
-        { "step": 2, "text": "Blend until smooth, adding more almond milk if needed for desired consistency.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Combine all ingredients in a high-speed blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend until smooth, adding more almond milk if needed for desired consistency.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Acai Puree", "quantity": 1, "unit": "packet" },
-        { "ingredient_name": "Frozen Mixed Berries", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Frozen Banana", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Almond Milk", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Chia Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Acai Puree",
+          "quantity": 1,
+          "unit": "packet"
+        },
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     }
   ]

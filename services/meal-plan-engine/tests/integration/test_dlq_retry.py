@@ -12,6 +12,7 @@ body (sqs_consumer.py:62) and calls ``content_client.get_base_diet()``
 The meal_plans row itself carries a valid ``base_diet_id`` to satisfy
 the FK to ``base_diets(id)``.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -21,6 +22,8 @@ import uuid
 from datetime import date, timedelta
 
 import pytest
+
+pytestmark = pytest.mark.integration
 
 POLL_TIMEOUT_S = 60.0
 POLL_INTERVAL_S = 1.0

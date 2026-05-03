@@ -45,7 +45,10 @@
 | `.claude/rules/pipeline.md` | Claude-Codex 파이프라인 운용 규칙, 게이트 판정, 에스컬레이션 |
 | `.claude/rules/evaluator-runtime.md` | Evaluator 검증 순서, 브라우저 런타임 검증, 리포트 형식 |
 | `.claude/rules/spec-dod.md` | spec.md DoD 해석 규칙, 근거 유형, 3층 구조 |
+| `.claude/rules/multi-session.md` | FE/BE/BFF 다중 세션 협업 규칙, shared-types 계약, 48h 통합 룰 |
 | `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
+| `services/commerce-service/docs/openapi.yaml` | commerce-service OpenAPI 3.1 스펙 (결제·구독·장바구니 경계, IMPL-016) |
+| `services/analytics-service/docs/openapi.yaml` | analytics-service OpenAPI 3.1 스펙 (daily-log CRUD·요약·reports, IMPL-017) |
 
 ## 4. Workflow
 

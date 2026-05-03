@@ -1,0 +1,25 @@
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cb-space-2);
+  padding: var(--cb-space-3) var(--cb-space-4);
+  background: var(--cb-neutral-50, var(--cb-color-surface));
+  border: 1px solid var(--cb-color-border);
+  border-left: 3px solid var(--cb-color-brand);
+  border-radius: var(--cb-radius-md);
+}
+
+.icon {
+  font-size: var(--cb-font-size-sm);
+  color: var(--cb-color-brand);
+  flex-shrink: 0;
+  line-height: var(--cb-line-height-tight);
+}
+
+.text {
+  margin: 0;
+  font-family: var(--cb-font-family-body);
+  font-size: var(--cb-font-size-xs);
+  color: var(--cb-color-text-muted);
+  line-height: var(--cb-line-height-relaxed);
+}

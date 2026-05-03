@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass
-from typing import List, Set
+from typing import List, Set, Optional, Dict, Any
 
 __all__ = [
     "RecipeSlot",
@@ -33,6 +33,7 @@ class RecipeSlot:
     meal_type: str  # breakfast / lunch / dinner / snack
     allergens: List[str]
     ingredients: List[str]
+    nutrition: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -94,5 +95,6 @@ def count_allergen_conflicts(recipes: List[RecipeSlot], blocked: List[str]) -> i
     """Return the number of recipes that contain any of *blocked* allergens."""
 
     blocked_set = {a.lower() for a in blocked}
-    return sum(1 for r in recipes if blocked_set.intersection(a.lower() for a in r.allergens))
-
+    return sum(
+        1 for r in recipes if blocked_set.intersection(a.lower() for a in r.allergens)
+    )

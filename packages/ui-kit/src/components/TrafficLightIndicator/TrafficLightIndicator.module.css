@@ -1,0 +1,75 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cb-space-1);
+  padding: 2px var(--cb-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--cb-radius-pill);
+  font-family: var(--cb-font-family-body);
+  font-weight: var(--cb-font-weight-medium);
+  line-height: var(--cb-line-height-snug);
+  vertical-align: middle;
+}
+
+.sizeSm {
+  font-size: var(--cb-font-size-xs);
+  padding: 1px var(--cb-space-2);
+}
+
+.sizeMd {
+  font-size: var(--cb-font-size-sm);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.sizeSm .dot {
+  width: 6px;
+  height: 6px;
+}
+
+.label {
+  display: inline-block;
+}
+
+.statusGreen {
+  background: var(--cb-success-100);
+  color: var(--cb-success-600);
+  border-color: var(--cb-success-600);
+}
+
+.statusOrange {
+  background: var(--cb-warning-100);
+  color: var(--cb-warning-600);
+  border-color: var(--cb-warning-600);
+}
+
+.statusRed {
+  background: var(--cb-danger-100);
+  color: var(--cb-danger-600);
+  border-color: var(--cb-danger-600);
+}
+
+/* Swap-context: toned down within IngredientSwapCard to avoid double emphasis. */
+.variantSwapContext {
+  background: transparent;
+  border-color: transparent;
+}
+
+.variantSwapContext.statusGreen {
+  color: var(--cb-success-600);
+}
+
+.variantSwapContext.statusOrange {
+  color: var(--cb-warning-600);
+}
+
+.variantSwapContext.statusRed {
+  color: var(--cb-danger-600);
+}

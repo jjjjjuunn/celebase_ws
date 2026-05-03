@@ -26,6 +26,26 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.staging
+.env.production
+**/.env.staging
+
+# Terraform (local state — use remote backend in CI/prod)
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+.terraform.lock.sentinel
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.lock.sentinel
+
+# Pipeline operational logs (transient, do not track)
+pipeline-log.jsonl
+
+# Claude Code session lock
+.claude/scheduled_tasks.lock
 
 # IDE
 .idea/
@@ -49,3 +69,7 @@ packages/ui-kit/storybook-static/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Playwright E2E
+playwright-report/
+test-results/

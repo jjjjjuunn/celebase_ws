@@ -15,6 +15,10 @@ const SlugParamSchema = z.object({
   slug: z.string().min(1),
 }).strict();
 
+const IdParamSchema = z.object({
+  id: z.string().uuid(),
+}).strict();
+
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function celebrityRoutes(app: FastifyInstance, options: { pool: pg.Pool }): Promise<void> {
   const { pool } = options;
@@ -28,6 +32,17 @@ export async function celebrityRoutes(app: FastifyInstance, options: { pool: pg.
       })));
     }
     return celebrityService.listCelebrities(pool, parsed.data);
+  });
+
+  app.get('/celebrities/by-id/:id', async (request) => {
+    const parsed = IdParamSchema.safeParse(request.params);
+    if (!parsed.success) {
+      throw new ValidationError('Invalid params', parsed.error.errors.map((e) => ({
+        field: e.path.join('.'),
+        issue: e.message,
+      })));
+    }
+    return celebrityService.getCelebrityById(pool, parsed.data.id);
   });
 
   app.get('/celebrities/:slug', async (request) => {

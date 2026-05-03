@@ -2,10 +2,15 @@
   "slug": "gwyneth-paltrow",
   "display_name": "Gwyneth Paltrow",
   "short_bio": "Actress and Goop founder known for her clean eating, anti-inflammatory approach that avoids gluten, dairy, and processed foods while emphasizing organic vegetables and lean proteins.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/gwyneth-paltrow/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/gwyneth-paltrow/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/gwyneth-paltrow/400/400",
+  "cover_image_url": "https://picsum.photos/seed/gwyneth-paltrow-cover/800/600",
   "category": "diet",
-  "tags": ["clean-eating", "anti-inflammatory", "gluten-free", "organic"],
+  "tags": [
+    "clean-eating",
+    "anti-inflammatory",
+    "gluten-free",
+    "organic"
+  ],
   "is_featured": false,
   "sort_order": 3,
   "base_diet": {
@@ -14,353 +19,1270 @@
     "philosophy": "Gwyneth follows an elimination-based approach through Goop, emphasizing foods that reduce inflammation. She avoids nightshades during flare-ups and prioritizes organic, locally sourced ingredients.",
     "diet_type": "paleo",
     "avg_daily_kcal": 1800,
-    "macro_ratio": { "protein_pct": 25, "carbs_pct": 40, "fat_pct": 35 },
-    "included_foods": ["wild salmon", "organic vegetables", "sweet potato", "avocado", "bone broth", "nuts", "seeds", "olive oil", "berries"],
-    "excluded_foods": ["gluten", "dairy", "refined sugar", "corn", "soy", "processed foods", "artificial additives"],
-    "key_supplements": ["Vitamin D", "Probiotics", "Omega-3", "Magnesium"],
+    "macro_ratio": {
+      "protein_pct": 25,
+      "carbs_pct": 40,
+      "fat_pct": 35
+    },
+    "included_foods": [
+      "wild salmon",
+      "organic vegetables",
+      "sweet potato",
+      "avocado",
+      "bone broth",
+      "nuts",
+      "seeds",
+      "olive oil",
+      "berries"
+    ],
+    "excluded_foods": [
+      "gluten",
+      "dairy",
+      "refined sugar",
+      "corn",
+      "soy",
+      "processed foods",
+      "artificial additives"
+    ],
+    "key_supplements": [
+      "Vitamin D",
+      "Probiotics",
+      "Omega-3",
+      "Magnesium"
+    ],
     "source_refs": [
-      { "type": "book", "outlet": "It's All Easy by Gwyneth Paltrow", "date": "2016-04-12" },
-      { "type": "website", "outlet": "goop.com", "date": "2020-01-15" }
+      {
+        "type": "book",
+        "outlet": "It's All Easy by Gwyneth Paltrow",
+        "date": "2016-04-12"
+      },
+      {
+        "type": "website",
+        "outlet": "goop.com",
+        "date": "2020-01-15"
+      }
     ]
   },
   "recipes": [
     {
       "title": "Avocado and Smoked Salmon Toast",
       "meal_type": "breakfast",
-      "prep_time_min": 5, "cook_time_min": 3, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 18, "carbs_g": 28, "fat_g": 22, "fiber_g": 7, "sugar_g": 3, "sodium_mg": 520 },
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 18,
+        "carbs_g": 28,
+        "fat_g": 22,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Toast Ezekiel bread until golden.", "duration_min": 3 },
-        { "step": 2, "text": "Mash avocado with lemon juice and sea salt. Spread on toast.", "duration_min": 2 },
-        { "step": 3, "text": "Top with smoked salmon, capers, and fresh dill.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Toast Ezekiel bread until golden.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Mash avocado with lemon juice and sea salt. Spread on toast.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Top with smoked salmon, capers, and fresh dill.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Ezekiel Bread", "quantity": 1, "unit": "slice" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Smoked Salmon", "quantity": 2, "unit": "oz" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Capers", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Dill", "quantity": 1, "unit": "tbsp", "preparation": "fresh" }
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 1,
+          "unit": "slice"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Smoked Salmon",
+          "quantity": 2,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Capers",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Dill",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "fresh"
+        }
       ]
     },
     {
       "title": "Green Vegetable Frittata",
       "meal_type": "breakfast",
-      "prep_time_min": 10, "cook_time_min": 20, "servings": 4, "difficulty": "medium",
-      "nutrition": { "calories": 280, "protein_g": 18, "carbs_g": 8, "fat_g": 20, "fiber_g": 3, "sugar_g": 3, "sodium_mg": 380 },
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 4,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 18,
+        "carbs_g": 8,
+        "fat_g": 20,
+        "fiber_g": 3,
+        "sugar_g": 3,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté spinach, zucchini, and leek in olive oil until tender.", "duration_min": 6 },
-        { "step": 2, "text": "Whisk eggs with salt, pepper, and fresh herbs. Pour over vegetables.", "duration_min": 2 },
-        { "step": 3, "text": "Cook on stovetop for 3 minutes, then transfer to oven at 375°F.", "duration_min": 12 }
+        {
+          "step": 1,
+          "text": "Sauté spinach, zucchini, and leek in olive oil until tender.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Whisk eggs with salt, pepper, and fresh herbs. Pour over vegetables.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Cook on stovetop for 3 minutes, then transfer to oven at 375°F.",
+          "duration_min": 12
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Eggs", "quantity": 6, "unit": "large" },
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "small", "preparation": "diced" },
-        { "ingredient_name": "Leek", "quantity": 1, "unit": "small", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp", "preparation": "fresh" }
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 6,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Leek",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh"
+        }
       ]
     },
     {
       "title": "Grain-Free Granola Bowl",
       "meal_type": "breakfast",
-      "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 10, "carbs_g": 30, "fat_g": 22, "fiber_g": 6, "sugar_g": 12, "sodium_mg": 60 },
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 10,
+        "carbs_g": 30,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 12,
+        "sodium_mg": 60
+      },
       "instructions": [
-        { "step": 1, "text": "Combine almonds, walnuts, coconut flakes, pumpkin seeds, and cinnamon in a bowl.", "duration_min": 2 },
-        { "step": 2, "text": "Top with coconut yogurt, fresh berries, and a drizzle of honey.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Combine almonds, walnuts, coconut flakes, pumpkin seeds, and cinnamon in a bowl.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Top with coconut yogurt, fresh berries, and a drizzle of honey.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Almonds", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Coconut Flakes", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Cinnamon", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Coconut Yogurt", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Coconut Flakes",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Coconut Yogurt",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Sweet Potato and Kale Hash with Eggs",
       "meal_type": "breakfast",
-      "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 400, "protein_g": 18, "carbs_g": 35, "fat_g": 22, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 350 },
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 18,
+        "carbs_g": 35,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 350
+      },
       "instructions": [
-        { "step": 1, "text": "Dice sweet potato. Sauté in avocado oil until golden.", "duration_min": 12 },
-        { "step": 2, "text": "Add chopped kale and cook until wilted.", "duration_min": 3 },
-        { "step": 3, "text": "Make wells in the hash and crack eggs into them. Cover and cook until set.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Dice sweet potato. Sauté in avocado oil until golden.",
+          "duration_min": 12
+        },
+        {
+          "step": 2,
+          "text": "Add chopped kale and cook until wilted.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Make wells in the hash and crack eggs into them. Cover and cook until set.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Kale", "quantity": 2, "unit": "cup", "preparation": "chopped" },
-        { "ingredient_name": "Eggs", "quantity": 2, "unit": "large" },
-        { "ingredient_name": "Avocado Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Black Pepper", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Wild Salmon and Arugula Salad",
       "meal_type": "lunch",
-      "prep_time_min": 10, "cook_time_min": 12, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 460, "protein_g": 34, "carbs_g": 18, "fat_g": 28, "fiber_g": 4, "sugar_g": 4, "sodium_mg": 420 },
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 34,
+        "carbs_g": 18,
+        "fat_g": 28,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Season salmon with salt, pepper, and lemon zest. Pan-sear skin-side down.", "duration_min": 8 },
-        { "step": 2, "text": "Flip and cook for 3 more minutes.", "duration_min": 3 },
-        { "step": 3, "text": "Toss arugula with olive oil, lemon juice, and shaved fennel. Top with salmon and avocado.", "duration_min": 4 }
+        {
+          "step": 1,
+          "text": "Season salmon with salt, pepper, and lemon zest. Pan-sear skin-side down.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Flip and cook for 3 more minutes.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Toss arugula with olive oil, lemon juice, and shaved fennel. Top with salmon and avocado.",
+          "duration_min": 4
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 5, "unit": "oz" },
-        { "ingredient_name": "Arugula", "quantity": 3, "unit": "cup" },
-        { "ingredient_name": "Fennel", "quantity": 0.5, "unit": "bulb", "preparation": "thinly shaved" },
-        { "ingredient_name": "Avocado", "quantity": 0.5, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced and zested" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 5,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Arugula",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Fennel",
+          "quantity": 0.5,
+          "unit": "bulb",
+          "preparation": "thinly shaved"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced and zested"
+        }
       ]
     },
     {
       "title": "Bone Broth and Vegetable Soup",
       "meal_type": "lunch",
-      "prep_time_min": 10, "cook_time_min": 25, "servings": 3, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 16, "carbs_g": 28, "fat_g": 12, "fiber_g": 6, "sugar_g": 6, "sodium_mg": 560 },
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 3,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 16,
+        "carbs_g": 28,
+        "fat_g": 12,
+        "fiber_g": 6,
+        "sugar_g": 6,
+        "sodium_mg": 560
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté celery, carrot, and onion in olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Add bone broth and cubed sweet potato. Simmer until tender.", "duration_min": 18 },
-        { "step": 3, "text": "Stir in kale during the last 3 minutes. Season with salt and thyme.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Sauté celery, carrot, and onion in olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add bone broth and cubed sweet potato. Simmer until tender.",
+          "duration_min": 18
+        },
+        {
+          "step": 3,
+          "text": "Stir in kale during the last 3 minutes. Season with salt and thyme.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bone Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Sweet Potato", "quantity": 1, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Kale", "quantity": 2, "unit": "cup", "preparation": "chopped" },
-        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks", "preparation": "sliced" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "small", "preparation": "diced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Bone Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Celery",
+          "quantity": 2,
+          "unit": "stalks",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Turkey and Avocado Lettuce Wraps",
       "meal_type": "lunch",
-      "prep_time_min": 10, "cook_time_min": 10, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 350, "protein_g": 26, "carbs_g": 12, "fat_g": 24, "fiber_g": 5, "sugar_g": 3, "sodium_mg": 380 },
+      "prep_time_min": 10,
+      "cook_time_min": 10,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 350,
+        "protein_g": 26,
+        "carbs_g": 12,
+        "fat_g": 24,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Season ground turkey with garlic, oregano, and cumin. Cook in avocado oil.", "duration_min": 8 },
-        { "step": 2, "text": "Spoon turkey into romaine lettuce cups.", "duration_min": 2 },
-        { "step": 3, "text": "Top with sliced avocado, salsa, and cilantro.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Season ground turkey with garlic, oregano, and cumin. Cook in avocado oil.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Spoon turkey into romaine lettuce cups.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Top with sliced avocado, salsa, and cilantro.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Ground Turkey", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Romaine Lettuce", "quantity": 6, "unit": "leaves" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Salsa", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Oregano", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Cumin", "quantity": 0.5, "unit": "tsp" },
-        { "ingredient_name": "Avocado Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Cilantro", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Ground Turkey",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 6,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Salsa",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
     {
       "title": "Roasted Beet and Goat Cheese Salad",
       "meal_type": "lunch",
-      "prep_time_min": 10, "cook_time_min": 40, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 360, "protein_g": 12, "carbs_g": 30, "fat_g": 22, "fiber_g": 6, "sugar_g": 14, "sodium_mg": 340 },
+      "prep_time_min": 10,
+      "cook_time_min": 40,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 12,
+        "carbs_g": 30,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 14,
+        "sodium_mg": 340
+      },
       "instructions": [
-        { "step": 1, "text": "Wrap beets in foil and roast at 400°F until tender.", "duration_min": 40 },
-        { "step": 2, "text": "Cool, peel, and slice beets.", "duration_min": 5 },
-        { "step": 3, "text": "Arrange over mixed greens with goat cheese, walnuts, and balsamic vinaigrette.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Wrap beets in foil and roast at 400°F until tender.",
+          "duration_min": 40
+        },
+        {
+          "step": 2,
+          "text": "Cool, peel, and slice beets.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Arrange over mixed greens with goat cheese, walnuts, and balsamic vinaigrette.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Beet", "quantity": 3, "unit": "medium" },
-        { "ingredient_name": "Mixed Greens", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Goat Cheese", "quantity": 2, "unit": "oz", "preparation": "crumbled" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp", "preparation": "toasted" },
-        { "ingredient_name": "Balsamic Vinegar", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Beet",
+          "quantity": 3,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Goat Cheese",
+          "quantity": 2,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Balsamic Vinegar",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
     {
       "title": "Herb-Crusted Salmon with Roasted Vegetables",
       "meal_type": "dinner",
-      "prep_time_min": 15, "cook_time_min": 25, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 480, "protein_g": 36, "carbs_g": 22, "fat_g": 28, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 440 },
+      "prep_time_min": 15,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 36,
+        "carbs_g": 22,
+        "fat_g": 28,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Mix chopped parsley, dill, lemon zest, and olive oil. Press onto salmon fillets.", "duration_min": 5 },
-        { "step": 2, "text": "Toss asparagus and zucchini with olive oil on a sheet pan.", "duration_min": 3 },
-        { "step": 3, "text": "Place salmon on the pan. Roast at 400°F.", "duration_min": 18 }
+        {
+          "step": 1,
+          "text": "Mix chopped parsley, dill, lemon zest, and olive oil. Press onto salmon fillets.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Toss asparagus and zucchini with olive oil on a sheet pan.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Place salmon on the pan. Roast at 400°F.",
+          "duration_min": 18
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Salmon Fillet", "quantity": 10, "unit": "oz" },
-        { "ingredient_name": "Asparagus", "quantity": 1, "unit": "bunch", "preparation": "trimmed" },
-        { "ingredient_name": "Zucchini", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Dill", "quantity": 1, "unit": "tbsp", "preparation": "chopped" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "zested and juiced" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 1,
+          "unit": "bunch",
+          "preparation": "trimmed"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Dill",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "zested and juiced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
     {
       "title": "Chicken and Vegetable Stir-Fry",
       "meal_type": "dinner",
-      "prep_time_min": 15, "cook_time_min": 15, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 420, "protein_g": 34, "carbs_g": 30, "fat_g": 18, "fiber_g": 5, "sugar_g": 6, "sodium_mg": 520 },
+      "prep_time_min": 15,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 34,
+        "carbs_g": 30,
+        "fat_g": 18,
+        "fiber_g": 5,
+        "sugar_g": 6,
+        "sodium_mg": 520
+      },
       "instructions": [
-        { "step": 1, "text": "Slice chicken breast into thin strips. Season with garlic powder and salt.", "duration_min": 5 },
-        { "step": 2, "text": "Stir-fry chicken in avocado oil until cooked through. Set aside.", "duration_min": 6 },
-        { "step": 3, "text": "Stir-fry broccoli, bell pepper, and mushrooms.", "duration_min": 5 },
-        { "step": 4, "text": "Return chicken to pan. Add coconut aminos and sesame oil.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Slice chicken breast into thin strips. Season with garlic powder and salt.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Stir-fry chicken in avocado oil until cooked through. Set aside.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Stir-fry broccoli, bell pepper, and mushrooms.",
+          "duration_min": 5
+        },
+        {
+          "step": 4,
+          "text": "Return chicken to pan. Add coconut aminos and sesame oil.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Broccoli", "quantity": 2, "unit": "cup", "preparation": "florets" },
-        { "ingredient_name": "Bell Pepper", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Mushrooms", "quantity": 4, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Avocado Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Coconut Aminos", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Sesame Oil", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Garlic Powder", "quantity": 0.5, "unit": "tsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Coconut Aminos",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Cauliflower Rice Risotto with Mushrooms",
       "meal_type": "dinner",
-      "prep_time_min": 10, "cook_time_min": 20, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 320, "protein_g": 10, "carbs_g": 22, "fat_g": 22, "fiber_g": 6, "sugar_g": 5, "sodium_mg": 380 },
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 10,
+        "carbs_g": 22,
+        "fat_g": 22,
+        "fiber_g": 6,
+        "sugar_g": 5,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Pulse cauliflower in food processor to rice-sized pieces.", "duration_min": 3 },
-        { "step": 2, "text": "Sauté shallot and garlic in olive oil. Add mushrooms and cook.", "duration_min": 6 },
-        { "step": 3, "text": "Add cauliflower rice and bone broth. Cook until tender.", "duration_min": 8 },
-        { "step": 4, "text": "Stir in nutritional yeast and fresh thyme.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Pulse cauliflower in food processor to rice-sized pieces.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Sauté shallot and garlic in olive oil. Add mushrooms and cook.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Add cauliflower rice and bone broth. Cook until tender.",
+          "duration_min": 8
+        },
+        {
+          "step": 4,
+          "text": "Stir in nutritional yeast and fresh thyme.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cauliflower", "quantity": 1, "unit": "small head", "preparation": "riced" },
-        { "ingredient_name": "Mushrooms", "quantity": 6, "unit": "oz", "preparation": "sliced" },
-        { "ingredient_name": "Shallot", "quantity": 1, "unit": "medium", "preparation": "minced" },
-        { "ingredient_name": "Garlic", "quantity": 2, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Bone Broth", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Nutritional Yeast", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp", "preparation": "fresh" }
+        {
+          "ingredient_name": "Cauliflower",
+          "quantity": 1,
+          "unit": "small head",
+          "preparation": "riced"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Shallot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Bone Broth",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh"
+        }
       ]
     },
     {
       "title": "Lemon-Herb Roasted Chicken with Sweet Potato",
       "meal_type": "dinner",
-      "prep_time_min": 15, "cook_time_min": 35, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 460, "protein_g": 36, "carbs_g": 32, "fat_g": 20, "fiber_g": 5, "sugar_g": 6, "sodium_mg": 440 },
+      "prep_time_min": 15,
+      "cook_time_min": 35,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 36,
+        "carbs_g": 32,
+        "fat_g": 20,
+        "fiber_g": 5,
+        "sugar_g": 6,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Marinate chicken in lemon juice, olive oil, rosemary, and thyme.", "duration_min": 5 },
-        { "step": 2, "text": "Cube sweet potatoes and toss with olive oil.", "duration_min": 3 },
-        { "step": 3, "text": "Arrange chicken and sweet potatoes on a sheet pan. Roast at 400°F.", "duration_min": 30 },
-        { "step": 4, "text": "Serve with steamed green beans.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Marinate chicken in lemon juice, olive oil, rosemary, and thyme.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Cube sweet potatoes and toss with olive oil.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Arrange chicken and sweet potatoes on a sheet pan. Roast at 400°F.",
+          "duration_min": 30
+        },
+        {
+          "step": 4,
+          "text": "Serve with steamed green beans.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chicken Breast", "quantity": 8, "unit": "oz" },
-        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Green Beans", "quantity": 1, "unit": "cup", "preparation": "steamed" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Rosemary", "quantity": 1, "unit": "tsp", "preparation": "fresh" },
-        { "ingredient_name": "Thyme", "quantity": 1, "unit": "tsp", "preparation": "fresh" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 8,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Green Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "steamed"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
     {
       "title": "Almond-Crusted Protein Bites",
       "meal_type": "snack",
-      "prep_time_min": 10, "cook_time_min": 0, "servings": 6, "difficulty": "easy",
-      "nutrition": { "calories": 160, "protein_g": 5, "carbs_g": 14, "fat_g": 10, "fiber_g": 3, "sugar_g": 8, "sodium_mg": 30 },
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 6,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 160,
+        "protein_g": 5,
+        "carbs_g": 14,
+        "fat_g": 10,
+        "fiber_g": 3,
+        "sugar_g": 8,
+        "sodium_mg": 30
+      },
       "instructions": [
-        { "step": 1, "text": "Blend dates, almond butter, and coconut flakes in a food processor.", "duration_min": 3 },
-        { "step": 2, "text": "Roll into balls and coat in crushed almonds.", "duration_min": 5 },
-        { "step": 3, "text": "Refrigerate for 20 minutes.", "duration_min": null }
+        {
+          "step": 1,
+          "text": "Blend dates, almond butter, and coconut flakes in a food processor.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Roll into balls and coat in crushed almonds.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Refrigerate for 20 minutes.",
+          "duration_min": null
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Medjool Dates", "quantity": 6, "unit": "pieces", "preparation": "pitted" },
-        { "ingredient_name": "Almond Butter", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Coconut Flakes", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Almonds", "quantity": 0.25, "unit": "cup", "preparation": "crushed" }
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 6,
+          "unit": "pieces",
+          "preparation": "pitted"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Coconut Flakes",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "crushed"
+        }
       ]
     },
     {
       "title": "Cucumber Avocado Bites",
       "meal_type": "snack",
-      "prep_time_min": 10, "cook_time_min": 0, "servings": 4, "difficulty": "easy",
-      "nutrition": { "calories": 130, "protein_g": 2, "carbs_g": 8, "fat_g": 10, "fiber_g": 4, "sugar_g": 2, "sodium_mg": 120 },
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 4,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 130,
+        "protein_g": 2,
+        "carbs_g": 8,
+        "fat_g": 10,
+        "fiber_g": 4,
+        "sugar_g": 2,
+        "sodium_mg": 120
+      },
       "instructions": [
-        { "step": 1, "text": "Slice cucumber into thick rounds.", "duration_min": 3 },
-        { "step": 2, "text": "Top each with a small scoop of mashed avocado, sea salt, and chili flakes.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Slice cucumber into thick rounds.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Top each with a small scoop of mashed avocado, sea salt, and chili flakes.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cucumber", "quantity": 1, "unit": "large", "preparation": "sliced into rounds" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Chili Flakes", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced into rounds"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Chili Flakes",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Mixed Nuts and Berries",
       "meal_type": "snack",
-      "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 200, "protein_g": 6, "carbs_g": 18, "fat_g": 14, "fiber_g": 4, "sugar_g": 8, "sodium_mg": 20 },
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 6,
+        "carbs_g": 18,
+        "fat_g": 14,
+        "fiber_g": 4,
+        "sugar_g": 8,
+        "sodium_mg": 20
+      },
       "instructions": [
-        { "step": 1, "text": "Combine almonds, walnuts, and fresh blueberries in a small bowl.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Combine almonds, walnuts, and fresh blueberries in a small bowl.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Almonds", "quantity": 10, "unit": "pieces" },
-        { "ingredient_name": "Walnuts", "quantity": 5, "unit": "halves" },
-        { "ingredient_name": "Blueberries", "quantity": 0.33, "unit": "cup" }
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 10,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 5,
+          "unit": "halves"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.33,
+          "unit": "cup"
+        }
       ]
     },
     {
       "title": "Bone Broth Sipping Cup",
       "meal_type": "snack",
-      "prep_time_min": 2, "cook_time_min": 5, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 60, "protein_g": 10, "carbs_g": 0, "fat_g": 2, "fiber_g": 0, "sugar_g": 0, "sodium_mg": 480 },
+      "prep_time_min": 2,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 60,
+        "protein_g": 10,
+        "carbs_g": 0,
+        "fat_g": 2,
+        "fiber_g": 0,
+        "sugar_g": 0,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Heat bone broth in a saucepan. Season with sea salt and turmeric.", "duration_min": 5 },
-        { "step": 2, "text": "Pour into a mug and sip warm.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Heat bone broth in a saucepan. Season with sea salt and turmeric.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Pour into a mug and sip warm.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Bone Broth", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" },
-        { "ingredient_name": "Turmeric", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Bone Broth",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
     {
       "title": "Green Detox Smoothie",
       "meal_type": "smoothie",
-      "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 260, "protein_g": 6, "carbs_g": 38, "fat_g": 10, "fiber_g": 6, "sugar_g": 18, "sodium_mg": 80 },
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 6,
+        "carbs_g": 38,
+        "fat_g": 10,
+        "fiber_g": 6,
+        "sugar_g": 18,
+        "sodium_mg": 80
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Spinach", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole" },
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "medium" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Ginger", "quantity": 0.5, "unit": "inch", "preparation": "peeled" },
-        { "ingredient_name": "Avocado", "quantity": 0.25, "unit": "whole" },
-        { "ingredient_name": "Coconut Water", "quantity": 0.5, "unit": "cup" }
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 0.5,
+          "unit": "inch",
+          "preparation": "peeled"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.25,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Coconut Water",
+          "quantity": 0.5,
+          "unit": "cup"
+        }
       ]
     },
     {
       "title": "Berry Collagen Smoothie",
       "meal_type": "smoothie",
-      "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 16, "carbs_g": 36, "fat_g": 8, "fiber_g": 5, "sugar_g": 20, "sodium_mg": 90 },
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 16,
+        "carbs_g": 36,
+        "fat_g": 8,
+        "fiber_g": 5,
+        "sugar_g": 20,
+        "sodium_mg": 90
+      },
       "instructions": [
-        { "step": 1, "text": "Add all ingredients to blender and blend until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Add all ingredients to blender and blend until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Mixed Berries", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Collagen Peptides", "quantity": 1, "unit": "scoop" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Honey", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Collagen Peptides",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     }
   ]

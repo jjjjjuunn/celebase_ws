@@ -86,11 +86,13 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: development
+      AUTH_PROVIDER: dev
       PORT: 3001
       HOST: 0.0.0.0
       DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev-secret-not-for-prod
+      INTERNAL_JWT_SECRET: dev-secret-not-for-prod
+      INTERNAL_JWT_ISSUER: celebbase-user-service
       PHI_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
       STRIPE_ENABLED: "true"
       STRIPE_SECRET_KEY: sk_test_dummy_not_for_real_calls
@@ -136,6 +138,40 @@ services:
       timeout: 3s
       retries: 5
 
+  commerce-service:
+    build:
+      context: .
+      dockerfile: services/commerce-service/Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      STRIPE_ENABLED: "false"
+      COMMERCE_WEBHOOK_ENABLED: "false"
+      STRIPE_SECRET_KEY: sk_test_dummy_not_for_real_calls
+      STRIPE_WEBHOOK_SECRET: whsec_dummy_not_for_real_calls
+      STRIPE_PREMIUM_PRICE_ID: price_dummy_premium
+      STRIPE_ELITE_PRICE_ID: price_dummy_elite
+      STRIPE_SUCCESS_URL: http://localhost:3000/checkout/success
+      STRIPE_CANCEL_URL: http://localhost:3000/checkout/cancel
+      INSTACART_API_KEY: instacart_dummy_key
+      INTERNAL_JWT_SECRET: dev-secret-not-for-prod
+      USER_SERVICE_URL: http://user-service:3001
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3004/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   meal-plan-engine:
     build:
       context: .
@@ -144,10 +180,13 @@ services:
       - "3003:3003"
     environment:
       NODE_ENV: development
+      AUTH_PROVIDER: dev
       PORT: 3003
       HOST: 0.0.0.0
       DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
       REDIS_URL: redis://redis:6379
+      INTERNAL_JWT_SECRET: dev-secret-not-for-prod
+      INTERNAL_JWT_ISSUER: celebbase-user-service
       CONTENT_SERVICE_URL: http://content-service:3002
       USER_SERVICE_URL: http://user-service:3001
       SQS_QUEUE_URL: http://localstack:4566/000000000000/meal-plan-generation
@@ -172,6 +211,34 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3003/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
+      COGNITO_USER_POOL_ID: us-east-1_dev
+      COGNITO_APP_CLIENT_ID: dev-client-id
+      COGNITO_REGION: us-east-1
+      MVIEW_REFRESH_ENABLED: "true"
+      MVIEW_REFRESH_INTERVAL_MINUTES: "15"
+      LOG_LEVEL: info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3005/health"]
       interval: 10s
       timeout: 3s
       retries: 5

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { CSSProperties, JSX } from 'react';
+import type { ChangeEvent, CSSProperties, JSX } from 'react';
 import { Badge, Button, Card, Input, Stack, Text } from '@celebbase/ui-kit';
 
 const SECTION_STYLE: CSSProperties = {
@@ -103,7 +103,7 @@ export default function PrimitivesPreview(): JSX.Element {
             label="Email address"
             helperText="We'll never share your email."
             value={inputValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setInputValue(e.target.value);
             }}
           />
@@ -113,7 +113,7 @@ export default function PrimitivesPreview(): JSX.Element {
             required
             {...(requiredError ? { errorText: requiredError, state: 'error' as const } : {})}
             value={requiredValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setRequiredValue(e.target.value);
             }}
           />

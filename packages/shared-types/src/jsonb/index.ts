@@ -55,11 +55,17 @@ export const InstructionStepSchema = z.object({
 export type InstructionStep = z.infer<typeof InstructionStepSchema>;
 
 // spec §3.1 meal_plans.daily_plans
+// Plan 22 · Phase B — `narrative` (persona voice for this slot, ≤300 chars) and
+// `citations` (spec §5.8 LLM Enhancement Layer) are populated by the meal-plan-engine
+// LLM reranker; rule-based engine leaves both omitted. Drawer falls back gracefully.
+import { CitationSchema as _DailyMealCitationSchema } from './citation.js';
 export const DailyMealSchema = z.object({
   meal_type: z.string(),
   recipe_id: z.string().uuid(),
   adjusted_nutrition: NutritionSchema.optional(),
   adjusted_servings: z.number().min(0).optional(),
+  narrative: z.string().max(300).nullable().optional(),
+  citations: z.array(_DailyMealCitationSchema).optional(),
 });
 export type DailyMeal = z.infer<typeof DailyMealSchema>;
 
@@ -94,3 +100,9 @@ export const QuotaOverrideSchema = z.object({
   max_diet_views_per_month: z.number().int().min(0).nullable().optional(),
 });
 export type QuotaOverride = z.infer<typeof QuotaOverrideSchema>;
+
+// spec §5.8 LLM Enhancement Layer — Citation
+export * from './citation.js';
+
+// Plan 22-vast-adleman · Phase C1 — users.preferences JSONB
+export * from './user-preferences.js';

@@ -10,5 +10,18 @@
       "command": "codex",
       "args": ["mcp-server"]
     }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter web typecheck *)",
+      "Bash(pnpm --filter web lint *)",
+      "Bash(pnpm --filter shared-types build *)",
+      "Bash(pnpm --filter @celebbase/ui-kit build *)",
+      "Bash(pnpm --filter @celebbase/ui-kit typecheck *)",
+      "Bash(pnpm --filter @celebbase/design-tokens build *)",
+      "Bash(textutil -convert txt -stdout *)",
+      "Bash(scripts/gate-check.sh fe_token_hardcode *)",
+      "Bash(scripts/gate-check.sh fe_bff_compliance *)"
+    ]
   }
 }

@@ -2,10 +2,16 @@
   "slug": "joaquin-phoenix",
   "display_name": "Joaquin Phoenix",
   "short_bio": "Oscar-winning actor and lifelong vegan since age 3, known for his raw, minimalist approach to plant-based eating with emphasis on unprocessed whole foods.",
-  "avatar_url": "https://cdn.celebbase.com/celebrities/joaquin-phoenix/avatar.webp",
-  "cover_image_url": "https://cdn.celebbase.com/celebrities/joaquin-phoenix/cover.webp",
+  "avatar_url": "https://picsum.photos/seed/joaquin-phoenix/400/400",
+  "cover_image_url": "https://picsum.photos/seed/joaquin-phoenix-cover/800/600",
   "category": "vegetarian",
-  "tags": ["raw-vegan", "minimalist", "ethical", "whole-foods", "unprocessed"],
+  "tags": [
+    "raw-vegan",
+    "minimalist",
+    "ethical",
+    "whole-foods",
+    "unprocessed"
+  ],
   "is_featured": false,
   "sort_order": 8,
   "base_diet": {
@@ -14,278 +20,1165 @@
     "philosophy": "Joaquin has been vegan since age 3, motivated by witnessing animal cruelty on a fishing boat. He eats simply and avoids processed foods entirely, preferring raw vegetables, fruits, and minimally prepared whole foods.",
     "diet_type": "vegan",
     "avg_daily_kcal": 2100,
-    "macro_ratio": { "protein_pct": 12, "carbs_pct": 65, "fat_pct": 23 },
-    "included_foods": ["raw vegetables", "fruit", "nuts", "seeds", "sprouts", "avocado", "leafy greens", "sweet potato", "legumes"],
-    "excluded_foods": ["meat", "fish", "dairy", "eggs", "honey", "processed foods", "refined oils", "white sugar"],
-    "key_supplements": ["B12", "Vitamin D", "Iron", "Omega-3 (algae)"],
+    "macro_ratio": {
+      "protein_pct": 12,
+      "carbs_pct": 65,
+      "fat_pct": 23
+    },
+    "included_foods": [
+      "raw vegetables",
+      "fruit",
+      "nuts",
+      "seeds",
+      "sprouts",
+      "avocado",
+      "leafy greens",
+      "sweet potato",
+      "legumes"
+    ],
+    "excluded_foods": [
+      "meat",
+      "fish",
+      "dairy",
+      "eggs",
+      "honey",
+      "processed foods",
+      "refined oils",
+      "white sugar"
+    ],
+    "key_supplements": [
+      "B12",
+      "Vitamin D",
+      "Iron",
+      "Omega-3 (algae)"
+    ],
     "source_refs": [
-      { "type": "interview", "outlet": "Collider", "date": "2020-01-15" },
-      { "type": "speech", "outlet": "Oscars Acceptance Speech", "date": "2020-02-09" }
+      {
+        "type": "interview",
+        "outlet": "Collider",
+        "date": "2020-01-15"
+      },
+      {
+        "type": "speech",
+        "outlet": "Oscars Acceptance Speech",
+        "date": "2020-02-09"
+      }
     ]
   },
   "recipes": [
-    { "title": "Raw Fruit and Nut Bowl", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 10, "carbs_g": 52, "fat_g": 18, "fiber_g": 10, "sugar_g": 28, "sodium_mg": 20 },
+    {
+      "title": "Raw Fruit and Nut Bowl",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 10,
+        "carbs_g": 52,
+        "fat_g": 18,
+        "fiber_g": 10,
+        "sugar_g": 28,
+        "sodium_mg": 20
+      },
       "instructions": [
-        { "step": 1, "text": "Slice banana, apple, and pear into a bowl.", "duration_min": 3 },
-        { "step": 2, "text": "Top with walnuts, pumpkin seeds, and a drizzle of agave.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Slice banana, apple, and pear into a bowl.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Top with walnuts, pumpkin seeds, and a drizzle of agave.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Banana", "quantity": 1, "unit": "medium" },
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Pear", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Agave Nectar", "quantity": 1, "unit": "tsp" }
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Pear",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Agave Nectar",
+          "quantity": 1,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Raw Oat and Seed Muesli", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 350, "protein_g": 12, "carbs_g": 48, "fat_g": 14, "fiber_g": 9, "sugar_g": 16, "sodium_mg": 40 },
+    {
+      "title": "Raw Oat and Seed Muesli",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 350,
+        "protein_g": 12,
+        "carbs_g": 48,
+        "fat_g": 14,
+        "fiber_g": 9,
+        "sugar_g": 16,
+        "sodium_mg": 40
+      },
       "instructions": [
-        { "step": 1, "text": "Soak oats in oat milk for 10 minutes.", "duration_min": 10 },
-        { "step": 2, "text": "Top with grated apple, sunflower seeds, and blueberries.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Soak oats in oat milk for 10 minutes.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Top with grated apple, sunflower seeds, and blueberries.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Rolled Oats", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Oat Milk", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "small", "preparation": "grated" },
-        { "ingredient_name": "Sunflower Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Blueberries", "quantity": 0.25, "unit": "cup" }
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "small",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Sunflower Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        }
       ]
     },
-    { "title": "Avocado and Sprout Toast", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 3, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 320, "protein_g": 8, "carbs_g": 32, "fat_g": 18, "fiber_g": 8, "sugar_g": 2, "sodium_mg": 240 },
+    {
+      "title": "Avocado and Sprout Toast",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 8,
+        "carbs_g": 32,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 2,
+        "sodium_mg": 240
+      },
       "instructions": [
-        { "step": 1, "text": "Toast Ezekiel bread.", "duration_min": 3 },
-        { "step": 2, "text": "Top with mashed avocado, bean sprouts, and lemon juice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Toast Ezekiel bread.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Top with mashed avocado, bean sprouts, and lemon juice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Ezekiel Bread", "quantity": 2, "unit": "slices", "preparation": "toasted" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "mashed" },
-        { "ingredient_name": "Bean Sprouts", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Sea Salt", "quantity": 0.25, "unit": "tsp" }
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Bean Sprouts",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
       ]
     },
-    { "title": "Chia Pudding with Mango", "meal_type": "breakfast", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 300, "protein_g": 8, "carbs_g": 40, "fat_g": 14, "fiber_g": 12, "sugar_g": 18, "sodium_mg": 50 },
+    {
+      "title": "Chia Pudding with Mango",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 300,
+        "protein_g": 8,
+        "carbs_g": 40,
+        "fat_g": 14,
+        "fiber_g": 12,
+        "sugar_g": 18,
+        "sodium_mg": 50
+      },
       "instructions": [
-        { "step": 1, "text": "Mix chia seeds with coconut milk and agave. Refrigerate overnight.", "duration_min": null },
-        { "step": 2, "text": "Top with diced mango and coconut flakes.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Mix chia seeds with coconut milk and agave. Refrigerate overnight.",
+          "duration_min": null
+        },
+        {
+          "step": 2,
+          "text": "Top with diced mango and coconut flakes.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Chia Seeds", "quantity": 3, "unit": "tbsp" },
-        { "ingredient_name": "Coconut Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Agave Nectar", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Mango", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Coconut Flakes", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Coconut Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Agave Nectar",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Mango",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Coconut Flakes",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Raw Veggie Nori Wraps", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 0, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 280, "protein_g": 8, "carbs_g": 22, "fat_g": 18, "fiber_g": 8, "sugar_g": 4, "sodium_mg": 320 },
+    {
+      "title": "Raw Veggie Nori Wraps",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 8,
+        "carbs_g": 22,
+        "fat_g": 18,
+        "fiber_g": 8,
+        "sugar_g": 4,
+        "sodium_mg": 320
+      },
       "instructions": [
-        { "step": 1, "text": "Lay nori sheets flat. Spread thin layer of hummus.", "duration_min": 3 },
-        { "step": 2, "text": "Add julienned carrot, cucumber, avocado, and sprouts.", "duration_min": 5 },
-        { "step": 3, "text": "Roll tightly and slice.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Lay nori sheets flat. Spread thin layer of hummus.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Add julienned carrot, cucumber, avocado, and sprouts.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Roll tightly and slice.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Nori Sheets", "quantity": 4, "unit": "sheets" },
-        { "ingredient_name": "Hummus", "quantity": 0.25, "unit": "cup" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "julienned" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "julienned" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "sliced" },
-        { "ingredient_name": "Bean Sprouts", "quantity": 0.5, "unit": "cup" }
+        {
+          "ingredient_name": "Nori Sheets",
+          "quantity": 4,
+          "unit": "sheets"
+        },
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "julienned"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "julienned"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bean Sprouts",
+          "quantity": 0.5,
+          "unit": "cup"
+        }
       ]
     },
-    { "title": "Raw Kale and Avocado Salad", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 0, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 340, "protein_g": 10, "carbs_g": 28, "fat_g": 24, "fiber_g": 10, "sugar_g": 5, "sodium_mg": 240 },
+    {
+      "title": "Raw Kale and Avocado Salad",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 10,
+        "carbs_g": 28,
+        "fat_g": 24,
+        "fiber_g": 10,
+        "sugar_g": 5,
+        "sodium_mg": 240
+      },
       "instructions": [
-        { "step": 1, "text": "Massage kale with olive oil and lemon juice until tender.", "duration_min": 5 },
-        { "step": 2, "text": "Toss with diced avocado, sunflower seeds, and cherry tomatoes.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Massage kale with olive oil and lemon juice until tender.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Toss with diced avocado, sunflower seeds, and cherry tomatoes.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Kale", "quantity": 4, "unit": "cup", "preparation": "destemmed" },
-        { "ingredient_name": "Avocado", "quantity": 1, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Sunflower Seeds", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 1, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Kale",
+          "quantity": 4,
+          "unit": "cup",
+          "preparation": "destemmed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Sunflower Seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Lentil and Raw Veggie Bowl", "meal_type": "lunch", "prep_time_min": 10, "cook_time_min": 25, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 18, "carbs_g": 50, "fat_g": 12, "fiber_g": 14, "sugar_g": 5, "sodium_mg": 320 },
+    {
+      "title": "Lentil and Raw Veggie Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 18,
+        "carbs_g": 50,
+        "fat_g": 12,
+        "fiber_g": 14,
+        "sugar_g": 5,
+        "sodium_mg": 320
+      },
       "instructions": [
-        { "step": 1, "text": "Cook lentils until tender. Cool slightly.", "duration_min": 25 },
-        { "step": 2, "text": "Serve over raw spinach with shredded carrot, cucumber, and tahini.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Cook lentils until tender. Cool slightly.",
+          "duration_min": 25
+        },
+        {
+          "step": 2,
+          "text": "Serve over raw spinach with shredded carrot, cucumber, and tahini.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Lentils", "quantity": 0.75, "unit": "cup" },
-        { "ingredient_name": "Spinach", "quantity": 3, "unit": "cup" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "shredded" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "diced" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Zucchini Noodle and Pesto Bowl", "meal_type": "lunch", "prep_time_min": 15, "cook_time_min": 0, "servings": 1, "difficulty": "medium",
-      "nutrition": { "calories": 320, "protein_g": 10, "carbs_g": 18, "fat_g": 26, "fiber_g": 5, "sugar_g": 6, "sodium_mg": 280 },
+    {
+      "title": "Zucchini Noodle and Pesto Bowl",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 10,
+        "carbs_g": 18,
+        "fat_g": 26,
+        "fiber_g": 5,
+        "sugar_g": 6,
+        "sodium_mg": 280
+      },
       "instructions": [
-        { "step": 1, "text": "Spiralize zucchini into noodles.", "duration_min": 5 },
-        { "step": 2, "text": "Blend basil, pine nuts, garlic, olive oil, and nutritional yeast for pesto.", "duration_min": 5 },
-        { "step": 3, "text": "Toss noodles with pesto and top with cherry tomatoes.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Spiralize zucchini into noodles.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Blend basil, pine nuts, garlic, olive oil, and nutritional yeast for pesto.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Toss noodles with pesto and top with cherry tomatoes.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Zucchini", "quantity": 2, "unit": "medium", "preparation": "spiralized" },
-        { "ingredient_name": "Basil", "quantity": 1, "unit": "cup", "preparation": "packed" },
-        { "ingredient_name": "Pine Nuts", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Garlic", "quantity": 1, "unit": "clove" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Nutritional Yeast", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Cherry Tomatoes", "quantity": 0.5, "unit": "cup", "preparation": "halved" }
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "spiralized"
+        },
+        {
+          "ingredient_name": "Basil",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "packed"
+        },
+        {
+          "ingredient_name": "Pine Nuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        }
       ]
     },
-    { "title": "Sweet Potato and Black Bean Chili", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 30, "servings": 4, "difficulty": "easy",
-      "nutrition": { "calories": 360, "protein_g": 14, "carbs_g": 56, "fat_g": 8, "fiber_g": 14, "sugar_g": 8, "sodium_mg": 480 },
+    {
+      "title": "Sweet Potato and Black Bean Chili",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 4,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 14,
+        "carbs_g": 56,
+        "fat_g": 8,
+        "fiber_g": 14,
+        "sugar_g": 8,
+        "sodium_mg": 480
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté onion and garlic in olive oil.", "duration_min": 4 },
-        { "step": 2, "text": "Add cubed sweet potato, black beans, tomato, and spices. Add broth.", "duration_min": 3 },
-        { "step": 3, "text": "Simmer until sweet potato is tender.", "duration_min": 25 }
+        {
+          "step": 1,
+          "text": "Sauté onion and garlic in olive oil.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add cubed sweet potato, black beans, tomato, and spices. Add broth.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Simmer until sweet potato is tender.",
+          "duration_min": 25
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Sweet Potato", "quantity": 2, "unit": "medium", "preparation": "cubed" },
-        { "ingredient_name": "Black Beans", "quantity": 1.5, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Tomato", "quantity": 2, "unit": "large", "preparation": "diced" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Garlic", "quantity": 3, "unit": "cloves", "preparation": "minced" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 2, "unit": "cup" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Smoked Paprika", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Raw Cashew Pad Thai", "meal_type": "dinner", "prep_time_min": 20, "cook_time_min": 0, "servings": 2, "difficulty": "medium",
-      "nutrition": { "calories": 380, "protein_g": 12, "carbs_g": 32, "fat_g": 24, "fiber_g": 5, "sugar_g": 8, "sodium_mg": 420 },
+    {
+      "title": "Raw Cashew Pad Thai",
+      "meal_type": "dinner",
+      "prep_time_min": 20,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 12,
+        "carbs_g": 32,
+        "fat_g": 24,
+        "fiber_g": 5,
+        "sugar_g": 8,
+        "sodium_mg": 420
+      },
       "instructions": [
-        { "step": 1, "text": "Spiralize zucchini and carrot for noodles.", "duration_min": 5 },
-        { "step": 2, "text": "Blend raw cashews, lime, tamari, ginger, and agave for sauce.", "duration_min": 5 },
-        { "step": 3, "text": "Toss noodles with sauce. Top with scallions and crushed cashews.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Spiralize zucchini and carrot for noodles.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Blend raw cashews, lime, tamari, ginger, and agave for sauce.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Toss noodles with sauce. Top with scallions and crushed cashews.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Zucchini", "quantity": 2, "unit": "medium", "preparation": "spiralized" },
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "spiralized" },
-        { "ingredient_name": "Raw Cashews", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Lime", "quantity": 1, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Tamari", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Ginger", "quantity": 1, "unit": "tsp", "preparation": "grated" },
-        { "ingredient_name": "Agave Nectar", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Scallions", "quantity": 2, "unit": "tbsp", "preparation": "sliced" }
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "spiralized"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "spiralized"
+        },
+        {
+          "ingredient_name": "Raw Cashews",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "grated"
+        },
+        {
+          "ingredient_name": "Agave Nectar",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Roasted Cauliflower with Chickpeas and Tahini", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 30, "servings": 2, "difficulty": "easy",
-      "nutrition": { "calories": 380, "protein_g": 14, "carbs_g": 38, "fat_g": 20, "fiber_g": 10, "sugar_g": 6, "sodium_mg": 380 },
+    {
+      "title": "Roasted Cauliflower with Chickpeas and Tahini",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 14,
+        "carbs_g": 38,
+        "fat_g": 20,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
       "instructions": [
-        { "step": 1, "text": "Toss cauliflower and chickpeas with olive oil and cumin. Roast at 425°F.", "duration_min": 28 },
-        { "step": 2, "text": "Drizzle with tahini and lemon. Garnish with parsley.", "duration_min": 3 }
+        {
+          "step": 1,
+          "text": "Toss cauliflower and chickpeas with olive oil and cumin. Roast at 425°F.",
+          "duration_min": 28
+        },
+        {
+          "step": 2,
+          "text": "Drizzle with tahini and lemon. Garnish with parsley.",
+          "duration_min": 3
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Cauliflower", "quantity": 1, "unit": "head", "preparation": "florets" },
-        { "ingredient_name": "Chickpeas", "quantity": 1, "unit": "cup", "preparation": "drained" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Cumin", "quantity": 1, "unit": "tsp" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Parsley", "quantity": 2, "unit": "tbsp", "preparation": "chopped" }
+        {
+          "ingredient_name": "Cauliflower",
+          "quantity": 1,
+          "unit": "head",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
       ]
     },
-    { "title": "Simple Vegetable and Lentil Soup", "meal_type": "dinner", "prep_time_min": 10, "cook_time_min": 25, "servings": 4, "difficulty": "easy",
-      "nutrition": { "calories": 300, "protein_g": 16, "carbs_g": 44, "fat_g": 6, "fiber_g": 12, "sugar_g": 6, "sodium_mg": 440 },
+    {
+      "title": "Simple Vegetable and Lentil Soup",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 4,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 300,
+        "protein_g": 16,
+        "carbs_g": 44,
+        "fat_g": 6,
+        "fiber_g": 12,
+        "sugar_g": 6,
+        "sodium_mg": 440
+      },
       "instructions": [
-        { "step": 1, "text": "Sauté celery, carrot, and onion in olive oil.", "duration_min": 5 },
-        { "step": 2, "text": "Add lentils, vegetable broth, and bay leaf. Simmer.", "duration_min": 22 },
-        { "step": 3, "text": "Season with salt, pepper, and lemon juice.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Sauté celery, carrot, and onion in olive oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add lentils, vegetable broth, and bay leaf. Simmer.",
+          "duration_min": 22
+        },
+        {
+          "step": 3,
+          "text": "Season with salt, pepper, and lemon juice.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Lentils", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Vegetable Broth", "quantity": 4, "unit": "cup" },
-        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks", "preparation": "diced" },
-        { "ingredient_name": "Carrot", "quantity": 2, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Yellow Onion", "quantity": 1, "unit": "medium", "preparation": "diced" },
-        { "ingredient_name": "Bay Leaves", "quantity": 1, "unit": "leaf" },
-        { "ingredient_name": "Extra Virgin Olive Oil", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" }
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 4,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Celery",
+          "quantity": 2,
+          "unit": "stalks",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Bay Leaves",
+          "quantity": 1,
+          "unit": "leaf"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
       ]
     },
-    { "title": "Raw Cashew and Date Bites", "meal_type": "snack", "prep_time_min": 10, "cook_time_min": 0, "servings": 8, "difficulty": "easy",
-      "nutrition": { "calories": 130, "protein_g": 3, "carbs_g": 16, "fat_g": 7, "fiber_g": 2, "sugar_g": 12, "sodium_mg": 10 },
+    {
+      "title": "Raw Cashew and Date Bites",
+      "meal_type": "snack",
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 8,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 130,
+        "protein_g": 3,
+        "carbs_g": 16,
+        "fat_g": 7,
+        "fiber_g": 2,
+        "sugar_g": 12,
+        "sodium_mg": 10
+      },
       "instructions": [
-        { "step": 1, "text": "Blend raw cashews and dates in a food processor until sticky.", "duration_min": 3 },
-        { "step": 2, "text": "Roll into balls.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Blend raw cashews and dates in a food processor until sticky.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Roll into balls.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Raw Cashews", "quantity": 0.5, "unit": "cup" },
-        { "ingredient_name": "Medjool Dates", "quantity": 6, "unit": "pieces", "preparation": "pitted" }
+        {
+          "ingredient_name": "Raw Cashews",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 6,
+          "unit": "pieces",
+          "preparation": "pitted"
+        }
       ]
     },
-    { "title": "Sliced Veggies with Tahini", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 180, "protein_g": 6, "carbs_g": 14, "fat_g": 12, "fiber_g": 5, "sugar_g": 5, "sodium_mg": 180 },
+    {
+      "title": "Sliced Veggies with Tahini",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 6,
+        "carbs_g": 14,
+        "fat_g": 12,
+        "fiber_g": 5,
+        "sugar_g": 5,
+        "sodium_mg": 180
+      },
       "instructions": [
-        { "step": 1, "text": "Slice vegetables and serve with tahini for dipping.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Slice vegetables and serve with tahini for dipping.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Carrot", "quantity": 1, "unit": "medium", "preparation": "sticks" },
-        { "ingredient_name": "Cucumber", "quantity": 0.5, "unit": "whole", "preparation": "sticks" },
-        { "ingredient_name": "Celery", "quantity": 2, "unit": "stalks" },
-        { "ingredient_name": "Tahini", "quantity": 2, "unit": "tbsp" }
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sticks"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sticks"
+        },
+        {
+          "ingredient_name": "Celery",
+          "quantity": 2,
+          "unit": "stalks"
+        },
+        {
+          "ingredient_name": "Tahini",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Fresh Fruit Plate", "meal_type": "snack", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 200, "protein_g": 3, "carbs_g": 48, "fat_g": 1, "fiber_g": 6, "sugar_g": 34, "sodium_mg": 5 },
+    {
+      "title": "Fresh Fruit Plate",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 3,
+        "carbs_g": 48,
+        "fat_g": 1,
+        "fiber_g": 6,
+        "sugar_g": 34,
+        "sodium_mg": 5
+      },
       "instructions": [
-        { "step": 1, "text": "Slice and arrange seasonal fruit on a plate.", "duration_min": 5 }
+        {
+          "step": 1,
+          "text": "Slice and arrange seasonal fruit on a plate.",
+          "duration_min": 5
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "medium", "preparation": "sliced" },
-        { "ingredient_name": "Orange", "quantity": 1, "unit": "medium", "preparation": "segmented" },
-        { "ingredient_name": "Kiwi", "quantity": 1, "unit": "medium", "preparation": "sliced" }
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Orange",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "segmented"
+        },
+        {
+          "ingredient_name": "Kiwi",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        }
       ]
     },
-    { "title": "Nuts and Seeds Mix", "meal_type": "snack", "prep_time_min": 2, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 220, "protein_g": 8, "carbs_g": 8, "fat_g": 20, "fiber_g": 3, "sugar_g": 2, "sodium_mg": 10 },
+    {
+      "title": "Nuts and Seeds Mix",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 8,
+        "carbs_g": 8,
+        "fat_g": 20,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 10
+      },
       "instructions": [
-        { "step": 1, "text": "Combine walnuts, almonds, pumpkin seeds, and hemp seeds.", "duration_min": 1 }
+        {
+          "step": 1,
+          "text": "Combine walnuts, almonds, pumpkin seeds, and hemp seeds.",
+          "duration_min": 1
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Walnuts", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Almonds", "quantity": 2, "unit": "tbsp" },
-        { "ingredient_name": "Pumpkin Seeds", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Hemp Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Green Apple Ginger Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 240, "protein_g": 4, "carbs_g": 44, "fat_g": 6, "fiber_g": 6, "sugar_g": 28, "sodium_mg": 40 },
+    {
+      "title": "Green Apple Ginger Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 240,
+        "protein_g": 4,
+        "carbs_g": 44,
+        "fat_g": 6,
+        "fiber_g": 6,
+        "sugar_g": 28,
+        "sodium_mg": 40
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until smooth.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until smooth.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Apple", "quantity": 1, "unit": "large" },
-        { "ingredient_name": "Spinach", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Ginger", "quantity": 0.5, "unit": "inch", "preparation": "peeled" },
-        { "ingredient_name": "Lemon", "quantity": 0.5, "unit": "whole", "preparation": "juiced" },
-        { "ingredient_name": "Coconut Water", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Flax Seeds", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Apple",
+          "quantity": 1,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Ginger",
+          "quantity": 0.5,
+          "unit": "inch",
+          "preparation": "peeled"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Coconut Water",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Flax Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     },
-    { "title": "Raw Cacao and Banana Smoothie", "meal_type": "smoothie", "prep_time_min": 5, "cook_time_min": 0, "servings": 1, "difficulty": "easy",
-      "nutrition": { "calories": 310, "protein_g": 8, "carbs_g": 48, "fat_g": 12, "fiber_g": 7, "sugar_g": 22, "sodium_mg": 60 },
+    {
+      "title": "Raw Cacao and Banana Smoothie",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 310,
+        "protein_g": 8,
+        "carbs_g": 48,
+        "fat_g": 12,
+        "fiber_g": 7,
+        "sugar_g": 22,
+        "sodium_mg": 60
+      },
       "instructions": [
-        { "step": 1, "text": "Blend all ingredients until creamy.", "duration_min": 2 }
+        {
+          "step": 1,
+          "text": "Blend all ingredients until creamy.",
+          "duration_min": 2
+        }
       ],
       "ingredients": [
-        { "ingredient_name": "Frozen Banana", "quantity": 1, "unit": "whole" },
-        { "ingredient_name": "Cacao Powder", "quantity": 1, "unit": "tbsp" },
-        { "ingredient_name": "Almond Milk", "quantity": 1, "unit": "cup" },
-        { "ingredient_name": "Medjool Dates", "quantity": 2, "unit": "pieces", "preparation": "pitted" },
-        { "ingredient_name": "Almond Butter", "quantity": 1, "unit": "tbsp" }
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Cacao Powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Medjool Dates",
+          "quantity": 2,
+          "unit": "pieces",
+          "preparation": "pitted"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
       ]
     }
   ]

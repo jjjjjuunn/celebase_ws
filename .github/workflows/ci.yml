@@ -106,34 +106,9 @@ jobs:
         run: pip install pyyaml
 
       - name: Check policy compliance (deny patterns in source files)
-        run: |
-          # PR diff에서 실행 파일만 검사 (*.md 제외)
-          DENY_PATTERNS=(
-            "--no-verify"
-            "rm -rf"
-            "git push --force"
-            "git reset --hard"
-            "gen_random_uuid()"
-            "console.log"
-          )
-          FILES=$(git diff --name-only origin/main...HEAD -- '*.ts' '*.py' '*.sql' '*.sh' 2>/dev/null || true)
-          if [ -z "$FILES" ]; then
-            echo "✅ No source files changed, skipping policy check"
-            exit 0
-          fi
-          FOUND=0
-          for pattern in "${DENY_PATTERNS[@]}"; do
-            while IFS= read -r file; do
-              if [ -f "$file" ] && grep -n "$pattern" "$file"; then
-                echo "❌ Denied pattern '$pattern' found in $file"
-                FOUND=1
-              fi
-            done <<< "$FILES"
-          done
-          if [ "$FOUND" -eq 1 ]; then
-            exit 1
-          fi
-          echo "✅ Policy compliance check passed"
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: bash scripts/gate-check.sh policy
 
       - name: Check evaluator-runtime.md no direct playwright reference
         run: |
@@ -157,7 +132,6 @@ jobs:
     name: "🧹 Lint & Typecheck"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -187,7 +161,6 @@ jobs:
     name: "🧪 Tests"
     needs: [validate-docs, validate-schemas, validate-compliance]
     runs-on: ubuntu-latest
-    if: hashFiles('src/**', 'packages/**', 'services/**', 'package.json', 'pyproject.toml') != ''
     services:
       postgres:
         image: postgres:16
@@ -214,8 +187,28 @@ jobs:
     env:
       DATABASE_URL: postgresql://celebbase:testpw@localhost:5432/celebbase_test
       REDIS_URL: redis://localhost:6379
+      AUTH_PROVIDER: dev
+      INTERNAL_JWT_SECRET: ci-dev-secret-not-for-prod
+      INTERNAL_JWT_ISSUER: celebbase-user-service
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Python (meal-plan-engine)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        working-directory: services/meal-plan-engine
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+          .venv/bin/pytest --version
+
+      - name: Expose meal-plan-engine venv
+        run: echo "$GITHUB_WORKSPACE/services/meal-plan-engine/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -228,6 +221,72 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run test
+
+  # ============================================
+  # Job E2E: LocalStack Integration Tests
+  # ============================================
+  e2e-integration:
+    name: "🔗 E2E Integration (LocalStack)"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Setup Python (test runner)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install integration test deps
+        working-directory: services/meal-plan-engine
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Start infrastructure (postgres / redis / localstack)
+        run: |
+          docker compose up -d postgres redis localstack
+          timeout 60 bash -c \
+            'until curl -sf http://localhost:4566/_localstack/health; do sleep 2; done'
+          timeout 30 bash -c \
+            'until docker compose exec -T postgres pg_isready -U celebbase -d celebbase_dev; do sleep 1; done'
+
+      - name: Apply DB migrations
+        run: docker compose run --rm db-migrate
+
+      - name: Build and start application services
+        run: |
+          docker compose up --build -d user-service content-service meal-plan-engine
+          timeout 120 bash -c '
+            until \
+              curl -sf http://localhost:3001/health && \
+              curl -sf http://localhost:3002/health && \
+              curl -sf http://localhost:3003/health
+            do sleep 3; done
+          '
+
+      - name: Run E2E integration tests
+        working-directory: services/meal-plan-engine
+        env:
+          LOCALSTACK_ENDPOINT: http://localhost:4566
+          INTEGRATION_DATABASE_URL: postgresql://celebbase:devpw@localhost:5432/celebbase_dev
+          INTEGRATION_USER_SVC_URL: http://localhost:3001
+          INTEGRATION_MPE_URL: http://localhost:3003
+          INTEGRATION_SQS_ENDPOINT: http://localhost:4566
+          INTEGRATION_SQS_QUEUE_URL: http://localhost:4566/000000000000/meal-plan-generation
+          INTERNAL_JWT_SECRET: dev-secret-not-for-prod
+        run: |
+          .venv/bin/pytest tests/integration/ \
+            -m integration -v --timeout=120 --tb=short
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: docker compose logs --tail=200
 
   # ============================================
   # Job 4: Contract Tests (즉시 활성)
@@ -249,6 +308,140 @@ jobs:
 
       - name: Run contract tests
         run: pytest tests/contract/test_spec_contracts.py -v
+
+  # ============================================
+  # Job 4b: E2E Integration Tests (compose stack)
+  # ============================================
+  e2e-integration:
+    name: "🔗 E2E Integration"
+    needs: [validate-docs, validate-schemas, validate-compliance]
+    runs-on: ubuntu-latest
+    # Cold path: 4 cached builds 20-25 min + compose up 7-9 min + pytest 20 min
+    # + setup/teardown ~5 min ≈ 52-59 min. 60-min cap leaves ~1-8 min headroom.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build postgres+pg_uuidv7 (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: docker/postgres
+          load: true
+          tags: celebbase_ws-postgres:ci
+          cache-from: type=gha,scope=postgres
+          cache-to: type=gha,scope=postgres,mode=max
+
+      - name: Build user-service (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/user-service/Dockerfile
+          load: true
+          tags: celebbase_ws-user-service:ci
+          cache-from: type=gha,scope=user-service
+          cache-to: type=gha,scope=user-service,mode=max
+
+      - name: Build content-service (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/content-service/Dockerfile
+          load: true
+          tags: celebbase_ws-content-service:ci
+          cache-from: type=gha,scope=content-service
+          cache-to: type=gha,scope=content-service,mode=max
+
+      - name: Build meal-plan-engine (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/meal-plan-engine/Dockerfile
+          load: true
+          tags: celebbase_ws-meal-plan-engine:ci
+          cache-from: type=gha,scope=meal-plan-engine
+          cache-to: type=gha,scope=meal-plan-engine,mode=max
+
+      - name: Start compose stack
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            up -d --wait --wait-timeout 180
+        # Cold runners need 7-9 min for image pulls + 7-service health chain
+        # + --wait-timeout 180 (3 min) headroom. 12 min cap leaves ~3-5 min slack.
+        timeout-minutes: 12
+
+      - name: Sanity — dump ps + migrate logs
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml ps
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml logs db-migrate --no-color
+
+      - name: Wait for LocalStack SQS queue
+        # 30 attempts × 2s = 60s. LocalStack ready.d script typically finishes
+        # 35-40s after healthcheck first returns 200; 30s was too tight historically.
+        run: |
+          python3 -m pip install --quiet boto3
+          python3 - <<'PY'
+          import boto3, time, sys
+          c = boto3.client("sqs", endpoint_url="http://localhost:4566",
+                           region_name="us-east-1",
+                           aws_access_key_id="test", aws_secret_access_key="test")
+          for _ in range(30):
+              try:
+                  c.get_queue_url(QueueName="meal-plan-generation")
+                  sys.exit(0)
+              except Exception:
+                  time.sleep(2)
+          sys.exit(1)
+          PY
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install integration test deps (venv)
+        working-directory: services/meal-plan-engine
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Run E2E integration tests
+        working-directory: services/meal-plan-engine
+        run: .venv/bin/python -m pytest tests/integration/ -v --tb=short
+        # T1 polls up to 60s + T2 polls up to 75s + cold asyncpg first-connect ~10s.
+        timeout-minutes: 20
+
+      - name: Collect + sanitize compose logs on failure
+        if: failure()
+        # Strip lines where PHI_ENCRYPTION_KEY appears in key=value / "key": value
+        # shape (where leak risk is concentrated). Quoted variant catches JSON dumps.
+        # 60-zero value grep is belt-and-suspenders for any line containing the
+        # dummy key value (benign false positives OK).
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            logs --no-color --timestamps 2>&1 \
+            | grep -Eiv '"?phi[_-]?encryption[_-]?key"?[[:space:]]*[:=]' \
+            | grep -Ev '0{60,}' \
+            > /tmp/compose-logs-sanitized.txt
+          wc -l /tmp/compose-logs-sanitized.txt
+
+      - name: Upload compose logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-compose-logs-${{ github.run_id }}
+          path: /tmp/compose-logs-sanitized.txt
+          retention-days: 7
+
+      - name: Tear down compose stack
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker/docker-compose.ci.yml \
+            down --volumes --remove-orphans
 
   # ============================================
   # Job 5: Security Scan (즉시 활성)
@@ -323,8 +516,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        run: |
+          git init
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/jjjjjuunn/celebase_ws.git"
+          git fetch --depth 1 origin "${{ github.sha }}"
+          git checkout FETCH_HEAD
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -362,18 +561,18 @@ jobs:
       - validate-schemas
       - validate-compliance
       - contract-tests
+      - e2e-integration
       - security-scan
       - require-log-entry
       - lint-typecheck
       - test
+      - e2e-integration
       - generate-progress
     runs-on: ubuntu-latest
     if: always() && contains(needs.*.result, 'failure')
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Post failure comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7

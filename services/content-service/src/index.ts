@@ -1,4 +1,4 @@
-import { createApp, createPool } from '@celebbase/service-core';
+import { createApp, createPool, registerJwtAuth } from '@celebbase/service-core';
 import { z } from 'zod';
 import { celebrityRoutes } from './routes/celebrity.routes.js';
 import { baseDietRoutes } from './routes/baseDiet.routes.js';
@@ -14,6 +14,8 @@ const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
   const pool = createPool(env.DATABASE_URL);
   const app = await createApp({ serviceName: 'content-service' });
+
+  registerJwtAuth(app);
 
   await app.register(celebrityRoutes, { pool });
   await app.register(baseDietRoutes, { pool });

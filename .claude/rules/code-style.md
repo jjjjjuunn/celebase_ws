@@ -46,6 +46,112 @@ type ApiResponse<T> =
 - 각 package 의 `tsconfig.json` `include` 는 실제 lint/typecheck 대상 모든 경로를 포함해야 한다. `src` 만 포함하고 `scripts/*.ts` 를 제외하면 ESLint project-service 범위 밖이 되어 monorepo turbo lint 가 fail.
 - 빌드 대상과 tool script 의 tsconfig 가 분리되어야 할 때는 `tsconfig.scripts.json` 으로 분리하고 eslint override 로 `scripts/**` 를 해당 project 에 매핑한다.
 
+### `exactOptionalPropertyTypes` 조건부 spread (IMPL-016-a2 교훈)
+
+`tsconfig.json` 에 `exactOptionalPropertyTypes: true` 가 설정된 경우, optional 프로퍼티에 `undefined` 를 직접 할당하면 컴파일 실패한다. `RequestInit.body` 등 optional 필드는 조건부 spread 로 처리한다:
+
+```typescript
+// ❌ exactOptionalPropertyTypes 위반
+const init: RequestInit = { body: value ?? undefined };
+
+// ✅ 조건부 spread
+const init: RequestInit = {
+  ...(value !== undefined ? { body: JSON.stringify(value) } : {}),
+};
+```
+
+### `restrict-template-expressions` — number 변환 (IMPL-016-a2 교훈)
+
+ESLint `@typescript-eslint/restrict-template-expressions` 규칙은 template literal 에 `number` 타입을 직접 삽입하는 것을 금지한다. `String()` 으로 명시적 변환한다:
+
+```typescript
+// ❌ lint 실패
+throw new Error(`status: ${response.status} ${path}`);
+
+// ✅
+throw new Error(`status: ${String(response.status)} ${path}`);
+```
+
+### Node.js tsconfig 에서 `RequestInfo` 미존재 (IMPL-016-a2 교훈)
+
+`lib: ["ES2022"]` 만 포함된 Node.js tsconfig 에는 브라우저 전용 `RequestInfo` 타입이 없다. `fetch` 래퍼 함수를 작성할 때 파라미터를 `URL` 단일 타입으로 한정한다:
+
+```typescript
+// ❌ RequestInfo 는 브라우저 전역 타입
+async function fetchWithTimeout(input: RequestInfo | URL, ...): Promise<Response>
+
+// ✅ Node.js 환경에서는 URL 로 충분
+async function fetchWithTimeout(input: URL, ...): Promise<Response>
+```
+
+### `import type` 런타임 소거 — instanceof 사용 시 value import 필수 (IMPL-016-c1 교훈)
+
+에러 클래스를 `instanceof`로 체크하는 서비스에서 `import type { ErrClass }` 를 사용하면 런타임에 클래스가 소거되어 체크가 항상 false를 반환한다:
+
+```typescript
+// ❌ import type 으로 가져온 에러 클래스는 런타임에 없음
+import type { InstacartUnavailableError } from './instacart.adapter.js';
+if (err instanceof InstacartUnavailableError) { ... }  // 항상 false!
+
+// ✅ value import
+import { InstacartUnavailableError } from './instacart.adapter.js';
+```
+
+타입 전용 + 런타임 값이 같은 모듈에 있을 때 두 줄로 분리:
+```typescript
+import type { InstacartAdapter } from './instacart.adapter.js';
+import { InstacartUnavailableError } from './instacart.adapter.js';
+```
+
+### Pino logger API 인자 순서 (IMPL-016-c1 교훈)
+
+pino 는 **object 먼저, string 나중** 순서. `console.warn` 과 반대:
+
+```typescript
+// ❌ console.warn 스타일 — pino TS overload 불일치
+log.warn('instacart.cart.error', { status: 400 });
+
+// ✅ pino API
+log.warn({ status: 400 }, 'instacart.cart.error');
+```
+
+### Error 서브클래스 `override` 필수 (IMPL-016-c1 교훈)
+
+`noImplicitOverride: true` + `lib: ["ES2022"]` 환경에서 `Error` 멤버 재선언 시 `override` 필수:
+
+```typescript
+// ❌ TS4114
+export class CustomError extends Error {
+  readonly cause?: unknown;
+  name = 'CustomError';
+}
+
+// ✅
+export class CustomError extends Error {
+  override readonly cause?: unknown;
+  override name = 'CustomError';
+}
+```
+
+### pg.PoolClient 로거 없음 — FastifyBaseLogger 파라미터 주입 (IMPL-016-b3 교훈)
+
+`pg.PoolClient` 는 로거를 가지지 않는다. DB 트랜잭션 내부에서 structured log 를 남기려면 `FastifyBaseLogger` 를 서비스 함수 파라미터로 주입한다:
+
+```typescript
+// ❌ pg.PoolClient 에는 log 프로퍼티 없음
+client.log?.info('tier updated');  // undefined — 런타임 에러
+
+// ✅ FastifyBaseLogger 를 파라미터로 받아 라우트에서 request.log 전달
+export async function updateTier(
+  pool: pg.Pool,
+  userId: string,
+  tier: string,
+  idempotencyKey: string,
+  log: FastifyBaseLogger,
+): Promise<UpdateTierResult>
+// 라우트 핸들러: await updateTier(pool, userId, tier, key, request.log)
+```
+
 ## Python (AI Engine)
 
 ```python
@@ -115,6 +221,24 @@ const items = React.Children.toArray(children).filter(
   }
   ```
 - `cloneElement` 로 주입하는 prop 은 최소한 (`selected`, `onSelect`, `tabIndex`, `ref`) 로 제한 — 자식 내부 state 는 불변으로 보존.
+
+### optional field 조건부 렌더 — `!= null` 느슨한 비교 (IMPL-APP-005-c 교훈)
+
+optional (`string | null | undefined`) 필드의 존재 여부를 렌더 조건으로 쓸 때 `!= null` 한 줄로 null + undefined 동시 처리:
+
+```tsx
+// ❌ undefined를 놓침
+{meal.narrative !== null && <p>{meal.narrative}</p>}
+
+// ❌ 두 줄 중복
+{meal.narrative !== null && meal.narrative !== undefined && <p>{meal.narrative}</p>}
+
+// ✅ 느슨한 비교 — null + undefined 모두 처리
+{meal.narrative != null && <p>{meal.narrative}</p>}
+```
+
+- `!= null`은 `null`과 `undefined` 둘 다 잡는다 (ECMAScript 스펙).
+- 단, 빈 문자열(`""`)은 잡지 않는다. 빈 문자열도 숨겨야 하면 truthy 체크(`meal.narrative`) 사용.
 
 ## 공통 품질 규칙
 

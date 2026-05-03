@@ -73,12 +73,39 @@ check_policy() {
 
   cd "$WORK_DIR"
 
-  # Get changed files (compared to main)
+  # Determine diff base (CI-aware 5-branch fallback)
+  local base=""
+  if [[ -n "${GITHUB_BASE_REF:-}" ]] && git rev-parse --verify "origin/${GITHUB_BASE_REF}" >/dev/null 2>&1; then
+    base="origin/${GITHUB_BASE_REF}"
+  elif [[ -n "${GITHUB_EVENT_BEFORE:-}" && "${GITHUB_EVENT_BEFORE}" != "0000000000000000000000000000000000000000" ]] && git rev-parse --verify "${GITHUB_EVENT_BEFORE}" >/dev/null 2>&1; then
+    base="${GITHUB_EVENT_BEFORE}"
+  elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+    base="origin/main"
+  elif git rev-parse --verify main >/dev/null 2>&1; then
+    base="main"
+  else
+    base="HEAD~1"
+  fi
+
   local changed_files
-  changed_files=$(git diff --name-only main...HEAD -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || git diff --name-only HEAD~1 -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || echo "")
+  changed_files=$(git diff --name-only "${base}...HEAD" -- '*.ts' '*.tsx' '*.py' '*.sql' '*.sh' 2>/dev/null || echo "")
+
+  # Exclude self from scan to avoid self-match on the deny pattern strings
+  local SELF_EXCLUDE=("scripts/gate-check.sh")
+  local filtered=""
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    file="${file#./}"
+    local skip=0
+    for excl in "${SELF_EXCLUDE[@]}"; do
+      [[ "$file" == "$excl" ]] && { skip=1; break; }
+    done
+    [[ $skip -eq 0 ]] && filtered+="$file"$'\n'
+  done <<< "$changed_files"
+  changed_files="$filtered"
 
   if [[ -z "$changed_files" ]]; then
-    echo '{"name":"policy","passed":true,"exit_code":0,"output":"No changed files to check"}'
+    RESULTS+=('{"name":"policy","passed":true,"exit_code":0,"output":"No changed files to check"}')
     return
   fi
 
@@ -94,9 +121,22 @@ check_policy() {
     "console.log"
   )
 
+  # Test fixtures legitimately use destructive SQL for cleanup; limit those
+  # patterns to production code only.
+  local sql_destructive=("DROP TABLE" "TRUNCATE")
+
   for pattern in "${deny_patterns[@]}"; do
+    local scan_files="$changed_files"
+    local is_sql_destructive=0
+    for sqlp in "${sql_destructive[@]}"; do
+      [[ "$pattern" == "$sqlp" ]] && { is_sql_destructive=1; break; }
+    done
+    if [[ $is_sql_destructive -eq 1 ]]; then
+      scan_files=$(echo "$changed_files" | grep -v -E '(^|/)tests?/' || true)
+      [[ -z "$scan_files" ]] && continue
+    fi
     local matches
-    matches=$(echo "$changed_files" | xargs grep -l "$pattern" 2>/dev/null || true)
+    matches=$(echo "$scan_files" | xargs grep -l "$pattern" 2>/dev/null || true)
     if [[ -n "$matches" ]]; then
       issues+="DENY pattern '$pattern' found in: $matches\n"
       exit_code=1
@@ -276,8 +316,8 @@ check_sql_schema_alignment() {
 
     # Parse column names (strip whitespace, type casts, quotes)
     local insert_cols=()
-    IFS=',' read -ra col_parts <<< "$cols_raw"
-    for c in "${col_parts[@]}"; do
+    IFS=',' read -ra col_parts <<< "$cols_raw" || true
+    for c in "${col_parts[@]+"${col_parts[@]}"}"; do
       local col_name
       col_name=$(echo "$c" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/::[a-z]+//g;s/"//g')
       [[ -n "$col_name" ]] && insert_cols+=("$col_name")
@@ -306,7 +346,7 @@ check_sql_schema_alignment() {
     fi
 
     # Check each INSERT column exists in DDL
-    for col in "${insert_cols[@]}"; do
+    for col in "${insert_cols[@]+"${insert_cols[@]}"}"; do
       if ! echo "$ddl_cols" | grep -qw "$col"; then
         issues+="Column '${col}' in INSERT INTO ${table} not found in migration DDL\n"
         exit_code=1
@@ -611,6 +651,278 @@ check_fe_axe() {
   RESULTS+=("{\"name\":\"fe_axe\",\"passed\":true,\"exit_code\":0,\"output\":\"declared (browser_tool=$browser_tool) — evaluator runs actual axe injection\"}")
 }
 
+# FE BFF compliance: browser code must not reference service ports 3001/3002/3003.
+# Three-way enforcement per plan §A9:
+#   (a) ESLint no-restricted-syntax on literal URLs
+#   (b) Semgrep .semgrep.yml (no-direct-service-fetch)
+#   (c) grep -rn "localhost:300[123]" fallback catch
+# Scope: apps/web/src excluding app/api (BFF handlers are the only place these are allowed).
+check_fe_bff_compliance() {
+  if [[ ! -d "apps/web/src" ]]; then
+    RESULTS+=('{"name":"fe_bff_compliance","passed":true,"exit_code":0,"output":"skipped — apps/web/src not present"}')
+    return
+  fi
+
+  local issues=""
+  local combined_exit=0
+
+  # (a) ESLint no-restricted-syntax — matches literal URLs + template literals with
+  # localhost:3001/3002/3003. Uses a standalone flat config (scripts/eslint-bff.config.mjs)
+  # via --config so it bypasses the web workspace's main eslint setup.
+  local eslint_out
+  local eslint_exit=0
+  if [[ -f "scripts/eslint-bff.config.mjs" ]] && [[ -d "node_modules" ]]; then
+    eslint_out=$(pnpm exec eslint \
+      --config scripts/eslint-bff.config.mjs \
+      --no-error-on-unmatched-pattern \
+      'apps/web/src/**/*.ts' 'apps/web/src/**/*.tsx' \
+      'apps/web/src/**/*.js' 'apps/web/src/**/*.jsx' 2>&1) || eslint_exit=$?
+  else
+    eslint_out="[eslint] skipped — scripts/eslint-bff.config.mjs or node_modules missing"
+    eslint_exit=0
+  fi
+  if [[ $eslint_exit -ne 0 ]]; then
+    issues+=$'[eslint-no-restricted-syntax] fail\n'
+    issues+="$eslint_out"$'\n'
+    combined_exit=1
+  fi
+
+  # (b) Semgrep — only runs if semgrep binary is available; otherwise treat as advisory-skip.
+  if command -v semgrep >/dev/null 2>&1; then
+    local semgrep_out
+    local semgrep_exit=0
+    semgrep_out=$(semgrep --config .semgrep.yml --error --quiet apps/web/src 2>&1) || semgrep_exit=$?
+    if [[ $semgrep_exit -ne 0 ]]; then
+      issues+=$'[semgrep] fail\n'
+      issues+="$semgrep_out"$'\n'
+      combined_exit=1
+    fi
+  else
+    issues+=$'[semgrep] skipped — binary not installed (install via: brew install semgrep)\n'
+  fi
+
+  # (c) grep fallback — excludes BFF route handlers.
+  local grep_out
+  grep_out=$(grep -rn "localhost:300[123]" apps/web/src --exclude-dir=api 2>/dev/null || true)
+  if [[ -n "$grep_out" ]]; then
+    issues+=$'[grep] found forbidden references:\n'
+    issues+="$grep_out"$'\n'
+    combined_exit=1
+  fi
+
+  local passed="true"
+  if [[ $combined_exit -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$issues" | tail -40 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+  if [[ -z "$truncated" ]]; then
+    truncated="clean — 3-way BFF compliance check passed (eslint + semgrep + grep)"
+  fi
+
+  RESULTS+=("{\"name\":\"fe_bff_compliance\",\"passed\":$passed,\"exit_code\":$combined_exit,\"output\":\"$truncated\"}")
+}
+
+# FE BFF smoke: probe core /api/* routes. Requires Next.js dev server + backend docker-compose up.
+# Assumes server is externally started (like fe_slice_smoke pattern but without booting).
+# BASE defaults to http://localhost:3000; override with FE_BFF_BASE.
+check_fe_bff_smoke() {
+  local base="${FE_BFF_BASE:-http://localhost:3000}"
+  local nonexistent_uuid="00000000-0000-7000-8000-000000000000"
+  local issues=""
+  local combined_exit=0
+
+  if ! command -v curl >/dev/null 2>&1; then
+    RESULTS+=('{"name":"fe_bff_smoke","passed":false,"exit_code":1,"output":"curl not installed"}')
+    OVERALL_PASS=false
+    return
+  fi
+
+  # Helper: GET/POST and capture status only. On connection refused, curl still
+  # writes "000" via -w. Suppress stderr and avoid double-echo fallback.
+  probe_status() {
+    local method="$1"
+    local path="$2"
+    local body="${3:-}"
+    local url="${base}${path}"
+    local status
+    if [[ "$method" == "POST" ]]; then
+      status=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+        -H 'content-type: application/json' \
+        -d "$body" \
+        --max-time 10 "$url" 2>/dev/null)
+    else
+      status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" 2>/dev/null)
+    fi
+    [[ -z "$status" ]] && status="000"
+    echo "$status"
+  }
+
+  # /api/celebrities → 200
+  local s1
+  s1=$(probe_status GET /api/celebrities)
+  if [[ "$s1" != "200" ]]; then
+    issues+="[GET /api/celebrities] expected 200, got $s1"$'\n'
+    combined_exit=1
+  fi
+
+  # /api/users/me (unauth) → 401
+  local s2
+  s2=$(probe_status GET /api/users/me)
+  if [[ "$s2" != "401" ]]; then
+    issues+="[GET /api/users/me] expected 401, got $s2"$'\n'
+    combined_exit=1
+  fi
+
+  # POST /api/auth/login with invalid creds → 200 | 400 | 401
+  local s3
+  s3=$(probe_status POST /api/auth/login '{"email":"gate-smoke@celebbase.invalid","password":"x"}')
+  if [[ "$s3" != "200" && "$s3" != "400" && "$s3" != "401" ]]; then
+    issues+="[POST /api/auth/login] expected 200|400|401, got $s3"$'\n'
+    combined_exit=1
+  fi
+
+  # /api/meal-plans/<uuid> → 401 | 404
+  local s4
+  s4=$(probe_status GET "/api/meal-plans/${nonexistent_uuid}")
+  if [[ "$s4" != "401" && "$s4" != "404" ]]; then
+    issues+="[GET /api/meal-plans/<uuid>] expected 401|404, got $s4"$'\n'
+    combined_exit=1
+  fi
+
+  local passed="true"
+  if [[ $combined_exit -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local summary="celebrities=$s1 users/me=$s2 auth/login=$s3 meal-plans/:id=$s4"
+  local truncated
+  if [[ -n "$issues" ]]; then
+    truncated=$(printf '%s\n%s' "$summary" "$issues" | tail -20 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+  else
+    truncated="all 4 probes ok — $summary"
+  fi
+
+  RESULTS+=("{\"name\":\"fe_bff_smoke\",\"passed\":$passed,\"exit_code\":$combined_exit,\"output\":\"$truncated\"}")
+}
+
+# FE contract check: delegates to apps/web/scripts/verify-api-contracts.ts.
+# The script itself exits 0 with SKIP marker when no fixtures have been
+# recorded yet (apps/web/scripts/fixtures/ empty or missing). Once fixtures
+# are committed, Zod z.parse enforces per-schema; mismatches fail the gate.
+# Activated by IMPL-APP-002-0b (Sprint B gate infra).
+check_fe_contract_check() {
+  if [[ ! -f "apps/web/scripts/verify-api-contracts.ts" ]]; then
+    RESULTS+=('{"name":"fe_contract_check","passed":false,"exit_code":1,"output":"apps/web/scripts/verify-api-contracts.ts missing"}')
+    OVERALL_PASS=false
+    return
+  fi
+
+  local out
+  local exit_code=0
+  out=$(pnpm --filter web run verify:contracts 2>&1) || exit_code=$?
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    OVERALL_PASS=false
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$out" | tail -30 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_contract_check\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
+# FE BE probe: advisory gate (plan D26) — probes a live BE endpoint with
+# optional request body to close request-shape ambiguity before the BFF
+# chunk writes code. Does nothing useful in CI without a booted BE stack;
+# intended to be invoked from a developer workstation or an integration
+# runner. Requires scripts/verify-be-endpoint.sh arguments via FE_BE_PROBE_ARGS
+# (space-separated). Example:
+#   FE_BE_PROBE_ARGS='meal-plan PATCH /meal-plans/00000000-0000-7000-8000-000000000000 --body {"status":"active"} --expect 200,204,401,404,422' \
+#     scripts/gate-check.sh fe_be_probe
+check_fe_be_probe() {
+  if [[ ! -f "scripts/verify-be-endpoint.sh" ]]; then
+    RESULTS+=('{"name":"fe_be_probe","passed":false,"exit_code":1,"output":"scripts/verify-be-endpoint.sh missing"}')
+    OVERALL_PASS=false
+    return
+  fi
+  if [[ -z "${FE_BE_PROBE_ARGS:-}" ]]; then
+    # Advisory SKIP when no target specified — lets the 'all' wiring stay safe.
+    RESULTS+=('{"name":"fe_be_probe","passed":true,"exit_code":0,"output":"SKIP: set FE_BE_PROBE_ARGS to invoke verify-be-endpoint.sh (see D26)."}')
+    return
+  fi
+
+  local out
+  local exit_code=0
+  # Intentional word-splitting: args delivered by caller.
+  # shellcheck disable=SC2086
+  out=$(bash scripts/verify-be-endpoint.sh ${FE_BE_PROBE_ARGS} 2>&1) || exit_code=$?
+
+  local passed="true"
+  if [[ $exit_code -ne 0 ]]; then
+    passed="false"
+    # Advisory: don't flip OVERALL_PASS — BE stack availability is environmental.
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$out" | tail -10 | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"fe_be_probe\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
+# Plan 20-vast-adleman · Phase D-0 gate (H3): validate Instacart credentials
+# + allowlist posture before any /api/instacart/* route can run against prod.
+# Passes when:
+#   (a) INSTACART_API_KEY env or `.env.staging` entry is set to a non-placeholder value, AND
+#   (b) `api.instacart.com` or `connect.instacart.com` appears in the URL allowlist
+#       (harness/policy.yaml `allow.external_http` or equivalent).
+# Staging/dev without creds → passed:false with machine-readable reason so CD
+# can flip `/api/instacart/*` routes into mock-only mode (no prod rollout).
+check_instacart_cred() {
+  local issues=()
+  local env_value=""
+
+  if [[ -n "${INSTACART_API_KEY:-}" ]]; then
+    env_value="$INSTACART_API_KEY"
+  elif [[ -f "services/user-service/.env.staging" ]] && grep -q "^INSTACART_API_KEY=" services/user-service/.env.staging; then
+    env_value=$(grep "^INSTACART_API_KEY=" services/user-service/.env.staging | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")
+  fi
+
+  if [[ -z "$env_value" ]]; then
+    issues+=("INSTACART_API_KEY is not set (env or .env.staging)")
+  elif [[ "$env_value" == "xxx" || "$env_value" == "placeholder" || "$env_value" == "changeme" ]]; then
+    issues+=("INSTACART_API_KEY is still a placeholder ($env_value)")
+  fi
+
+  local allowlist_hit="false"
+  if [[ -f "harness/policy.yaml" ]] && grep -qE "api\.instacart\.com|connect\.instacart\.com" harness/policy.yaml; then
+    allowlist_hit="true"
+  fi
+  if [[ "$allowlist_hit" == "false" ]]; then
+    issues+=("harness/policy.yaml allowlist missing api.instacart.com / connect.instacart.com")
+  fi
+
+  local passed=true
+  local exit_code=0
+  local output=""
+  if (( ${#issues[@]} > 0 )); then
+    passed=false
+    exit_code=1
+    output=$(printf '%s; ' "${issues[@]}" | sed 's/; $//')
+    OVERALL_PASS="false"
+  else
+    output="INSTACART_API_KEY present + allowlist entry verified"
+  fi
+  local truncated
+  truncated=$(echo "$output" | head -c 500 | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g')
+  RESULTS+=("{\"name\":\"instacart_cred\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Run requested checks
 case "$CHECK" in
   typecheck)
@@ -655,6 +967,21 @@ case "$CHECK" in
   fe_axe)
     check_fe_axe
     ;;
+  fe_bff_compliance)
+    check_fe_bff_compliance
+    ;;
+  fe_bff_smoke)
+    check_fe_bff_smoke
+    ;;
+  fe_contract_check)
+    check_fe_contract_check
+    ;;
+  fe_be_probe)
+    check_fe_be_probe
+    ;;
+  instacart_cred)
+    check_instacart_cred
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -672,10 +999,13 @@ case "$CHECK" in
     check_fe_axe
     # fe_slice_smoke is not run in 'all' — it boots a dev server. Invoke explicitly:
     #   scripts/gate-check.sh fe_slice_smoke
+    # fe_bff_compliance / fe_bff_smoke / fe_contract_check are also out of 'all':
+    # the first needs pnpm+eslint+semgrep available, the second two need a running
+    # Next.js dev server + backend docker-compose. Invoke explicitly from CI workflow.
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, instacart_cred, all" >&2
     exit 1
     ;;
 esac

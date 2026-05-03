@@ -1,0 +1,17 @@
+rules:
+  - id: no-direct-service-fetch
+    message: |
+      Browser code must not reference service ports (3001/3002/3003) directly.
+      Use /api/* BFF route handlers. See .claude/plans/adaptive-mixing-creek.md §A1.
+    severity: ERROR
+    languages:
+      - generic
+    pattern-regex: 'localhost:(3001|3002|3003)'
+    paths:
+      include:
+        - 'apps/web/src/**/*.ts'
+        - 'apps/web/src/**/*.tsx'
+        - 'apps/web/src/**/*.js'
+        - 'apps/web/src/**/*.jsx'
+      exclude:
+        - 'apps/web/src/app/api/**'

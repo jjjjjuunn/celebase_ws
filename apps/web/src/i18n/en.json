@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "CelebBase Wellness",
+    "tagline": "Premium wellness platform for celebrity-inspired health routines"
+  },
+  "nav": {
+    "home": "Home",
+    "celebrities": "Celebrities",
+    "recipes": "Recipes",
+    "dashboard": "Dashboard",
+    "insights": "Insights",
+    "plans": "Meal Plans",
+    "account": "Account",
+    "track": "Track",
+    "logout": "Log out"
+  },
+  "home": {
+    "greetingReady": "{name}, your {celebrity} Blueprint is ready",
+    "greetingFallback": "Welcome back",
+    "noPlan": {
+      "title": "Pick your celebrity to begin",
+      "body": "Your Blueprint unlocks once you choose who inspires you.",
+      "cta": "Browse celebrities"
+    },
+    "dayZero": {
+      "title": "Open your first meal",
+      "body": "Your Blueprint is live — tap the hero card below."
+    },
+    "todayHero": {
+      "upNext": "Up next",
+      "viewDetails": "Why this meal",
+      "nihBadge": "NIH-calibrated"
+    },
+    "remaining": "Rest of today",
+    "weekStrip": {
+      "today": "Today"
+    },
+    "alignment": {
+      "title": "Blueprint Alignment",
+      "low": "This week is explore mode — alignment starts next week.",
+      "mid": "Steady rhythm — you're on the pace.",
+      "high": "Dialed in with your persona."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back. Sign in to continue.",
+      "emailLabel": "Email",
+      "submit": "Log in",
+      "pending": "Signing you in…",
+      "switchToSignup": "Don't have an account? Sign up"
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "Start exploring celebrity wellness routines.",
+      "emailLabel": "Email",
+      "displayNameLabel": "Display name",
+      "submit": "Create account",
+      "pending": "Creating your account…",
+      "switchToLogin": "Already have an account? Log in"
+    },
+    "sso": {
+      "orContinueWith": "or continue with",
+      "signingIn": "Signing in…"
+    },
+    "errors": {
+      "invalidCredentials": "Email or password is incorrect.",
+      "tokenExpired": "Your session expired. Please log in again.",
+      "networkError": "Couldn't reach the server. Please try again.",
+      "oauthFailed": "Sign-in failed. Please try again.",
+      "stateMismatch": "Sign-in request expired. Please start over."
+    },
+    "logoutSuccess": "You've been logged out."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "unexpectedError": "Something went wrong. Please try again."
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "goToDashboard": "Go to Dashboard",
+    "goToLogin": "Back to Login"
+  }
+}

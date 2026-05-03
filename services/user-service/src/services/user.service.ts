@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { User } from '@celebbase/shared-types';
+import type { User, UserPreferencesPatch } from '@celebbase/shared-types';
 import { NotFoundError, UnauthorizedError } from '@celebbase/service-core';
 import * as userRepo from '../repositories/user.repository.js';
 
@@ -8,6 +8,7 @@ type UpdateableUserFields = {
   avatar_url?: string | null | undefined;
   locale?: string | undefined;
   timezone?: string | undefined;
+  preferred_celebrity_slug?: string | null | undefined;
 };
 
 export async function getMe(pool: pg.Pool, userId: string): Promise<User> {
@@ -29,4 +30,14 @@ export async function updateMe(
 export async function deleteMe(pool: pg.Pool, userId: string): Promise<void> {
   await getMe(pool, userId); // ensure exists
   await userRepo.softDelete(pool, userId);
+}
+
+// Plan 22-vast-adleman · Phase C1 — merge-patch users.preferences.
+export async function mergePreferences(
+  pool: pg.Pool,
+  userId: string,
+  patch: UserPreferencesPatch,
+): Promise<User> {
+  await getMe(pool, userId); // ensure exists and not deleted
+  return userRepo.mergePreferences(pool, userId, patch);
 }

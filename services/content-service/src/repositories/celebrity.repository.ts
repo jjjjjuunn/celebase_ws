@@ -25,6 +25,14 @@ export async function findBySlug(pool: pg.Pool, slug: string): Promise<Celebrity
   return rows[0] ?? null;
 }
 
+export async function findById(pool: pg.Pool, id: string): Promise<Celebrity | null> {
+  const { rows } = await pool.query<Celebrity>(
+    'SELECT * FROM celebrities WHERE id = $1 AND is_active = TRUE LIMIT 1',
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
 export async function list(
   pool: pg.Pool,
   opts: ListCelebritiesOptions,

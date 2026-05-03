@@ -1,0 +1,9 @@
+Plan ID: {{ plan_id }}
+
+Please rank and narrate the following {{ recipe_ids | length }} recipe(s) by persona affinity for the **{{ persona_id }}** persona (rank 1 = best fit):
+
+{% for rid in recipe_ids %}
+- {{ rid }}
+{% endfor %}
+
+Return ALL {{ recipe_ids | length }} recipes above in your ranked JSON response, each with `narrative` and at least one `citation`.

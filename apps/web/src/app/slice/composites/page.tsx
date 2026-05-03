@@ -1,16 +1,30 @@
 'use client';
 
 import { useState } from 'react';
-import type { CSSProperties, JSX } from 'react';
+import type { ChangeEvent, CSSProperties, JSX } from 'react';
 import {
   Chip,
+  IngredientSwapCard,
   InputField,
+  InstacartCartPreview,
+  MealCard,
+  NutritionRing,
+  PersonaHero,
+  SavingsBanner,
   SegmentedControl,
   SelectField,
   SlotChip,
   SlotChipGroup,
+  SourceTrackingBadge,
   Stack,
+  StockSubstitutionPopup,
   Text,
+  TrafficLightIndicator,
+} from '@celebbase/ui-kit';
+import type {
+  CelebrityCardData,
+  InstacartLineItem,
+  StockSubstitutionOption,
 } from '@celebbase/ui-kit';
 
 const SECTION_STYLE: CSSProperties = {
@@ -78,6 +92,42 @@ const DISABLED_RANGE_OPTIONS = [
 
 const DIET_KEYS = ['mediterranean', 'keto', 'paleo', 'vegan'] as const;
 
+const DEMO_CART_ITEMS: InstacartLineItem[] = [
+  { id: 'quinoa', name: 'Organic quinoa, tri-color', quantity: 2, unit: 'lb', priceCents: 899 },
+  { id: 'salmon', name: 'Wild sockeye salmon fillet', quantity: 1, unit: 'lb', priceCents: 2499 },
+  { id: 'avocado', name: 'Hass avocado', quantity: 4, unit: 'ct', priceCents: 599, substituted: true },
+  { id: 'spinach', name: 'Baby spinach', quantity: 1, unit: 'bag', priceCents: 449 },
+];
+
+const DEMO_SUB_OPTIONS: StockSubstitutionOption[] = [
+  { id: 'haas', name: 'Haas avocado (loose)', priceCents: 549, note: 'Same variety, sold individually' },
+  { id: 'bag', name: 'Avocado bag (6 ct)', priceCents: 799, note: 'Bulk option — slightly riper' },
+  { id: 'guac', name: 'Pre-made guacamole', priceCents: 699, note: 'Skip the prep — 5g added fiber' },
+];
+
+const DEMO_PERSONAS: CelebrityCardData[] = [
+  {
+    slug: 'tom-brady',
+    displayName: 'Tom Brady',
+    shortBio: 'Anti-inflammatory, plant-forward fuel.',
+    avatarUrl: '',
+    coverImageUrl: null,
+    category: 'protein',
+    tags: ['Anti-inflammatory', 'Alkaline'],
+    isFeatured: true,
+  },
+  {
+    slug: 'gwyneth-paltrow',
+    displayName: 'Gwyneth Paltrow',
+    shortBio: 'Mediterranean with intermittent windows.',
+    avatarUrl: '',
+    coverImageUrl: null,
+    category: 'diet',
+    tags: ['Mediterranean', 'IF'],
+    isFeatured: false,
+  },
+];
+
 export default function CompositesPreview(): JSX.Element {
   const [emailValue, setEmailValue] = useState<string>('');
   const [fullNameValue, setFullNameValue] = useState<string>('');
@@ -134,7 +184,7 @@ export default function CompositesPreview(): JSX.Element {
             label="Email address"
             helperText="We'll never share your email."
             value={emailValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setEmailValue(e.target.value);
             }}
           />
@@ -144,7 +194,7 @@ export default function CompositesPreview(): JSX.Element {
             required
             {...(fullNameError ? { error: fullNameError } : {})}
             value={fullNameValue}
-            onChange={(e): void => {
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => {
               setFullNameValue(e.target.value);
             }}
           />
@@ -325,6 +375,170 @@ export default function CompositesPreview(): JSX.Element {
             <SlotChip value="17:00" timeLabel="5:00 PM" priceLabel="$30" />
           </SlotChipGroup>
         </Stack>
+      </Section>
+
+      <Section id="traffic-light" title="TrafficLightIndicator">
+        <Stack direction="column" gap="3">
+          <div style={ROW_STYLE}>
+            <TrafficLightIndicator status="green" />
+            <TrafficLightIndicator status="orange" />
+            <TrafficLightIndicator status="red" />
+            <TrafficLightIndicator status="green" label="Cleared for your allergies" />
+            <TrafficLightIndicator status="orange" size="sm" label="Sodium moderate" />
+          </div>
+          <Text variant="body" size="sm" tone="muted">
+            Swap-context variant is rendered inside IngredientSwapCard below.
+          </Text>
+        </Stack>
+      </Section>
+
+      <Section id="source-tracking" title="SourceTrackingBadge">
+        <div style={ROW_STYLE}>
+          <SourceTrackingBadge
+            sourceLabel="Vogue 2024"
+            href="https://www.vogue.com/"
+            verifiedAt="2024-11"
+          />
+          <SourceTrackingBadge
+            sourceLabel="Harvard Med News"
+            href="https://hms.harvard.edu/news"
+            verifiedAt="2025-03"
+          />
+          <SourceTrackingBadge sourceLabel="USDA FDC" href="https://fdc.nal.usda.gov/" />
+        </div>
+      </Section>
+
+      <Section id="nutrition-ring" title="NutritionRing (brand + persona tones)">
+        <div style={ROW_STYLE}>
+          <NutritionRing value={42} label="Adherence" tone="brand" size="sm" />
+          <NutritionRing
+            value={78}
+            label="Adherence"
+            subLabel="Target 2150 kcal"
+            tone="brand"
+            size="md"
+          />
+          <NutritionRing
+            value={100}
+            label="Sync"
+            subLabel="Tom Brady persona"
+            tone="persona"
+            size="lg"
+          />
+        </div>
+      </Section>
+
+      <Section id="meal-card" title="MealCard">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 'var(--cb-space-4)',
+          }}
+        >
+          <MealCard
+            title="Quinoa bowl with seared salmon"
+            celebrityTag="Tom Brady"
+            mealType="Lunch"
+            kcal={620}
+            safetyStatus="green"
+            onShopIngredients={() => {
+              // demo slot — wired in fulfillment feature later
+            }}
+            sourceBadge={
+              <SourceTrackingBadge
+                sourceLabel="Vogue 2024"
+                href="https://www.vogue.com/"
+                verifiedAt="2024-11"
+              />
+            }
+          />
+          <MealCard
+            title="Mediterranean mezze plate"
+            celebrityTag="Gwyneth Paltrow"
+            mealType="Dinner"
+            kcal={540}
+            safetyStatus="orange"
+          />
+        </div>
+      </Section>
+
+      <Section id="ingredient-swap" title="IngredientSwapCard (Safety Bridge framing)">
+        <Stack direction="column" gap="4">
+          <IngredientSwapCard
+            status="green"
+            original={{ name: 'Almond milk', note: 'in original recipe' }}
+            replacement={{ name: 'Oat milk', note: 'suggested by AI' }}
+            reason="Your profile flags a tree-nut allergy. Oat milk keeps the creamy texture and matches macros within 3%."
+          >
+            This suggestion considers your recorded allergies and is for educational
+            purposes only — not medical advice.
+          </IngredientSwapCard>
+
+          <IngredientSwapCard
+            status="orange"
+            original={{ name: 'Raw salmon' }}
+            replacement={{ name: 'Seared salmon' }}
+            reason="You indicated pregnancy in onboarding. Fully cooked replaces raw to lower listeria exposure risk."
+          >
+            Not a medical diagnosis. Consult a clinician for your specific case.
+          </IngredientSwapCard>
+        </Stack>
+      </Section>
+
+      <Section id="persona-hero" title="PersonaHero (persona-first onboarding)">
+        <PersonaHero
+          celebrities={DEMO_PERSONAS}
+          footnote="Educational only — not medical advice."
+        />
+      </Section>
+
+      <Section id="instacart-cart" title="InstacartCartPreview">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 'var(--cb-space-4)',
+          }}
+        >
+          <InstacartCartPreview
+            items={DEMO_CART_ITEMS}
+            subtotalCents={4446}
+            status="ready"
+            onCheckout={() => {
+              // demo slot — wired in fulfillment feature later
+            }}
+            footer="Delivery by 7:30 PM · Handed to shopper at checkout."
+          />
+          <InstacartCartPreview
+            items={DEMO_CART_ITEMS.slice(0, 2)}
+            subtotalCents={3398}
+            status="private_chef"
+            footer="Private Chef prep — includes a 45-min cook session."
+          />
+        </div>
+      </Section>
+
+      <Section id="stock-substitution" title="StockSubstitutionPopup">
+        <StockSubstitutionPopup
+          originalItem="Hass avocado (4 ct)"
+          reason="Out of stock at your local store right now."
+          options={DEMO_SUB_OPTIONS}
+          onApprove={() => {
+            // demo — wired in fulfillment feature
+          }}
+          onReject={() => {
+            // demo — skip item
+          }}
+        />
+      </Section>
+
+      <Section id="savings-banner" title="SavingsBanner (3-way comparison)">
+        <SavingsBanner
+          aiPlanCents={4446}
+          diyCents={6200}
+          privateChefCents={18500}
+        />
       </Section>
     </Stack>
   );

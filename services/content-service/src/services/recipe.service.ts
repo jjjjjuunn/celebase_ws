@@ -6,7 +6,13 @@ import * as baseDietRepo from '../repositories/baseDiet.repository.js';
 import type { RecipeWithIngredients, ListRecipesOptions } from '../repositories/recipe.repository.js';
 import type { ListResult } from '../repositories/celebrity.repository.js';
 
-export interface PersonalizedRecipe extends RecipeWithIngredients {
+export interface PersonalizedRecipe {
+  recipe: RecipeWithIngredients;
+  personalization: {
+    scaling_factor: number;
+    adjusted_nutrition: RecipeWithIngredients['nutrition'];
+    adjusted_servings: number;
+  };
   allergen_conflicts: string[];
 }
 
@@ -14,6 +20,17 @@ export async function getRecipe(pool: pg.Pool, id: string): Promise<RecipeWithIn
   const recipe = await recipeRepo.findById(pool, id);
   if (!recipe) throw new NotFoundError('Recipe not found');
   return recipe;
+}
+
+// Plan 22 · Phase D3 — batch lookup. Callers pass up to 32 UUIDs (route-enforced).
+// Silently drops ids not found or soft-deleted so preview flows degrade gracefully.
+export async function getRecipesByIds(
+  pool: pg.Pool,
+  ids: readonly string[],
+): Promise<RecipeWithIngredients[]> {
+  if (ids.length === 0) return [];
+  const unique = Array.from(new Set(ids));
+  return recipeRepo.findByIds(pool, unique);
 }
 
 export async function listByBaseDiet(
@@ -45,5 +62,13 @@ export async function getPersonalized(
     }
   }
 
-  return { ...recipe, allergen_conflicts: allergenConflicts };
+  return {
+    recipe,
+    personalization: {
+      scaling_factor: 1.0,
+      adjusted_nutrition: recipe.nutrition,
+      adjusted_servings: recipe.servings,
+    },
+    allergen_conflicts: allergenConflicts,
+  };
 }

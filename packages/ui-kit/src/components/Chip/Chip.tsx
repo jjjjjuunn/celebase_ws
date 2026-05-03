@@ -1,6 +1,6 @@
 'use client';
 
-import type { MouseEvent, ReactElement, ReactNode } from 'react';
+import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react';
 import styles from './Chip.module.css';
 
 export type ChipSize = 'sm' | 'md';
@@ -46,16 +46,54 @@ export function Chip(props: ChipProps): ReactElement {
     onToggle?.();
   };
 
-  const handleRemoveClick = (event: MouseEvent<HTMLButtonElement>): void => {
+  const doRemove = (): void => { if (!disabled) onRemove?.(); };
+
+  const handleRemoveClick = (event: MouseEvent<HTMLElement>): void => {
     event.stopPropagation();
-    if (disabled) return;
-    onRemove?.();
+    doRemove();
+  };
+
+  const handleRemoveKeyDown = (event: KeyboardEvent<HTMLSpanElement>): void => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.stopPropagation();
+      doRemove();
+    }
   };
 
   const commonProps = {
     className: rootClasses,
     'aria-disabled': disabled ? ('true' as const) : undefined,
   };
+
+  const isRootButton = isToggle || onToggle !== undefined;
+
+  const removeEl = onRemove ? (
+    isRootButton ? (
+      // Cannot nest <button> inside <button> — use span with role
+      <span
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        className={styles.removeButton}
+        onClick={handleRemoveClick}
+        onKeyDown={handleRemoveKeyDown}
+        aria-label={`Remove ${label}`}
+        aria-disabled={disabled ? 'true' : undefined}
+      >
+        <span aria-hidden="true">×</span>
+      </span>
+    ) : (
+      <button
+        type="button"
+        className={styles.removeButton}
+        onClick={handleRemoveClick}
+        aria-label={`Remove ${label}`}
+        disabled={disabled}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    )
+  ) : null;
 
   const body = (
     <>
@@ -65,21 +103,11 @@ export function Chip(props: ChipProps): ReactElement {
         </span>
       ) : null}
       <span className={styles.label}>{label}</span>
-      {onRemove ? (
-        <button
-          type="button"
-          className={styles.removeButton}
-          onClick={handleRemoveClick}
-          aria-label={`Remove ${label}`}
-          disabled={disabled}
-        >
-          <span aria-hidden="true">×</span>
-        </button>
-      ) : null}
+      {removeEl}
     </>
   );
 
-  if (isToggle || onToggle !== undefined) {
+  if (isRootButton) {
     return (
       <button
         {...commonProps}

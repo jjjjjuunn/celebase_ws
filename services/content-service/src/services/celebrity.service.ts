@@ -10,6 +10,12 @@ export async function getCelebrity(pool: pg.Pool, slug: string): Promise<Celebri
   return celebrity;
 }
 
+export async function getCelebrityById(pool: pg.Pool, id: string): Promise<Celebrity> {
+  const celebrity = await repo.findById(pool, id);
+  if (!celebrity) throw new NotFoundError('Celebrity not found');
+  return celebrity;
+}
+
 export async function listCelebrities(
   pool: pg.Pool,
   opts: ListCelebritiesOptions,
