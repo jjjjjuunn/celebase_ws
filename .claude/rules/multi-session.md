@@ -97,10 +97,30 @@ BFF 는 BE/FE 양쪽에 의존하므로 일반적으로 **마지막에 진입**:
 1. `pnpm -r typecheck && pnpm -r lint` 통과 확인
 2. `docs/IMPLEMENTATION_LOG.md` 2-commit 패턴 (root CLAUDE.md Workflow 4) 적용
 3. PR open or main 직접 머지 (단순 변경)
-4. 사용된 브랜치는 머지 후 즉시 origin 에서 삭제 (`git push origin --delete`)
+4. 사용된 브랜치는 머지 후 즉시 origin 에서 삭제. 권장 패턴:
+   ```bash
+   gh pr merge <NUM> --squash --delete-branch
+   # --delete-branch 가 worktree 점유로 실패하면:
+   git push origin --delete <branch-name>
+   ```
 5. 사용된 worktree 는 `git worktree remove` 로 정리
 
 방치하면 49 브랜치 사태 재발한다.
+
+### 8.1 정기 점검 (월 1회 이상)
+
+`gh pr merge --delete-branch` 가 누락되거나 squash/rebase 머지로 ahead 가 남는 케이스가 누적되면 다시 BRANCH-CONSOLIDATION 사태가 발생한다. 다음 명령을 **월 1회 이상** 실행하여 origin 을 정리한다:
+
+```bash
+scripts/branch-cleanup.sh           # dry-run — SAFE / ABSORBED / ACTIVE / STALE 분류 출력
+scripts/branch-cleanup.sh --apply   # SAFE 카테고리 (PR MERGED + ahead=0) 자동 삭제
+```
+
+분류 의미:
+- **SAFE**: PR MERGED + main 대비 ahead=0 → `--apply` 시 자동 삭제
+- **ABSORBED**: PR MERGED/CLOSED 인데 ahead>0 (squash·rebase 흔적) → `git diff origin/main..origin/<branch>` 로 확인 후 개별 삭제
+- **ACTIVE**: PR OPEN 또는 7일 이내 push → 보존
+- **STALE**: PR 없음 + 14일 이상 미활동 → 작업 의도 사라진 것은 아닌지 확인 후 삭제
 
 ## 9. 충돌 발생 시 우선순위
 
