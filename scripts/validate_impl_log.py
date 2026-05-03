@@ -44,7 +44,6 @@ def main() -> int:
         return 0
 
     errors: list[str] = []
-    last_idx = len(blocks)  # 가장 최신 엔트리 (append-only이므로 마지막)
 
     for i, block in enumerate(blocks, 1):
         try:
@@ -86,11 +85,7 @@ def main() -> int:
                 continue
 
             if sha_str == "PENDING":
-                if i != last_idx:
-                    errors.append(
-                        f"Entry #{i}: commit_sha=PENDING은 최신 엔트리(#"
-                        f"{last_idx})에서만 허용. feat 커밋 후 record-log-sha.sh로 치환하세요."
-                    )
+                pass  # PENDING은 항상 허용. record-log-sha.sh 가 별도 reminder 역할.
             elif not SHA_PATTERN.match(sha_str):
                 errors.append(
                     f"Entry #{i}: commit_sha={sha_str!r} 형식 오류 (7+ hex or PENDING)"

@@ -1559,6 +1559,27 @@ verified_by: claude-opus-4-7
 
 ---
 date: 2026-04-17
+agent: agent-claude-opus-4-7
+task_id: CHORE-001
+commit_sha: b178734
+files_changed:
+  - .claude/tasks.yaml
+  - .claude/tasks.schema.json
+  - .claude/rules/task-yaml-conventions.md
+verified_by: agent-claude-opus-4-7 + agent-codex-o3-review-x3
+---
+### 완료: tasks.yaml schema drift 정리 (Option C Hybrid) — IMPL-016 CI prereq
+- `.claude/tasks.yaml` 7개 owner 값 normalize: IMPL-002/003/004-a/004-b/004-c/005/006 에 `agent-` prefix 추가. 복합 owner (IMPL-004-c) 는 `agent-claude-opus-4-6 + agent-codex-o3` 로 양쪽 모두 prefix.
+- `.claude/tasks.schema.json` 3 pattern 확장: id/dependsOn 패턴에 `(-[a-z])?` 추가 (sub-task suffix 허용), owner 패턴에 ` + ` 분리 composite 허용. `agent-/human-` prefix 강제는 양쪽 part 모두 유지 → 보안 의도 보존.
+- `.claude/rules/task-yaml-conventions.md` 신규 — 향후 drift 재발 방지용 표기 규칙 문서. front-matter `paths:` 로 rules-loader 규약 준수.
+- 검증: 13 tasks 로컬 jsonschema.validate PASS. pipeline/runs/harness/scripts bare owner grep → pipeline/runs/IMPL-004-b/gate-review.json 의 `judge:` 1건만 발견 (owner 와 다른 필드, schema 강제 대상 아님, append-only 기록이라 미수정).
+- Codex o3 adversarial review 3 라운드: R1/R2 에서 실효 3건 (grep step 5b / front-matter / grep 필터 noise) 반영, R3 CONVERGED.
+- 배경: 7개월간 누적된 10건 drift 가 첫 GitHub push 시 CI `validate-schemas` job 을 막으면서 IMPL-016 포함 downstream 전체 job `needs:` chain 으로 skip 됨.
+### 미완료: IMPL-016 PR #1 rebase + ci.yml e2e-integration job 재적용 (Phase 2, 별도 PR).
+### 연관 파일: .claude/tasks.yaml, .claude/tasks.schema.json, .claude/rules/task-yaml-conventions.md
+
+---
+date: 2026-04-17
 agent: claude-opus-4-7
 task_id: IMPL-APP-000a
 commit_sha: 121047f
