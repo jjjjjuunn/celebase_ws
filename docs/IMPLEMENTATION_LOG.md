@@ -3574,7 +3574,7 @@ PIVOT-2026-05 Phase 1 의 첫 contract-only 머지. BE/BFF/FE 3-세션 병렬 �
 date: 2026-05-04
 agent: claude-opus-4-7 + codex-o3 (implement) + claude-self-adversarial (L3 2-pass review)
 task_id: IMPL-018-b
-commit_sha: PENDING
+commit_sha: dbbe2ab
 files_changed:
   - db/migrations/0014_lifestyle_claims.sql
   - services/content-service/src/repositories/lifestyle-claim.repository.ts
