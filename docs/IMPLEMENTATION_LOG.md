@@ -3616,7 +3616,7 @@ PIVOT-2026-05 Phase 1 BE 트랙 두 번째 머지. shared-types contract (IMPL-0
 date: 2026-05-04
 agent: claude-opus-4-7 + codex-gpt-5-codex (implement + review + qa-exec)
 task_id: IMPL-018-c
-commit_sha: PENDING
+commit_sha: 92aadeb
 files_changed:
   - services/content-service/src/index.ts
   - services/content-service/src/routes/lifestyle-claim.routes.ts
