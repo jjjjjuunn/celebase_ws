@@ -149,6 +149,46 @@ describe('lifestyle-claim.repository', () => {
       expect(values[0]).toBe(CELEBRITY_ID);
       expect(values[values.length - 1]).toBe(3);
     });
+
+    it('applies claim_type and trust_grade filters with parameterized clauses', async () => {
+      query.mockResolvedValueOnce({ rows: [makeClaim({ claim_type: 'workout', trust_grade: 'A' })] });
+
+      await listByCelebrity(pool, CELEBRITY_ID, {
+        claim_type: 'workout',
+        trust_grade: 'A',
+        limit: 5,
+      });
+
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(/lc\.claim_type\s*=\s*\$2/);
+      expect(sql).toMatch(/lc\.trust_grade\s*=\s*\$3/);
+      expect(values[0]).toBe(CELEBRITY_ID);
+      expect(values[1]).toBe('workout');
+      expect(values[2]).toBe('A');
+      expect(values[values.length - 1]).toBe(6);
+    });
+
+    it('decodes valid cursor and adds composite (published_at, id) < ($N, $M) predicate', async () => {
+      const cursorPayload = { published_at: FIXED_DATE.toISOString(), id: CLAIM_ID_1 };
+      const cursor = Buffer.from(JSON.stringify(cursorPayload), 'utf8').toString('base64');
+      query.mockResolvedValueOnce({ rows: [makeClaim({ id: CLAIM_ID_2 })] });
+
+      const result = await listByCelebrity(pool, CELEBRITY_ID, { cursor, limit: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.has_next).toBe(false);
+
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(
+        /\(lc\.published_at,\s*lc\.id\)\s*<\s*\(\$2::timestamptz,\s*\$3::uuid\)/,
+      );
+      expect(values[0]).toBe(CELEBRITY_ID);
+      expect(values[1]).toBe(FIXED_DATE.toISOString());
+      expect(values[2]).toBe(CLAIM_ID_1);
+      expect(values[values.length - 1]).toBe(11);
+    });
   });
 
   describe('listFeed', () => {
@@ -185,6 +225,71 @@ describe('lifestyle-claim.repository', () => {
       expect(sql).not.toMatch(/published_at,\s*lc\.id\)\s*</);
       const values = query.mock.calls[0]?.[1] as unknown[];
       expect(values).toEqual([6]);
+    });
+
+    it('applies trust_grade filter via parameterized clause', async () => {
+      query.mockResolvedValueOnce({ rows: [makeClaim({ trust_grade: 'A' })] });
+
+      await listFeed(pool, { trust_grade: 'A', limit: 10 });
+
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(/lc\.trust_grade\s*=\s*\$1/);
+      expect(values[0]).toBe('A');
+      expect(values[values.length - 1]).toBe(11);
+    });
+
+    it('decodes valid cursor and adds composite predicate in feed query', async () => {
+      const cursorPayload = { published_at: FIXED_DATE.toISOString(), id: CLAIM_ID_1 };
+      const cursor = Buffer.from(JSON.stringify(cursorPayload), 'utf8').toString('base64');
+      query.mockResolvedValueOnce({ rows: [makeClaim({ id: CLAIM_ID_2 })] });
+
+      const result = await listFeed(pool, { cursor, limit: 7 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.has_next).toBe(false);
+
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(
+        /\(lc\.published_at,\s*lc\.id\)\s*<\s*\(\$1::timestamptz,\s*\$2::uuid\)/,
+      );
+      expect(values[0]).toBe(FIXED_DATE.toISOString());
+      expect(values[1]).toBe(CLAIM_ID_1);
+      expect(values[values.length - 1]).toBe(8);
+    });
+  });
+
+  describe('decodeCursor invalid-shape branch', () => {
+    let pool: pg.Pool;
+    let query: MockQuery;
+
+    beforeEach(() => {
+      ({ pool, query } = makePool());
+    });
+
+    it('treats valid base64-JSON array (wrong shape) as no cursor', async () => {
+      const cursor = Buffer.from(JSON.stringify([1, 2, 3]), 'utf8').toString('base64');
+      query.mockResolvedValueOnce({ rows: [makeClaim()] });
+
+      const result = await listFeed(pool, { cursor, limit: 5 });
+
+      expect(result.items).toHaveLength(1);
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).not.toMatch(/published_at,\s*lc\.id\)\s*</);
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(values).toEqual([6]);
+    });
+
+    it('treats valid base64-JSON object missing required fields as no cursor', async () => {
+      const cursor = Buffer.from(JSON.stringify({ foo: 'bar' }), 'utf8').toString('base64');
+      query.mockResolvedValueOnce({ rows: [makeClaim()] });
+
+      const result = await listFeed(pool, { cursor, limit: 5 });
+
+      expect(result.items).toHaveLength(1);
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).not.toMatch(/published_at,\s*lc\.id\)\s*</);
     });
   });
 
