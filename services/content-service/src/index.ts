@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { celebrityRoutes } from './routes/celebrity.routes.js';
 import { baseDietRoutes } from './routes/baseDiet.routes.js';
 import { recipeRoutes } from './routes/recipe.routes.js';
+import { lifestyleClaimRoutes } from './routes/lifestyle-claim.routes.js';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3002),
@@ -20,6 +21,7 @@ const start = async (): Promise<void> => {
   await app.register(celebrityRoutes, { pool });
   await app.register(baseDietRoutes, { pool });
   await app.register(recipeRoutes, { pool });
+  await app.register(lifestyleClaimRoutes, { pool });
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });
