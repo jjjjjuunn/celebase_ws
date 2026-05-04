@@ -3485,3 +3485,39 @@ verified_by: claude-opus-4-7 (L3 adversarial review, 1 HIGH → fix 후 PASS)
 ### 미완료: (선택 보강) llm_reranker.py:343 narrative log hash 화 / macro_rebalancer kcal scaling 1.0 no-op 부정 테스트 — 모두 out-of-scope MEDIUM, 미래 phase.
 
 ### 연관 파일: services/meal-plan-engine/, pipeline/runs/IMPL-AI-002/, /Users/junwon/.claude/plans/lucky-soaring-platypus.md
+
+---
+date: 2026-05-03
+agent: claude-opus-4-7
+task_id: PIVOT-2026-05
+commit_sha: PENDING
+files_changed:
+  - spec.md
+  - .claude/tasks.yaml
+  - pipeline/runs/IMPL-018-a/CODEX-HANDOFF.md
+  - pipeline/runs/PIVOT-2026-05/agreement.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (schema regex PASS, task transition PASS, shared-types typecheck baseline PASS, agreement BFF endpoints grep PASS)
+---
+### 완료: PIVOT-2026-05 Phase 0 — 셀럽 웰니스 피벗 킥오프 (spec v1.5.0 + tasks split + agreement + handoff)
+
+CelebBase 의 첫 사용자 경험을 "셀럽 철학 기반 개인화 식단 추천" 에서 "출처 기반 셀럽 lifestyle claim 카드 피드" 로 전환하는 피벗의 사전 정렬 단계. 코드 변경 없는 문서/계약 작업.
+
+**Phase 0 산출물**:
+- **spec.md v1.4.1 → v1.5.0**: §1.1 Core Value Loop 다이어그램 교체 ([Curated Lifestyle Claim Feed] → [Profile/Detail with Sources] → [Inspired Meal Plan CTA]), §1.2 Aspirational Millennial 페르소나 강조, §3.4 Enum Glossary 3행 추가 (`claim_type`/`trust_grade`/`claim_status`), **§3.5 LifestyleClaim Domain Models 신규** (3.5.1 claim_type 7값 정의 / 3.5.2 trust_grade A~E + Published Gate 정책 / 3.5.3 DDL `lifestyle_claims` + `claim_sources` + `trust_grade_published_gate` CHECK + partial UNIQUE on `is_primary` + GIN index on `tags` / 3.5.4 §9.3 cross-ref), §6A Trend Intelligence 에 §3.5 cross-ref (Phase 2+ trend_signals → lifestyle_claims draft → moderation), §7.2 Tab 1 Discover → "Wellness Claims Feed" 재작성 (claim_type 탭 + ClaimCard + Inspired Meal Plan CTA), **§9.3 Security claim 도메인 안전/법적 7원칙** (HTML sanitize, URL allowlist/SSRF, soft delete propagation, draft 미노출, trust_grade gate, is_health_claim 주체, allowlist-only seed validator).
+
+- **tasks.yaml 7건 등록**: IMPL-018-a (L2 contract-only) → IMPL-018-b (L3 migration+repo) → IMPL-018-c (L2 routes+integ) / BFF-018 (L2 proxy routes) / IMPL-019 (L1 seed JSON, owner human-junwon) / IMPL-020 (L3 inspired meal plan CTA) / IMPL-021 (L3 admin moderation). 스키마 regex `^[A-Z]+-\d{3}(-[a-z])?$` 준수 위해 IMPL-BFF-018 → BFF-018 단일 도메인 형식으로 명명.
+
+- **pipeline/runs/IMPL-018-a/CODEX-HANDOFF.md**: contract-only HANDOFF, 파일 budget 4.5 (신규 1 × 1.5 + 수정 3 × 1.0). Anti-Patterns 8항 (parity guard 누락, url() max 누락, HTML 태그 reject 추가 금지, 서비스 코드 포함 금지, import type vs value 혼용, source_type 별도 enum 금지, enum 값 임의 추가 금지, multi-session lock).
+
+- **pipeline/runs/PIVOT-2026-05/agreement.md**: multi-session 사전 합의서. Locked enum changes (BE 단독 hold), BFF endpoint contract 동결 (`GET /api/celebrities/[slug]/claims`, `GET /api/claims/feed`, `GET /api/claims/[id]`), FE mock policy (`NEXT_PUBLIC_USE_MOCK_CLAIMS`), 48h integration gate.
+
+**위험 완화** (plan v2 리뷰 반영 9개): SSRF — seed-validator HTTP HEAD 금지, allowlist + regex 만 허용 / XSS — plain text only + dangerouslySetInnerHTML 금지 / soft delete propagation — `JOIN celebrities ON c.is_active = TRUE` 강제 / is_primary multi-row — partial UNIQUE index / shared-types parity drift — IMPL-018-a HANDOFF Acceptance에 parity guard 명시 / multi-session enum 충돌 — agreement.md lock / 48h FE 미연결 — BFF-018 별도 티켓 + integration gate / 단일 커밋 부분 상태 — 명시 path staging / hallucinated URL — IMPL-019 owner human-junwon.
+
+**검증**: spec.md grep (claim_type/trust_grade/claim_status 17회 등장 확인), tasks.yaml regex PASS (43 IDs all valid), `python3 scripts/check_task_transitions.py` ✅, agreement.md BFF endpoint 3종 grep PASS, `pnpm --filter @celebbase/shared-types typecheck` baseline 유지 (코드 변경 없음).
+
+**Review tier**: PIVOT-2026-05 Phase 0 자체는 문서 작업 (L1 chore equivalent) — Codex/Gemini 리뷰 없음. plan v1 → v2 갱신 시 self-adversarial 1회 통과.
+
+### 미완료: Phase 1 — IMPL-018-a 머지가 BE/BFF/FE 3-세션 병렬 진입 게이트. IMPL-018-b/-c, BFF-018, IMPL-UI-031~033, IMPL-019, IMPL-020, IMPL-021 7+3 티켓 후속 진행.
+
+### 연관 파일: spec.md, .claude/tasks.yaml, pipeline/runs/IMPL-018-a/CODEX-HANDOFF.md, pipeline/runs/PIVOT-2026-05/agreement.md, /Users/junwon/.claude/plans/plan-swift-blossom.md

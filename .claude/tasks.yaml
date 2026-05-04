@@ -449,3 +449,98 @@ tasks:
       - "daily-log 데이터 집계 API (7일/30일 요약) ✅"
       - "user-service daily-log → analytics-service 이전 또는 이벤트 소비 ✅"
       - "Dockerfile + docker-compose 통합 ✅"
+
+  # ============================================
+  # PIVOT-2026-05 — Wellness Claims 도메인 (spec §3.5)
+  # 의존 그래프: 018-a → {018-b, 018-c, BFF-018, 019} → {020, 021}
+  # ============================================
+
+  - id: IMPL-018-a
+    title: "LifestyleClaim shared-types contract (Zod + entities + enums)"
+    owner: agent-codex-o3
+    dependsOn: []
+    status: pending
+    definitionOfDone:
+      - "packages/shared-types/src/schemas/lifestyle-claims.ts 신규 — ClaimType/TrustGrade/ClaimStatus z.enum + ClaimSourceWireSchema + LifestyleClaimWireSchema + List/Detail Response"
+      - "packages/shared-types/src/enums.ts — ClaimType/TrustGrade/ClaimStatus export 추가"
+      - "packages/shared-types/src/entities.ts — LifestyleClaim/ClaimSource Row 타입 + parity guard (celebrities.ts:72~88 패턴)"
+      - "packages/shared-types/src/index.ts — export 추가"
+      - "headline/body/excerpt Zod 측 plain text 강제 (HTML 태그 reject)"
+      - "url 필드는 z.string().url().max(2048).nullable()"
+      - "pnpm --filter @celebbase/shared-types typecheck 통과"
+      - "review tier L2 (Codex 1) 통과"
+
+  - id: IMPL-018-b
+    title: "LifestyleClaim DB migration 0014 + content-service repository"
+    owner: agent-codex-o3
+    dependsOn:
+      - IMPL-018-a
+    status: pending
+    definitionOfDone:
+      - "db/migrations/0014_lifestyle_claims.sql 신규 — claim_type/trust_grade/claim_status enum + lifestyle_claims + claim_sources + GIN(tags) + UNIQUE on is_primary + trust_grade_published_gate CHECK"
+      - "services/content-service/src/repositories/lifestyle-claim.repository.ts 신규 — 서빙 쿼리 모두 JOIN celebrities ON c.is_active=TRUE 조건 (spec §9.3 #3)"
+      - "public 조회는 status='published' AND is_active=TRUE 강제 (spec §9.3 #4)"
+      - "tier L3 (Codex 2 + Gemini fallback) 통과"
+
+  - id: IMPL-018-c
+    title: "LifestyleClaim content-service routes + integration tests"
+    owner: agent-codex-o3
+    dependsOn:
+      - IMPL-018-b
+    status: pending
+    definitionOfDone:
+      - "services/content-service/src/routes/lifestyle-claims.ts 신규 — GET /celebrities/:slug/claims, GET /claims/feed, GET /claims/:id"
+      - "integration tests — published only / draft 차단 / soft-deleted celebrity claim 차단 / cursor pagination has_next"
+      - "tier L2 (Codex 1) 통과"
+
+  - id: BFF-018
+    title: "BFF claim proxy routes (Next.js App Router) — /api/celebrities/[slug]/claims, /api/claims/feed, /api/claims/[id]"
+    owner: agent-codex-o3
+    dependsOn:
+      - IMPL-018-a
+    status: pending
+    definitionOfDone:
+      - "apps/web/src/app/api/celebrities/[slug]/claims/route.ts 신규"
+      - "apps/web/src/app/api/claims/feed/route.ts 신규"
+      - "apps/web/src/app/api/claims/[id]/route.ts 신규"
+      - "BFF endpoint 계약은 pipeline/runs/PIVOT-2026-05/agreement.md 와 일치"
+      - "shared-types LifestyleClaimListResponse / Detail 직접 사용"
+      - "NEXT_PUBLIC_USE_MOCK_CLAIMS=true 일 때 fixture 응답 (FE 미연결 회피)"
+      - "tier L2 (Codex 1) 통과 — IMPL-018-c 머지 전이라도 mock 분기로 머지 가능"
+
+  - id: IMPL-019
+    title: "Seed claims (사람 작성 JSON + allowlist-only validator)"
+    owner: human-junwon
+    dependsOn:
+      - IMPL-018-a
+    status: pending
+    definitionOfDone:
+      - "db/seeds/lifestyle-claims/*.json — 셀럽 25명 × 평균 30 claim seed JSON"
+      - "scripts/validate-claim-seeds.py — URL regex + 도메인 allowlist 매칭만 (HTTP 요청 절대 금지, spec §9.3 #7)"
+      - ".github/workflows/ci.yml 의 validate-schemas job 에 seed validator 추가"
+      - "tier L1 (CI auto)"
+
+  - id: IMPL-020
+    title: "Inspired meal plan CTA — claim → base_diet → meal plan 연결"
+    owner: agent-codex-o3
+    dependsOn:
+      - IMPL-018-c
+      - IMPL-019
+    status: pending
+    definitionOfDone:
+      - "claim.base_diet_id 가 있는 경우만 CTA 노출 — FE/BFF/BE 모두 동일 조건"
+      - "BFF /api/claims/[id]/inspired-plan POST — base_diet_id → meal-plan-engine 호출"
+      - "is_health_claim=true 인 claim 의 CTA 는 disclaimer 동의 모달 강제"
+      - "tier L3 (Codex 2 + Gemini fallback)"
+
+  - id: IMPL-021
+    title: "Admin moderation queue — status 전이 + is_health_claim toggle + soft delete 전파"
+    owner: agent-codex-o3
+    dependsOn:
+      - IMPL-018-c
+    status: pending
+    definitionOfDone:
+      - "admin 라우트 — draft → published 전이 (trust_grade gate 적용, spec §9.3 #5)"
+      - "is_health_claim toggle UI + BE re-validate (spec §9.3 #6)"
+      - "celebrity deactivate 트리거 — published claim 일괄 archived (spec §9.3 #3)"
+      - "tier L3 (Codex 2 + Gemini fallback)"
