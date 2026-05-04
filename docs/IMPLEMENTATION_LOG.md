@@ -3611,3 +3611,44 @@ PIVOT-2026-05 Phase 1 BE 트랙 두 번째 머지. shared-types contract (IMPL-0
 ### 미완료: IMPL-018-c (content-service routes + integration tests, dependsOn IMPL-018-b 머지 = 본 entry), BFF-018 (proxy routes), IMPL-019 (seed JSON + allowlist validator), IMPL-UI-031 (ClaimCard ui-kit) — 본 머지 직후 BE 트랙 IMPL-018-c 와 BFF/FE/seed 트랙 병렬 진행.
 
 ### 연관 파일: db/migrations/0014_lifestyle_claims.sql, services/content-service/src/repositories/lifestyle-claim.repository.ts, services/content-service/tests/unit/lifestyle-claim.repository.test.ts, pipeline/runs/IMPL-018-b/CODEX-HANDOFF.md, pipeline/runs/IMPL-018-b/QA-PLAN.md, pipeline/runs/IMPL-018-b/LESSONS.md, pipeline/runs/IMPL-018-b/review-r1.md, pipeline/runs/IMPL-018-b/review-r2.md
+
+---
+date: 2026-05-04
+agent: claude-opus-4-7 + codex-gpt-5-codex (implement + review + qa-exec)
+task_id: IMPL-018-c
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/index.ts
+  - services/content-service/src/routes/lifestyle-claim.routes.ts
+  - services/content-service/tests/unit/lifestyle-claim.routes.test.ts
+verified_by: "claude-opus-4-7 + codex-review (L2 — Codex 1 review verdict PASS, CRITICAL/HIGH/MEDIUM 0, LOW 1 (magic number 100 — improvement suggestion only), fix-request 0회)"
+---
+### 완료: IMPL-018-c — LifestyleClaim content-service routes + unit tests
+
+PIVOT-2026-05 Phase 1 BE 트랙 세 번째 머지. IMPL-018-a (shared-types contract) + IMPL-018-b (migration 0014 + repository) 위에 HTTP route 레이어를 얹어 agreement.md 동결 계약 (`/celebrities/:slug/claims`, `/claims/feed`, `/claims/:id`) 을 BE 측에서 충족. 본 머지 직후 BFF-018 proxy 와 IMPL-019 seed validator, IMPL-UI-031 ClaimCard 가 병렬 진입 가능.
+
+**구현 내용**:
+- `services/content-service/src/routes/lifestyle-claim.routes.ts` (신규 122 줄): 3 endpoints — `GET /celebrities/:slug/claims` · `GET /claims/feed` · `GET /claims/:id`. Zod `.strict()` query/params schema → `safeParse` → `ValidationError` 변환 패턴, repository 에 cursor / limit / claim_type / trust_grade 필터 위임, `LifestyleClaimListResponseSchema` / `LifestyleClaimDetailResponseSchema` 형태로 직렬화. service-core `ValidationError` / `NotFoundError` 활용으로 일관된 에러 포맷 (Absolute Rule #3 Zod 검증).
+- `services/content-service/src/index.ts` (수정 +2 줄): `lifestyleClaimRoutes` import + `app.register(lifestyleClaimRoutes, { pool })`.
+- `services/content-service/tests/unit/lifestyle-claim.routes.test.ts` (신규 319 줄, 12 tests): `jest.unstable_mockModule` + dynamic `await import('../src/routes/lifestyle-claim.routes.js')` ESM mock 패턴, Fastify `app.inject()` in-process 통합 테스트 (DB pool 차단). 200/400/404 분기 + .strict() reject + cursor round-trip + repository 호출 인자 검증.
+
+**검증**:
+- Codex QA: `pnpm --filter @celebbase/content-service test -- --coverage` → **40/40 PASS** (lifestyle-claim.routes 12/12 신규 + 기존 28/28), `lifestyle-claim.routes.ts` line coverage 100%.
+- `pnpm --filter @celebbase/content-service typecheck` exit 0
+- `pnpm --filter @celebbase/content-service lint` exit 0
+- Route 등록 grep: `lifestyleClaimRoutes` in `src/index.ts` 2 matches (import 1 + register 1) ✅
+- 3 endpoints exposed grep: `/celebrities/:slug/claims`, `/claims/feed`, `/claims/:id` 3 matches ✅
+- service boundary grep: 다른 서비스 테이블 직접 접근 0건 ✅
+- contract 정합성: `agreement.md` ↔ `lifestyle-claim.routes.ts` 양쪽 3 매치 동일 ✅
+- gate-implement / gate-qa: turbo-wide test FAIL (apps/web `USER_SERVICE_URL` 환경변수 결손, services/meal-plan-engine `pythonjsonlogger` 모듈 결손) → **IMPL-016-c1 + IMPL-018-b precedent 누적 3건** 으로 scope-separation PASS 판정. `pipeline-log.jsonl` 에 `gate_decision: pass`, `review_method: claude_direct`, `reason: out_of_scope_failures` 기록.
+
+**Review tier**: L2 (단일 서비스 route 추가, DB 스키마 변경 없음). Codex 1 review verdict **PASS** — CRITICAL/HIGH/MEDIUM 0, LOW 1 (limit upper bound 100 magic number → improvement suggestion only). fix-request 0회.
+
+**Lessons (LESSONS.md → Obsidian)**:
+- 신규 패턴 5: L2 단일 서비스 route 추가는 Claude `Write` 직접 구현이 Codex 위임보다 효율적 (repository 가 IMPL-018-b 에서 안정화됨) / `jest.unstable_mockModule` + dynamic `await import('...js')` ESM repository mock / Fastify `app.inject()` in-process 통합 테스트 (DB 의존 0) / Zod `.strict()` → `safeParse` → `ValidationError` 변환 일관 패턴 / agreement.md frozen contract grep 매칭으로 contract drift 자동 검증.
+- 안티패턴 2: turbo-wide test out-of-scope failure 누적 3건 (IMPL-016-c1, IMPL-018-b, IMPL-018-c) → 패턴 stable 표시 / finalize 단계가 worktree 의 `.venv-python` symlink 부산물을 자동 commit → `git reset --soft HEAD~1` + `rm` 정리 패턴 정착.
+- rules 병합 대상: `.claude/rules/pipeline.md` Claude-Codex 하이브리드 분업 표에 IMPL-018-c 사례 추가, `.claude/rules/testing-ci.md` 에 "ESM Repository Mock Pattern" + "In-Process Route Integration Tests" 신규 섹션, `.claude/rules/pipeline.md` 워크트리 관리 항목에 finalize 후 origin/main..HEAD log 검증 권장.
+
+### 미완료: BFF-018 (proxy routes), IMPL-019 (seed JSON + allowlist validator), IMPL-UI-031 (ClaimCard ui-kit), IMPL-020 (Inspired meal plan CTA), IMPL-021 (Admin moderation queue) — 본 머지 직후 BFF/FE/seed 3-트랙 병렬 진입 가능.
+
+### 연관 파일: services/content-service/src/index.ts, services/content-service/src/routes/lifestyle-claim.routes.ts, services/content-service/tests/unit/lifestyle-claim.routes.test.ts, pipeline/runs/IMPL-018-c/CODEX-HANDOFF.md, pipeline/runs/IMPL-018-c/QA-PLAN.md, pipeline/runs/IMPL-018-c/LESSONS.md

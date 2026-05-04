@@ -484,14 +484,14 @@ tasks:
 
   - id: IMPL-018-c
     title: "LifestyleClaim content-service routes + integration tests"
-    owner: agent-codex-o3
+    owner: "agent-claude-opus-4-7 + agent-codex-gpt-5-codex"
     dependsOn:
       - IMPL-018-b
-    status: pending
+    status: done
     definitionOfDone:
-      - "services/content-service/src/routes/lifestyle-claims.ts 신규 — GET /celebrities/:slug/claims, GET /claims/feed, GET /claims/:id"
-      - "integration tests — published only / draft 차단 / soft-deleted celebrity claim 차단 / cursor pagination has_next"
-      - "tier L2 (Codex 1) 통과"
+      - "services/content-service/src/routes/lifestyle-claim.routes.ts 신규 — GET /celebrities/:slug/claims, GET /claims/feed, GET /claims/:id"
+      - "unit tests (12 tests, 100% line coverage on routes) — Fastify app.inject() in-process + jest.unstable_mockModule ESM mock"
+      - "tier L2 (Codex 1) PASS — verdict CRITICAL/HIGH/MEDIUM 0, LOW 1 (improvement suggestion only), fix-request 0회"
 
   - id: BFF-018
     title: "BFF claim proxy routes (Next.js App Router) — /api/celebrities/[slug]/claims, /api/claims/feed, /api/claims/[id]"
