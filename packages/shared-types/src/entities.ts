@@ -6,6 +6,9 @@
 import type {
   ActivityLevel,
   CelebrityCategory,
+  ClaimType,
+  ClaimStatus,
+  TrustGrade,
   DietType,
   MealPlanStatus,
   MealType,
@@ -306,4 +309,48 @@ export interface PhiAccessLog {
   ip_address: string | null;
   created_at: Date;
   retention_until: Date;
+}
+
+// ── lifestyle_claims ───────────────────────────────────────────────────────
+
+export interface LifestyleClaim {
+  id: string;
+  celebrity_id: string;
+  claim_type: ClaimType;
+  headline: string;
+  body: string | null;
+  trust_grade: TrustGrade;
+  primary_source_url: string | null;
+  verified_by: string | null;
+  last_verified_at: Date | null;
+  is_health_claim: boolean;
+  disclaimer_key: string | null;
+  base_diet_id: string | null;
+  tags: string[];
+  status: ClaimStatus;
+  published_at: Date | null;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// ── claim_sources ──────────────────────────────────────────────────────────
+
+export interface ClaimSource {
+  id: string;
+  claim_id: string;
+  source_type:
+    | 'interview'
+    | 'social_post'
+    | 'podcast'
+    | 'book'
+    | 'article'
+    | 'press_release'
+    | 'other';
+  outlet: string;
+  url: string | null;
+  published_date: Date | null;
+  excerpt: string | null;
+  is_primary: boolean;
+  created_at: Date;
 }

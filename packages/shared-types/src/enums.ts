@@ -94,3 +94,22 @@ export type RecipeDifficulty = z.infer<typeof RecipeDifficulty>;
 
 export const Sex = z.enum(['male', 'female', 'other', 'prefer_not_to_say']);
 export type Sex = z.infer<typeof Sex>;
+
+// ── lifestyle claims ────────────────────────────────────────────────────
+
+export const ClaimType = z.enum([
+  'food',
+  'workout',
+  'sleep',
+  'beauty',
+  'brand',
+  'philosophy',
+  'supplement',
+]);
+export type ClaimType = z.infer<typeof ClaimType>;
+
+export const TrustGrade = z.enum(['A', 'B', 'C', 'D', 'E']);
+export type TrustGrade = z.infer<typeof TrustGrade>;
+
+export const ClaimStatus = z.enum(['draft', 'published', 'archived']);
+export type ClaimStatus = z.infer<typeof ClaimStatus>;
