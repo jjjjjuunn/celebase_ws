@@ -495,18 +495,19 @@ tasks:
 
   - id: BFF-018
     title: "BFF claim proxy routes (Next.js App Router) — /api/celebrities/[slug]/claims, /api/claims/feed, /api/claims/[id]"
-    owner: agent-codex-o3
+    owner: agent-claude-opus-4-7
     dependsOn:
       - IMPL-018-a
-    status: pending
+    status: done
     definitionOfDone:
-      - "apps/web/src/app/api/celebrities/[slug]/claims/route.ts 신규"
-      - "apps/web/src/app/api/claims/feed/route.ts 신규"
-      - "apps/web/src/app/api/claims/[id]/route.ts 신규"
-      - "BFF endpoint 계약은 pipeline/runs/PIVOT-2026-05/agreement.md 와 일치"
-      - "shared-types LifestyleClaimListResponse / Detail 직접 사용"
-      - "NEXT_PUBLIC_USE_MOCK_CLAIMS=true 일 때 fixture 응답 (FE 미연결 회피)"
-      - "tier L2 (Codex 1) 통과 — IMPL-018-c 머지 전이라도 mock 분기로 머지 가능"
+      - "apps/web/src/app/api/celebrities/[slug]/claims/route.ts 신규 — createPublicRoute + fetchBff('content', ...) + LifestyleClaimListResponseSchema"
+      - "apps/web/src/app/api/claims/feed/route.ts 신규 — 전체 셀럽 mixed feed"
+      - "apps/web/src/app/api/claims/[id]/route.ts 신규 — { claim, sources } envelope, LifestyleClaimDetailResponseSchema"
+      - "BFF endpoint 계약은 pipeline/runs/PIVOT-2026-05/agreement.md §4 와 grep 매칭 (3 endpoints 동일)"
+      - "shared-types LifestyleClaim*ResponseSchema 직접 사용 (Zod 검증)"
+      - "NEXT_PUBLIC_USE_MOCK_CLAIMS=true 일 때 inline MOCK_CLAIM_* fixture + X-BFF-Mock: claims 헤더"
+      - "integration tests 15건 (5 시나리오 × 3 라우트, CJS jest mode) — 200 forward + 502 UPSTREAM_UNREACHABLE + 504 UPSTREAM_TIMEOUT + 502 BFF_CONTRACT_VIOLATION + mock branch (또는 detail 의 404 propagation)"
+      - "tier L2 — Claude direct review (boilerplate proxy + Zod validation), fix-request 0회. PR1 #19 (404b706) + PR2 #20 + PR3 #21 머지 완료."
 
   - id: IMPL-019
     title: "Seed claims (사람 작성 JSON + allowlist-only validator)"
