@@ -3657,7 +3657,7 @@ PIVOT-2026-05 Phase 1 BE 트랙 세 번째 머지. IMPL-018-a (shared-types cont
 date: 2026-05-04
 agent: claude-opus-4-7
 task_id: BFF-018
-commit_sha: PENDING
+commit_sha: 404b706
 files_changed:
   - apps/web/.env.example
   - apps/web/src/app/api/celebrities/[slug]/claims/route.ts
