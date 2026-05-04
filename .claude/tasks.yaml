@@ -457,9 +457,9 @@ tasks:
 
   - id: IMPL-018-a
     title: "LifestyleClaim shared-types contract (Zod + entities + enums)"
-    owner: agent-codex-o3
+    owner: agent-claude-opus-4-7 + agent-codex-o3
     dependsOn: []
-    status: pending
+    status: done
     definitionOfDone:
       - "packages/shared-types/src/schemas/lifestyle-claims.ts 신규 — ClaimType/TrustGrade/ClaimStatus z.enum + ClaimSourceWireSchema + LifestyleClaimWireSchema + List/Detail Response"
       - "packages/shared-types/src/enums.ts — ClaimType/TrustGrade/ClaimStatus export 추가"
