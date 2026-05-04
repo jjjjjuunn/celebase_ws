@@ -472,10 +472,10 @@ tasks:
 
   - id: IMPL-018-b
     title: "LifestyleClaim DB migration 0014 + content-service repository"
-    owner: agent-codex-o3
+    owner: agent-claude-opus-4-7 + agent-codex-o3
     dependsOn:
       - IMPL-018-a
-    status: pending
+    status: done
     definitionOfDone:
       - "db/migrations/0014_lifestyle_claims.sql 신규 — claim_type/trust_grade/claim_status enum + lifestyle_claims + claim_sources + GIN(tags) + UNIQUE on is_primary + trust_grade_published_gate CHECK"
       - "services/content-service/src/repositories/lifestyle-claim.repository.ts 신규 — 서빙 쿼리 모두 JOIN celebrities ON c.is_active=TRUE 조건 (spec §9.3 #3)"
