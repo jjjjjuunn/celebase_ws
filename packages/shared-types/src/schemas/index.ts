@@ -6,6 +6,7 @@ export * from './auth.js';
 export * from './users.js';
 export * from './bio-profiles.js';
 export * from './celebrities.js';
+export * from './lifestyle-claims.js';
 export * from './recipes.js';
 export * from './meal-plans.js';
 export * from './plan-preview.js';

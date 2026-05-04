@@ -3521,3 +3521,51 @@ CelebBase 의 첫 사용자 경험을 "셀럽 철학 기반 개인화 식단 추
 ### 미완료: Phase 1 — IMPL-018-a 머지가 BE/BFF/FE 3-세션 병렬 진입 게이트. IMPL-018-b/-c, BFF-018, IMPL-UI-031~033, IMPL-019, IMPL-020, IMPL-021 7+3 티켓 후속 진행.
 
 ### 연관 파일: spec.md, .claude/tasks.yaml, pipeline/runs/IMPL-018-a/CODEX-HANDOFF.md, pipeline/runs/PIVOT-2026-05/agreement.md, /Users/junwon/.claude/plans/plan-swift-blossom.md
+
+---
+date: 2026-05-04
+agent: claude-opus-4-7 + codex-o3 (implement) + codex-o3 (review)
+task_id: IMPL-018-a
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/enums.ts
+  - packages/shared-types/src/schemas/index.ts
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+verified_by: claude-opus-4-7 + codex-review (L2 — Codex 1 review pass, verdict PASS, 0 CRITICAL/HIGH/MEDIUM, 1 LOW out-of-scope)
+---
+### 완료: IMPL-018-a — LifestyleClaim shared-types contract (Zod + entities + enums)
+
+PIVOT-2026-05 Phase 1 의 첫 contract-only 머지. BE/BFF/FE 3-세션 병렬 진입 게이트 해제.
+
+**구현 내용**:
+- `enums.ts`: `ClaimType` (food/workout/sleep/beauty/brand/philosophy/supplement 7값), `TrustGrade` (A/B/C/D/E), `ClaimStatus` (draft/published/archived) Zod enum 추가.
+- `entities.ts`: `LifestyleClaim` Row 인터페이스 (id/celebrity_id/claim_type/headline/body/trust_grade/primary_source_url/verified_by/last_verified_at/is_health_claim/disclaimer_key/base_diet_id/tags/status/published_at/is_active/created_at/updated_at), `ClaimSource` Row 인터페이스 (id/claim_id/source_type/outlet/url/published_date/excerpt/is_primary/created_at) 추가.
+- `schemas/lifestyle-claims.ts` (신규 107 줄): `ClaimSourceWireSchema` + `LifestyleClaimWireSchema` + `LifestyleClaimDetailResponseSchema` + `LifestyleClaimListResponseSchema` (cursor pagination + `has_next` boolean) + 두 쌍의 parity guard (`null as unknown as Wire satisfies { ...Row 필드 }`) — `_lifestyleClaimWireRowParity` / `_claimSourceWireRowParity`.
+- `schemas/index.ts`: barrel export 한 줄 추가.
+
+**Zod 제약**:
+- `headline: z.string().min(1).max(280)`
+- `body: z.string().max(10000).nullable()`
+- `excerpt: z.string().max(300).nullable()` (fair-use 인용)
+- `primary_source_url: z.string().url().max(2048).nullable()`, `claim_sources.url: z.string().url().max(2048).nullable()` — SSRF 1차 방어 + 저장소 폭증 차단
+- `tags: z.array(z.string()).default([])`
+- `published_date: z.string().date().nullable()`
+
+**검증**:
+- `pnpm --filter @celebbase/shared-types typecheck` PASS
+- `pnpm --filter @celebbase/shared-types lint` PASS (warning 1 — 다른 파일, 본 PR 범위 밖)
+- `gate-check.sh` policy/secrets/fake_stubs/sql_schema/service_boundary/phi_audit/migration_freshness/fe_token_hardcode/fe_axe 9종 PASS
+- `gate-check.sh` build/test FAIL — 본 PR 범위 밖 (apps/web BFF env 결손, services/meal-plan-engine venv 결손) → IMPL-016-c1 precedent 인용 PASS
+- Codex review (gpt-5-codex, single pass): verdict **PASS**, finding count CRITICAL=0/HIGH=0/MEDIUM=0/LOW=1 — LOW "shared-types Zod schema 단위 테스트 없음" → IMPL-UI-002/IMPL-UI-003 precedent 로 out-of-scope (parity guard + IMPL-018-c integration tests 로 검증 위임)
+
+**Review tier**: L2 (Codex 1 review pass, fix-request 0회).
+
+**Lessons (LESSONS.md → Obsidian)**:
+- 신규 패턴: `null as unknown as Wire satisfies { ...Row }` parity guard 4 occurrence + Zod url().max(2048).nullable() SSRF 가드.
+- 안티패턴: `pnpm -r build`/`pnpm -r test` 의 cross-scope failure → Claude 판정 시 `git diff --name-only` 기반 in-scope 검사 분리 필요. `.claude/rules/pipeline.md` 의 "Codex review 스코프 분리 판정" 항목을 auto-check 영역까지 확장.
+- HANDOFF 보강: contract-only PR 의 unit-test 면제 precedent (IMPL-UI-002/003 + 본 IMPL-018-a) 를 review prompt 에 사전 명시.
+
+### 미완료: IMPL-018-b (migration 0014 + repository), IMPL-018-c (content-service routes + integration tests), BFF-018 (proxy routes), IMPL-019 (seed JSON + allowlist validator), IMPL-UI-031 (ClaimCard ui-kit) — 본 머지 직후 BE/BFF/FE 3-세션 병렬 진입.
+
+### 연관 파일: packages/shared-types/src/entities.ts, packages/shared-types/src/enums.ts, packages/shared-types/src/schemas/index.ts, packages/shared-types/src/schemas/lifestyle-claims.ts, pipeline/runs/IMPL-018-a/CODEX-HANDOFF.md, pipeline/runs/IMPL-018-a/LESSONS.md, pipeline/runs/PIVOT-2026-05/agreement.md
