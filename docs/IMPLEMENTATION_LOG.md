@@ -3526,7 +3526,7 @@ CelebBase 의 첫 사용자 경험을 "셀럽 철학 기반 개인화 식단 추
 date: 2026-05-04
 agent: claude-opus-4-7 + codex-o3 (implement) + codex-o3 (review)
 task_id: IMPL-018-a
-commit_sha: PENDING
+commit_sha: dee5292
 files_changed:
   - packages/shared-types/src/entities.ts
   - packages/shared-types/src/enums.ts
