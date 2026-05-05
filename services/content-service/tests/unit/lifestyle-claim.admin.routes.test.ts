@@ -196,7 +196,56 @@ describe('Admin auth — X-Admin-Token guard', () => {
     expect(allText).not.toContain(VALID_TOKEN);
     await app.close();
   });
+
+  it('triggers process.exit(1) when NODE_ENV is unset and ADMIN_API_TOKEN is unset (review-r2 F4-bis)', () => {
+    // review-r2 F4-bis 회귀 방지: `?? 'development'` 기본값 제거 후, NODE_ENV 미설정 + ADMIN_API_TOKEN 미설정 조합이
+    // fail-closed 로 동작 (process.exit(1) 호출) 하는지 확인.
+    delete process.env['NODE_ENV'];
+    delete process.env['ADMIN_API_TOKEN'];
+
+    const exitSpy = jest
+      .spyOn(process, 'exit')
+      .mockImplementation((() => undefined) as (code?: number | string | null | undefined) => never);
+
+    const fatalCalls: Array<{ obj: unknown; msg: string }> = [];
+    const fatalLogger = makeFatalCaptureLogger(fatalCalls);
+    const app = Fastify({ loggerInstance: fatalLogger, disableRequestLogging: true });
+
+    try {
+      registerAdminAuth(app);
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      const fatal = fatalCalls.find((c) =>
+        c.msg.includes('ADMIN_API_TOKEN must be set'),
+      );
+      expect(fatal).toBeDefined();
+    } finally {
+      exitSpy.mockRestore();
+      // 테스트 후 후속 makeApp 호출이 정상 동작하도록 NODE_ENV 복구
+      process.env['NODE_ENV'] = 'development';
+    }
+  });
 });
+
+function makeFatalCaptureLogger(captured: Array<{ obj: unknown; msg: string }>): unknown {
+  const logger = {
+    level: 'info',
+    info: () => undefined,
+    error: () => undefined,
+    warn: () => undefined,
+    debug: () => undefined,
+    trace: () => undefined,
+    fatal: (objOrMsg: unknown, maybeMsg?: string) => {
+      if (typeof objOrMsg === 'object' && objOrMsg !== null && typeof maybeMsg === 'string') {
+        captured.push({ obj: objOrMsg, msg: maybeMsg });
+      } else if (typeof objOrMsg === 'string') {
+        captured.push({ obj: null, msg: objOrMsg });
+      }
+    },
+    silent: () => undefined,
+    child: () => logger,
+  };
+  return logger;
+}
 
 function makeWarnCaptureLogger(captured: Array<{ obj: unknown; msg: string }>): unknown {
   const logger = {
