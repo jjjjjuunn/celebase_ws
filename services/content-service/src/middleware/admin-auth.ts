@@ -34,12 +34,17 @@ export function registerAdminAuth(app: FastifyInstance): void {
   const adminToken = process.env['ADMIN_API_TOKEN'];
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
 
+  const isLocalDev = nodeEnv === 'development' || nodeEnv === 'test';
+
   if (!adminToken) {
-    if (nodeEnv === 'production') {
-      app.log.fatal('ADMIN_API_TOKEN must be set in production for /admin/* routes');
+    if (!isLocalDev) {
+      app.log.fatal(
+        { nodeEnv },
+        'ADMIN_API_TOKEN must be set outside development/test for /admin/* routes',
+      );
       process.exit(1);
     }
-    app.log.warn('Admin auth running in STUB mode (ADMIN_API_TOKEN not set)');
+    app.log.warn('Admin auth running in STUB mode (ADMIN_API_TOKEN not set, dev/test only)');
     // eslint-disable-next-line @typescript-eslint/require-await
     app.addHook('onRequest', async (request: FastifyRequest) => {
       const urlPath = request.url.split('?')[0];
@@ -58,8 +63,20 @@ export function registerAdminAuth(app: FastifyInstance): void {
     if (urlPath === undefined || !isAdminPath(urlPath)) return;
 
     const provided = extractAdminToken(request);
-    if (provided === null) throw new UnauthorizedError('Missing X-Admin-Token header');
-    if (!safeEqual(provided, adminToken)) throw new ForbiddenError('Invalid admin token');
+    if (provided === null) {
+      app.log.warn(
+        { url: request.url, ip: request.ip, reason: 'missing_header' },
+        'admin.auth.denied',
+      );
+      throw new UnauthorizedError('Missing X-Admin-Token header');
+    }
+    if (!safeEqual(provided, adminToken)) {
+      app.log.warn(
+        { url: request.url, ip: request.ip, reason: 'invalid_token' },
+        'admin.auth.denied',
+      );
+      throw new ForbiddenError('Invalid admin token');
+    }
 
     (request as FastifyRequest & { adminAuth: { stub: boolean } }).adminAuth = { stub: false };
   });

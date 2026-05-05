@@ -260,7 +260,7 @@ export async function findByIdAdmin(
   const sql = `
     SELECT ${CLAIM_COLUMNS}
     FROM lifestyle_claims AS lc
-    WHERE lc.id = $1
+    WHERE lc.id = $1 AND lc.is_active = TRUE
     LIMIT 1
   `;
   const { rows } = await pool.query<LifestyleClaim>(sql, [id]);
@@ -367,7 +367,14 @@ function buildAdminCursor(items: LifestyleClaim[], hasNext: boolean): string | n
 
 export type StatusTransitionResult =
   | { ok: true; claim: LifestyleClaim }
-  | { ok: false; reason: 'not_found' | 'grade_E_blocked' | 'grade_D_requires_disclaimer' };
+  | {
+      ok: false;
+      reason:
+        | 'not_found'
+        | 'celebrity_inactive'
+        | 'grade_E_blocked'
+        | 'grade_D_requires_disclaimer';
+    };
 
 export interface TransitionStatusInput {
   toStatus: ClaimStatus;
@@ -392,10 +399,34 @@ export async function transitionStatus(
   try {
     await client.query('BEGIN');
 
+    // published 전환 시: cascade_celebrity_deactivate_to_claims 트리거와의 deadlock 방지를 위해
+    // celebrities → lifestyle_claims 순서로 잠근다 (트리거의 락 순서와 동일).
+    // celebrities.is_active=FALSE 인 경우 admin 이 archived → published 로 되살리는 우회 차단.
+    if (input.toStatus === 'published') {
+      const cidRes = await client.query<{ celebrity_id: string }>(
+        `SELECT celebrity_id FROM lifestyle_claims WHERE id = $1 AND is_active = TRUE`,
+        [id],
+      );
+      const cidRow = cidRes.rows[0];
+      if (!cidRow) {
+        await client.query('ROLLBACK');
+        return { ok: false, reason: 'not_found' };
+      }
+      const celebRes = await client.query<{ is_active: boolean }>(
+        `SELECT is_active FROM celebrities WHERE id = $1 FOR SHARE`,
+        [cidRow.celebrity_id],
+      );
+      const celebRow = celebRes.rows[0];
+      if (!celebRow || !celebRow.is_active) {
+        await client.query('ROLLBACK');
+        return { ok: false, reason: 'celebrity_inactive' };
+      }
+    }
+
     const lockSql = `
       SELECT id, trust_grade, status, disclaimer_key, published_at
       FROM lifestyle_claims
-      WHERE id = $1
+      WHERE id = $1 AND is_active = TRUE
       FOR UPDATE
     `;
     const locked = await client.query<{
@@ -461,7 +492,7 @@ export async function setHealthClaim(
   const sql = `
     UPDATE lifestyle_claims
     SET is_health_claim = $2, updated_at = NOW()
-    WHERE id = $1
+    WHERE id = $1 AND is_active = TRUE
     RETURNING ${CLAIM_COLUMNS.replace(/lc\./g, '')}
   `;
   const { rows } = await pool.query<LifestyleClaim>(sql, [id, isHealthClaim]);

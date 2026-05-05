@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type pg from 'pg';
 import { z } from 'zod';
-import { NotFoundError, ValidationError } from '@celebbase/service-core';
+import { AppError, NotFoundError, ValidationError } from '@celebbase/service-core';
 import { ClaimStatus, ClaimType, TrustGrade } from '@celebbase/shared-types';
 import * as claimRepo from '../../repositories/lifestyle-claim.repository.js';
 import type { ListAdminClaimOptions } from '../../repositories/lifestyle-claim.repository.js';
@@ -105,6 +105,19 @@ export async function lifestyleClaimAdminRoutes(
 
     if (!result.ok) {
       if (result.reason === 'not_found') throw new NotFoundError('Claim not found');
+      if (result.reason === 'celebrity_inactive') {
+        throw new AppError(
+          'Celebrity is inactive — claim cannot be published',
+          422,
+          'CELEBRITY_INACTIVE',
+          [
+            {
+              field: 'status',
+              issue: 'parent celebrity.is_active=FALSE — cascade contract (spec §9.3 #3)',
+            },
+          ],
+        );
+      }
       if (result.reason === 'grade_E_blocked') {
         throw new ValidationError('trust_grade=E cannot be published', [
           { field: 'status', issue: 'trust_grade E is blocked from publishing (spec §9.3 #5)' },
