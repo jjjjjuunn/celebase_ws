@@ -1,0 +1,1470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Artifact C — Discover (Desktop 1440px)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --cb-brand-50:  #FBF8F0;
+    --cb-brand-100: #F5EDDA;
+    --cb-brand-500: #C9A84C;
+    --cb-brand-600: #8B6D2F;
+    --cb-brand-700: #6B5420;
+
+    --cb-neutral-0:   #FAFAF8;
+    --cb-neutral-50:  #F4F3F0;
+    --cb-neutral-100: #E8E6E1;
+    --cb-neutral-200: #D0CEC8;
+    --cb-neutral-300: #A8A5A0;
+    --cb-neutral-400: #8A8780;
+    --cb-neutral-500: #6D6A64;
+    --cb-neutral-600: #5A5750;
+    --cb-neutral-700: #3D3B37;
+    --cb-neutral-900: #1A1917;
+
+    --cb-success-600: #0F7438;  --cb-success-100: #DDF3E6;
+    --cb-info-600:    #1767B8;  --cb-info-100:    #D9EAFB;
+    --cb-warning-600: #A15900;  --cb-warning-100: #FDEBD5;
+    --cb-danger-600:  #B4232C;  --cb-danger-100:  #FADADD;
+
+    --cb-accent-biohacker:    #0E8F9B;
+    --cb-accent-glp1:         #7B5EA7;
+    --cb-accent-aspirational: #D4654A;
+
+    --cb-space-1: 4px;   --cb-space-2: 8px;   --cb-space-3: 12px;
+    --cb-space-4: 16px;  --cb-space-5: 20px;  --cb-space-6: 24px;
+    --cb-space-7: 32px;  --cb-space-8: 40px;  --cb-space-11: 64px;
+
+    --cb-container-max: 1200px;
+    --cb-gutter-mobile: 16px;
+    --cb-gutter-tablet: 24px;
+    --cb-gutter-desktop: 32px;
+
+    --cb-radius-xs:  4px;
+    --cb-radius-sm:  8px;
+    --cb-radius-md:  12px;
+    --cb-radius-lg:  16px;
+    --cb-radius-xl:  24px;
+    --cb-radius-2xl: 32px;
+    --cb-radius-pill: 9999px;
+
+    --cb-shadow-1: 0 1px 3px rgba(26,25,23,0.06), 0 1px 2px rgba(26,25,23,0.04);
+    --cb-shadow-2: 0 4px 12px rgba(26,25,23,0.10), 0 2px 4px rgba(26,25,23,0.06);
+    --cb-shadow-3: 0 16px 40px rgba(26,25,23,0.15), 0 4px 12px rgba(26,25,23,0.08);
+    --cb-shadow-brand: 0 8px 24px rgba(139,109,47,0.30);
+    --cb-shadow-focus: 0 0 0 3px rgba(139,109,47,0.40);
+
+    --cb-border-default: 1px solid rgba(26,25,23,0.08);
+    --cb-border-strong:  1px solid rgba(26,25,23,0.15);
+    --cb-border-focus:   2px solid var(--cb-brand-600);
+
+    --cb-cta-text: #FFFFFF;
+
+    --cb-skeleton-base: #E8E1D8;
+    --cb-skeleton-shimmer: #F5EFE7;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--cb-neutral-0);
+    color: var(--cb-neutral-900);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ===== Top nav ===== */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(250, 250, 248, 0.92);
+    backdrop-filter: saturate(140%) blur(12px);
+    border-bottom: var(--cb-border-default);
+  }
+  .topnav__inner {
+    max-width: var(--cb-container-max);
+    margin: 0 auto;
+    padding: 0 var(--cb-gutter-desktop);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-7);
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--cb-neutral-900);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand__mark {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cb-brand-500), var(--cb-brand-700));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cb-neutral-0);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .nav-links {
+    display: flex;
+    gap: var(--cb-space-2);
+    align-items: center;
+    flex: 1;
+  }
+  .nav-link {
+    padding: 8px 14px;
+    border-radius: var(--cb-radius-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cb-neutral-600);
+    text-decoration: none;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .nav-link:hover { background: var(--cb-neutral-50); color: var(--cb-neutral-900); }
+  .nav-link--active { background: var(--cb-brand-100); color: var(--cb-brand-700); }
+  .nav-link:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  .nav-search {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2);
+    height: 40px;
+    padding: 0 14px;
+    background: var(--cb-neutral-50);
+    border: var(--cb-border-default);
+    border-radius: var(--cb-radius-pill);
+    width: 320px;
+  }
+  .nav-search:focus-within { background: var(--cb-neutral-0); box-shadow: var(--cb-shadow-focus); border-color: transparent; }
+  .nav-search svg { width: 16px; height: 16px; color: var(--cb-neutral-500); }
+  .nav-search input {
+    border: none; background: transparent; outline: none;
+    font: inherit; font-size: 14px; flex: 1; min-width: 0;
+    color: var(--cb-neutral-900);
+  }
+  .nav-search input::placeholder { color: var(--cb-neutral-400); }
+
+  .nav-actions { display: flex; align-items: center; gap: var(--cb-space-2); }
+  .icon-btn-plain {
+    width: 40px; height: 40px;
+    border-radius: var(--cb-radius-pill);
+    border: none;
+    background: var(--cb-neutral-50);
+    color: var(--cb-neutral-700);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .icon-btn-plain:hover { background: var(--cb-neutral-100); color: var(--cb-neutral-900); }
+  .icon-btn-plain svg { width: 18px; height: 18px; }
+  .icon-btn-plain:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+  .avatar-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: var(--cb-border-default);
+    background: linear-gradient(135deg, var(--cb-brand-100), var(--cb-brand-500));
+    color: var(--cb-neutral-0);
+    font-size: 13px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .avatar-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* ===== Page layout ===== */
+  .page {
+    max-width: var(--cb-container-max);
+    margin: 0 auto;
+    padding: var(--cb-space-7) var(--cb-gutter-desktop) var(--cb-space-11);
+    display: block;
+  }
+
+  /* ===== Filter toggle button (in toolbar) ===== */
+  .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px 0 12px;
+    border-radius: var(--cb-radius-pill);
+    border: 1px solid var(--cb-neutral-100);
+    background: var(--cb-neutral-0);
+    color: var(--cb-neutral-700);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+    white-space: nowrap;
+  }
+  .filter-toggle:hover { background: var(--cb-neutral-50); }
+  .filter-toggle:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+  .filter-toggle svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .filter-toggle__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: var(--cb-radius-pill);
+    background: var(--cb-brand-600);
+    color: var(--cb-cta-text);
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 2px;
+  }
+  .filter-toggle--active {
+    background: var(--cb-brand-100);
+    border-color: var(--cb-brand-100);
+    color: var(--cb-brand-700);
+  }
+
+  /* ===== Sidebar drawer ===== */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 25, 23, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 40;
+  }
+  .scrim[data-open="true"] { opacity: 1; pointer-events: auto; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 320px;
+    max-width: 92vw;
+    background: var(--cb-neutral-0);
+    border-right: var(--cb-border-default);
+    box-shadow: var(--cb-shadow-3);
+    transform: translateX(-100%);
+    transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar[data-open="true"] { transform: translateX(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar, .scrim { transition: none; }
+  }
+
+  .sidebar__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--cb-space-5) var(--cb-space-5) var(--cb-space-3);
+    border-bottom: var(--cb-border-default);
+    flex-shrink: 0;
+  }
+  .sidebar__title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    color: var(--cb-neutral-900);
+    margin: 0;
+  }
+  .sidebar__body {
+    overflow-y: auto;
+    padding: var(--cb-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-5);
+    flex: 1;
+  }
+  .filter-block {
+    display: flex; flex-direction: column;
+    gap: var(--cb-space-2);
+    border-bottom: var(--cb-border-default);
+    padding-bottom: var(--cb-space-4);
+  }
+  .filter-block:last-of-type { border-bottom: none; padding-bottom: 0; }
+
+  /* <details> disclosure */
+  .filter-block[open] > .filter-block__head .filter-block__chev { transform: rotate(180deg); }
+  .filter-block__head {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cb-space-2);
+    padding: 8px 4px;
+    border-radius: var(--cb-radius-sm);
+    user-select: none;
+  }
+  .filter-block__head::-webkit-details-marker { display: none; }
+  .filter-block__head:hover { background: var(--cb-neutral-50); }
+  .filter-block__head:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+  .filter-block__title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cb-neutral-500);
+    margin: 0;
+  }
+  .filter-block__chev {
+    width: 16px; height: 16px;
+    color: var(--cb-neutral-500);
+    transition: transform 180ms ease;
+    flex-shrink: 0;
+  }
+  .filter-block__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-2);
+    padding-top: var(--cb-space-2);
+    animation: filter-reveal 180ms ease;
+  }
+  @keyframes filter-reveal {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .filter-block__chev { transition: none; }
+    .filter-block__body { animation: none; }
+  }
+  .filter-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-3);
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--cb-radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cb-neutral-700);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .filter-row svg { width: 16px; height: 16px; stroke-width: 1.75; color: var(--cb-neutral-500); }
+  .filter-row:hover { background: var(--cb-neutral-50); }
+  .filter-row__count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--cb-neutral-400);
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-row--active {
+    background: var(--cb-brand-100);
+    color: var(--cb-brand-700);
+  }
+  .filter-row--active svg,
+  .filter-row--active .filter-row__count { color: var(--cb-brand-700); }
+  .filter-row:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  .grade-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cb-space-2);
+  }
+  .grade-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    border-radius: var(--cb-radius-pill);
+    border: 1px solid var(--cb-neutral-100);
+    background: var(--cb-neutral-0);
+    color: var(--cb-neutral-700);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+  .grade-pill:hover { background: var(--cb-neutral-50); }
+  .grade-pill__dot { width: 8px; height: 8px; border-radius: 50%; }
+  .grade-pill--a .grade-pill__dot { background: var(--cb-success-600); }
+  .grade-pill--b .grade-pill__dot { background: var(--cb-info-600); }
+  .grade-pill--c .grade-pill__dot { background: var(--cb-neutral-400); }
+  .grade-pill--d .grade-pill__dot { background: var(--cb-warning-600); }
+  .grade-pill--active {
+    background: var(--cb-brand-100);
+    border-color: var(--cb-brand-100);
+    color: var(--cb-brand-700);
+  }
+  .grade-pill:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  .clear-btn {
+    align-self: flex-start;
+    margin-top: var(--cb-space-2);
+    background: transparent;
+    border: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cb-neutral-500);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: var(--cb-radius-sm);
+  }
+  .clear-btn:hover { color: var(--cb-neutral-900); background: var(--cb-neutral-50); }
+  .clear-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* ===== Main column ===== */
+  .main-col { display: flex; flex-direction: column; gap: var(--cb-space-6); min-width: 0; }
+
+  .page-header { display: flex; flex-direction: column; gap: var(--cb-space-1); }
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.24;
+    letter-spacing: -0.015em;
+    color: var(--cb-neutral-900);
+    margin: 0;
+  }
+  .page-sub {
+    font-size: 14px;
+    color: var(--cb-neutral-500);
+    margin: 0;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cb-space-4);
+  }
+  .applied-chips {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2);
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .applied-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px 0 12px;
+    border-radius: var(--cb-radius-pill);
+    background: var(--cb-brand-100);
+    color: var(--cb-brand-700);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .applied-chip svg { width: 12px; height: 12px; stroke-width: 2; }
+  .applied-chip__close {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--cb-brand-700);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    margin-left: 2px;
+  }
+  .applied-chip__close:hover { background: rgba(139,109,47,0.12); }
+
+  .sort-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--cb-radius-pill);
+    border: 1px solid var(--cb-neutral-100);
+    background: var(--cb-neutral-0);
+    color: var(--cb-neutral-700);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .sort-select:hover { background: var(--cb-neutral-50); }
+  .sort-select svg { width: 14px; height: 14px; }
+  .sort-select:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* ===== Trending carousel ===== */
+  .trending {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-3);
+  }
+  .trending__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .trending__title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    color: var(--cb-neutral-900);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .trending__title svg { width: 16px; height: 16px; color: var(--cb-brand-600); }
+  .trending__more {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cb-neutral-500);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .trending__more:hover { color: var(--cb-brand-700); }
+  .trending__rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 220px;
+    gap: var(--cb-space-3);
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .trending__rail::-webkit-scrollbar { display: none; }
+  .trend-card {
+    background: var(--cb-neutral-0);
+    border: var(--cb-border-default);
+    border-radius: var(--cb-radius-md);
+    padding: var(--cb-space-3) var(--cb-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
+  }
+  .trend-card:hover { background: var(--cb-neutral-50); transform: translateY(-1px); }
+  .trend-card__row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .trend-card__avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cb-brand-100), var(--cb-brand-500));
+    color: var(--cb-neutral-0);
+    font-size: 10px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .trend-card__name {
+    font-size: 13px; font-weight: 600;
+    color: var(--cb-neutral-700);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .trend-card__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cb-neutral-900);
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .trend-card__meta {
+    font-size: 11px;
+    color: var(--cb-neutral-500);
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== Feed grid ===== */
+  .feed {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cb-space-6);
+  }
+  @media (min-width: 1280px) { .feed { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .feed-section { display: flex; flex-direction: column; gap: var(--cb-space-3); }
+  .feed-section__head {
+    display: flex; align-items: center; gap: var(--cb-space-2);
+    padding-bottom: var(--cb-space-2);
+    border-bottom: var(--cb-border-default);
+  }
+  .feed-section__title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--cb-neutral-700);
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  /* ===== ClaimCard ===== */
+  .claim-card {
+    background: var(--cb-neutral-0);
+    border: var(--cb-border-default);
+    border-radius: var(--cb-radius-lg);
+    box-shadow: var(--cb-shadow-1);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .claim-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cb-shadow-2);
+  }
+
+  /* Hero image band */
+  .card__hero {
+    position: relative;
+    height: 140px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .card__hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 400ms ease;
+  }
+  .claim-card:hover .card__hero-bg { transform: scale(1.04); }
+  /* claim_type gradients */
+  .card__hero-bg--food {
+    background-image:
+      linear-gradient(160deg, rgba(107,84,32,0.55) 0%, rgba(201,168,76,0.30) 60%, transparent 100%),
+      repeating-linear-gradient(45deg, rgba(201,168,76,0.07) 0px, rgba(201,168,76,0.07) 1px, transparent 1px, transparent 12px),
+      linear-gradient(135deg, var(--cb-brand-100) 0%, var(--cb-brand-500) 60%, var(--cb-brand-700) 100%);
+  }
+  .card__hero-bg--workout {
+    background-image:
+      linear-gradient(160deg, rgba(14,143,155,0.60) 0%, rgba(14,143,155,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(135deg, rgba(14,143,155,0.08) 0px, rgba(14,143,155,0.08) 1px, transparent 1px, transparent 14px),
+      linear-gradient(135deg, #0a6b74 0%, var(--cb-accent-biohacker) 55%, #d4f0f2 100%);
+  }
+  .card__hero-bg--sleep {
+    background-image:
+      linear-gradient(160deg, rgba(40,20,70,0.70) 0%, rgba(123,94,167,0.30) 60%, transparent 100%),
+      radial-gradient(ellipse at 80% 20%, rgba(200,180,255,0.18) 0%, transparent 60%),
+      linear-gradient(135deg, #1a0f2e 0%, var(--cb-accent-glp1) 55%, #c8b4e8 100%);
+  }
+  .card__hero-bg--beauty {
+    background-image:
+      linear-gradient(160deg, rgba(150,50,30,0.50) 0%, rgba(212,101,74,0.25) 60%, transparent 100%),
+      repeating-linear-gradient(60deg, rgba(212,101,74,0.06) 0px, rgba(212,101,74,0.06) 1px, transparent 1px, transparent 16px),
+      linear-gradient(135deg, #7a2010 0%, var(--cb-accent-aspirational) 55%, #f5c4b4 100%);
+  }
+  .card__hero-bg--brand {
+    background-image:
+      linear-gradient(160deg, rgba(26,25,23,0.50) 0%, rgba(90,87,80,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(90deg, rgba(26,25,23,0.04) 0px, rgba(26,25,23,0.04) 1px, transparent 1px, transparent 20px),
+      linear-gradient(135deg, var(--cb-neutral-700) 0%, var(--cb-neutral-500) 55%, var(--cb-neutral-200) 100%);
+  }
+  .card__hero-bg--philosophy {
+    background-image:
+      linear-gradient(160deg, rgba(61,59,55,0.60) 0%, rgba(90,87,80,0.25) 60%, transparent 100%),
+      radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.15) 0%, transparent 55%),
+      linear-gradient(135deg, var(--cb-neutral-900) 0%, var(--cb-neutral-600) 55%, var(--cb-neutral-200) 100%);
+  }
+  .card__hero-bg--supplement {
+    background-image:
+      linear-gradient(160deg, rgba(23,103,184,0.55) 0%, rgba(23,103,184,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(30deg, rgba(23,103,184,0.07) 0px, rgba(23,103,184,0.07) 1px, transparent 1px, transparent 14px),
+      linear-gradient(135deg, #0d3f72 0%, var(--cb-info-600) 55%, var(--cb-info-100) 100%);
+  }
+
+  /* Chips overlaid on hero */
+  .card__hero-chips {
+    position: absolute;
+    top: var(--cb-space-3);
+    left: var(--cb-space-3);
+    right: var(--cb-space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2);
+    flex-wrap: wrap;
+  }
+  /* Chips on hero: white/frosted pill */
+  .card__hero-chips .chip {
+    background: rgba(250,250,248,0.88);
+    color: var(--cb-neutral-900);
+    backdrop-filter: blur(6px);
+    border: var(--cb-border-default);
+  }
+  .card__hero-chips .badge {
+    background: rgba(250,250,248,0.88);
+    color: var(--cb-neutral-900);
+    backdrop-filter: blur(6px);
+    border: var(--cb-border-default);
+  }
+  .card__hero-chips .badge--a { background: rgba(221,243,230,0.92); color: var(--cb-success-600); }
+  .card__hero-chips .badge--b { background: rgba(217,234,251,0.92); color: var(--cb-info-600); }
+  .card__hero-chips .badge--c { background: rgba(232,230,225,0.92); color: var(--cb-neutral-700); }
+  .card__hero-chips .badge--d { background: rgba(253,235,213,0.92); color: var(--cb-warning-600); }
+
+  /* Avatar overlapping hero bottom */
+  .card__celeb-strip {
+    position: absolute;
+    bottom: var(--cb-space-3);
+    left: var(--cb-space-3);
+    right: var(--cb-space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2);
+  }
+  .card__celeb-strip .avatar {
+    width: 36px; height: 36px;
+    border: 2px solid rgba(250,250,248,0.80);
+    box-shadow: var(--cb-shadow-1);
+    flex-shrink: 0;
+  }
+  .card__celeb-strip .celeb-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cb-neutral-0);
+    text-shadow: 0 1px 4px rgba(26,25,23,0.5);
+    text-decoration: none;
+  }
+  .card__celeb-strip .celeb-name:hover { text-decoration: underline; }
+  .card__celeb-strip .celeb-dot { color: rgba(250,250,248,0.55); font-size: 11px; }
+  .card__celeb-strip .celeb-time {
+    font-size: 11px;
+    color: rgba(250,250,248,0.75);
+    text-shadow: 0 1px 3px rgba(26,25,23,0.4);
+  }
+
+  /* Card body (below hero) */
+  .card__body {
+    padding: var(--cb-space-4) var(--cb-space-5) var(--cb-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-3);
+    flex: 1;
+  }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--cb-radius-pill);
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.01em; line-height: 1.4;
+    white-space: nowrap;
+  }
+  .chip svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .chip--food      { background: var(--cb-brand-100);                  color: var(--cb-brand-700); }
+  .chip--workout   { background: rgba(14, 143, 155, 0.14);             color: var(--cb-accent-biohacker); }
+  .chip--sleep     { background: rgba(123, 94, 167, 0.14);             color: var(--cb-accent-glp1); }
+  .chip--beauty    { background: rgba(212, 101, 74, 0.14);             color: var(--cb-accent-aspirational); }
+  .chip--brand     { background: var(--cb-neutral-100);                color: var(--cb-neutral-700); }
+  .chip--philosophy{ background: var(--cb-neutral-50);                 color: var(--cb-neutral-700); }
+  .chip--supplement{ background: var(--cb-info-100);                   color: var(--cb-info-600); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--cb-radius-pill);
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.02em; line-height: 1.4;
+    white-space: nowrap;
+  }
+  .badge svg { width: 12px; height: 12px; stroke-width: 2; }
+  .badge--a { background: var(--cb-success-100); color: var(--cb-success-600); }
+  .badge--b { background: var(--cb-info-100);    color: var(--cb-info-600); }
+  .badge--c { background: var(--cb-neutral-100); color: var(--cb-neutral-700); }
+  .badge--d { background: var(--cb-warning-100); color: var(--cb-warning-600); }
+
+  .claim-card__celeb { display: flex; align-items: center; gap: var(--cb-space-3); }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--cb-neutral-100);
+    border: var(--cb-border-default);
+    overflow: hidden;
+  }
+  .avatar--ph-1 { background: linear-gradient(135deg, var(--cb-brand-100), var(--cb-brand-500)); }
+  .avatar--ph-2 { background: linear-gradient(135deg, var(--cb-accent-aspirational), var(--cb-brand-500)); }
+  .avatar--ph-3 { background: linear-gradient(135deg, var(--cb-neutral-200), var(--cb-neutral-400)); }
+  .avatar-ph-text {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cb-neutral-0);
+    font-size: 14px; font-weight: 700; letter-spacing: 0.02em;
+  }
+
+  .celeb-meta { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .celeb-name { font-size: 16px; font-weight: 600; color: var(--cb-neutral-900); text-decoration: none; }
+  .celeb-name:hover { text-decoration: underline; }
+  .celeb-dot { color: var(--cb-neutral-300); font-size: 12px; line-height: 1; }
+  .celeb-time { font-size: 12px; color: var(--cb-neutral-500); }
+
+  .claim-headline {
+    font-size: 20px; font-weight: 600;
+    line-height: 1.32; letter-spacing: -0.01em;
+    color: var(--cb-neutral-900);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-wrap: pretty;
+  }
+  .claim-body {
+    font-size: 16px; line-height: 1.5;
+    color: var(--cb-neutral-600);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ===== Expandable detail section ===== */
+  .card__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-3);
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 280ms ease, opacity 200ms ease;
+  }
+  .card__details[data-open="true"] {
+    max-height: 400px;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card__details { transition: none; }
+  }
+
+  .more-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cb-neutral-500);
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: color 120ms ease;
+  }
+  .more-btn svg { width: 14px; height: 14px; stroke-width: 2; transition: transform 200ms ease; }
+  .more-btn:hover { color: var(--cb-brand-700); }
+  .more-btn[aria-expanded="true"] { color: var(--cb-neutral-700); }
+  .more-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .more-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); border-radius: var(--cb-radius-xs); }
+
+  .source-row {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; line-height: 1.5;
+    color: var(--cb-neutral-500);
+    text-decoration: none;
+    align-self: flex-start;
+    padding: 2px 0;
+    border-radius: var(--cb-radius-xs);
+    transition: color 120ms ease;
+  }
+  .source-row:hover { color: var(--cb-brand-700); }
+  .source-row:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+  .source-row svg { width: 13px; height: 13px; stroke-width: 1.75; }
+  .source-row .outlet { font-weight: 600; color: var(--cb-neutral-600); }
+  .source-row:hover .outlet { color: var(--cb-brand-700); }
+
+  .disclaimer {
+    background: var(--cb-info-100);
+    border-left: 3px solid var(--cb-info-600);
+    border-radius: var(--cb-radius-sm);
+    padding: var(--cb-space-3) var(--cb-space-4);
+    display: flex; gap: var(--cb-space-3); align-items: flex-start;
+  }
+  .disclaimer svg { width: 16px; height: 16px; stroke-width: 2; color: var(--cb-info-600); flex-shrink: 0; margin-top: 2px; }
+  .disclaimer p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--cb-neutral-600); }
+
+  .cta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--cb-space-3);
+    margin-top: var(--cb-space-1);
+  }
+  .cta-row--no-primary { justify-content: flex-end; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--cb-brand-600);
+    color: var(--cb-cta-text);
+    border: none;
+    border-radius: var(--cb-radius-pill);
+    padding: 12px 20px;
+    height: 44px;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
+    white-space: nowrap;
+  }
+  .btn-primary svg { width: 16px; height: 16px; stroke-width: 2; }
+  .btn-primary:hover { background: var(--cb-brand-700); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  .icon-actions { display: flex; gap: var(--cb-space-1); }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: var(--cb-radius-pill);
+    border: none; background: transparent;
+    color: var(--cb-neutral-500);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  .icon-btn:hover { background: var(--cb-neutral-50); color: var(--cb-neutral-900); }
+  .icon-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* ===== Premium gate (full-width band) ===== */
+  .gate {
+    grid-column: 1 / -1;
+    background: var(--cb-brand-50);
+    border: var(--cb-border-default);
+    border-radius: var(--cb-radius-lg);
+    padding: var(--cb-space-7) var(--cb-space-8);
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-7);
+  }
+  .gate__lock {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--cb-neutral-0);
+    border: 1px solid var(--cb-brand-100);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--cb-brand-600);
+    flex-shrink: 0;
+  }
+  .gate__lock svg { width: 24px; height: 24px; stroke-width: 1.75; }
+  .gate__copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .gate__title {
+    font-size: 20px; font-weight: 700;
+    color: var(--cb-neutral-900);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .gate__sub { font-size: 14px; color: var(--cb-neutral-600); margin: 0; max-width: 60ch; line-height: 1.5; }
+  .gate__bullets {
+    display: flex; gap: var(--cb-space-5); flex-wrap: wrap;
+    margin: 6px 0 0; padding: 0; list-style: none;
+  }
+  .gate__bullets li {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--cb-neutral-700); font-weight: 500;
+  }
+  .gate__bullets svg { width: 14px; height: 14px; stroke-width: 2; color: var(--cb-brand-600); }
+  .btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--cb-neutral-0);
+    color: var(--cb-brand-700);
+    border: 1px solid var(--cb-brand-600);
+    border-radius: var(--cb-radius-pill);
+    padding: 10px 22px;
+    height: 44px;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: background 120ms ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-secondary:hover { background: var(--cb-brand-50); }
+  .btn-secondary:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* ===== Skeleton ===== */
+  .sk {
+    background: var(--cb-skeleton-base);
+    border-radius: var(--cb-radius-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .sk::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--cb-skeleton-shimmer) 50%, transparent 100%);
+    animation: shimmer 1.6s infinite;
+    transform: translateX(-100%);
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) { .sk::after { animation: none; display: none; } }
+  .sk--chip { width: 96px; height: 24px; border-radius: var(--cb-radius-pill); }
+  .sk--badge { width: 64px; height: 22px; border-radius: var(--cb-radius-pill); }
+  .sk--avatar { width: 40px; height: 40px; border-radius: 50%; }
+  .sk--name { width: 120px; height: 14px; }
+  .sk--time { width: 60px; height: 12px; }
+  .sk--head-line { width: 100%; height: 18px; }
+  .sk--head-line.short { width: 70%; }
+  .sk--body-line { width: 100%; height: 14px; }
+  .sk--body-line.short { width: 55%; }
+  .sk--source { width: 180px; height: 14px; }
+  .sk--cta { width: 168px; height: 44px; border-radius: var(--cb-radius-pill); }
+  .sk--icon { width: 36px; height: 36px; border-radius: var(--cb-radius-pill); }
+  .sk-row { display: flex; align-items: center; gap: var(--cb-space-3); }
+  .sk-stack { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+  .sk-lines { display: flex; flex-direction: column; gap: 8px; }
+</style>
+</head>
+<body>
+  <header class="topnav" data-screen-label="Discover · Desktop 1440px">
+    <div class="topnav__inner">
+      <a class="brand" href="#">
+        <span class="brand__mark" aria-hidden="true">cb</span>
+        <span>Celebase</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link nav-link--active" href="#" aria-current="page">Discover</a>
+        <a class="nav-link" href="#">My Plan</a>
+        <a class="nav-link" href="#">Track</a>
+        <a class="nav-link" href="#">Library</a>
+      </nav>
+      <label class="nav-search">
+        <i data-lucide="search" aria-hidden="true"></i>
+        <input type="search" placeholder="Search celebrities, claims" aria-label="Search celebrities and claims" />
+      </label>
+      <div class="nav-actions">
+        <button class="icon-btn-plain" type="button" aria-label="Notifications">
+          <i data-lucide="bell" aria-hidden="true"></i>
+        </button>
+        <button class="avatar-btn" type="button" aria-label="Account menu">JS</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <!-- ===== Sidebar drawer (hidden by default) ===== -->
+    <div class="scrim" id="filters-scrim" data-open="false" aria-hidden="true"></div>
+    <aside class="sidebar" id="filters-drawer" data-open="false" aria-label="Filters" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="sidebar__head">
+        <h2 class="sidebar__title">Filters</h2>
+        <button class="icon-btn-plain" id="filters-close" type="button" aria-label="Close filters">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="sidebar__body">
+      <details class="filter-block" open>
+        <summary class="filter-block__head">
+          <h2 class="filter-block__title">Claim type</h2>
+          <i data-lucide="chevron-down" class="filter-block__chev" aria-hidden="true"></i>
+        </summary>
+        <div class="filter-block__body">
+        <ul class="filter-list">
+          <li><button class="filter-row filter-row--active" type="button" aria-pressed="true">
+            <i data-lucide="layers" aria-hidden="true"></i><span>All</span>
+            <span class="filter-row__count">324</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="utensils" aria-hidden="true"></i><span>Food</span>
+            <span class="filter-row__count">98</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="dumbbell" aria-hidden="true"></i><span>Workout</span>
+            <span class="filter-row__count">71</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="moon" aria-hidden="true"></i><span>Sleep</span>
+            <span class="filter-row__count">26</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="sparkles" aria-hidden="true"></i><span>Beauty</span>
+            <span class="filter-row__count">54</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="tag" aria-hidden="true"></i><span>Brand</span>
+            <span class="filter-row__count">38</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="quote" aria-hidden="true"></i><span>Philosophy</span>
+            <span class="filter-row__count">19</span>
+          </button></li>
+          <li><button class="filter-row" type="button" aria-pressed="false">
+            <i data-lucide="pill" aria-hidden="true"></i><span>Supplement</span>
+            <span class="filter-row__count">18</span>
+          </button></li>
+        </ul>
+        </div>
+      </details>
+
+      <details class="filter-block" open>
+        <summary class="filter-block__head">
+          <h2 class="filter-block__title">Trust grade</h2>
+          <i data-lucide="chevron-down" class="filter-block__chev" aria-hidden="true"></i>
+        </summary>
+        <div class="filter-block__body">
+        <div class="grade-grid">
+          <button class="grade-pill grade-pill--a grade-pill--active" type="button" aria-pressed="true">
+            <span class="grade-pill__dot" aria-hidden="true"></span><span>Grade A</span>
+          </button>
+          <button class="grade-pill grade-pill--b" type="button" aria-pressed="false">
+            <span class="grade-pill__dot" aria-hidden="true"></span><span>Grade B</span>
+          </button>
+          <button class="grade-pill grade-pill--c" type="button" aria-pressed="false">
+            <span class="grade-pill__dot" aria-hidden="true"></span><span>Grade C</span>
+          </button>
+          <button class="grade-pill grade-pill--d" type="button" aria-pressed="false">
+            <span class="grade-pill__dot" aria-hidden="true"></span><span>Grade D</span>
+          </button>
+        </div>
+        <button class="clear-btn" type="button">Clear filters</button>
+        </div>
+      </details>
+      </div>
+    </aside>
+
+    <!-- ===== Main column ===== -->
+    <div class="main-col">
+      <header class="page-header">
+        <h1 class="page-title">Discover</h1>
+        <p class="page-sub">Real claims, sourced. One celebrity routine per card.</p>
+      </header>
+
+      <div class="toolbar">
+        <button class="filter-toggle filter-toggle--active" id="filters-open" type="button" aria-controls="filters-drawer" aria-expanded="false">
+          <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+          <span>Filters</span>
+          <span class="filter-toggle__count" aria-label="1 filter active">1</span>
+        </button>
+        <div class="applied-chips" aria-label="Active filters">
+          <span class="applied-chip">
+            <span>Grade A</span>
+            <button class="applied-chip__close" type="button" aria-label="Remove Grade A filter">
+              <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+          </span>
+        </div>
+        <button class="sort-select" type="button" aria-label="Sort">
+          <i data-lucide="arrow-down-up" aria-hidden="true"></i>
+          <span>Most recent</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Trending carousel -->
+      <section class="trending" aria-labelledby="trending-title">
+        <div class="trending__head">
+          <h2 id="trending-title" class="trending__title">
+            <i data-lucide="flame" aria-hidden="true"></i>
+            <span>Trending today</span>
+          </h2>
+          <button class="trending__more" type="button">See all</button>
+        </div>
+        <div class="trending__rail">
+          <button class="trend-card" type="button">
+            <div class="trend-card__row">
+              <span class="trend-card__avatar" aria-hidden="true">HB</span>
+              <span class="trend-card__name">Hailey Bieber</span>
+            </div>
+            <p class="trend-card__title">Pilates 3×/week — for posture, not bulk.</p>
+            <span class="trend-card__meta">Workout · Grade A</span>
+          </button>
+          <button class="trend-card" type="button">
+            <div class="trend-card__row">
+              <span class="trend-card__avatar" aria-hidden="true">SG</span>
+              <span class="trend-card__name">Selena Gomez</span>
+            </div>
+            <p class="trend-card__title">Daily SPF 50, every morning.</p>
+            <span class="trend-card__meta">Brand · Grade B</span>
+          </button>
+          <button class="trend-card" type="button">
+            <div class="trend-card__row">
+              <span class="trend-card__avatar" aria-hidden="true">GP</span>
+              <span class="trend-card__name">Gwyneth Paltrow</span>
+            </div>
+            <p class="trend-card__title">Bone broth as a morning ritual.</p>
+            <span class="trend-card__meta">Food · Grade D</span>
+          </button>
+          <button class="trend-card" type="button">
+            <div class="trend-card__row">
+              <span class="trend-card__avatar" aria-hidden="true">JL</span>
+              <span class="trend-card__name">Jennifer Lopez</span>
+            </div>
+            <p class="trend-card__title">No caffeine, no alcohol — for skin.</p>
+            <span class="trend-card__meta">Philosophy · Grade A</span>
+          </button>
+          <button class="trend-card" type="button">
+            <div class="trend-card__row">
+              <span class="trend-card__avatar" aria-hidden="true">ZK</span>
+              <span class="trend-card__name">Zendaya</span>
+            </div>
+            <p class="trend-card__title">Magnesium glycinate before sleep.</p>
+            <span class="trend-card__meta">Supplement · Grade B</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="feed-section" aria-labelledby="feed-title">
+        <div class="feed-section__head">
+          <h2 id="feed-title" class="feed-section__title">Latest claims</h2>
+        </div>
+
+        <div class="feed">
+
+          <!-- Card 1: Hailey Bieber, Workout, Grade A, with CTA — primary CTA shadow only here -->
+          <article class="claim-card" aria-labelledby="d1-headline" style="box-shadow: var(--cb-shadow-2);">
+            <div class="card__hero">
+              <div class="card__hero-bg card__hero-bg--workout" aria-hidden="true"></div>
+              <div class="card__hero-chips">
+                <span class="chip chip--workout"><i data-lucide="dumbbell" aria-hidden="true"></i><span>Workout</span></span>
+                <span class="badge badge--a"><i data-lucide="check" aria-hidden="true"></i><span>Grade A</span></span>
+              </div>
+              <div class="card__celeb-strip">
+                <div class="avatar avatar--ph-1" role="img" aria-label="Hailey Bieber profile photo">
+                  <span class="avatar-ph-text" aria-hidden="true">HB</span>
+                </div>
+                <a href="#celeb/hailey-bieber" class="celeb-name">Hailey Bieber</a>
+                <span class="celeb-dot" aria-hidden="true">·</span>
+                <span class="celeb-time" title="2026-05-02T08:00:00Z">2 days ago</span>
+              </div>
+            </div>
+            <div class="card__body">
+              <h3 id="d1-headline" class="claim-headline">Pilates three times a week — for posture, not bulk.</h3>
+              <button class="more-btn" type="button" aria-expanded="false" aria-controls="d1-details">
+                <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="card__details" id="d1-details" data-open="false">
+                <p class="claim-body">She finishes the routine with a protein shake and magnesium glycinate to support recovery and sleep.</p>
+                <a class="source-row" href="https://vogue.com/article/hailey-bieber-pilates-routine" target="_blank" rel="noopener noreferrer" aria-label="Source: Vogue, Nov 12, 2025 — opens in a new tab">
+                  <i data-lucide="paperclip" aria-hidden="true"></i>
+                  <span class="outlet">Vogue</span><span aria-hidden="true">·</span><span>Nov 12, 2025</span>
+                  <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+                </a>
+                <div class="cta-row">
+                  <button class="btn-primary" type="button" style="box-shadow: var(--cb-shadow-brand);">
+                    <i data-lucide="utensils" aria-hidden="true"></i><span>Inspired Meal Plan</span>
+                  </button>
+                  <div class="icon-actions">
+                    <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+                    <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2: Selena Gomez, Brand, Grade B, no CTA -->
+          <article class="claim-card" aria-labelledby="d2-headline">
+            <div class="card__hero">
+              <div class="card__hero-bg card__hero-bg--brand" aria-hidden="true"></div>
+              <div class="card__hero-chips">
+                <span class="chip chip--brand"><i data-lucide="tag" aria-hidden="true"></i><span>Brand</span></span>
+                <span class="badge badge--b"><span>Grade B</span></span>
+              </div>
+              <div class="card__celeb-strip">
+                <div class="avatar avatar--ph-2" role="img" aria-label="Selena Gomez profile photo">
+                  <span class="avatar-ph-text" aria-hidden="true">SG</span>
+                </div>
+                <a href="#celeb/selena-gomez" class="celeb-name">Selena Gomez</a>
+                <span class="celeb-dot" aria-hidden="true">·</span>
+                <span class="celeb-time" title="2026-04-28T10:30:00Z">6 days ago</span>
+              </div>
+            </div>
+            <div class="card__body">
+              <h3 id="d2-headline" class="claim-headline">She says she wears Rare Beauty&rsquo;s daily SPF 50 every single morning.</h3>
+              <button class="more-btn" type="button" aria-expanded="false" aria-controls="d2-details">
+                <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="card__details" id="d2-details" data-open="false">
+                <p class="claim-body">In the interview she noted that she curated the formula around calming ingredients for sensitive skin.</p>
+                <a class="source-row" href="https://elle.com/beauty/selena-gomez-rare-beauty-spf-routine" target="_blank" rel="noopener noreferrer" aria-label="Source: ELLE, Feb 4, 2026 — opens in a new tab">
+                  <i data-lucide="paperclip" aria-hidden="true"></i>
+                  <span class="outlet">ELLE</span><span aria-hidden="true">·</span><span>Feb 4, 2026</span>
+                  <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+                </a>
+                <div class="cta-row cta-row--no-primary">
+                  <div class="icon-actions">
+                    <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+                    <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3: Gwyneth Paltrow, Food, Grade D, disclaimer + CTA -->
+          <article class="claim-card" aria-labelledby="d3-headline">
+            <div class="card__hero">
+              <div class="card__hero-bg card__hero-bg--food" aria-hidden="true"></div>
+              <div class="card__hero-chips">
+                <span class="chip chip--food"><i data-lucide="utensils" aria-hidden="true"></i><span>Food</span></span>
+                <span class="badge badge--d"><i data-lucide="alert-triangle" aria-hidden="true"></i><span>Grade D</span></span>
+              </div>
+              <div class="card__celeb-strip">
+                <div class="avatar avatar--ph-3" role="img" aria-label="Gwyneth Paltrow profile photo">
+                  <span class="avatar-ph-text" aria-hidden="true">GP</span>
+                </div>
+                <a href="#celeb/gwyneth-paltrow" class="celeb-name">Gwyneth Paltrow</a>
+                <span class="celeb-dot" aria-hidden="true">·</span>
+                <span class="celeb-time" title="2026-04-25T14:00:00Z">9 days ago</span>
+              </div>
+            </div>
+            <div class="card__body">
+              <h3 id="d3-headline" class="claim-headline">She is said to start most mornings with a warm cup of bone broth.</h3>
+              <button class="more-btn" type="button" aria-expanded="false" aria-controls="d3-details">
+                <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="card__details" id="d3-details" data-open="false">
+                <p class="claim-body">Multiple outlets have cited the routine, but no direct first-person quote has been verified.</p>
+                <a class="source-row" href="https://people.com/health/gwyneth-paltrow-bone-broth-routine" target="_blank" rel="noopener noreferrer" aria-label="Source: People, Sep 21, 2025 — opens in a new tab">
+                  <i data-lucide="paperclip" aria-hidden="true"></i>
+                  <span class="outlet">People</span><span aria-hidden="true">·</span><span>Sep 21, 2025</span>
+                  <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+                </a>
+                <aside class="disclaimer" role="note" aria-label="Health and source disclaimer">
+                  <i data-lucide="info" aria-hidden="true"></i>
+                  <p>This is a secondary report and may not be the celebrity&rsquo;s own words. Not medical advice — individual experiences vary and no specific outcome is guaranteed.</p>
+                </aside>
+                <div class="cta-row">
+                  <button class="btn-primary" type="button">
+                    <i data-lucide="utensils" aria-hidden="true"></i><span>Inspired Meal Plan</span>
+                  </button>
+                  <div class="icon-actions">
+                    <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+                    <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Premium gate (full row) -->
+          <section class="gate" aria-labelledby="gate-title">
+            <div class="gate__lock" aria-hidden="true"><i data-lucide="lock"></i></div>
+            <div class="gate__copy">
+              <h3 id="gate-title" class="gate__title">Unlock the full feed</h3>
+              <p class="gate__sub">Members see every verified claim, full sources, and tailored meal plans.</p>
+              <ul class="gate__bullets" aria-label="Premium benefits">
+                <li><i data-lucide="check" aria-hidden="true"></i><span>Unlimited claim feed</span></li>
+                <li><i data-lucide="check" aria-hidden="true"></i><span>Inspired meal plans, tuned to you</span></li>
+                <li><i data-lucide="check" aria-hidden="true"></i><span>Allergen &amp; macro filters</span></li>
+              </ul>
+            </div>
+            <button class="btn-secondary" type="button">
+              <span>View plans</span>
+              <i data-lucide="arrow-right" aria-hidden="true"></i>
+            </button>
+          </section>
+
+          <!-- Skeletons x2 -->
+          <article class="claim-card" aria-busy="true" aria-label="Loading content">
+            <div class="card__hero" aria-hidden="true">
+              <div class="sk" style="position:absolute;inset:0;border-radius:0;"></div>
+            </div>
+            <div class="card__body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="sk sk--chip"></span>
+                <span class="sk sk--badge"></span>
+              </div>
+              <div class="sk-lines">
+                <span class="sk sk--head-line"></span>
+                <span class="sk sk--head-line short"></span>
+              </div>
+              <span class="sk" style="width:52px;height:13px;display:block;border-radius:4px;"></span>
+            </div>
+          </article>
+
+          <article class="claim-card" aria-busy="true" aria-label="Loading content">
+            <div class="card__hero" aria-hidden="true">
+              <div class="sk" style="position:absolute;inset:0;border-radius:0;"></div>
+            </div>
+            <div class="card__body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="sk sk--chip"></span>
+                <span class="sk sk--badge"></span>
+              </div>
+              <div class="sk-lines">
+                <span class="sk sk--head-line"></span>
+                <span class="sk sk--head-line short"></span>
+              </div>
+              <span class="sk" style="width:52px;height:13px;display:block;border-radius:4px;"></span>
+            </div>
+          </article>
+
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+    }
+
+    document.querySelectorAll('.more-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var detailsId = btn.getAttribute('aria-controls');
+        var panel = document.getElementById(detailsId);
+        var isOpen = panel.getAttribute('data-open') === 'true';
+        panel.setAttribute('data-open', String(!isOpen));
+        btn.setAttribute('aria-expanded', String(!isOpen));
+        btn.querySelector('span').textContent = isOpen ? 'More' : 'Less';
+      });
+    });
+
+    (function () {
+      var drawer = document.getElementById('filters-drawer');
+      var scrim  = document.getElementById('filters-scrim');
+      var openBtn  = document.getElementById('filters-open');
+      var closeBtn = document.getElementById('filters-close');
+      if (!drawer || !scrim || !openBtn || !closeBtn) return;
+
+      function setOpen(open) {
+        drawer.setAttribute('data-open', String(open));
+        scrim.setAttribute('data-open', String(open));
+        drawer.setAttribute('aria-hidden', String(!open));
+        scrim.setAttribute('aria-hidden', String(!open));
+        openBtn.setAttribute('aria-expanded', String(open));
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) {
+          (closeBtn).focus();
+        } else {
+          openBtn.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', function () { setOpen(true); });
+      closeBtn.addEventListener('click', function () { setOpen(false); });
+      scrim.addEventListener('click', function () { setOpen(false); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && drawer.getAttribute('data-open') === 'true') {
+          setOpen(false);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
