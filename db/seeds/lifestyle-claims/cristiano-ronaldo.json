@@ -1,0 +1,126 @@
+{
+  "celebrity_slug": "cristiano-ronaldo",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Maintains a near-monastic diet that team-mates describe as the standard at the dinner table",
+      "body": "Manchester United reserve goalkeeper Lee Grant publicly described how Ronaldo's monastic diet inspired team-mates not to touch the dessert menu the night before early kick-offs. Ronaldo himself has framed nutrition as part of a broader recovery culture and contrasted United unfavourably with Real Madrid and Juventus on this point.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/3549583/2022/11/22/cristiano-ronaldo-manchester-united/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["disciplined", "no-dessert", "recovery", "team-influence"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/3549583/2022/11/22/cristiano-ronaldo-manchester-united/",
+          "excerpt": "Ronaldo's monastic diet inspired his team-mates to not touch the dessert menu on the evening before his early games at the club.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/live-blogs/cristiano-ronaldo-united-piers-morgan-interview/S0paOl7JBN7V/9nhDvNCEWWLU/",
+          "excerpt": "To compare with Real Madrid and even Juventus — the technology, especially in terms of training, nutrition and conditions surprised me.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Practises slow-paced breathing as a deliberate routine to control heart rate during high-pressure moments",
+      "body": "Ronaldo has described how he practises and embeds slow breathing in training, not only in matches, so that controlled breathing becomes habitual when penalties or shootouts arrive. The technique is logged via his WHOOP wearable alongside hydration, diet, and sleep metrics.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/5616081/2024/07/04/cristiano-ronaldo-heart-rate/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["breathing", "heart-rate", "whoop", "habit", "performance"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/5616081/2024/07/04/cristiano-ronaldo-heart-rate/",
+          "excerpt": "It is something that I always do in training, not just in games — because it is a habit.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Owns the CR7 brand spanning underwear, fragrance, footwear, and water lines",
+      "body": "Ronaldo has built the CR7 brand into a portfolio that includes underwear (originally launched with JBS Textile Group of Denmark in 2013), aftershave and fragrance, footwear, and water, alongside investments in hotel chains and hair-transplant clinics. The Athletic confirmed his billionaire status in 2024 driven in part by these ventures.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/6112482/2025/02/05/cristiano-ronaldo-40-youtube-influencer/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["cr7", "founder", "underwear", "fragrance", "lifestyle-brand"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/6112482/2025/02/05/cristiano-ronaldo-40-youtube-influencer/",
+          "excerpt": "He has invested in everything from hotel chains to hair transplant clinics to Ronaldo-branded champagne and fragrances. He has a line of underwear and a sports management firm.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2014/08/01/sports/soccer/suit-disputes-use-of-ronaldos-cr7-nickname.html",
+          "excerpt": "The Danish company JBS Textile Group sells underwear with CR7, a combination of Ronaldo's initials.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Operates a Ronaldo-branded gym partnership with Crunch Fitness in the United States",
+      "body": "As part of his portfolio of US-facing endorsements The Athletic identified a Ronaldo-branded gym deal with the American fitness chain Crunch, alongside a Jacob & Co. jewellery sponsorship. The arrangement extends his fitness-brand presence into a market where his on-field career has been less central.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/5624041/2024/07/12/cristiano-ronaldo-united-states-world-cup/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["crunch-fitness", "gym", "partnership", "us-market"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/5624041/2024/07/12/cristiano-ronaldo-united-states-world-cup/",
+          "excerpt": "A Ronaldo-branded gym deal with the U.S. fitness company Crunch.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Became both investor and ambassador for the WHOOP wearable health platform",
+      "body": "Ronaldo joined WHOOP as an investor and ambassador in May 2024 and was a participant in the company's $575 million Series G round in March 2026 alongside LeBron James. He uses the wrist-worn tracker to monitor sleep, strain, and recovery and has cited its data when describing his pre-shootout breathing routine.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2026/03/31/business/dealbook/whoop-raises-575-million-10-billion-valuation.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["whoop", "wearable", "investor", "ambassador", "recovery"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2026/03/31/business/dealbook/whoop-raises-575-million-10-billion-valuation.html",
+          "excerpt": "The funding round was led by Collaborative Fund with participation from the basketball star LeBron James and the soccer player Cristiano Ronaldo.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/5616081/2024/07/04/cristiano-ronaldo-heart-rate/",
+          "excerpt": "This information was logged using the fitness-tracking wearable device WHOOP, which monitors sleep, strain and recovery metrics.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}
