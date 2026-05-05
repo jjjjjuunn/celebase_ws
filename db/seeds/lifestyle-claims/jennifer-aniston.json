@@ -1,0 +1,142 @@
+{
+  "celebrity_slug": "jennifer-aniston",
+  "claims": [
+    {
+      "claim_type": "workout",
+      "headline": "Practices Pvolve low-impact resistance training as her primary fitness method",
+      "body": "Aniston has partnered with Pvolve since 2023 and credits the resistance-based, low-impact program with making her feel stronger than ever before. She trains with the system up to three times a week and travels with the P.band and P.ball for full-body workouts on the road.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/jennifer-aniston-fitness-pvolve-exclusive-7693448",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["pvolve", "low-impact", "resistance-training", "strength"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/jennifer-aniston-fitness-pvolve-exclusive-7693448",
+          "excerpt": "Stronger than I have ever felt before. Jen loves a challenge — when she is not traveling, they train together up to three times a week.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "InStyle",
+          "url": "https://www.instyle.com/jennifer-aniston-pvolve-interview-7508440",
+          "excerpt": "Jennifer Aniston talks to InStyle about fitness tips, working out, and her new partnership with Pvolve.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "supplement",
+      "headline": "Starts the morning with Vital Proteins Collagen Peptides as a daily ritual",
+      "body": "Aniston joined Vital Proteins as Chief Creative Officer in 2020 and has spoken in interviews about taking the unflavored Collagen Peptides powder mixed into her morning shake or coffee.",
+      "trust_grade": "C",
+      "primary_source_url": "https://www.harpersbazaar.com/beauty/skin-care/a34705488/jennifer-aniston-vital-proteins/",
+      "verified_by": "human-junwon",
+      "is_health_claim": true,
+      "disclaimer_key": "supplement_general",
+      "tags": ["collagen", "vital-proteins", "morning-routine", "supplement"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/skin-care/a34705488/jennifer-aniston-vital-proteins/",
+          "excerpt": "The Morning Show star will also serve as the chief creative officer of the collagen brand.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/diet-fitness/a40274631/jennifer-aniston-vital-proteins-bars-interview/",
+          "excerpt": "I make my shake in the morning and I use the Collagen Peptide powder, the chocolate.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "food",
+      "headline": "Follows an 80/20 balanced eating approach with consistent nutrition",
+      "body": "Aniston describes her everyday diet as roughly 80 percent healthy, balanced meals and 20 percent flexibility for indulgences. She emphasizes consistency over restriction and gives herself a cheat day rather than restarting cycles.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/jennifer-aniston-on-self-care-exercise-and-nutrition-exclusive-8640421",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["80-20", "balanced", "consistency", "cheat-day"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/jennifer-aniston-on-self-care-exercise-and-nutrition-exclusive-8640421",
+          "excerpt": "My nutrition is very much the same. I always give myself a cheat day.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/jennifer-aniston-birthday-57-diet-exercise-routine-11904380",
+          "excerpt": "She describes her approach as an 80/20 plan — meaning, 80% of the time, she eats healthy, balanced meals.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Founded LolaVie, a clean hair-care line launched in September 2021",
+      "body": "Aniston launched LolaVie in September 2021 with the Glossing Detangler, a $25 protective and conditioning product. The brand has since expanded to shampoos, conditioners, and leave-in treatments distributed through Ulta Beauty.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.allure.com/story/jennifer-aniston-lolavie-hair-care-brand-interview",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["lolavie", "hair-care", "founder", "clean-beauty"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Allure",
+          "url": "https://www.allure.com/story/jennifer-aniston-lolavie-hair-care-brand-interview",
+          "published_date": "2021-09-08",
+          "excerpt": "LolaVie debuts on September 8, 2021. The brand's first product, the Glossing Detangler, retails for $25 and softens hair with protective and conditioning ingredients.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Allure",
+          "url": "https://www.allure.com/story/jennifer-aniston-lolavie-shampoo-conditioner-interview",
+          "excerpt": "Her hair-care line, LolaVie, has launched three do-it-all products since debuting a year ago and is about to launch two more.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "beauty",
+      "headline": "Credits water, SPF, and sleep as the foundation of her skincare routine",
+      "body": "Aniston has consistently named hydration, daily sun protection, and good sleep as the non-negotiables of her skincare approach. She supplements with simple at-home tools such as an infrared sauna and gentle nanocurrent devices, and has moved away from aggressive treatments over time.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/the-beauty-and-fitness-routine-jennifer-aniston-follows-to-look-that-luminous",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["skincare", "hydration", "spf", "sleep", "minimal-routine"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/the-beauty-and-fitness-routine-jennifer-aniston-follows-to-look-that-luminous",
+          "excerpt": "Water, SPF and lots of sleep are truly key to healthy skin as you get older.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/jennifer-aniston-skincare-routine-the-morning-show",
+          "excerpt": "It was way too aggressive and that is when I realized that what might work in the short term can be damaging in the long run.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}
