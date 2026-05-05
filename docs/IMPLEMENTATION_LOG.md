@@ -28,6 +28,33 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-UI-031-a
+commit_sha: PENDING
+files_changed:
+  - packages/ui-kit/src/components/ClaimCard/ClaimCard.tsx
+  - packages/ui-kit/src/components/ClaimCard/ClaimCard.module.css
+  - packages/ui-kit/src/components/ClaimCard/index.ts
+  - packages/ui-kit/src/index.ts
+  - packages/ui-kit/package.json
+  - docs/FE-ROADMAP.md
+verified_by: ui-kit typecheck/lint/build clean, web typecheck clean, scripts/gate-check.sh fe_token_hardcode passed:true
+---
+### 완료: ClaimCard ui-kit primitive (LifestyleClaim 피드용) — IMPL-UI-031-a
+- Hero gradient × 7 (food/workout/sleep/beauty/brand/philosophy/supplement) + type chip + trust badge A/B/C/D (defensive E→D + dev console.warn)
+- Body: 3-line clamped headline + More/Less toggle + expandable region (body / source citation / optional disclaimer aside / CTA row)
+- Disclaimer 조건: `is_health_claim || trust_grade==='D' || disclaimerText`. `disclaimerText === null` 명시는 suppress
+- CTA: meal-plan primary 는 `base_diet_id !== null && onMealPlanClick` 일 때만 노출. save / share 는 icon button (aria-label 필수)
+- A11y: `'use client';` + `useState` expand, `role="button"` + `tabIndex` + `aria-pressed` (clickable), `aria-expanded`, `aria-busy` skeleton, `:focus-visible`, `prefers-reduced-motion` 대응
+- 토큰: 전부 `--cb-*` 만 사용 (raw hex 0). `rgba(255,255,255,...)` frosted glass 4건 예외
+- CSS Modules: `dist/components/ClaimCard/ClaimCard.module.css` 자동 복사 확인 (IMPL-UI-002 패턴)
+- `@celebbase/shared-types` 가 ui-kit dependency 로 처음 추가 (`schemas.LifestyleClaimWire` / `schemas.ClaimSourceWire` namespace import)
+- 직접 구현 (Option B): IMPL-UI-031-a 가 L2 (단일 ui-kit primitive, 보안/PHI 무관) 이고 HANDOFF 가 계약을 잠근 상태라 Codex 파이프라인 우회
+### 미완료: IMPL-UI-031-b (`/slice/claim-card` preview + Storybook story + axe), IMPL-UI-032 (Wellness Claims Feed `/feed` page) — 별도 PR
+### 연관 파일: packages/ui-kit/src/components/ClaimCard/, packages/ui-kit/src/index.ts, pipeline/runs/IMPL-UI-031-a/FE-CODEX-HANDOFF.md
+
+---
 date: 2026-05-01
 agent: claude-opus-4-7
 task_id: SCS-2026-05-01
