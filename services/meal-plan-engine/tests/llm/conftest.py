@@ -25,6 +25,11 @@ import os
 import re
 from typing import Any
 
+# AsyncOpenAI() 는 instantiation 단계에서 api_key 부재 시 OpenAIError 발생.
+# VCR replay 시에도 client 생성은 실 코드와 동일 경로이므로 dummy key 필수.
+# Settings() 가 import 시 env 를 읽으므로 이 줄은 src.config import 보다 앞서야 한다.
+os.environ.setdefault("OPENAI_API_KEY", "test-cassette-replay-dummy-no-real-key")
+
 import pytest
 
 # Patch vcrpy httpcore stub: new cassette format stores body.string as str,
