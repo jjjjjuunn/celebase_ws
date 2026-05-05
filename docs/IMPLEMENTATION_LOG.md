@@ -3946,7 +3946,7 @@ verified_by: ruff format --check passed, ruff check passed, vcrpy 8.1.1 has vcr/
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: IMPL-019
-commit_sha: PENDING
+commit_sha: 1287a1d
 files_changed:
   - .claude/rules/domain/content.md
   - .claude/tasks.yaml
