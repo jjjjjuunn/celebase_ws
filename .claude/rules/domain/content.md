@@ -14,6 +14,23 @@ paths:
 - "~가 먹는 식단" (O) / "~가 추천/보증하는 식단" (X) — 오해 유발 표현 금지.
 - 셀러브리티 이미지: 라이선스 확인 후 사용.
 
+### Genre-Agnostic Selection Policy (PIVOT-2026-05 확정)
+
+CelebBase 는 **분야·장르·국적에 무관하게** 영향력이 있는 사람의 검증 가능한 wellness claim 을 수용한다. 명시적 Tier 분류 (Tier 1/2/3/4) 는 **운영 도구로만** 쓰며 사용자에게 노출하지 않는다.
+
+- **수용 대상**: 배우, 가수, 운동선수, 모델, 작가, 정치인, 기업가, K-pop 아이돌, 인플루언서 등 모든 카테고리.
+  - "Hollywood A-list 우선" 같은 특정 산업 편향 정책은 채택하지 않는다.
+  - 운동선수 (e.g. Cristiano Ronaldo, LeBron James, Tom Brady) 는 명시적 환영 — `category=protein` 분포의 핵심 공급원.
+- **선정 기준은 "영향력 + 출처 가능성" 두 축**:
+  1. 사용자 인지도 (글로벌 또는 지역 cohort 기준)
+  2. allowlist 매체 (`scripts/validate-claim-seeds.py` ALLOWED_DOMAINS) 또는 본인 공식 SNS 에 검증 가능한 wellness 발언 ≥ 5건 존재
+- **claim 양은 셀럽별로 비대칭 허용**: 5~30 claim/celeb. lifestyle PR 셀럽은 자연스레 많고, athletes/indie 배우는 적을 수 있다 — 인위적 균등화 금지.
+- **MVP cadence (1인 운영)**: 활성 셀럽 8~10명 한계. 25명 풀 도달은 admin moderation queue + 콘텐츠 cadence 검증 (OPS-001) 후 단계.
+- **연간 cadence 목표 (Phase 2+)**: 연 ~750 cards (≈ 주 25). 이는 운영 cadence 목표일 뿐 seed 일괄 수집 목표가 아님 — IMPL-019 Phase A/B (50 cards) 로 MVP DoD 충족.
+- **신규 카테고리/매체 도입 시**: `scripts/validate-claim-seeds.py` ALLOWED_DOMAINS 확장 PR 로 명시 승인. 분야가 추가될 때마다 매체 다양성 이슈 (e.g. athletes → ESPN/Sports Illustrated) 가 별도 검토.
+
+근거 문서: `Claude-2026-05-03-셀럽-웰니스-피벗-검토.md` §5~§8. 명시적 Tier 분류 거부 결정은 사용자 confirmation (2026-05-05) 으로 확정.
+
 ## Health Disclaimer
 
 - 모든 식단/영양 화면에 면책 조항 표시:
