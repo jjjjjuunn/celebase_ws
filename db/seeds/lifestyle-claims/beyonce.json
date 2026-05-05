@@ -1,0 +1,133 @@
+{
+  "celebrity_slug": "beyonce",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Co-founded the 22 Days Nutrition plant-based program with trainer Marco Borges in 2015",
+      "body": "Beyoncé and Jay-Z first tried a 22-day vegan stint in 2013 and later partnered with trainer Marco Borges to formalize the program in 2015. The plan emphasizes leafy greens, fruit, plant-based proteins, and roughly 80 percent plant-based carbs, framed as a flexible reset rather than strict lifelong veganism.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/beyonce-jayz-marco-borges-22-day-vegan-diet/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["plant-based", "22-days", "marco-borges", "vegan-curious", "reset"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/food/beyonce-jayz-marco-borges-22-day-vegan-diet/",
+          "excerpt": "The program includes plant-based carbs, which make up 80% of the plan.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/beyonce-vegan-health-diet-plant-based-protein-coachella",
+          "excerpt": "I may not stick to a fully vegan lifestyle, but it's enough to continue with a plant-heavy diet.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Founded Cécred, a haircare line launched in February 2024",
+      "body": "Beyoncé launched Cécred (pronounced 'sacred') in February 2024, citing her childhood sweeping hair in her mother's salon as inspiration. The brand positions itself as 'hair-honoring care, validated by science' and expanded with a Styling Collection that started at $18 and rolled into Ulta in April 2025.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/beyonce-cecred-interview",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["cecred", "founder", "haircare", "ulta", "validated-by-science"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/beyonce-cecred-interview",
+          "excerpt": "How many of y'all knew my first job was sweeping hair in my mama's salon?",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/hair/a43908183/beyonce-announces-hair-products-hair-care-brand/",
+          "excerpt": "Beyoncé's hair brand Cécred is officially available today, for fans and beauty lovers everywhere.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Founded Ivy Park, an activewear label launched with Topshop in 2016 and relaunched with Adidas in 2020",
+      "body": "Beyoncé launched Ivy Park in March 2016 as an athleisure line distributed through Topshop, Net-a-Porter, and Nordstrom. After the Topshop partnership ended she relaunched the brand with Adidas in 2020, releasing themed seasonal drops including the 2023 Park Trail collection tied to the Renaissance World Tour.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/beyonce-athleisure-fitness-gym-ivy-park",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["ivy-park", "founder", "activewear", "adidas", "athleisure"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/beyonce-athleisure-fitness-gym-ivy-park",
+          "excerpt": "Beyoncé has taken body-consciousness a step further with her newly minted activewear line, Ivy Park.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Elle",
+          "url": "https://www.elle.com/fashion/news/a35241/beyonce-fashion-line-ivy-park/",
+          "excerpt": "The name of the line is IVY PARK and the goods will be sold at Net-a-Porter, Topshop, and Nordstrom.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Conditions for tours with combined morning runs, weighted squats, and dance rehearsals",
+      "body": "Vogue's profile describes a tour-prep day that begins with a six-mile run, moves into weighted squat work with a trainer, and continues with multi-hour dance rehearsals. Beyoncé has also shared abbreviated routines on Instagram featuring crunches, lunges, and jab combinations.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/beyonc233-fierce-creature",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["running", "squats", "dance", "tour-prep", "strength"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/beyonc233-fierce-creature",
+          "excerpt": "Ran six miles, and then worked out with her trainer, who had her in every imaginable kind of squat.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/beyonce-workout-instagram-video",
+          "excerpt": "Beyoncé shares her workout routine on Instagram, offering insight into how to look Flawless.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "food",
+      "headline": "Uses a multi-week strict vegan reset before high-stakes performances such as Coachella",
+      "body": "Ahead of her 2018 Coachella headline performance Beyoncé publicly committed to a 44-day vegan reset on Instagram, telling fans to join her plant-based food challenge. The pattern of using the 22 Days framework as a focused pre-show reset rather than a permanent lifestyle has continued in tour cycles since.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/beyonce-vegan-diet-coachella/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["coachella", "reset", "vegan", "performance-prep", "22-days"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/beyonce-vegan-diet-coachella/",
+          "excerpt": "44 days until Coachella!! Vegan Time!! Click the link in my bio to join me!",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

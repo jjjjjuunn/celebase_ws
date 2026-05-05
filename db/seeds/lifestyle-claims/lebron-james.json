@@ -1,0 +1,112 @@
+{
+  "celebrity_slug": "lebron-james",
+  "claims": [
+    {
+      "claim_type": "workout",
+      "headline": "Trains daily with longtime body coach Mike Mancias, including early-morning corrective work after late flights",
+      "body": "James has worked with Mike Mancias since the Cleveland Cavaliers and continues to anchor his daily routine around corrective and band work with him as a Laker. Coaches who have been around him say Mancias and James were doing 6:30 AM correctives even when the team landed at 2 or 3 AM, framing showing up as the core habit behind a 22-plus year career.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/7128986/2026/03/21/lebron-james-robert-parish-record-nba-games/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["mike-mancias", "correctives", "longtime-trainer", "showing-up"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/7128986/2026/03/21/lebron-james-robert-parish-record-nba-games/",
+          "excerpt": "No matter if we landed at 2 or 3 o'clock in the morning – at 6:30, he's up in the morning doing correctives. Doing his band work, doing his back work.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2010/02/12/sports/basketball/12lebron.html",
+          "excerpt": "I get dressed, shoot for half an hour and then do a stretching routine that lasts about 25 minutes, then go in the training room and get my legs worked on by the masseuses.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Reportedly invests around $1 million per year on body maintenance and recovery",
+      "body": "NHL All-Stars surveyed by The Athletic about NBA longevity cited an industry-wide figure that James spends roughly a million dollars a year on his body — covering trainers, recovery rooms, and travel-friendly equipment — to extend his prime well past typical career arcs.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/4153918/2023/02/03/nhl-all-stars-lebron-james/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["body-investment", "recovery", "longevity", "million-dollar"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/4153918/2023/02/03/nhl-all-stars-lebron-james/",
+          "excerpt": "He also spends a million bucks on his body a year.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Uses ice baths and a hyperbaric chamber as part of a back-to-back game recovery regimen",
+      "body": "After a notable back-to-back at age 41, James detailed that his pregame regimen began with an ice bath after waking and continued into a hyperbaric chamber session before getting to the arena for his normal time. Coach JJ Redick described the routine as the kind of work that lets him keep starring across consecutive games well into his 22nd season.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/6968777/2026/01/14/lebron-james-lakers-back-to-back-nba/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["ice-bath", "hyperbaric", "back-to-back", "recovery"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/6968777/2026/01/14/lebron-james-lakers-back-to-back-nba/",
+          "excerpt": "Waking up Tuesday morning, then hopping into an ice bath. Then a hyperbaric chamber.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Co-founded SpringHill Company, a multi-vertical entertainment and consumer products holding",
+      "body": "James co-founded SpringHill with longtime business partner Maverick Carter and in October 2021 sold a significant minority stake to a consortium of RedBird Capital, Fenway Sports Group, Nike, and Epic Games. The company spans film, television, gaming, audio, live events, and consumer products — anchoring his post-playing portfolio.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2021/10/14/business/lebron-james-springhill-redbird.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["springhill", "founder", "media", "consumer-products"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2021/10/14/business/lebron-james-springhill-redbird.html",
+          "excerpt": "LeBron James and his longtime business partner Maverick Carter want to become major players in the film, television, gaming, consumer products, audio and live-events businesses.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Joined the WHOOP investor base in the company's $575 million Series G round in 2026",
+      "body": "James participated in the March 2026 Series G funding round that valued the wearable health-tracker maker WHOOP at $10 billion, alongside Cristiano Ronaldo and institutional backers including Collaborative Fund and the Qatar Investment Authority. WHOOP markets its tracker as a 24/7 sleep, strain, and recovery monitor for performance.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2026/03/31/business/dealbook/whoop-raises-575-million-10-billion-valuation.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["whoop", "wearable", "investor", "recovery-tech"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2026/03/31/business/dealbook/whoop-raises-575-million-10-billion-valuation.html",
+          "excerpt": "The funding round was led by Collaborative Fund with participation from the basketball star LeBron James and the soccer player Cristiano Ronaldo.",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

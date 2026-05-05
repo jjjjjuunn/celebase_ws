@@ -1,0 +1,126 @@
+{
+  "celebrity_slug": "gwyneth-paltrow",
+  "claims": [
+    {
+      "claim_type": "brand",
+      "headline": "Founded the lifestyle and wellness brand Goop in 2008",
+      "body": "Paltrow launched Goop in 2008, originally as a newsletter, and grew it into a multi-category lifestyle brand spanning Goop Beauty, Goopglow skincare, supplements, and editorial content. By the brand's 15th anniversary in 2023 it had collaborated with houses such as Augustinus Bader, Saie, and Dame on limited capsules.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.harpersbazaar.com/uk/celebrities/news/a26745906/gwyneth-paltrow-acting-career-lifestyle-brand-goop/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["goop", "founder", "wellness-brand", "lifestyle"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/uk/celebrities/news/a26745906/gwyneth-paltrow-acting-career-lifestyle-brand-goop/",
+          "excerpt": "The former actress launched Goop back in 2008 but the now-famous lifestyle brand has not been without controversy.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-beauty-secrets",
+          "excerpt": "I was not a person who ever had a skin-care routine as a teenager — Goop was about clean, luxurious, and accessible beauty.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Trains exclusively with the Tracy Anderson Method",
+      "body": "Paltrow has worked with trainer Tracy Anderson for over a decade and credits the Tracy Anderson Method — a mix of weighted leg lifts, intricate arm work, and high-cardio dance choreography — as the sole source of her physique. She and Anderson are also business partners and personal friends.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/gwyneth-paltrow-summer-abs-bikini-body-health-fitness-tracy-anderson-method",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["tracy-anderson", "dance-cardio", "method", "long-term-trainer"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-summer-abs-bikini-body-health-fitness-tracy-anderson-method",
+          "excerpt": "When it comes to exercise, Paltrow's routine is all down to one method — Tracy Anderson's.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-goop-by-juice-beauty-skin-care-announcement",
+          "excerpt": "Weighted leg lifts, an unrelenting arm workout, and an hour-long high-cardio dance class.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "beauty",
+      "headline": "Treats consistent exfoliation and retinol as the backbone of her skincare routine",
+      "body": "Paltrow describes herself as a 'massive exfoliating junky' and frames Goopglow's exfoliating range — including the Microderm Instant Glow Exfoliator and the Dark Spot Exfoliating Sleep Milk — as everyday essentials. She has also detailed how Goop's 3x Retinol Regenerative Serum has improved deep wrinkles with consistent use.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/gwyneth-paltrow-beauty-secrets",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["exfoliation", "retinol", "goopglow", "skincare", "consistency"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-beauty-secrets",
+          "excerpt": "A self-described massive exfoliating junky, the Goop creator proves her point with a daub of Goopglow Microderm Instant Glow Exfoliator.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-goop-retinol",
+          "excerpt": "Gwyneth Paltrow walks us through her retinol routine that has improved deep wrinkles with consistent use.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Anchors her mornings in tongue scraping, transcendental meditation, and a Wednesday dance ritual",
+      "body": "Paltrow has detailed an Ayurveda-inflected morning protocol that opens with tongue scraping and transcendental meditation, and reserves Wednesdays for a dance routine choreographed by Tracy Anderson set to Beyoncé. She frames the rituals as a deliberate slow start before the rest of the day takes over.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/gwyneth-paltrow-morning-routine",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["morning-routine", "ayurveda", "tongue-scraping", "meditation", "dance"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gwyneth-paltrow-morning-routine",
+          "excerpt": "I start every Wednesday with dance — Paltrow posted a clip of her powering through a routine devised by Tracy Anderson set to Beyoncé.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "sleep",
+      "headline": "Builds her wind-down around long baths, evening exfoliation, and murder shows",
+      "body": "Paltrow's nighttime routine is structured around extended baths, dedicated evening exfoliation with Goopglow's Dark Spot Exfoliating Sleep Milk as a leave-on overnight treatment, and watching murder documentaries to decompress. She has framed the consistency of the routine — never skipping skincare — as the discipline behind her skin.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.harpersbazaar.com/beauty/skin-care/a40709260/gwyneth-paltrow-nighttime-skincare-routine-goop-sleep-milk/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["nighttime", "bath", "wind-down", "exfoliation", "consistency"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/skin-care/a40709260/gwyneth-paltrow-nighttime-skincare-routine-goop-sleep-milk/",
+          "excerpt": "The Goop founder has talked extensively about why she never skips the skin care step, and the latest Goopglow launch, the Dark Spot Exfoliating Sleep Milk.",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

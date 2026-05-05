@@ -1,0 +1,119 @@
+{
+  "celebrity_slug": "ariana-grande",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Has followed a plant-based vegan diet since 2013",
+      "body": "Grande has been openly vegan since 2013 and frames the choice around her love for animals, describing her ideal as a full plant-based, whole food diet. She has spoken in subsequent interviews about navigating vegan eating around her Sicilian-American family who still offers her meatballs at gatherings.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.elle.com/uk/life-and-culture/culture/g30388227/vegan-celebrities/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["vegan", "plant-based", "ethics", "long-term"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Elle",
+          "url": "https://www.elle.com/uk/life-and-culture/culture/g30388227/vegan-celebrities/",
+          "excerpt": "I love animals more than I love most people, not kidding. But I am a firm believer in eating a full plant-based, whole food diet.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/ariana-grande-says-her-family-always-offers-me-meatballs-even-though-vegan-they-dont-want-to-remember-8692870",
+          "excerpt": "My family always forgets. I don't think they forget; I think they don't want to remember.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Founded r.e.m. Beauty, a cruelty-free vegan makeup line launched in 2021",
+      "body": "Grande launched r.e.m. Beauty in November 2021 with a focus on cruelty-free, vegan formulas tied to her aesthetic eras. The brand expanded into Ulta Beauty distribution and added skincare adjacent products, with later capsules including a Wicked-themed collection in 2024.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/ariana-grande-new-makeup-line-rem-beauty",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["rem-beauty", "founder", "vegan", "cruelty-free", "makeup"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/ariana-grande-new-makeup-line-rem-beauty",
+          "excerpt": "Ariana Grande's r.e.m. Beauty is a cruelty-free, vegan makeup line tied to her musical eras.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/makeup/a38225476/ariana-grande-rem-beauty-review/",
+          "excerpt": "Ariana Grande's r.e.m. Beauty has expanded its lineup since the initial Ulta launch with new color and skin-adjacent products.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "beauty",
+      "headline": "Designed God Is a Woman fragrance as 91% naturally derived, vegan, and cruelty-free",
+      "body": "Grande's God Is a Woman fragrance, released through her R.E.M. fragrance line, is formulated with 91 percent naturally derived ingredients, certified vegan and cruelty-free, with sustainable packaging including a refillable bottle.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.elle.com/beauty/a37159251/elle-loves-god-is-a-woman/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["fragrance", "god-is-a-woman", "vegan", "cruelty-free", "sustainable"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Elle",
+          "url": "https://www.elle.com/beauty/a37159251/elle-loves-god-is-a-woman/",
+          "excerpt": "God Is a Woman is 91 percent naturally derived, vegan, and cruelty-free, in a refillable bottle.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "beauty",
+      "headline": "Uses drugstore makeup-removing wipes from Neutrogena and Burt's Bees",
+      "body": "After fans pointed out she sometimes slept in makeup, Grande gave a rare glimpse into her skincare routine and named drugstore staples — Neutrogena and Burt's Bees face wipes — as her go-to makeup removers, reinforcing an accessible rather than luxury approach for that step.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.allure.com/story/ariana-grande-drugstore-face-wipes-neutrogena-burts-bees",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["skincare", "drugstore", "makeup-remover", "neutrogena", "burts-bees"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Allure",
+          "url": "https://www.allure.com/story/ariana-grande-drugstore-face-wipes-neutrogena-burts-bees",
+          "excerpt": "Ariana Grande gave a rare glimpse into her skin-care routine and shared favorite drugstore beauty buys, including Neutrogena and Burt's Bees face wipes.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "beauty",
+      "headline": "Has stopped using lip filler and Botox after years of relying on them",
+      "body": "In a Vogue Beauty Secrets video Grande spoke openly and tearfully about why she used to get lip filler and Botox and why she has stepped away from those treatments, framing it as wanting to see her real face again rather than chasing a curated look.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.allure.com/story/ariana-grande-lip-filler-botox",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["lip-filler", "botox", "stopped", "natural", "transparency"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Allure",
+          "url": "https://www.allure.com/story/ariana-grande-lip-filler-botox",
+          "excerpt": "Ariana Grande got emotional talking about why she used to get filler and Botox and why she stopped.",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

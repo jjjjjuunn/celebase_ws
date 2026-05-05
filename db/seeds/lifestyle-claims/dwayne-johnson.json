@@ -1,0 +1,140 @@
+{
+  "celebrity_slug": "dwayne-johnson",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Eats a strict film-prep diet six days a week and reserves Sundays for elaborate cheat meals",
+      "body": "Johnson has documented a 'very strict' nutrition plan during film cycles such as Black Adam — anchored by sirloin steak, eggs, oatmeal, and frequent feeds — and openly designates Sunday as a recurring cheat day for indulgences like coconut-banana pancakes with peanut butter or stacks of PB&J sandwiches.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/dwayne-johnson-on-strict-black-adam-diet/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["high-protein", "cheat-day", "sunday", "film-prep", "structured"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/dwayne-johnson-on-strict-black-adam-diet/",
+          "excerpt": "Sharing a video from the same spot on Sunday, Johnson revealed that he was indulging in coconut banana pancakes with peanut butter and strawberry jelly.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/dwayne-johnson-breakfast-sirloin-steak-eggs-oatmeal-and-peanut-butter-and-jelly-sandwiches/",
+          "excerpt": "I decided it was cheat meal time which is usually always reserved for Sundays.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Trains daily in his self-styled 'Iron Paradise' gym setup with old-school heavy equipment",
+      "body": "Johnson refers to his personal gym as the Iron Paradise and emphasizes high-intensity, no-frills heavy training — to the point of finishing a workout after a chain hit his temple and required stitches. He pairs the routine with leg days during film prep and frames consistency in obscurity as the core of his physique.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/movies/dwayne-johnson-injures-himself-at-the-gym-tastes-his-own-blood/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["iron-paradise", "heavy-training", "consistency", "leg-day"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/movies/dwayne-johnson-injures-himself-at-the-gym-tastes-his-own-blood/",
+          "excerpt": "Sometimes — well, oftentimes, things get intense here in the Iron Paradise.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/health/dwayne-johnson-shows-off-ripped-quads-training-black-adam/",
+          "excerpt": "It's always the work we quietly put in when no one is watching that changes the game.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Co-founded Teremana Tequila, launched in March 2020 and made by hand in Jalisco",
+      "body": "Johnson unveiled Teremana Tequila in October 2019 and launched it commercially in March 2020 just before US lockdowns. The brand uses small-batch, hand-crafted blue agave matured in the Jalisco highlands and has expanded with annual Cinco de Mayo activations such as the 2025 Guac on the Rock $1 million giveaway.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/dwayne-the-rock-johnson-unveils-his-new-tequila-teremana/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["teremana", "founder", "tequila", "jalisco", "small-batch"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/food/dwayne-the-rock-johnson-unveils-his-new-tequila-teremana/",
+          "excerpt": "After years of hard work, this blessing is truly a dream come true. Set to launch in 2020.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/dwayne-the-rock-johnson-surprises-fans-during-blind-taste-testing-teremana-tequila-video/",
+          "excerpt": "Small batch, hand crafted tequila from our Teremana blue agave, maturing in the highlands of Jalisco.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Co-founded ZOA Energy, a 'clean and healthy' energy drink line",
+      "body": "Johnson introduced ZOA Energy in 2021 as a self-described 'first of its kind, clean and healthy energy drink' for everyday warriors. He has continued to anchor ZOA campaigns himself, including the 2024 'Big Dwayne Energy' commercial recreating the iconic fanny-pack photo.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/dwayne-johnson-breakfast-sirloin-steak-eggs-oatmeal-and-peanut-butter-and-jelly-sandwiches/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["zoa-energy", "founder", "energy-drink", "clean-label"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/dwayne-johnson-breakfast-sirloin-steak-eggs-oatmeal-and-peanut-butter-and-jelly-sandwiches/",
+          "excerpt": "It's our honor to introduce you to ZOA Energy. The first of its kind, CLEAN & HEALTHY energy drink that champions the everyday warriors in all of us.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/dwayne-the-rock-johnson-recreates-fanny-pack-photo-zoa-energy-big-dwayne-energy-campaign-exclusive-8580485",
+          "excerpt": "Dwayne Johnson recreates the fanny pack photo for ZOA Energy's Big Dwayne Energy campaign.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Built Project Rock as a long-running performance line with Under Armour",
+      "body": "Johnson started Project Rock with Under Armour as a training-oriented apparel and footwear collection for athletes who train in and out of competition. The line has supported gear donations such as the surprise drop to his two alma mater football teams and expanded its ambassador roster with Lindsey Vonn becoming its first official face.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/style/lindsey-vonn-face-under-armour-collection/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["project-rock", "under-armour", "training-apparel", "founder"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/style/lindsey-vonn-face-under-armour-collection/",
+          "excerpt": "The Project Rock line was started by multi-hyphenate star Dwayne 'The Rock' Johnson, who has been a long time partner of Under Armour.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/sports/dwayne-johnson-surprises-former-high-schools-football-teams-with-new-gear/",
+          "excerpt": "Dwayne Johnson and Under Armour provided brand-new Project Rock performance gear to the football teams at his two alma maters.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}

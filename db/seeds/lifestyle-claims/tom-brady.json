@@ -1,0 +1,133 @@
+{
+  "celebrity_slug": "tom-brady",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Eats a roughly 80 percent plant-based, locally sourced diet that avoids nightshades and strawberries",
+      "body": "Brady's TB12 Method advocates a plant-based, locally sourced, organic diet that pointedly avoids nightshades and processed sugar. The Athletic reported his personal chef confirming that around 80 percent of the food consumed in his household is vegetables, with the remaining 20 percent containing meat. The New York Times noted his plate is mostly plant-based and excludes strawberries because he detests their smell.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["plant-based", "tb12", "no-nightshades", "no-strawberries", "80-20"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
+          "excerpt": "Brady's diet is mostly plant-based — but no strawberries, because he detests the smell of them.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/3106842/2022/02/03/tom-brady-influence-far-beyond-nfl-trailblazed-path-premier-league-players-beyond/",
+          "excerpt": "80 per cent of his meals are plant-based while the other 20 per cent contain meat.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Trained for two decades around pliability work with longtime body coach Alex Guerrero",
+      "body": "Brady built his daily training around what he and Alex Guerrero call pliability — high-volume contract-and-stretch work using vibrating foam rollers and spheres rather than conventional heavy lifting. He has framed the method as the substitution that replaced injury-and-rehab cycles with prehab and credits it for an unusually long career, anchoring it through the TB12 Sports business he and Guerrero co-founded.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2017/09/20/well/move/tom-bradys-the-tb12-method-is-hefty-but-short-on-science.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["pliability", "tb12", "alex-guerrero", "longevity", "method"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2017/09/20/well/move/tom-bradys-the-tb12-method-is-hefty-but-short-on-science.html",
+          "excerpt": "Mere massage does not produce pliability — you must contract muscles while also stretching and pummeling them, preferably with high-tech, vibrating foam rollers or vibrating spheres.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/6580502/2025/08/29/alex-guerrero-tom-brady-wellness-coordinator/",
+          "excerpt": "In effect, I replaced injury and rehab with pliability and prehab.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "sleep",
+      "headline": "Sticks to a 9 p.m. bedtime and 6 a.m. wake-up to bank nine hours of sleep",
+      "body": "The Athletic reported that Brady held a strict regimen of going to bed at 9 p.m. and waking at 6 a.m. to ensure he gets nine hours of sleep, framing the rest block as part of the same longevity stack as his diet and pliability work. Recovery sleep is one of the three levers — alongside hydration and resistance work — that the New York Times credits for his unusually long career.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/athletic/3106842/2022/02/03/tom-brady-influence-far-beyond-nfl-trailblazed-path-premier-league-players-beyond/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["nine-hours", "early-bedtime", "recovery", "longevity"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/3106842/2022/02/03/tom-brady-influence-far-beyond-nfl-trailblazed-path-premier-league-players-beyond/",
+          "excerpt": "Brady stuck to a strict regimen of going to bed at 9pm and waking at 6am to ensure he got nine hours of sleep.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2023/02/01/sports/football/tom-brady-retires-mahomes.html",
+          "excerpt": "Resistance bands instead of weights; water, lots of electrolyte water; sleep, lots of recovery sleep.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "food",
+      "headline": "Drinks at least half his body weight in ounces of water each day with TB12 electrolytes",
+      "body": "Brady's public hydration rule — repeated on the TB12 site and quoted by the New York Times — is to drink at least one-half of his body weight in ounces of water daily, supplemented with TB12-branded electrolytes and protein shakes. He frames the hydration target as the floor under both his pliability work and his on-field longevity.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["hydration", "tb12", "electrolytes", "rule", "longevity"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
+          "excerpt": "Drink at least one-half of your body weight in ounces of water daily.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "brand",
+      "headline": "Co-founded TB12 Sports and launched Brady Brand technical apparel as the post-career business core",
+      "body": "Brady co-founded the TB12 Sports health and wellness company with longtime trainer Alex Guerrero and, in early 2022, unveiled Brady Brand — a fully fledged line of technical apparel that applies pro-sports innovations to a system of cross-activity clothing. The Athletic detailed the BRADY launch with nine partnered college athletes plus the founder of Religion of Sports media as part of the same portfolio.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/live/2022/02/01/sports/tom-brady-retires/hes-looked-at-as-part-of-the-fashion-world",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["tb12-sports", "brady-brand", "founder", "apparel", "religion-of-sports"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/live/2022/02/01/sports/tom-brady-retires/hes-looked-at-as-part-of-the-fashion-world",
+          "excerpt": "Tom Brady unveiled Brady brand, his newest venture and a fully fledged line of technical apparel that applies two decades of pro sports level innovation and engineering.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/athletic/4184020/2021/12/16/tom-brady-partners-with-college-athletes-from-michigan-jackson-state-others-in-launch-of-clothing-line/",
+          "excerpt": "Tom Brady is poised to enter the fashion game with his new fashion line BRADY set to launch on Jan. 12.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "celebrity_slug": "joaquin-phoenix",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Has been vegan since the age of three",
+      "body": "Phoenix was raised vegan and has remained one since age three, framing the choice as inseparable from his identity rather than a discrete lifestyle decision. The New York Times noted he has supported PETA, the Red Cross, and Amnesty International in connection with his animal-rights advocacy.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2017/09/06/t-magazine/joaquin-phoenix.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["vegan", "lifelong", "animal-rights", "ethics"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2017/09/06/t-magazine/joaquin-phoenix.html",
+          "excerpt": "Phoenix is an activist, primarily concerned with animal rights — he's been a vegan since he was 3.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Used his 2020 Oscars Best Actor speech to call for rejecting dairy and reframing animal agriculture",
+      "body": "Accepting the Best Actor Oscar in February 2020, Phoenix urged viewers to reject dairy products and described how the dairy industry separates calves from their mothers. The speech drew rousing applause and provoked sustained pushback from the dairy industry, which the New York Times tracked across multiple follow-up pieces.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2020/02/10/movies/joaquin-phoenix-oscars-speech.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["activism", "oscars", "dairy", "animal-rights", "speech"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2020/02/10/movies/joaquin-phoenix-oscars-speech.html",
+          "excerpt": "I'm full of so much gratitude right now — Joaquin Phoenix said at the start of his speech.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2020/12/29/science/dairy-farming-cows-milk.html",
+          "excerpt": "Joaquin Phoenix drew rousing applause when he urged viewers to reject dairy products.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "food",
+      "headline": "Persuaded the Golden Globes to switch to an all-vegan dinner during his 2020 awards run",
+      "body": "During his Joker-era awards sweep Phoenix prodded the Golden Globes to adopt an all-vegan dinner for the ceremony. The move set a precedent that several subsequent awards events and industry parties — including Maison de Mode's Sustainable Style Awards plant-based dinner — have echoed.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2026/02/25/movies/awards-show-food.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["golden-globes", "vegan-menu", "advocacy", "awards"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2026/02/25/movies/awards-show-food.html",
+          "excerpt": "During his season-long sweep for Joker, Joaquin Phoenix even prodded the Golden Globes to adopt an all-vegan dinner.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Re-wore a single Stella McCartney vegan tuxedo to every event of his 2020 awards season",
+      "body": "Phoenix wore a custom Stella McCartney black tuxedo — made by a vegan designer committed to natural, low-impact textiles — to the 2020 Golden Globes and pledged to re-wear it to every awards show that year. McCartney publicly endorsed the choice on Instagram, framing it as a sustainability statement on the red carpet.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/golden-globes-2020-red-carpet-sustainable-fashion-climate-change",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["sustainable-fashion", "stella-mccartney", "rewear", "vegan-tuxedo"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/golden-globes-2020-red-carpet-sustainable-fashion-climate-change",
+          "excerpt": "Phoenix's black tuxedo was made by Stella McCartney, a vegan designer committed to natural and low-impact textiles, and he plans to re-wear it to every awards show this year.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Narrates feature-length investigations of factory farming such as the Australian documentary cited in vegan protests",
+      "body": "Phoenix has lent his voice to documentary-length exposés of animal agriculture; the New York Times reported on Australian protests in 2019 organized around a film he narrated which set out to expose what activists called the routine and inhumane practices of the industry. He uses voiceover work as a low-publicity extension of the activism he avoids on social media.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2019/04/10/world/australia/vegans-protest-farms.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["documentary", "narration", "factory-farming", "activism"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2019/04/10/world/australia/vegans-protest-farms.html",
+          "excerpt": "Narrated by the American actor Joaquin Phoenix and released last year that claims to expose the routine and inhumane practices of animal agriculture in Australia.",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

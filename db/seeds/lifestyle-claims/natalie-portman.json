@@ -1,0 +1,126 @@
+{
+  "celebrity_slug": "natalie-portman",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Has been vegetarian since age 9 and went fully vegan after producing the Eating Animals documentary",
+      "body": "Portman has been vegetarian since the age of nine and Vogue describes her as a longtime vegan fashion queen who has carried the choice into red-carpet decisions. She told Harper's Bazaar UK that the findings of the Eating Animals documentary she produced were so harrowing that she pushed her vegetarianism one step further and became fully vegan.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/slideshow/natalie-portman-style-evolution",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["vegan", "long-term", "ethics", "factory-farming", "transition"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/slideshow/natalie-portman-style-evolution",
+          "excerpt": "A vegan since the age of 9, she doesn't compromise her ethics in fashion either.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/uk/culture/a27528546/natalie-portman-interview-factory-farming-moby/",
+          "excerpt": "The documentary's findings were so harrowing that Portman decided to take her vegetarianism one step further and become a vegan.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "food",
+      "headline": "Frames going vegan as the change that improved her skin and anchors her diet around bean tacos and oat-milk cappuccinos",
+      "body": "Portman told Harper's Bazaar that her skin got great once she became vegan, and described favourite foods as bean and vegetable tacos, chips and guacamole, phyllo-dough pastries, and oat-milk cappuccinos. She framed the everyday menu as the steady backdrop to her larger ethical choice rather than a separate skincare regimen.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.harpersbazaar.com/beauty/a37575132/natalie-portman-interview-september-2021/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["vegan", "skin", "everyday-foods", "oat-milk", "diet"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/beauty/a37575132/natalie-portman-interview-september-2021/",
+          "excerpt": "Once I became vegan, my skin got great. Some of my favorite foods are bean and vegetable tacos, chips and guacamole, phyllo-dough puff pastries, and oat-milk cappuccinos.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Trained for Black Swan with Mary Helen Bowers's Ballet Beautiful method for roughly a year before filming",
+      "body": "Portman prepared for Black Swan with Ballet Beautiful founder Mary Helen Bowers, training for about a year ahead of production with two-hour daily sessions that grew into a multi-hour daily regimen of swim, ballet barre, and customized conditioning. Vogue described the workouts as a customized elongated crawl in the pool followed by ballet-specific strength work, with sessions often starting at 5:00 a.m.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.vogue.com/article/ballet-beautiful",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["ballet-beautiful", "mary-helen-bowers", "black-swan", "long-prep", "swim"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/ballet-beautiful",
+          "excerpt": "The hour was a small portion of what Portman did every day, usually starting at 5:00 a.m. She would swim a mile of Bowers's customized, elongated version of the crawl.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/natalie-portman-january-2011-cover",
+          "excerpt": "The dance training for Black Swan started a year before the film, with two hours a day.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "workout",
+      "headline": "Built a Thor: Love and Thunder physique on five vegan meals a day plus three protein shakes alongside heavy training",
+      "body": "Portman prepared for Thor: Love and Thunder with a programme that paired strength sessions with five vegan meals a day plus three protein shakes — oats and berries with a shake at breakfast, falafel and salad with a shake at lunch, and a vegan dinner with another shake. Her trainer framed the volume as the deliberate fuel behind a noticeably more muscular silhouette.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.harpersbazaar.com/uk/beauty/fitness-wellbeing/a41027098/natalie-portman-thor-workout/",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["thor", "vegan-protein", "five-meals", "strength-training", "film-prep"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Harper's Bazaar",
+          "url": "https://www.harpersbazaar.com/uk/beauty/fitness-wellbeing/a41027098/natalie-portman-thor-workout/",
+          "excerpt": "Natalie's typical day of eating during filming was around five meals a day, plus three vegan protein shakes.",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Produced and narrated the Eating Animals documentary as a long-form indictment of factory farming",
+      "body": "Portman produced and narrated the 2018 documentary Eating Animals, adapted from Jonathan Safran Foer's book, which the New York Times reviewed as a sustained indictment of factory farming. She has framed the film as her most direct activist project and one of the catalysts for tightening her own diet to fully plant-based.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.nytimes.com/2018/06/14/movies/eating-animals-review.html",
+      "verified_by": "human-junwon",
+      "is_health_claim": false,
+      "tags": ["eating-animals", "documentary", "producer", "narrator", "factory-farming"],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "The New York Times",
+          "url": "https://www.nytimes.com/2018/06/14/movies/eating-animals-review.html",
+          "excerpt": "Natalie Portman (along with Mr. Foer, one of the producers) provides the narration.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/eating-animals-documentary-jonathan-safran-foer-vegetarian-diet",
+          "excerpt": "Narrated by Natalie Portman, the film dives into the best and worst of raising animals for food.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}
