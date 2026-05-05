@@ -3695,3 +3695,43 @@ PIVOT-2026-05 BFF 트랙. agreement.md §4 의 frozen contract (`/api/celebritie
 ### 미완료: IMPL-019 (seed JSON + allowlist validator), IMPL-UI-031 (ClaimCard ui-kit), IMPL-020 (Inspired meal plan CTA), IMPL-021 (Admin moderation queue) — 본 머지로 BFF 트랙 종료, FE 세션이 agreement.md §9 48h Integration Gate (ClaimCard `/slice/claim-card/` 200 + FE→BFF mock-off smoke) 검증 가능.
 
 ### 연관 파일: apps/web/.env.example, apps/web/src/app/api/celebrities/[slug]/claims/route.ts, apps/web/src/app/api/claims/feed/route.ts, apps/web/src/app/api/claims/[id]/route.ts, apps/web/src/app/api/claims/__tests__/claims-bff.integration.test.ts, pipeline/runs/BFF-018/CODEX-HANDOFF.md, pipeline/runs/BFF-018/QA-PLAN.md, pipeline/runs/BFF-018/LESSONS.md
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-019
+commit_sha: 5683d82
+files_changed:
+  - .github/workflows/ci.yml
+  - db/seeds/lifestyle-claims/_schema.json
+  - scripts/validate-claim-seeds.py
+  - db/seeds/lifestyle-claims/jennifer-aniston.json
+verified_by: claude-opus-4-7 (validator + manual schema review)
+---
+### 완료: IMPL-019 Phase A + Phase B-pilot — claim seed validator + jennifer-aniston × 5
+
+**Phase A (commit f60e8c1)**: spec.md §9.3 #7 allowlist-only validator + JSON Schema.
+- `db/seeds/lifestyle-claims/_schema.json`: claim_type/trust_grade/status enum + 280자 headline / 10000자 body / 2048자 URL / `<` 문자 reject / primary 단일성
+- `scripts/validate-claim-seeds.py`: 13개 allowlist 도메인 (vogue/elle/harpersbazaar/womenshealthmag/allure/people/instyle/glamour/nytimes/instagram/youtube/tiktok/x.com) 매칭, trust_grade published gate (E 금지·D disclaimer 필수), is_primary 단일성, '<' 문자 reject. **HTTP 요청 0건** (regex + 도메인 매칭만, §9.3 #7 SSRF 차단).
+- `.github/workflows/ci.yml`: validate-schemas job 에 `python scripts/validate-claim-seeds.py` step 추가 → 위반 시 머지 차단.
+
+**Phase B pilot (commit 5683d82)**: 첫 셀럽 jennifer-aniston × 5 claim 시범. claim_type 5종 모두 커버 (workout/supplement/food/brand/beauty).
+- 1차 source 발굴 도구: Brave Search MCP (`mcp__brave-search__brave_web_search`) — `.claude/settings.local.json` 에 명시 등록 후 사용. 모든 URL 은 search 결과로 검증된 실제 페이지 (hallucinated URL 위험 회피, plan v2 mitigation #9).
+- trust_grade 분포: B×4 (People/InStyle/Allure/Vogue 직접 인터뷰) + C×1 (Vital Proteins 브랜드 협업 — is_health_claim=true + disclaimer_key='supplement_general').
+- D/E 등급 0건 (D 등급 필요 시 disclaimer 키 매핑 정책을 IMPL-021 admin moderation 에서 단일 출처로 관리하도록 후속 분리).
+- is_health_claim 명시 지정 (§9.3 #6): supplement 1건 true, 나머지 4건 false.
+- validator 통과: `✅ Lifestyle claim seed 검증 통과 — 셀럽 1명, claim 5건`.
+
+**위험 완화 적용 결과** (plan v2):
+- SSRF: validator HTTP 요청 0건 (regex + 도메인 매칭만). ✅
+- hallucinated URL: Brave Search MCP discovery 결과만 사용. ✅
+- HTML/XSS: schema 가 `<` 문자 reject (jennifer-aniston.json excerpt 에서 `'` quote · em-dash 만 사용). ✅
+- trust_grade gate: published 상태에서 E 0건, D 시 disclaimer_key 동반 1건. ✅
+
+### 미완료:
+- **Phase B 확장**: 잔여 셀럽 9명 (ariana-grande, beyonce, cristiano-ronaldo, dwayne-johnson, gwyneth-paltrow, joaquin-phoenix, lebron-james, natalie-portman, tom-brady) × 5 claim 시범 → 후속 셀럽당 평균 30 claim 으로 확장. spec §3.5 의 "셀럽 25명" 목표 도달까지 추가 15명 신규 등록 (`db/seeds/data/<slug>.json` 선행 필요).
+- **disclaimer_key 정의 단일 출처**: 현재 `'supplement_general'` 문자열 임시 사용. IMPL-021 admin moderation 에서 disclaimer 카탈로그 (`disclaimers.<key>` enum) 정의 + FE 렌더 매핑 필요.
+- **D/E 등급 사례 시드**: 현재 시드는 모두 published (B/C). draft/archived 상태 + D 등급 + E 등급 케이스가 IMPL-021 admin moderation queue 검증에 필요 — Phase B 확장 또는 별도 IMPL-019-c 로 분리 가능.
+- **loader 통합**: `db/seeds/loaders/celebrityLoader.ts` 에 lifestyle_claims + claim_sources INSERT 로직 추가 (현재 loader 는 base_diet + recipes 만). content-service 통합 테스트가 실 시드 활용 시 필요.
+
+### 연관 파일: db/seeds/lifestyle-claims/_schema.json, scripts/validate-claim-seeds.py, db/seeds/lifestyle-claims/jennifer-aniston.json, .github/workflows/ci.yml
