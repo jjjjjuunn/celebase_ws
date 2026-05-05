@@ -5,6 +5,10 @@ import {
   listByCelebrity,
   listFeed,
   findSourcesByClaimId,
+  findByIdAdmin,
+  listForModeration,
+  transitionStatus,
+  setHealthClaim,
 } from '../../src/repositories/lifestyle-claim.repository.js';
 
 interface QueryResult<T> {
@@ -315,6 +319,337 @@ describe('lifestyle-claim.repository', () => {
       expect(sql).toMatch(/ORDER BY is_primary DESC,\s*created_at ASC/);
       expect(query.mock.calls[0]?.[1]).toEqual([CLAIM_ID_1]);
       expect(sources).toHaveLength(2);
+    });
+  });
+
+  // ── Admin moderation queries (IMPL-021) ─────────────────────────────
+  describe('findByIdAdmin', () => {
+    let pool: pg.Pool;
+    let query: MockQuery;
+
+    beforeEach(() => {
+      ({ pool, query } = makePool());
+    });
+
+    it('returns draft claim regardless of status (no published filter, no celebrity is_active filter)', async () => {
+      query
+        .mockResolvedValueOnce({ rows: [makeClaim({ status: 'draft', published_at: null })] })
+        .mockResolvedValueOnce({ rows: [makeSource()] });
+
+      const result = await findByIdAdmin(pool, CLAIM_ID_1);
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe('draft');
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).not.toMatch(/\bc\.is_active/);
+      expect(sql).not.toMatch(/INNER JOIN celebrities/);
+      expect(sql).not.toMatch(/lc\.status\s*=\s*'published'/);
+      expect(sql).toMatch(/lc\.id\s*=\s*\$1/);
+    });
+
+    it('returns null when claim row is absent', async () => {
+      query.mockResolvedValueOnce({ rows: [] });
+      const result = await findByIdAdmin(pool, CLAIM_ID_1);
+      expect(result).toBeNull();
+      expect(query).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('listForModeration', () => {
+    let pool: pg.Pool;
+    let query: MockQuery;
+
+    beforeEach(() => {
+      ({ pool, query } = makePool());
+    });
+
+    it('applies status, claim_type, trust_grade, celebrity_id filters with parameterized clauses', async () => {
+      query.mockResolvedValueOnce({ rows: [makeClaim({ status: 'draft' })] });
+
+      await listForModeration(pool, {
+        status: 'draft',
+        claim_type: 'food',
+        trust_grade: 'B',
+        celebrity_id: CELEBRITY_ID,
+        limit: 10,
+      });
+
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(/lc\.status\s*=\s*\$1/);
+      expect(sql).toMatch(/lc\.claim_type\s*=\s*\$2/);
+      expect(sql).toMatch(/lc\.trust_grade\s*=\s*\$3/);
+      expect(sql).toMatch(/lc\.celebrity_id\s*=\s*\$4/);
+      expect(sql).toMatch(/ORDER BY lc\.created_at DESC,\s*lc\.id DESC/);
+      expect(values[0]).toBe('draft');
+      expect(values[1]).toBe('food');
+      expect(values[2]).toBe('B');
+      expect(values[3]).toBe(CELEBRITY_ID);
+      expect(values[values.length - 1]).toBe(11);
+    });
+
+    it('encodes admin cursor on (created_at, id) when has_next', async () => {
+      const claimA = makeClaim({ id: CLAIM_ID_1 });
+      const claimB = makeClaim({ id: CLAIM_ID_2, created_at: FIXED_DATE });
+      const claimC = makeClaim({ id: '01000000-0000-7000-8000-0000000000a3', created_at: FIXED_DATE });
+      query.mockResolvedValueOnce({ rows: [claimA, claimB, claimC] });
+
+      const result = await listForModeration(pool, { limit: 2 });
+
+      expect(result.items).toHaveLength(2);
+      expect(result.has_next).toBe(true);
+      expect(result.next_cursor).not.toBeNull();
+      const decoded: unknown = JSON.parse(
+        Buffer.from(result.next_cursor as string, 'base64').toString('utf8'),
+      );
+      expect(decoded).toMatchObject({
+        created_at: FIXED_DATE.toISOString(),
+        id: CLAIM_ID_2,
+      });
+    });
+
+    it('decodes valid cursor and adds composite (created_at, id) < predicate', async () => {
+      const cursorPayload = { created_at: FIXED_DATE.toISOString(), id: CLAIM_ID_1 };
+      const cursor = Buffer.from(JSON.stringify(cursorPayload), 'utf8').toString('base64');
+      query.mockResolvedValueOnce({ rows: [makeClaim({ id: CLAIM_ID_2 })] });
+
+      const result = await listForModeration(pool, { cursor, limit: 5 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.has_next).toBe(false);
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      const values = query.mock.calls[0]?.[1] as unknown[];
+      expect(sql).toMatch(/\(lc\.created_at,\s*lc\.id\)\s*<\s*\(\$1::timestamptz,\s*\$2::uuid\)/);
+      expect(values[0]).toBe(FIXED_DATE.toISOString());
+      expect(values[1]).toBe(CLAIM_ID_1);
+    });
+
+    it('treats malformed admin cursor as no cursor (no throw)', async () => {
+      query.mockResolvedValueOnce({ rows: [makeClaim()] });
+
+      const result = await listForModeration(pool, { cursor: 'not-base64-json!', limit: 5 });
+
+      expect(result.items).toHaveLength(1);
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).not.toMatch(/\(lc\.created_at,\s*lc\.id\)\s*</);
+    });
+  });
+
+  describe('transitionStatus', () => {
+    interface MockClient {
+      query: MockQuery;
+      release: jest.Mock;
+    }
+    function makeTxPool(): { pool: pg.Pool; client: MockClient } {
+      const clientQuery = jest.fn() as MockQuery;
+      const release = jest.fn();
+      const client: MockClient = { query: clientQuery, release };
+      const pool = {
+        connect: jest.fn(async () => client),
+      } as unknown as pg.Pool;
+      return { pool, client };
+    }
+
+    it('returns not_found when row lock yields no rows (rolls back)', async () => {
+      const { pool, client } = makeTxPool();
+      client.query
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [] }) // SELECT FOR UPDATE
+        .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result).toEqual({ ok: false, reason: 'not_found' });
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      expect(sqls[0]).toBe('BEGIN');
+      expect(sqls[2]).toBe('ROLLBACK');
+      expect(client.release).toHaveBeenCalled();
+    });
+
+    it('blocks publish when trust_grade is E (rolls back)', async () => {
+      const { pool, client } = makeTxPool();
+      client.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'E',
+              status: 'draft',
+              disclaimer_key: null,
+              published_at: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result).toEqual({ ok: false, reason: 'grade_E_blocked' });
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      expect(sqls[2]).toBe('ROLLBACK');
+    });
+
+    it('blocks publish when trust_grade is D and disclaimer_key is null (rolls back)', async () => {
+      const { pool, client } = makeTxPool();
+      client.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'D',
+              status: 'draft',
+              disclaimer_key: null,
+              published_at: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result).toEqual({ ok: false, reason: 'grade_D_requires_disclaimer' });
+    });
+
+    it('publishes D-grade claim when disclaimer_key supplied and sets published_at on first publish', async () => {
+      const { pool, client } = makeTxPool();
+      const updated = makeClaim({ status: 'published', trust_grade: 'D', disclaimer_key: 'general_health' });
+      client.query
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'D',
+              status: 'draft',
+              disclaimer_key: null,
+              published_at: null,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [updated] }) // UPDATE
+        .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, {
+        toStatus: 'published',
+        disclaimer_key: 'general_health',
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.claim.status).toBe('published');
+      const updateSql = client.query.mock.calls[2]?.[0] ?? '';
+      expect(updateSql).toMatch(/SET status = \$2/);
+      expect(updateSql).toMatch(/disclaimer_key = \$3/);
+      expect(updateSql).toMatch(/published_at = NOW\(\)/);
+      const updateParams = client.query.mock.calls[2]?.[1] as unknown[];
+      expect(updateParams).toEqual([CLAIM_ID_1, 'published', 'general_health']);
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      expect(sqls[3]).toBe('COMMIT');
+    });
+
+    it('preserves existing published_at when re-publishing (no NOW() override)', async () => {
+      const { pool, client } = makeTxPool();
+      const updated = makeClaim({ status: 'published' });
+      client.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'B',
+              status: 'archived',
+              disclaimer_key: null,
+              published_at: FIXED_DATE,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [updated] })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result.ok).toBe(true);
+      const updateSql = client.query.mock.calls[2]?.[0] ?? '';
+      expect(updateSql).not.toMatch(/published_at = NOW\(\)/);
+    });
+
+    it('archives published claim without trust_grade gate', async () => {
+      const { pool, client } = makeTxPool();
+      const updated = makeClaim({ status: 'archived' });
+      client.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'E',
+              status: 'published',
+              disclaimer_key: null,
+              published_at: FIXED_DATE,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ rows: [updated] })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'archived' });
+
+      expect(result.ok).toBe(true);
+    });
+
+    it('rolls back and rethrows when UPDATE fails', async () => {
+      const { pool, client } = makeTxPool();
+      client.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'B',
+              status: 'draft',
+              disclaimer_key: null,
+              published_at: null,
+            },
+          ],
+        })
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
+
+      await expect(
+        transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' }),
+      ).rejects.toThrow('boom');
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      expect(sqls[sqls.length - 1]).toBe('ROLLBACK');
+      expect(client.release).toHaveBeenCalled();
+    });
+  });
+
+  describe('setHealthClaim', () => {
+    let pool: pg.Pool;
+    let query: MockQuery;
+
+    beforeEach(() => {
+      ({ pool, query } = makePool());
+    });
+
+    it('updates is_health_claim and returns claim', async () => {
+      const updated = makeClaim({ is_health_claim: true });
+      query.mockResolvedValueOnce({ rows: [updated] });
+
+      const result = await setHealthClaim(pool, CLAIM_ID_1, true);
+
+      expect(result?.is_health_claim).toBe(true);
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).toMatch(/SET is_health_claim = \$2/);
+      expect(query.mock.calls[0]?.[1]).toEqual([CLAIM_ID_1, true]);
+    });
+
+    it('returns null when claim row is absent', async () => {
+      query.mockResolvedValueOnce({ rows: [] });
+      const result = await setHealthClaim(pool, CLAIM_ID_1, false);
+      expect(result).toBeNull();
     });
   });
 });
