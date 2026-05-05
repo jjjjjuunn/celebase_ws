@@ -131,7 +131,91 @@ describe('Admin auth — X-Admin-Token guard', () => {
     expect(res.statusCode).toBe(200);
     await app.close();
   });
+
+  it('emits audit log "admin.auth.denied" before throwing 401 (missing header)', async () => {
+    const captured: Array<{ obj: unknown; msg: string }> = [];
+    const captureLogger = makeWarnCaptureLogger(captured);
+    process.env['ADMIN_API_TOKEN'] = VALID_TOKEN;
+    process.env['NODE_ENV'] = 'development';
+    const app = Fastify({ loggerInstance: captureLogger, disableRequestLogging: true });
+    app.setErrorHandler((error, request, reply) => {
+      if (error instanceof AppError) {
+        void reply.status(error.statusCode).send({
+          error: { code: error.code, message: error.message, requestId: request.id },
+        });
+        return;
+      }
+      void reply.status(500).send({ error: { code: 'INTERNAL', message: 'x', requestId: request.id } });
+    });
+    registerAdminAuth(app);
+    await app.register(lifestyleClaimAdminRoutes, { pool: mockPool });
+    await app.ready();
+
+    const res = await app.inject({ method: 'GET', url: '/admin/claims' });
+    expect(res.statusCode).toBe(401);
+    const denied = captured.find((c) => c.msg === 'admin.auth.denied');
+    expect(denied).toBeDefined();
+    expect((denied?.obj as { reason?: string })?.reason).toBe('missing_header');
+    // 토큰 값은 절대 로그에 노출되지 않아야 함 (Absolute Rule 8)
+    const allText = JSON.stringify(captured);
+    expect(allText).not.toContain(VALID_TOKEN);
+    await app.close();
+  });
+
+  it('emits audit log "admin.auth.denied" before throwing 403 (invalid token)', async () => {
+    const captured: Array<{ obj: unknown; msg: string }> = [];
+    const captureLogger = makeWarnCaptureLogger(captured);
+    process.env['ADMIN_API_TOKEN'] = VALID_TOKEN;
+    process.env['NODE_ENV'] = 'development';
+    const app = Fastify({ loggerInstance: captureLogger, disableRequestLogging: true });
+    app.setErrorHandler((error, request, reply) => {
+      if (error instanceof AppError) {
+        void reply.status(error.statusCode).send({
+          error: { code: error.code, message: error.message, requestId: request.id },
+        });
+        return;
+      }
+      void reply.status(500).send({ error: { code: 'INTERNAL', message: 'x', requestId: request.id } });
+    });
+    registerAdminAuth(app);
+    await app.register(lifestyleClaimAdminRoutes, { pool: mockPool });
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': 'wrong-token' },
+    });
+    expect(res.statusCode).toBe(403);
+    const denied = captured.find((c) => c.msg === 'admin.auth.denied');
+    expect(denied).toBeDefined();
+    expect((denied?.obj as { reason?: string })?.reason).toBe('invalid_token');
+    // 제공된 잘못된 토큰 + 환경 토큰 모두 로그에 포함되지 않아야 함
+    const allText = JSON.stringify(captured);
+    expect(allText).not.toContain('wrong-token');
+    expect(allText).not.toContain(VALID_TOKEN);
+    await app.close();
+  });
 });
+
+function makeWarnCaptureLogger(captured: Array<{ obj: unknown; msg: string }>): unknown {
+  const logger = {
+    level: 'info',
+    info: () => undefined,
+    error: () => undefined,
+    warn: (objOrMsg: unknown, maybeMsg?: string) => {
+      if (typeof objOrMsg === 'object' && objOrMsg !== null && typeof maybeMsg === 'string') {
+        captured.push({ obj: objOrMsg, msg: maybeMsg });
+      }
+    },
+    debug: () => undefined,
+    trace: () => undefined,
+    fatal: () => undefined,
+    silent: () => undefined,
+    child: () => logger,
+  };
+  return logger;
+}
 
 describe('GET /admin/claims', () => {
   it('forwards filters to repository', async () => {
@@ -186,6 +270,21 @@ describe('POST /admin/claims/:id/transition', () => {
     expect(res.statusCode).toBe(400);
     expect(res.json().error.code).toBe('VALIDATION_ERROR');
     expect(res.json().error.details[0].issue).toContain('trust_grade E');
+    await app.close();
+  });
+
+  it('maps celebrity_inactive to 422 + CELEBRITY_INACTIVE', async () => {
+    mockTransitionStatus.mockResolvedValue({ ok: false, reason: 'celebrity_inactive' });
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/admin/claims/${baseClaim.id}/transition`,
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: { status: 'published' },
+    });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().error.code).toBe('CELEBRITY_INACTIVE');
+    expect(res.json().error.details[0].issue).toContain('celebrity.is_active=FALSE');
     await app.close();
   });
 

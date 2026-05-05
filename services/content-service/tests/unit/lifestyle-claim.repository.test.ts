@@ -466,10 +466,31 @@ describe('lifestyle-claim.repository', () => {
       expect(client.release).toHaveBeenCalled();
     });
 
+    it('blocks publish when celebrity is inactive (rolls back, before claim lock)', async () => {
+      const { pool, client } = makeTxPool();
+      client.query
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] }) // celebrity_id lookup
+        .mockResolvedValueOnce({ rows: [{ is_active: false }] }) // celebrities FOR SHARE
+        .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result).toEqual({ ok: false, reason: 'celebrity_inactive' });
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      expect(sqls[1]).toMatch(/SELECT celebrity_id FROM lifestyle_claims/);
+      expect(sqls[1]).toMatch(/is_active = TRUE/);
+      expect(sqls[2]).toMatch(/SELECT is_active FROM celebrities/);
+      expect(sqls[2]).toMatch(/FOR SHARE/);
+      expect(sqls[3]).toBe('ROLLBACK');
+    });
+
     it('blocks publish when trust_grade is E (rolls back)', async () => {
       const { pool, client } = makeTxPool();
       client.query
-        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] }) // celebrity_id
+        .mockResolvedValueOnce({ rows: [{ is_active: true }] }) // celebrities FOR SHARE
         .mockResolvedValueOnce({
           rows: [
             {
@@ -480,20 +501,22 @@ describe('lifestyle-claim.repository', () => {
               published_at: null,
             },
           ],
-        })
-        .mockResolvedValueOnce({ rows: [] });
+        }) // FOR UPDATE
+        .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
       const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
 
       expect(result).toEqual({ ok: false, reason: 'grade_E_blocked' });
       const sqls = client.query.mock.calls.map((c) => c[0]);
-      expect(sqls[2]).toBe('ROLLBACK');
+      expect(sqls[4]).toBe('ROLLBACK');
     });
 
     it('blocks publish when trust_grade is D and disclaimer_key is null (rolls back)', async () => {
       const { pool, client } = makeTxPool();
       client.query
-        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] })
+        .mockResolvedValueOnce({ rows: [{ is_active: true }] })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -517,6 +540,8 @@ describe('lifestyle-claim.repository', () => {
       const updated = makeClaim({ status: 'published', trust_grade: 'D', disclaimer_key: 'general_health' });
       client.query
         .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] }) // celebrity_id
+        .mockResolvedValueOnce({ rows: [{ is_active: true }] }) // celebrities FOR SHARE
         .mockResolvedValueOnce({
           rows: [
             {
@@ -527,7 +552,7 @@ describe('lifestyle-claim.repository', () => {
               published_at: null,
             },
           ],
-        })
+        }) // FOR UPDATE
         .mockResolvedValueOnce({ rows: [updated] }) // UPDATE
         .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
@@ -539,21 +564,23 @@ describe('lifestyle-claim.repository', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.claim.status).toBe('published');
-      const updateSql = client.query.mock.calls[2]?.[0] ?? '';
+      const updateSql = client.query.mock.calls[4]?.[0] ?? '';
       expect(updateSql).toMatch(/SET status = \$2/);
       expect(updateSql).toMatch(/disclaimer_key = \$3/);
       expect(updateSql).toMatch(/published_at = NOW\(\)/);
-      const updateParams = client.query.mock.calls[2]?.[1] as unknown[];
+      const updateParams = client.query.mock.calls[4]?.[1] as unknown[];
       expect(updateParams).toEqual([CLAIM_ID_1, 'published', 'general_health']);
       const sqls = client.query.mock.calls.map((c) => c[0]);
-      expect(sqls[3]).toBe('COMMIT');
+      expect(sqls[5]).toBe('COMMIT');
     });
 
     it('preserves existing published_at when re-publishing (no NOW() override)', async () => {
       const { pool, client } = makeTxPool();
       const updated = makeClaim({ status: 'published' });
       client.query
-        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] })
+        .mockResolvedValueOnce({ rows: [{ is_active: true }] })
         .mockResolvedValueOnce({
           rows: [
             {
@@ -571,7 +598,7 @@ describe('lifestyle-claim.repository', () => {
       const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
 
       expect(result.ok).toBe(true);
-      const updateSql = client.query.mock.calls[2]?.[0] ?? '';
+      const updateSql = client.query.mock.calls[4]?.[0] ?? '';
       expect(updateSql).not.toMatch(/published_at = NOW\(\)/);
     });
 
@@ -602,7 +629,9 @@ describe('lifestyle-claim.repository', () => {
     it('rolls back and rethrows when UPDATE fails', async () => {
       const { pool, client } = makeTxPool();
       client.query
-        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: 'celeb-id-1' }] }) // celebrity_id
+        .mockResolvedValueOnce({ rows: [{ is_active: true }] }) // celebrities FOR SHARE
         .mockResolvedValueOnce({
           rows: [
             {
@@ -613,8 +642,8 @@ describe('lifestyle-claim.repository', () => {
               published_at: null,
             },
           ],
-        })
-        .mockRejectedValueOnce(new Error('boom'))
+        }) // FOR UPDATE
+        .mockRejectedValueOnce(new Error('boom')) // UPDATE fails
         .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
       await expect(
