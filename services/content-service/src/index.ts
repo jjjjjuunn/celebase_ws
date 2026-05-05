@@ -4,6 +4,8 @@ import { celebrityRoutes } from './routes/celebrity.routes.js';
 import { baseDietRoutes } from './routes/baseDiet.routes.js';
 import { recipeRoutes } from './routes/recipe.routes.js';
 import { lifestyleClaimRoutes } from './routes/lifestyle-claim.routes.js';
+import { lifestyleClaimAdminRoutes } from './routes/admin/lifestyle-claim.admin.routes.js';
+import { registerAdminAuth } from './middleware/admin-auth.js';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3002),
@@ -16,12 +18,15 @@ const start = async (): Promise<void> => {
   const pool = createPool(env.DATABASE_URL);
   const app = await createApp({ serviceName: 'content-service' });
 
-  registerJwtAuth(app);
+  // /admin/* 는 user JWT 검증에서 제외 (admin 토큰 가드가 별도로 보호)
+  registerJwtAuth(app, { publicPaths: ['/admin/*'] });
+  registerAdminAuth(app);
 
   await app.register(celebrityRoutes, { pool });
   await app.register(baseDietRoutes, { pool });
   await app.register(recipeRoutes, { pool });
   await app.register(lifestyleClaimRoutes, { pool });
+  await app.register(lifestyleClaimAdminRoutes, { pool });
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });
