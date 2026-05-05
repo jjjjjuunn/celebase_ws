@@ -86,6 +86,9 @@ jobs:
           print('✅ policy.yaml schema validation passed')
           "
 
+      - name: Validate lifestyle-claim seeds (IMPL-019, allowlist-only)
+        run: python scripts/validate-claim-seeds.py
+
   # ============================================
   # Job 1c: 컴플라이언스 검증
   # ============================================

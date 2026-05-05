@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LifestyleClaimSeedFile",
+  "description": "IMPL-019 — 셀럽 lifestyle claim seed (사람 작성, allowlist URL only). spec.md §3.5.3 / §9.3 7원칙.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["celebrity_slug", "claims"],
+  "properties": {
+    "celebrity_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "celebrities.slug 와 1:1 매칭. db/seeds/data/<slug>.json 존재 필수."
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/claim" }
+    }
+  },
+  "definitions": {
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_type",
+        "headline",
+        "trust_grade",
+        "is_health_claim",
+        "tags",
+        "status",
+        "sources"
+      ],
+      "properties": {
+        "claim_type": {
+          "type": "string",
+          "enum": ["food", "workout", "sleep", "beauty", "brand", "philosophy", "supplement"]
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "description": "plain text only — HTML 태그 금지 (§9.3 #1)"
+        },
+        "body": {
+          "type": ["string", "null"],
+          "maxLength": 10000
+        },
+        "trust_grade": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D", "E"]
+        },
+        "primary_source_url": {
+          "type": ["string", "null"],
+          "maxLength": 2048,
+          "format": "uri",
+          "description": "allowlist 도메인 만 (§9.3 #2)"
+        },
+        "verified_by": {
+          "type": ["string", "null"],
+          "maxLength": 100
+        },
+        "is_health_claim": {
+          "type": "boolean",
+          "description": "§9.3 #6 — seed 작성자(human)가 명시 지정"
+        },
+        "disclaimer_key": {
+          "type": ["string", "null"],
+          "maxLength": 100,
+          "description": "trust_grade='D' AND status='published' 일 때 NOT NULL 필수 (§9.3 #5)"
+        },
+        "base_diet_id_slug": {
+          "type": ["string", "null"],
+          "description": "선택. base_diets 의 slug (loader 가 id 로 매핑) — IMPL-020 사용"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 50 },
+          "uniqueItems": true,
+          "maxItems": 20
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "published", "archived"]
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/source" }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "outlet", "is_primary"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["interview", "social_post", "podcast", "book", "article", "press_release", "other"]
+        },
+        "outlet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "url": {
+          "type": ["string", "null"],
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        "published_date": {
+          "type": ["string", "null"],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "excerpt": {
+          "type": ["string", "null"],
+          "maxLength": 300,
+          "description": "fair-use 인용 (plain text only)"
+        },
+        "is_primary": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
