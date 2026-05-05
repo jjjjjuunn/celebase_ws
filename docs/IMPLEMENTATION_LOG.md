@@ -3800,7 +3800,7 @@ verified_by: claude-opus-4-7 (validate-claim-seeds.py 9회 통과)
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: IMPL-021
-commit_sha: PENDING
+commit_sha: 9fa1d6a
 files_changed:
   - services/content-service/src/index.ts
   - services/content-service/src/middleware/admin-auth.ts
