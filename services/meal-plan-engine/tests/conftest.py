@@ -3,6 +3,9 @@
 import os
 
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/celebase_test")
+# AsyncOpenAI() 는 빈 api_key 거부. settings.OPENAI_API_KEY 는 import 시점에 굳어지므로
+# `from main import app` 보다 먼저 dummy 주입. 실제 HTTP 호출은 VCR 가 intercept.
+os.environ.setdefault("OPENAI_API_KEY", "test-cassette-replay-dummy-no-real-key")
 
 import warnings
 import pytest
