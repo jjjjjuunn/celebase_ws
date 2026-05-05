@@ -3904,7 +3904,7 @@ verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: CHORE-CI-RESTORE-2026-05-05
-commit_sha: PENDING
+commit_sha: ede8e40
 files_changed:
   - .github/workflows/ci.yml
   - services/meal-plan-engine/requirements.txt
