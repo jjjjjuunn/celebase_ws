@@ -1,13 +1,53 @@
-# 하네스 정책 파일 — 에이전트 자가수정 방지, 사람 승인 필수
-harness/ @junwon
-.claude/settings.json @junwon
+# CODEOWNERS — automatic reviewer assignment per path
+#
+# Syntax: <pattern> <@owner> [<@owner> ...]
+# Match order: last matching rule wins (top → bottom).
+# Both owners are auto-requested for review when their path is touched.
+
+# ---- Default (catches everything not matched below) ----
+*                                       @jjjjjuunn @Dohyun-1
+
+# ---- Frontend territory (Dohyun-1) ----
+/apps/web/                              @Dohyun-1
+/packages/ui-kit/                       @Dohyun-1
+/packages/design-tokens/                @Dohyun-1
+/docs/design/                           @Dohyun-1
+/docs/design-prompts/                   @Dohyun-1
+/docs/ONBOARDING-FE.md                  @Dohyun-1
+
+# Frontend exception: BFF routes live in apps/web but belong to backend
+/apps/web/src/app/api/                  @jjjjjuunn
+/apps/web/src/lib/server/               @jjjjjuunn
+
+# ---- Backend / Services / Data territory (jjjjjuunn) ----
+/services/                              @jjjjjuunn
+/db/                                    @jjjjjuunn
+/infra/                                 @jjjjjuunn
+/scripts/                               @jjjjjuunn
+
+# ---- Shared contracts (both review) ----
+/packages/shared-types/                 @jjjjjuunn @Dohyun-1
+
+# ---- Project governance / rules (jjjjjuunn only) ----
+/.claude/rules/                         @jjjjjuunn
+/CLAUDE.md                              @jjjjjuunn
+/CODEX-INSTRUCTIONS.md                  @jjjjjuunn
+/spec.md                                @jjjjjuunn
+/.github/                               @jjjjjuunn
+/pipeline/                              @jjjjjuunn
+/docs/IMPLEMENTATION_LOG.md             @jjjjjuunn
+
+# ---- Security hardening (last so it wins; agent self-modify guard) ----
+# 하네스 정책 — 에이전트 자가수정 방지, 사람 승인 필수
+/harness/                               @jjjjjuunn
+/.claude/settings.json                  @jjjjjuunn
 
 # CI 파이프라인 보호 — 에이전트가 CI를 약화시켜 guard 우회 방지
-.github/workflows/** @junwon
+/.github/workflows/                     @jjjjjuunn
 
-# Compose 스택 보호 — CI 통합 테스트 (IMPL-016) 의 build/deps/tag pin 우회 방지
-/docker-compose.yml @junwon
-/docker/docker-compose.ci.yml @junwon
+# Compose 스택 보호 — CI 통합 테스트 빌드/태그 핀 우회 방지
+/docker-compose.yml                     @jjjjjuunn
+/docker/docker-compose.ci.yml           @jjjjjuunn
 
 # CODEOWNERS 자기보호
-.github/CODEOWNERS @junwon
+/.github/CODEOWNERS                     @jjjjjuunn
