@@ -11,8 +11,6 @@ happy path (real call) 는 RUN_LLM_REAL_CALL=1 일 때만 실제 OpenAI 호출.
 
 from __future__ import annotations
 
-import asyncio
-import json
 import os
 
 import pytest
