@@ -89,7 +89,10 @@ class TestSerializeMealPlanRow:
     def test_mode_llm_exposes_narrative(self) -> None:
         result = _serialize_meal_plan_row(_llm_row())
         meal = result["daily_plans"][0]["meals"][0]
-        assert meal["narrative"] == "Ronaldo의 경기 전 탄수화물 루틴에서 영감을 받은 오트밀입니다."
+        assert (
+            meal["narrative"]
+            == "Ronaldo의 경기 전 탄수화물 루틴에서 영감을 받은 오트밀입니다."
+        )
 
     def test_mode_llm_exposes_citations(self) -> None:
         result = _serialize_meal_plan_row(_llm_row())

@@ -55,15 +55,15 @@ class LlmProvenance(BaseModel):
     """LLM 호출 감사 정보 — meal_plans.adjustments.llm_provenance에 저장 (LLM-DESIGN §S12)."""
 
     model: str
-    prompt_hash: str   # sha256 hexdigest[:16] of rendered system+user prompt
-    output_hash: str   # sha256 hexdigest[:16] of raw LLM response
-    mode: str          # "llm" | "standard"
+    prompt_hash: str  # sha256 hexdigest[:16] of rendered system+user prompt
+    output_hash: str  # sha256 hexdigest[:16] of raw LLM response
+    mode: str  # "llm" | "standard"
 
 
 class LlmRerankResult(BaseModel):
     """llm_reranker.llm_rerank_and_narrate() 반환값 (LLM-DESIGN §S3)."""
 
-    ranked_plan: list[Any]          # List[List[RecipeSlot]] — circular import 회피
-    mode: str                       # "llm" | "standard"
+    ranked_plan: list[Any]  # List[List[RecipeSlot]] — circular import 회피
+    mode: str  # "llm" | "standard"
     quota_exceeded: bool = False
     provenance: Optional[LlmProvenance] = None

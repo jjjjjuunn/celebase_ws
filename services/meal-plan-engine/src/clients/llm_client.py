@@ -71,7 +71,9 @@ def estimate_prompt_cost(system_prompt: str, user_prompt: str) -> float:
     )
     estimated = (
         input_tokens / 1_000_000 * settings.LLM_INPUT_PRICE_PER_1M_USD
-        + settings.LLM_MAX_OUTPUT_TOKENS / 1_000_000 * settings.LLM_OUTPUT_PRICE_PER_1M_USD
+        + settings.LLM_MAX_OUTPUT_TOKENS
+        / 1_000_000
+        * settings.LLM_OUTPUT_PRICE_PER_1M_USD
     )
     return estimated
 

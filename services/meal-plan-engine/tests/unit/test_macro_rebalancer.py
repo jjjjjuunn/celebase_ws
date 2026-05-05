@@ -38,9 +38,7 @@ def test_glp1_preserves_total_calorie_clamp() -> None:
         fat_ratio=0.30,
         medications=["semaglutide"],
     )
-    kcal_sum = (
-        macros["protein_g"] * 4 + macros["fat_g"] * 9 + macros["carb_g"] * 4
-    )
+    kcal_sum = macros["protein_g"] * 4 + macros["fat_g"] * 9 + macros["carb_g"] * 4
     # Allow ±5% drift from rounding; ai-engine.md §1 hard floor 1200.
     assert 1700 <= kcal_sum <= 1900, kcal_sum
     assert macros["protein_g"] >= 160.0, macros  # 80kg × 2.0
@@ -134,9 +132,7 @@ def test_glp1_high_bmi_protein_cap() -> None:
         fat_ratio=0.30,
         medications=["mounjaro"],
     )
-    kcal_sum = (
-        macros["protein_g"] * 4 + macros["fat_g"] * 9 + macros["carb_g"] * 4
-    )
+    kcal_sum = macros["protein_g"] * 4 + macros["fat_g"] * 9 + macros["carb_g"] * 4
     # Cap is 5000 ± rounding band.
     assert 4900 <= kcal_sum <= 5100, kcal_sum
     # protein_multiplier must respect upper PROTEIN_BOUNDS (3.0 g/kg) ceiling.

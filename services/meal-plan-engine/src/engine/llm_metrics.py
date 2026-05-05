@@ -20,16 +20,16 @@ _logger = logging.getLogger(__name__)
 
 # LLM-DESIGN §S10 — 10개 메트릭 목록
 _METRIC_NAMES = (
-    "llm_calls_total",               # LLM 호출 시도 (mode × reason)
-    "llm_standard_mode_calls_total", # standard mode 반환 (reason 세분)
-    "llm_quota_rejections_total",    # Elite quota 초과
-    "llm_rollout_skip_total",        # rollout pct 미달로 건너뜀
-    "llm_safety_gate_failures_total",# Safety Gate 위반 (gate 세분)
-    "llm_tokens_input_total",        # 입력 토큰 누적
-    "llm_tokens_output_total",       # 출력 토큰 누적 (max_tokens 기준 추정)
-    "llm_cost_usd_total",            # 비용 누적 (Gate 0 추정치)
-    "llm_latency_seconds_total",     # 지연 시간 누적 (llm mode 한정)
-    "llm_latency_calls",             # 지연 시간 샘플 수 (p95 계산용)
+    "llm_calls_total",  # LLM 호출 시도 (mode × reason)
+    "llm_standard_mode_calls_total",  # standard mode 반환 (reason 세분)
+    "llm_quota_rejections_total",  # Elite quota 초과
+    "llm_rollout_skip_total",  # rollout pct 미달로 건너뜀
+    "llm_safety_gate_failures_total",  # Safety Gate 위반 (gate 세분)
+    "llm_tokens_input_total",  # 입력 토큰 누적
+    "llm_tokens_output_total",  # 출력 토큰 누적 (max_tokens 기준 추정)
+    "llm_cost_usd_total",  # 비용 누적 (Gate 0 추정치)
+    "llm_latency_seconds_total",  # 지연 시간 누적 (llm mode 한정)
+    "llm_latency_calls",  # 지연 시간 샘플 수 (p95 계산용)
 )
 
 
@@ -42,7 +42,11 @@ class LlmMetrics:
 
     def inc(self, name: str, value: float = 1.0, **labels: str) -> None:
         """카운터를 value 만큼 증가시키고 structured JSON으로 로깅."""
-        key = name + ("_" + "_".join(f"{k}={v}" for k, v in sorted(labels.items())) if labels else "")
+        key = name + (
+            "_" + "_".join(f"{k}={v}" for k, v in sorted(labels.items()))
+            if labels
+            else ""
+        )
         with self._lock:
             self._counters[key] += value
         _logger.info(

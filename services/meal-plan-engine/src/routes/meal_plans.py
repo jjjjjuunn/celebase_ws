@@ -61,13 +61,19 @@ def _serialize_meal_plan_row(row: Dict[str, Any]) -> Dict[str, Any]:
     for day in raw_plans:
         meals = []
         for meal in day.get("meals", []):
-            meals.append({
-                "meal_type": meal.get("meal_type"),
-                "recipe_id": meal.get("recipe_id"),
-                "narrative": meal.get("narrative") if is_llm else None,
-                "citations": meal.get("citations", []) if is_llm else [],
-            })
-        day_out: Dict[str, Any] = {"day": day.get("day"), "date": day.get("date"), "meals": meals}
+            meals.append(
+                {
+                    "meal_type": meal.get("meal_type"),
+                    "recipe_id": meal.get("recipe_id"),
+                    "narrative": meal.get("narrative") if is_llm else None,
+                    "citations": meal.get("citations", []) if is_llm else [],
+                }
+            )
+        day_out: Dict[str, Any] = {
+            "day": day.get("day"),
+            "date": day.get("date"),
+            "meals": meals,
+        }
         if "daily_totals" in day:
             day_out["daily_totals"] = day["daily_totals"]
         daily_plans.append(day_out)
