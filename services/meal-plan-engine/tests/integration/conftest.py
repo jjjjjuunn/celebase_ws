@@ -89,14 +89,21 @@ async def seed_user(clean_db, db_pool) -> Dict[str, str]:
             f"test+{suffix}@celebbase.test",
             "Test User",
         )
+        # Mirror values that user-service `recalculate()` would compute for this
+        # profile: BMR (Mifflin-St Jeor, male) = 10*70 + 6.25*175 - 5*36 + 5 = 1619;
+        # TDEE = BMR * 1.55 (moderate) ≈ 2509; target_kcal = TDEE for maintenance.
+        # Without these the pipeline TypeErrors on `tdee <= 0` (None comparison).
         await conn.execute(
             """
             INSERT INTO bio_profiles (
                 user_id, birth_year, sex, height_cm, weight_kg,
-                activity_level, primary_goal, diet_type
+                activity_level, primary_goal, diet_type,
+                bmr_kcal, tdee_kcal, target_kcal, macro_targets
             )
             VALUES ($1, 1990, 'male', 175.0, 70.0,
-                    'moderate', 'maintenance', 'omnivore')
+                    'moderate', 'maintenance', 'omnivore',
+                    1619, 2509, 2509,
+                    '{"protein_g":188,"carbs_g":314,"fat_g":84,"fiber_g":30}'::jsonb)
             """,
             user_id,
         )
