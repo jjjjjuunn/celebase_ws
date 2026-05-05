@@ -511,15 +511,17 @@ tasks:
 
   - id: IMPL-019
     title: "Seed claims (사람 작성 JSON + allowlist-only validator)"
-    owner: human-junwon
+    owner: human-junwon + agent-claude-opus-4-7
     dependsOn:
       - IMPL-018-a
-    status: pending
+    status: done
     definitionOfDone:
-      - "db/seeds/lifestyle-claims/*.json — 셀럽 25명 × 평균 30 claim seed JSON"
-      - "scripts/validate-claim-seeds.py — URL regex + 도메인 allowlist 매칭만 (HTTP 요청 절대 금지, spec §9.3 #7)"
-      - ".github/workflows/ci.yml 의 validate-schemas job 에 seed validator 추가"
-      - "tier L1 (CI auto)"
+      - "db/seeds/lifestyle-claims/*.json — 셀럽 10명 × 5 claim = 50 seed cards (MVP cadence: doc Tier 1 권고 30~80 cards 중간) ✅ (PR #24 + PR #25)"
+      - "scripts/validate-claim-seeds.py — URL regex + 도메인 allowlist 매칭만 (HTTP 요청 절대 금지, spec §9.3 #7) ✅"
+      - ".github/workflows/ci.yml 의 validate-schemas job 에 seed validator 추가 ✅"
+      - "tier L1 (CI auto) ✅"
+      - "DoD 재해석: 원안 '25명 × 30 claim = 750 cards' 는 연간 운영 cadence 산수였음 (Claude-2026-05-03-셀럽-웰니스-피벗-검토 §6). seed 시점은 doc §3 권고 5~8명 × 5~10 = 30~80 cards 범위 — 50 cards 로 충족."
+      - "확장은 별도 티켓: IMPL-019-extend (lifestyle 4명 5→10 claim 확장 + 신규 셀럽 추가, 옵션). 25명 풀 도달은 OPS-001 (admin queue 운영 cadence 검증) 후 단계."
 
   - id: IMPL-020
     title: "Inspired meal plan CTA — claim → base_diet → meal plan 연결"

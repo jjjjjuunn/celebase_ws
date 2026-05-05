@@ -3941,3 +3941,53 @@ verified_by: ruff format --check passed, ruff check passed, vcrpy 8.1.1 has vcr/
 - PR #30 머지 후 Branch Protection ruleset 의 "Require status checks to pass" 재활성화 + 필수 컨텍스트 등록 (`🧹 Lint & Typecheck`, `🧪 Tests`, `📜 Contract Tests`, `🛡️ Validate Compliance`, `🔒 Security Scan`).
 - "other-services dev script NODE_ENV 정렬" (IMPL-021 미완료 carry-over) 는 본 chore 와 직교 — 별도 chore 로 유지.
 ### 연관 파일: .github/workflows/ci.yml, services/meal-plan-engine/, scripts/validate-claim-seeds.py, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-019
+commit_sha: PENDING
+files_changed:
+  - .claude/rules/domain/content.md
+  - .claude/tasks.yaml
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: human-junwon (genre-agnostic 정책 + IMPL-019 close 결정 confirmation 2026-05-05)
+---
+### 완료: IMPL-019 close + Genre-Agnostic Selection Policy 명문화
+
+**배경**: tasks.yaml 의 IMPL-019 DoD ("셀럽 25명 × 평균 30 claim seed JSON = 750 cards") 는 `Claude-2026-05-03-셀럽-웰니스-피벗-검토.md` §6 의 **연간 운영 cadence 산수** (Tier 1 25명 × 연 30 claim = 연 750) 를 seed 일괄 수집 목표로 잘못 옮긴 것이었다. 동 문서 §3 의 진짜 MVP 권고는 **"5~8명 × 5~10 claim = 30~80 cards"**.
+
+**결정 (사용자 confirmation 2026-05-05)**:
+1. 현재 머지된 50 cards (10 셀럽 × 5 claim, PR #24 + PR #25) 로 IMPL-019 MVP DoD **충족 인정** → status `pending → done`.
+2. "Tier 1/2/3/4" 명시 분류는 **운영 도구로만** 쓰고 사용자 노출 금지. 셀럽 선정은 **분야·장르·국적 무관** + 영향력 + 검증 가능한 wellness 발언 ≥ 5건 두 축으로만 판단. 운동선수·작가·정치인·인플루언서 모두 환영.
+3. 정책 single source of truth: `.claude/rules/domain/content.md` "Genre-Agnostic Selection Policy". spec.md §3.5 에 cross-ref.
+4. 25명 풀 도달은 별도 티켓: **IMPL-019-extend** (lifestyle 셀럽 claim 확장 + 신규 셀럽 추가, 옵션) 와 **OPS-001** (admin moderation queue 운영 cadence 검증, 1개월) 후 단계.
+
+**변경 사항**:
+- `.claude/rules/domain/content.md` Celebrity Data 섹션에 "Genre-Agnostic Selection Policy (PIVOT-2026-05 확정)" 하위 섹션 추가:
+  - 수용 대상: 모든 카테고리 명시 (배우/가수/운동선수/모델/작가/정치인/기업가/K-pop/인플루언서)
+  - 선정 기준 2축: 사용자 인지도 + allowlist 매체 검증 가능 발언 ≥ 5건
+  - claim 양 비대칭 허용 (5~30/celeb)
+  - MVP cadence: 1인 운영 8~10명 한계 — 25명 풀 도달 = OPS-001 후 단계
+  - 신규 카테고리/매체 도입 시 ALLOWED_DOMAINS 확장 PR 명시 승인
+- `spec.md` §3.5 LifestyleClaim Domain Models intro 직후에 "셀럽 선정 정책 (genre-agnostic)" 한 줄 cross-ref.
+- `.claude/tasks.yaml` IMPL-019 status `pending → done`, owner `human-junwon → human-junwon + agent-claude-opus-4-7`, DoD 항목에 ✅ 마크 + 재해석 근거 + 후속 티켓 (IMPL-019-extend / OPS-001) 명시.
+
+**근거 자료**:
+- 사용자 의사결정 노트: `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/JW_Obsidian_iCloud/0. Inbox/Claude-2026-05-03-셀럽-웰니스-피벗-검토.md` §1~§8.
+- 핵심 인용 (§6 운영 가능성 산수): "Tier 1 25명 × **연** 30개 검증 가능한 claim = **연** 750개 → 주당 약 26개 새 카드" — 연간 cadence 목표.
+- 핵심 인용 (§3 Seed claims 정의): "셀럽 1명당 5~10개 claim × 5~8명 = 약 30~80개 카드".
+- 핵심 인용 (§7 진짜 병목): "1인 운영으로는 셀럽 8~10명이 한계".
+- 사용자 입장 (§Phase 1 권고에 대한 dissent): "분야와 장르는 상관없어! 운동선수도 환영" — Hollywood-only 권고 거부, 운동선수 (Brady/LeBron/Ronaldo/Rock) 4명 머지 데이터 보존.
+
+**검증**:
+- `python3 -c "import json,yaml,jsonschema; tasks=yaml.safe_load(open('.claude/tasks.yaml')); schema=json.load(open('.claude/tasks.schema.json')); jsonschema.validate(tasks,schema); print('PASS')"` → PASS.
+- `scripts/validate_impl_log.py` (pre-commit hook 자동) → PASS 예상 (front-matter 필수 필드 5개 모두 충족).
+
+### 미완료:
+- **IMPL-019-extend** (옵션, P2): tasks.yaml 신규 entry 등록 — Beyoncé/Ariana Grande/Gwyneth Paltrow/Jennifer Aniston × 5→10 claim 확장 + 신규 셀럽 추가 (분야 무관). 사용자 결정 시점.
+- **OPS-001** (P3): admin moderation queue 운영 cadence 검증. doc §8 Phase 1 의 "매주 새 정보 cadence 1개월 직접 검증" 구체화. IMPL-021 admin queue 완성 + 사용자 의사결정 후.
+- **셀럽 카테고리 다양화 시 allowlist 확장 PR**: athletes 깊이 확보 위해 ESPN/Sports Illustrated/Men's Health 등 추가 검토 — IMPL-019-extend 진입 시 함께 결정.
+
+### 연관 파일: .claude/rules/domain/content.md, spec.md, .claude/tasks.yaml, docs/IMPLEMENTATION_LOG.md

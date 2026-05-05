@@ -750,6 +750,8 @@ API 입력 검증(Zod/Pydantic)에서 반드시 적용할 허용 범위. 범위 
 
 > 셀럽의 라이프스타일 발언/루틴/선호를 출처와 신뢰등급(trust_grade)과 함께 카드 단위로 저장하는 도메인. 첫 사용자 경험인 "Wellness Claims Feed" (§7.2 Tab 1) 의 데이터 소스이며, base_diets 와 1:N 으로 느슨하게 연결된다 (claim → inspired meal plan 진입점).
 
+> **셀럽 선정 정책 (genre-agnostic)**: 분야·장르·국적 무관, 영향력 + 검증 가능한 wellness 발언 ≥ 5건 두 축으로만 판단. 명시적 Tier 분류는 운영 도구로만 사용하고 사용자 노출 금지. claim 양은 셀럽별 비대칭 허용 (5~30/celeb). 상세: `.claude/rules/domain/content.md` "Genre-Agnostic Selection Policy".
+
 #### 3.5.1 `claim_type` Enum
 
 | Value | 의미 | 예시 |
