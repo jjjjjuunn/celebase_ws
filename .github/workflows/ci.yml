@@ -348,6 +348,18 @@ jobs:
 
       - name: Run E2E integration tests
         working-directory: services/meal-plan-engine
+        env:
+          # tests/integration/conftest.py raises module-level skip if
+          # LOCALSTACK_ENDPOINT is unset → pytest exits 1 (Skipped propagates
+          # through pytest_load_initial_conftests). Other vars use conftest
+          # defaults but are pinned here for clarity.
+          LOCALSTACK_ENDPOINT: http://localhost:4566
+          INTEGRATION_DATABASE_URL: postgresql://celebbase:devpw@localhost:5432/celebbase_dev
+          INTEGRATION_USER_SVC_URL: http://localhost:3001
+          INTEGRATION_MPE_URL: http://localhost:3003
+          INTEGRATION_SQS_ENDPOINT: http://localhost:4566
+          INTEGRATION_SQS_QUEUE_URL: http://localhost:4566/000000000000/meal-plan-generation
+          INTERNAL_JWT_SECRET: dev-secret-not-for-prod
         run: .venv/bin/python -m pytest tests/integration/ -v --tb=short
         # T1 polls up to 60s + T2 polls up to 75s + cold asyncpg first-connect ~10s.
         timeout-minutes: 20
