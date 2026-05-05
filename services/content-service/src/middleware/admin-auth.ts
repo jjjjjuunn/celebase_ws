@@ -32,8 +32,10 @@ function extractAdminToken(request: FastifyRequest): string | null {
  */
 export function registerAdminAuth(app: FastifyInstance): void {
   const adminToken = process.env['ADMIN_API_TOKEN'];
-  const nodeEnv = process.env['NODE_ENV'] ?? 'development';
+  const nodeEnv = process.env['NODE_ENV'];
 
+  // Unset NODE_ENV must NOT default to 'development' — that would re-open
+  // the fail-open hole codex+gemini flagged in review-r2 (F4-bis).
   const isLocalDev = nodeEnv === 'development' || nodeEnv === 'test';
 
   if (!adminToken) {
