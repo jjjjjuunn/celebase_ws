@@ -84,5 +84,7 @@ class PatchMealPlanRequest(BaseModel):
         if v is None:
             return v
         if v not in {"active", "archived"}:
-            raise ValueError("status can only be set to 'active' or 'archived' via PATCH")
+            raise ValueError(
+                "status can only be set to 'active' or 'archived' via PATCH"
+            )
         return v

@@ -72,11 +72,12 @@ async def test_final_out_always_includes_mode_flags_llm_path() -> None:
         quota_exceeded=False,
     )
 
-    with patch(
-        "src.engine.pipeline.settings.ENABLE_LLM_MEAL_PLANNER", True
-    ), patch(
-        "src.engine.pipeline.llm_rerank_and_narrate",
-        return_value=fake_result,
+    with (
+        patch("src.engine.pipeline.settings.ENABLE_LLM_MEAL_PLANNER", True),
+        patch(
+            "src.engine.pipeline.llm_rerank_and_narrate",
+            return_value=fake_result,
+        ),
     ):
         result = await run_pipeline(
             **inputs,

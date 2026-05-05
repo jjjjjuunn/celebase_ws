@@ -41,16 +41,18 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     ENABLE_LLM_MEAL_PLANNER: bool = False
     LLM_ROLLOUT_PCT: int = Field(default=0, ge=0, le=100)  # 0/10/50/100 점진적 rollout
-    LLM_COST_CAP_USD: float = 0.05         # per-plan hard cap (Proposal line 305)
-    LLM_INPUT_PRICE_PER_1M_USD: float = 0.10   # GPT-4.1-mini 기준, 갱신 필요 시 코드 변경
+    LLM_COST_CAP_USD: float = 0.05  # per-plan hard cap (Proposal line 305)
+    LLM_INPUT_PRICE_PER_1M_USD: float = (
+        0.10  # GPT-4.1-mini 기준, 갱신 필요 시 코드 변경
+    )
     LLM_OUTPUT_PRICE_PER_1M_USD: float = 0.40
     LLM_MAX_INPUT_TOKENS: int = 3000
     LLM_MAX_OUTPUT_TOKENS: int = 800
     LLM_TIMEOUT_SECONDS: float = 5.0
-    ELITE_DAILY_LLM_SOFT_LIMIT: int = 3    # Redis quota per user per day
-    LLM_MONTHLY_WARN_USD: float = 500.0    # MAU 10K 기준 warn 임계값
-    LLM_MONTHLY_KILL_USD: float = 1000.0   # kill switch 자동 발화 임계값
-    OPENAI_MODEL: str = "gpt-4.1-mini"     # env override로 모델 변경 가능
+    ELITE_DAILY_LLM_SOFT_LIMIT: int = 3  # Redis quota per user per day
+    LLM_MONTHLY_WARN_USD: float = 500.0  # MAU 10K 기준 warn 임계값
+    LLM_MONTHLY_KILL_USD: float = 1000.0  # kill switch 자동 발화 임계값
+    OPENAI_MODEL: str = "gpt-4.1-mini"  # env override로 모델 변경 가능
 
     @property
     def cors_origins_list(self) -> List[str]:

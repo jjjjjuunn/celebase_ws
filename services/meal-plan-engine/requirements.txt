@@ -11,6 +11,8 @@ python-json-logger==2.0.7
 pytest==8.3.4
 pytest-asyncio==0.25.2
 pytest-timeout==2.3.1
+vcrpy==8.1.1
+pytest-recording==0.13.4
 websockets>=12.0
 # LLM Enhancement Layer (spec §5.8, IMPL-AI-001-c)
 openai>=1.50.0

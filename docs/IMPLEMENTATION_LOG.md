@@ -3899,3 +3899,45 @@ verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review
 - **other-services dev script NODE_ENV 정렬**: `user-service`, `meal-plan-engine`, `commerce-service`, `analytics-service`, `social-bot` 도 동일 패턴 (`tsx src/index.ts` host dev 시 NODE_ENV 미주입) 가능성 — IMPL-021 범위 외, 후속 chore 분리 (각 서비스가 prod fail-closed 가드를 추가할 때 동시 검토 필요).
 
 ### 연관 파일: services/content-service/src/middleware/admin-auth.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/package.json, pipeline/runs/IMPL-021/fix-request-1.md, pipeline/runs/IMPL-021/fix-request-2.md, pipeline/runs/IMPL-021/fix-request-3.md, pipeline/runs/IMPL-021/review-r1/, pipeline/runs/IMPL-021/review-r2/, pipeline/runs/IMPL-021/review-r3/
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: CHORE-CI-RESTORE-2026-05-05
+commit_sha: ede8e40
+files_changed:
+  - .github/workflows/ci.yml
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/tests/llm/test_llm_real_call_smoke.py
+  - services/meal-plan-engine/src/clients/llm_client.py
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/engine/llm_metrics.py
+  - services/meal-plan-engine/src/engine/llm_safety.py
+  - services/meal-plan-engine/src/engine/llm_schema.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/models/meal_plan.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_impl_app_005_a.py
+  - services/meal-plan-engine/tests/unit/test_llm_reranker.py
+  - services/meal-plan-engine/tests/unit/test_macro_rebalancer.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - scripts/validate-claim-seeds.py
+verified_by: ruff format --check passed, ruff check passed, vcrpy 8.1.1 has vcr/stubs/httpcore_stubs.py verified
+---
+### 완료: CI 복구 — duplicate job + 2주간 가려진 선존 회귀 3건 일괄 처리
+- **Root cause**: 2026-04-19 CHORE-005 가 `e2e-integration` job 을 두 번째 정의로 추가 → YAML duplicate key 로 워크플로 파싱 실패 → 2주간 0 jobs 실행. 5 회 연속 CI failure 의 원인.
+- **PR #30 commit `ff30d59`** (CI workflow): legacy CHORE-005 LocalStack-only 블록 (lines 228–293) 삭제, IMPL-016 docker buildx + compose override + SQS wait 블록 (lines 318–448) 만 유지. `notify-on-failure.needs` 의 중복 entry 도 제거. net -67 lines.
+- **PR #30 commit `37756d6`** (meal-plan-engine fixes): 잡들이 실제 실행되며 노출된 회귀 2건 픽스.
+  - ruff F401: `tests/llm/test_llm_real_call_smoke.py` 의 `import asyncio`, `import json` 미사용 (pytest.mark.asyncio 데코레이터는 별도 import 불필요).
+  - ModuleNotFoundError: `tests/llm/conftest.py:33` 가 `vcr.stubs.httpcore_stubs` import 하는데 requirements.txt 에 vcrpy 누락.
+- **PR #30 commit `<PENDING>`** (이 commit): 추가 노출 회귀 2건 처리.
+  - vcrpy 6.0.2 → 8.1.1 (httpcore_stubs.py 는 8.x 부터 존재; pypi tarball traversal 로 확인 — 7.0.0 에는 httpx_stubs.py 만 있고 httpcore_stubs.py 없음).
+  - ruff format --check 14 files unformatted: `services/meal-plan-engine/src/**` + `tests/unit/**` + `scripts/validate-claim-seeds.py` 일괄 `ruff format` 적용. behavioral diff 없음 (포맷팅만).
+- **검증**:
+  - 로컬 `ruff check .` + `ruff format --check .` 둘 다 clean.
+  - `python3 -c "import yaml; print(list(yaml.safe_load(open('.github/workflows/ci.yml'))['jobs'].keys()))"` → 11 jobs 정상 파싱.
+### 미완료:
+- PR #30 머지 후 Branch Protection ruleset 의 "Require status checks to pass" 재활성화 + 필수 컨텍스트 등록 (`🧹 Lint & Typecheck`, `🧪 Tests`, `📜 Contract Tests`, `🛡️ Validate Compliance`, `🔒 Security Scan`).
+- "other-services dev script NODE_ENV 정렬" (IMPL-021 미완료 carry-over) 는 본 chore 와 직교 — 별도 chore 로 유지.
+### 연관 파일: .github/workflows/ci.yml, services/meal-plan-engine/, scripts/validate-claim-seeds.py, docs/IMPLEMENTATION_LOG.md

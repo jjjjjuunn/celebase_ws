@@ -6,6 +6,7 @@ spec.md §9.3 #7: allowlist-only. **HTTP 요청 절대 금지** (GET/HEAD 포함
 
 CI `validate-schemas` job 에서 실행. 실패 시 머지 차단.
 """
+
 from __future__ import annotations
 
 import json
@@ -83,7 +84,9 @@ def validate_html_safe(text: str | None, ctx: str, errors: list[str]) -> None:
         errors.append(f"{ctx}: '<' 문자 포함 — HTML 태그 의심 (§9.3 #1)")
 
 
-def validate_claim(claim: dict[str, Any], slug: str, idx: int, errors: list[str]) -> None:
+def validate_claim(
+    claim: dict[str, Any], slug: str, idx: int, errors: list[str]
+) -> None:
     ctx_base = f"{slug}[{idx}]"
 
     # §9.3 #1: plain text fields
@@ -136,7 +139,9 @@ def validate_seed_file(path: Path, schema: dict[str, Any], errors: list[str]) ->
     try:
         jsonschema.validate(data, schema)
     except jsonschema.ValidationError as e:
-        errors.append(f"{path.name}: schema 위반 — {e.message} @ {list(e.absolute_path)}")
+        errors.append(
+            f"{path.name}: schema 위반 — {e.message} @ {list(e.absolute_path)}"
+        )
         return
 
     slug = data["celebrity_slug"]
@@ -150,7 +155,9 @@ def validate_seed_file(path: Path, schema: dict[str, Any], errors: list[str]) ->
 
     # 파일명 = slug.json 강제 (loader 단순화 + 중복 방지)
     if path.stem != slug:
-        errors.append(f"{path.name}: 파일명 stem 과 celebrity_slug 불일치 ('{path.stem}' vs '{slug}')")
+        errors.append(
+            f"{path.name}: 파일명 stem 과 celebrity_slug 불일치 ('{path.stem}' vs '{slug}')"
+        )
 
     for idx, claim in enumerate(data["claims"]):
         validate_claim(claim, slug, idx, errors)

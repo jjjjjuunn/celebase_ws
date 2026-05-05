@@ -31,15 +31,30 @@ _ENDORSEMENT_RE = re.compile(
 
 # Gate BS-03: llm_profile 화이트리스트 — Gemini BS-03
 _ALLOWED_PRIMARY_GOAL = frozenset(
-    {"weight_loss", "muscle_gain", "maintenance", "endurance", "flexibility", "general_health"}
+    {
+        "weight_loss",
+        "muscle_gain",
+        "maintenance",
+        "endurance",
+        "flexibility",
+        "general_health",
+    }
 )
 _ALLOWED_ACTIVITY_LEVEL = frozenset(
     {"sedentary", "lightly_active", "moderate", "active", "very_active"}
 )
 _ALLOWED_DIET_TYPE = frozenset(
     {
-        "balanced", "low_carb", "high_protein", "vegan", "vegetarian",
-        "keto", "mediterranean", "paleo", "gluten_free", "dairy_free",
+        "balanced",
+        "low_carb",
+        "high_protein",
+        "vegan",
+        "vegetarian",
+        "keto",
+        "mediterranean",
+        "paleo",
+        "gluten_free",
+        "dairy_free",
     }
 )
 
@@ -141,9 +156,7 @@ def sanitize_llm_profile(llm_profile: dict[str, object]) -> dict[str, str]:
             f"activity_level '{activity_level}' not in allowlist"
         )
     if diet_type not in _ALLOWED_DIET_TYPE:
-        raise LlmProfileInjectionError(
-            f"diet_type '{diet_type}' not in allowlist"
-        )
+        raise LlmProfileInjectionError(f"diet_type '{diet_type}' not in allowlist")
     return {
         "primary_goal": primary_goal,
         "activity_level": activity_level,
