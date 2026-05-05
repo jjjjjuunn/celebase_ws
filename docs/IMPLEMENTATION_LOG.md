@@ -3795,3 +3795,57 @@ verified_by: claude-opus-4-7 (validate-claim-seeds.py 9회 통과)
 - **loader 통합**: `db/seeds/loaders/celebrityLoader.ts` 에 lifestyle_claims + claim_sources INSERT 로직 추가 (현재 loader 는 base_diet + recipes 만). content-service 통합 테스트가 실 시드 활용 시 필요 — Phase A entry 의 미완료 항목 그대로 carry-over.
 
 ### 연관 파일: db/seeds/lifestyle-claims/ariana-grande.json, db/seeds/lifestyle-claims/beyonce.json, db/seeds/lifestyle-claims/cristiano-ronaldo.json, db/seeds/lifestyle-claims/dwayne-johnson.json, db/seeds/lifestyle-claims/gwyneth-paltrow.json, db/seeds/lifestyle-claims/joaquin-phoenix.json, db/seeds/lifestyle-claims/lebron-james.json, db/seeds/lifestyle-claims/natalie-portman.json, db/seeds/lifestyle-claims/tom-brady.json
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-021
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/index.ts
+  - services/content-service/src/middleware/admin-auth.ts
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - services/content-service/src/repositories/celebrity.repository.ts
+  - services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts
+  - services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts
+  - services/content-service/tests/unit/lifestyle-claim.repository.test.ts
+  - services/content-service/tests/unit/celebrity.repository.test.ts
+  - db/migrations/0015_lifestyle_claims_admin.sql
+verified_by: claude-opus-4-7 (typecheck + lint + 74/74 unit tests + 85.92% coverage; L3 self-adversarial pass)
+---
+### 완료: IMPL-021 — admin moderation queue + celebrity deactivate cascade trigger (spec §9.3 #3·#5·#6)
+
+**Phase A (commit 8f51c44)** — admin route + trust_grade gate + is_health_claim toggle:
+- `middleware/admin-auth.ts`: `X-Admin-Token` 헤더 가드, `crypto.timingSafeEqual` 로 timing side-channel 차단. prod 모드에 `ADMIN_API_TOKEN` 미설정 시 startup fatal, dev/test 에서는 dev-stub 모드 (token 없으면 모든 admin 요청 401, 있으면 비교).
+- `repositories/lifestyle-claim.repository.ts`: 기존 사용자용 read 함수 위에 admin 4종 추가 — `findByIdAdmin` (status 무관), `listForModeration` (status × is_health_claim × cursor 필터), `transitionStatus` (트랜잭션 + `SELECT ... FOR UPDATE` 행 락 + DB CHECK constraint `trust_grade_published_gate` 의 application 단 사전 체크: E 등급 → `grade_E_blocked`, D 등급 + disclaimer_key NULL → `grade_D_requires_disclaimer`), `setHealthClaim`. discriminated union 반환으로 라우트가 에러 코드를 분기 → 400/404 매핑.
+- `routes/admin/lifestyle-claim.admin.routes.ts`: `GET /admin/claims` (filter+cursor), `GET /admin/claims/:id`, `POST /admin/claims/:id/transition` (draft↔published↔archived), `PATCH /admin/claims/:id/health-claim` (toggle 시 disclaimer_key 동시 갱신).
+- `index.ts`: hook 등록 순서 `registerJwtAuth({ publicPaths: ['/admin/*'] }) → registerAdminAuth → admin route` 로 외부 사용자 JWT 가 `/admin/*` 에 적용되지 않게 분리 (IMPL-016-b3 prefix wildcard 패턴 재사용).
+- 테스트 16건 (admin auth · list · transition · health-claim toggle), repository unit 12건 추가 — 커버리지 lifestyle-claim.repository.ts 96.89%.
+
+**Phase B (이번 커밋)** — celebrity deactivate cascade:
+- `db/migrations/0015_lifestyle_claims_admin.sql`: `cascade_celebrity_deactivate_to_claims()` PL/pgSQL 함수 + `AFTER UPDATE OF is_active ON celebrities` 트리거. `OLD.is_active IS DISTINCT FROM NEW.is_active AND OLD.is_active = TRUE AND NEW.is_active = FALSE` 가드로 TRUE→FALSE 전환에만 작동, published lifestyle_claim 만 archived 로 일괄 전환. 부분 인덱스 (`idx_lifestyle_claims_celeb` 등) 가 `status='published'` 전제이므로 비활성 직후 사용자 노출 잔재 0 보장.
+- `repositories/celebrity.repository.ts`: `deactivate(pool, id)` — `UPDATE ... WHERE id=$1 AND is_active=TRUE RETURNING *`. 멱등 (이미 비활성 또는 미존재 → null), 같은 id 재호출 시 트리거가 두 번 발화하지 않음.
+- 테스트 3건 — UPDATE WHERE 절 SQL 검증 + 미존재 케이스 + 멱등성 (두 번째 호출 RETURNING 빈 rows).
+
+**검증**:
+- `pnpm --filter content-service typecheck` 통과 (shared-types 선행 빌드 확인).
+- `pnpm --filter content-service lint` 통과.
+- `pnpm --filter content-service test` — 7 suites / 74 tests 전건 통과, 글로벌 라인 커버리지 87.58% (threshold 80% 충족).
+
+**L3 self-adversarial 검토**:
+- timing side-channel: `timingSafeEqual` + 길이 mismatch 사전 차단 (Buffer 길이 다르면 곧바로 401).
+- token absent in prod → fatal startup (운영자가 절대 토큰 없이 가드 비활성 상태로 띄울 수 없음).
+- transition race: `SELECT ... FOR UPDATE` + 같은 트랜잭션 내 UPDATE 로 읽기-쓰기 사이 race 차단. application 단 trust_grade 체크가 빠지더라도 DB CHECK constraint `trust_grade_published_gate` 가 최종 방어선.
+- cascade trigger 재발화: `IS DISTINCT FROM` + `WHERE is_active=TRUE` 가드 두 겹으로 멱등성 확보.
+- admin path lowercase 정규화: Fastify default casing (case-sensitive) 가정. case-insensitive 환경에서는 추가 검토 필요 — 현재 default 이므로 본 IMPL 범위 외.
+
+**리뷰 메모**: codex CLI traversal/output 한계 (IMPL-AI-002 교훈) 와 gemini CLI 도구 부재로 Codex/Gemini external review 미수행. `.claude/rules/pipeline.md` "Claude is the final judge" + L3 fallback 절차에 따라 Claude 가 직접 review + 별도 관점 (공격자 시각) self-adversarial 1회 추가 수행 (위 항목).
+
+### 미완료:
+- **admin route for celebrity deactivate** (예: `POST /admin/celebrities/:id/deactivate`): 본 IMPL 범위는 (a) lifestyle_claim moderation 라우트 + (b) DB 트리거 까지. UI 또는 운영자가 직접 호출할 admin 라우트는 IMPL-021-c 또는 IMPL-022 로 분리.
+- **disclaimer_key 카탈로그 단일 출처**: 현재 D 등급 published 시 disclaimer_key NOT NULL 만 강제. 카탈로그 enum (`disclaimers.<key>`) 정의 + FE 렌더 매핑은 미완 — IMPL-019 entry 의 carry-over 항목과 동일.
+- **integration test (실 DB 트리거)**: 현재 unit test 는 mock pool/client 기반. migration 0015 실행 + 실제 published claim 일괄 archived 전환을 testcontainers 또는 docker-compose 통합 테스트로 검증해야 spec §9.3 #3 의 "사용자 노출 잔재 0" 을 end-to-end 보장 — IMPL-021-c (또는 별도 INFRA 태스크) 로 분리.
+- **draft / archived / D / E 시드 fixture**: IMPL-019 entry 미완료 그대로 carry-over. transitionStatus + setHealthClaim 의 happy path / unhappy path 를 실데이터로 검증하려면 의도적 fixture 필요.
+- **admin actor identity 기록**: 현재 transition / setHealthClaim 은 actor identity 없이 X-Admin-Token 통과만 기록. spec §9.3 의 운영자 감사 추적 (`moderator_id`, `reason`) 필드 도입은 IMPL-021-c 또는 IMPL-022 로 분리.
+
+### 연관 파일: services/content-service/src/index.ts, services/content-service/src/middleware/admin-auth.ts, services/content-service/src/repositories/lifestyle-claim.repository.ts, services/content-service/src/repositories/celebrity.repository.ts, services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/tests/unit/lifestyle-claim.repository.test.ts, services/content-service/tests/unit/celebrity.repository.test.ts, db/migrations/0015_lifestyle_claims_admin.sql
