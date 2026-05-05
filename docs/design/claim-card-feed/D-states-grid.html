@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Artifact D — ClaimCard Interactive States</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --cb-brand-100: #F5EDDA;
+    --cb-brand-500: #C9A84C;
+    --cb-brand-600: #8B6D2F;
+
+    --cb-neutral-0:   #FAFAF8;
+    --cb-neutral-50:  #F4F3F0;
+    --cb-neutral-100: #E8E6E1;
+    --cb-neutral-200: #D0CEC8;
+    --cb-neutral-400: #8A8780;
+    --cb-neutral-500: #6D6A64;
+    --cb-neutral-700: #3D3B37;
+    --cb-neutral-900: #1A1917;
+
+    --cb-success-600: #0F7438;
+    --cb-accent-bio:  #0E8F9B;
+
+    --cb-radius-xs:  4px;
+    --cb-radius-sm:  8px;
+    --cb-radius-md:  12px;
+    --cb-radius-lg:  16px;
+    --cb-radius-pill: 9999px;
+
+    --cb-shadow-1: 0 1px 3px rgba(26,25,23,0.06), 0 1px 2px rgba(26,25,23,0.04);
+    --cb-shadow-2: 0 8px 24px rgba(26,25,23,0.13), 0 2px 6px rgba(26,25,23,0.07);
+    --cb-shadow-focus: 0 0 0 3px rgba(139,109,47,0.45);
+    --cb-shadow-pressed: inset 0 2px 6px rgba(26,25,23,0.10);
+
+    --cb-border: 1px solid rgba(26,25,23,0.08);
+
+    --cb-sk-base: #E8E1D8;
+    --cb-sk-shine: #F5EFE7;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--cb-neutral-50);
+    color: var(--cb-neutral-900);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    gap: 32px;
+  }
+
+  /* ── Header ── */
+  .demo-header {
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .demo-title {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.015em;
+    color: var(--cb-neutral-900); margin: 0;
+  }
+  .demo-sub { font-size: 13px; color: var(--cb-neutral-500); margin: 0; }
+
+  /* ── State pill row ── */
+  .state-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .state-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: var(--cb-radius-pill);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1.5px solid transparent;
+    color: var(--cb-neutral-400);
+    background: var(--cb-neutral-100);
+    cursor: default;
+    transition: all 160ms ease;
+    user-select: none;
+  }
+  .state-pill::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--cb-neutral-300);
+    transition: background 160ms ease;
+  }
+  .state-pill.active {
+    color: var(--cb-neutral-900);
+    border-color: var(--cb-brand-500);
+    background: var(--cb-brand-100);
+  }
+  .state-pill.active::before { background: var(--cb-brand-500); }
+
+  /* ── Hint ── */
+  .hint {
+    font-size: 12px; color: var(--cb-neutral-400);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hint kbd {
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    background: var(--cb-neutral-100); border: var(--cb-border);
+    border-radius: var(--cb-radius-xs); padding: 2px 7px;
+    color: var(--cb-neutral-700);
+    box-shadow: 0 1px 0 rgba(26,25,23,0.12);
+  }
+
+  /* ── Card wrapper (for focus ring overflow) ── */
+  .card-stage {
+    width: 360px;
+    outline: none;
+  }
+  .card-stage:focus { outline: none; }
+
+  /* ── ClaimCard ── */
+  .claim-card {
+    background: var(--cb-neutral-0);
+    border: var(--cb-border);
+    border-radius: var(--cb-radius-lg);
+    box-shadow: var(--cb-shadow-1);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    cursor: pointer;
+    outline: none;
+    /* transitions */
+    transition:
+      transform 200ms cubic-bezier(0.34,1.36,0.64,1),
+      box-shadow 200ms ease;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hover */
+  .claim-card.is-hover {
+    transform: translateY(-4px);
+    box-shadow: var(--cb-shadow-2);
+  }
+  /* Pressed */
+  .claim-card.is-pressed {
+    transform: scale(0.975) translateY(1px);
+    box-shadow: var(--cb-shadow-pressed);
+    transition:
+      transform 80ms cubic-bezier(0.25,0.46,0.45,0.94),
+      box-shadow 80ms ease;
+  }
+  /* Focus */
+  .claim-card.is-focus {
+    box-shadow: var(--cb-shadow-1), var(--cb-shadow-focus);
+  }
+  /* Hover + Focus */
+  .claim-card.is-hover.is-focus {
+    box-shadow: var(--cb-shadow-2), var(--cb-shadow-focus);
+  }
+
+  /* ── Hero ── */
+  .card__hero {
+    position: relative; height: 148px; flex-shrink: 0; overflow: hidden;
+  }
+  .card__hero-bg {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(160deg, rgba(14,143,155,0.60) 0%, rgba(14,143,155,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(135deg, rgba(14,143,155,0.08) 0px, rgba(14,143,155,0.08) 1px, transparent 1px, transparent 14px),
+      linear-gradient(135deg, #0a6b74 0%, var(--cb-accent-bio) 55%, #d4f0f2 100%);
+    transform-origin: center;
+    transition: transform 400ms ease;
+  }
+  .claim-card.is-hover .card__hero-bg { transform: scale(1.05); }
+  .claim-card.is-pressed .card__hero-bg { transform: scale(1.01); }
+
+  .card__hero-chips {
+    position: absolute; top: 12px; left: 12px; right: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card__celeb-strip {
+    position: absolute; bottom: 12px; left: 12px; right: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(250,250,248,0.80);
+    box-shadow: 0 1px 4px rgba(26,25,23,0.2);
+    background: linear-gradient(135deg, var(--cb-brand-100), var(--cb-brand-500));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar-text { color: var(--cb-neutral-0); font-size: 13px; font-weight: 700; }
+  .celeb-name {
+    font-size: 14px; font-weight: 700; color: var(--cb-neutral-0);
+    text-shadow: 0 1px 4px rgba(26,25,23,0.5);
+  }
+  .celeb-dot { color: rgba(250,250,248,0.50); font-size: 11px; }
+  .celeb-time { font-size: 11px; color: rgba(250,250,248,0.75); text-shadow: 0 1px 3px rgba(26,25,23,0.4); }
+
+  /* ── Chips / badges ── */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: var(--cb-radius-pill);
+    font-size: 13px; font-weight: 600;
+    background: rgba(250,250,248,0.88); color: var(--cb-neutral-900);
+    backdrop-filter: blur(6px); border: var(--cb-border);
+  }
+  .chip svg { width: 14px; height: 14px; color: var(--cb-accent-bio); }
+  .chip-label { color: var(--cb-accent-bio); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: var(--cb-radius-pill);
+    font-size: 12px; font-weight: 600;
+    background: rgba(221,243,230,0.92); color: var(--cb-success-600);
+    backdrop-filter: blur(6px); border: var(--cb-border);
+  }
+  .badge svg { width: 12px; height: 12px; }
+
+  /* ── Body ── */
+  .card__body {
+    padding: 16px 20px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1;
+  }
+  .claim-headline {
+    font-size: 20px; font-weight: 600;
+    line-height: 1.32; letter-spacing: -0.01em;
+    color: var(--cb-neutral-900); margin: 0;
+    text-wrap: pretty;
+  }
+  .more-btn {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--cb-neutral-500);
+    background: transparent; border: none; padding: 4px 0;
+    cursor: pointer; letter-spacing: 0.01em;
+  }
+  .more-btn svg { width: 14px; height: 14px; }
+
+  /* ── Skeleton overlay ── */
+  .card-skeleton {
+    position: absolute; inset: 0; z-index: 10;
+    background: var(--cb-neutral-0);
+    border-radius: var(--cb-radius-lg);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+  .card-skeleton.visible { opacity: 1; pointer-events: auto; }
+  .sk {
+    background: var(--cb-sk-base);
+    border-radius: var(--cb-radius-sm);
+    position: relative; overflow: hidden;
+  }
+  .sk::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--cb-sk-shine) 50%, transparent 100%);
+    animation: shimmer 1.6s infinite; transform: translateX(-100%);
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) { .sk::after { animation: none; } }
+  .sk-hero { flex: 0 0 148px; border-radius: 0; }
+  .sk-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .sk-row { display: flex; gap: 8px; }
+  .sk-chip { width: 96px; height: 24px; border-radius: var(--cb-radius-pill); }
+  .sk-badge { width: 64px; height: 22px; border-radius: var(--cb-radius-pill); }
+  .sk-lines { display: flex; flex-direction: column; gap: 8px; }
+  .sk-line { height: 18px; border-radius: var(--cb-radius-sm); }
+  .sk-more { width: 52px; height: 13px; border-radius: var(--cb-radius-sm); }
+
+  /* ── Skeleton trigger button ── */
+  .skeleton-btn {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 8px 18px; border-radius: var(--cb-radius-pill);
+    background: var(--cb-neutral-100); color: var(--cb-neutral-700);
+    border: var(--cb-border); cursor: pointer;
+    transition: background 140ms ease;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .skeleton-btn:hover { background: var(--cb-neutral-200); }
+  .skeleton-btn svg { width: 14px; height: 14px; }
+
+  /* ── Annotation callout ── */
+  .callout {
+    background: var(--cb-neutral-0);
+    border: var(--cb-border);
+    border-radius: var(--cb-radius-md);
+    padding: 12px 16px;
+    font-size: 12px; color: var(--cb-neutral-500);
+    line-height: 1.6;
+    text-align: center;
+    min-height: 40px;
+    max-width: 360px;
+    transition: opacity 160ms ease;
+    box-shadow: var(--cb-shadow-1);
+  }
+  .callout code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--cb-neutral-100);
+    padding: 1px 6px; border-radius: var(--cb-radius-xs);
+    color: var(--cb-neutral-700); font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="demo-header">
+    <h1 class="demo-title">ClaimCard — Interactive States</h1>
+    <p class="demo-sub">Hover, click, and tab to see each state live.</p>
+  </div>
+
+  <!-- State indicator pills -->
+  <div class="state-row" id="stateRow" role="status" aria-live="polite" aria-label="Current card state">
+    <span class="state-pill active" data-state="default">Default</span>
+    <span class="state-pill" data-state="hover">Hover</span>
+    <span class="state-pill" data-state="pressed">Pressed</span>
+    <span class="state-pill" data-state="focus">Focus-visible</span>
+    <span class="state-pill" data-state="skeleton">Skeleton</span>
+  </div>
+
+  <!-- Card -->
+  <div class="card-stage" tabindex="0" id="cardStage" role="button" aria-label="ClaimCard demo — interact to see states">
+    <div style="position:relative;">
+      <article class="claim-card" id="claimCard">
+        <div class="card__hero">
+          <div class="card__hero-bg" aria-hidden="true"></div>
+          <div class="card__hero-chips">
+            <span class="chip">
+              <i data-lucide="dumbbell" aria-hidden="true"></i>
+              <span class="chip-label">Workout</span>
+            </span>
+            <span class="badge">
+              <i data-lucide="check" aria-hidden="true"></i>
+              <span>Grade A</span>
+            </span>
+          </div>
+          <div class="card__celeb-strip">
+            <div class="avatar" role="img" aria-label="Hailey Bieber">
+              <span class="avatar-text" aria-hidden="true">HB</span>
+            </div>
+            <span class="celeb-name">Hailey Bieber</span>
+            <span class="celeb-dot" aria-hidden="true">·</span>
+            <span class="celeb-time">2 days ago</span>
+          </div>
+        </div>
+        <div class="card__body">
+          <h2 class="claim-headline">Pilates three times a week — for posture, not bulk.</h2>
+          <button class="more-btn" type="button" tabindex="-1">
+            <span>More</span>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+      </article>
+
+      <!-- Skeleton overlay -->
+      <div class="card-skeleton" id="skeleton" aria-hidden="true">
+        <div class="sk sk-hero"></div>
+        <div class="sk-body">
+          <div class="sk-row">
+            <span class="sk sk-chip"></span>
+            <span class="sk sk-badge"></span>
+          </div>
+          <div class="sk-lines">
+            <span class="sk sk-line" style="width:100%"></span>
+            <span class="sk sk-line" style="width:68%"></span>
+          </div>
+          <span class="sk sk-more"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotation -->
+  <div class="callout" id="callout" aria-live="polite">
+    Mouse over the card to begin.
+  </div>
+
+  <!-- Skeleton toggle -->
+  <button class="skeleton-btn" id="skeletonBtn" type="button">
+    <i data-lucide="loader" aria-hidden="true"></i>
+    <span>Toggle skeleton</span>
+  </button>
+
+  <div class="hint">
+    <kbd>Tab</kbd> to focus · mouse to hover/press · button for skeleton
+  </div>
+
+<script>
+(function () {
+  if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+
+  const card      = document.getElementById('claimCard');
+  const stage     = document.getElementById('cardStage');
+  const skeleton  = document.getElementById('skeleton');
+  const skBtn     = document.getElementById('skeletonBtn');
+  const callout   = document.getElementById('callout');
+  const pills     = document.querySelectorAll('.state-pill');
+
+  let isHovered  = false;
+  let isPressed  = false;
+  let isFocused  = false;
+  let isSkeleton = false;
+
+  const ANNOTATIONS = {
+    default:  'Resting. <code>shadow-1</code>, no transform. The baseline state.',
+    hover:    'Mouse entered. Lifts <code>−4px</code>, hero zooms <code>1.05×</code>, shadow deepens.',
+    pressed:  'Mousedown / touch. Scales <code>0.975</code>, sinks <code>+1px</code>, inset shadow. 80ms snap.',
+    focus:    'Keyboard focus-visible. Gold ring (<code>shadow-focus</code>) composited on top of base shadow.',
+    skeleton: 'Loading state. Same card anatomy, content replaced with shimmer placeholders.',
+  };
+
+  function currentState() {
+    if (isSkeleton) return 'skeleton';
+    if (isPressed)  return 'pressed';
+    if (isFocused && isHovered) return 'focus'; // show focus ring visible state
+    if (isFocused)  return 'focus';
+    if (isHovered)  return 'hover';
+    return 'default';
+  }
+
+  function update() {
+    const state = currentState();
+
+    // Card classes
+    card.classList.toggle('is-hover',   isHovered && !isSkeleton);
+    card.classList.toggle('is-pressed', isPressed && !isSkeleton);
+    card.classList.toggle('is-focus',   isFocused && !isSkeleton);
+
+    // Skeleton
+    skeleton.classList.toggle('visible', isSkeleton);
+    skeleton.setAttribute('aria-hidden', (!isSkeleton).toString());
+
+    // Pills
+    pills.forEach(p => p.classList.toggle('active', p.dataset.state === state));
+
+    // Callout
+    callout.innerHTML = ANNOTATIONS[state] || '';
+  }
+
+  // Mouse events on the stage (wraps card + skeleton)
+  stage.addEventListener('mouseenter', () => { isHovered = true;  update(); });
+  stage.addEventListener('mouseleave', () => { isHovered = false; isPressed = false; update(); });
+  stage.addEventListener('mousedown',  () => { isPressed = true;  update(); });
+  stage.addEventListener('mouseup',    () => { isPressed = false; update(); });
+
+  // Touch
+  stage.addEventListener('touchstart', () => { isHovered = true; isPressed = true;  update(); }, { passive: true });
+  stage.addEventListener('touchend',   () => { isHovered = false; isPressed = false; update(); });
+
+  // Focus — only for keyboard (focus-visible polyfill via :focus-visible simulation)
+  stage.addEventListener('focus', (e) => {
+    // Show focus ring only if navigating by keyboard (no prior mouse press)
+    isFocused = true; update();
+  });
+  stage.addEventListener('blur', () => { isFocused = false; update(); });
+  // Suppress focus ring when mouse-clicked
+  stage.addEventListener('mousedown', () => { isFocused = false; });
+
+  // Skeleton toggle
+  skBtn.addEventListener('click', () => {
+    isSkeleton = !isSkeleton;
+    isHovered  = false;
+    isPressed  = false;
+    update();
+    if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>

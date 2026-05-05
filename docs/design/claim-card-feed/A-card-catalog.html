@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Artifact A — ClaimCard Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --cb-brand-50:  #FBF8F0;
+    --cb-brand-100: #F5EDDA;
+    --cb-brand-500: #C9A84C;
+    --cb-brand-600: #8B6D2F;
+    --cb-brand-700: #6B5420;
+
+    --cb-neutral-0:   #FAFAF8;
+    --cb-neutral-50:  #F4F3F0;
+    --cb-neutral-100: #E8E6E1;
+    --cb-neutral-200: #D0CEC8;
+    --cb-neutral-300: #A8A5A0;
+    --cb-neutral-400: #8A8780;
+    --cb-neutral-500: #6D6A64;
+    --cb-neutral-600: #5A5750;
+    --cb-neutral-700: #3D3B37;
+    --cb-neutral-900: #1A1917;
+
+    --cb-success-600: #0F7438;  --cb-success-100: #DDF3E6;
+    --cb-info-600:    #1767B8;  --cb-info-100:    #D9EAFB;
+    --cb-warning-600: #A15900;  --cb-warning-100: #FDEBD5;
+    --cb-danger-600:  #B4232C;  --cb-danger-100:  #FADADD;
+
+    --cb-accent-biohacker:    #0E8F9B;
+    --cb-accent-glp1:         #7B5EA7;
+    --cb-accent-aspirational: #D4654A;
+
+    --cb-space-1: 4px;   --cb-space-2: 8px;   --cb-space-3: 12px;
+    --cb-space-4: 16px;  --cb-space-5: 20px;  --cb-space-6: 24px;
+    --cb-space-7: 32px;  --cb-space-8: 40px;  --cb-space-11: 64px;
+
+    --cb-container-max: 1200px;
+    --cb-gutter-mobile: 16px;
+
+    --cb-radius-xs:  4px;
+    --cb-radius-sm:  8px;
+    --cb-radius-md:  12px;
+    --cb-radius-lg:  16px;
+    --cb-radius-xl:  24px;
+    --cb-radius-2xl: 32px;
+    --cb-radius-pill: 9999px;
+
+    --cb-shadow-1: 0 1px 3px rgba(26,25,23,0.06), 0 1px 2px rgba(26,25,23,0.04);
+    --cb-shadow-2: 0 4px 12px rgba(26,25,23,0.10), 0 2px 4px rgba(26,25,23,0.06);
+    --cb-shadow-brand: 0 8px 24px rgba(139,109,47,0.30);
+    --cb-shadow-focus: 0 0 0 3px rgba(139,109,47,0.40);
+
+    --cb-border-default: 1px solid rgba(26,25,23,0.08);
+    --cb-border-strong:  1px solid rgba(26,25,23,0.15);
+    --cb-border-focus:   2px solid var(--cb-brand-600);
+
+    --cb-cta-text: #FFFFFF;
+
+    --cb-skeleton-base: #E8E1D8;
+    --cb-skeleton-shimmer: #F5EFE7;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--cb-neutral-50);
+    color: var(--cb-neutral-900);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: var(--cb-space-7) var(--cb-gutter-mobile) var(--cb-space-11);
+  }
+
+  .page-title {
+    font-size: 28px; font-weight: 700;
+    line-height: 1.24; letter-spacing: -0.01em;
+    margin: 0 0 var(--cb-space-2);
+    color: var(--cb-neutral-900);
+  }
+  .page-subtitle {
+    font-size: 14px; color: var(--cb-neutral-500);
+    margin: 0 0 var(--cb-space-7);
+  }
+  .case-label {
+    display: inline-flex; align-items: center; gap: var(--cb-space-2);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: var(--cb-neutral-500);
+    margin: var(--cb-space-7) 0 var(--cb-space-3);
+    padding: 0 var(--cb-space-1);
+  }
+  .case-label:first-of-type { margin-top: 0; }
+  .case-label::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cb-brand-500);
+  }
+
+  /* ===== ClaimCard ===== */
+  .claim-card {
+    background: var(--cb-neutral-0);
+    border: var(--cb-border-default);
+    border-radius: var(--cb-radius-lg);
+    box-shadow: var(--cb-shadow-1);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .claim-card:hover { transform: translateY(-2px); box-shadow: var(--cb-shadow-2); }
+
+  /* Hero */
+  .card__hero {
+    position: relative;
+    height: 140px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .card__hero-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    transition: transform 400ms ease;
+  }
+  .claim-card:hover .card__hero-bg { transform: scale(1.04); }
+
+  .card__hero-bg--food {
+    background-image:
+      linear-gradient(160deg, rgba(107,84,32,0.55) 0%, rgba(201,168,76,0.30) 60%, transparent 100%),
+      repeating-linear-gradient(45deg, rgba(201,168,76,0.07) 0px, rgba(201,168,76,0.07) 1px, transparent 1px, transparent 12px),
+      linear-gradient(135deg, var(--cb-brand-100) 0%, var(--cb-brand-500) 60%, var(--cb-brand-700) 100%);
+  }
+  .card__hero-bg--workout {
+    background-image:
+      linear-gradient(160deg, rgba(14,143,155,0.60) 0%, rgba(14,143,155,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(135deg, rgba(14,143,155,0.08) 0px, rgba(14,143,155,0.08) 1px, transparent 1px, transparent 14px),
+      linear-gradient(135deg, #0a6b74 0%, var(--cb-accent-biohacker) 55%, #d4f0f2 100%);
+  }
+  .card__hero-bg--sleep {
+    background-image:
+      linear-gradient(160deg, rgba(40,20,70,0.70) 0%, rgba(123,94,167,0.30) 60%, transparent 100%),
+      radial-gradient(ellipse at 80% 20%, rgba(200,180,255,0.18) 0%, transparent 60%),
+      linear-gradient(135deg, #1a0f2e 0%, var(--cb-accent-glp1) 55%, #c8b4e8 100%);
+  }
+  .card__hero-bg--beauty {
+    background-image:
+      linear-gradient(160deg, rgba(150,50,30,0.50) 0%, rgba(212,101,74,0.25) 60%, transparent 100%),
+      repeating-linear-gradient(60deg, rgba(212,101,74,0.06) 0px, rgba(212,101,74,0.06) 1px, transparent 1px, transparent 16px),
+      linear-gradient(135deg, #7a2010 0%, var(--cb-accent-aspirational) 55%, #f5c4b4 100%);
+  }
+  .card__hero-bg--brand {
+    background-image:
+      linear-gradient(160deg, rgba(26,25,23,0.50) 0%, rgba(90,87,80,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(90deg, rgba(26,25,23,0.04) 0px, rgba(26,25,23,0.04) 1px, transparent 1px, transparent 20px),
+      linear-gradient(135deg, var(--cb-neutral-700) 0%, var(--cb-neutral-500) 55%, var(--cb-neutral-200) 100%);
+  }
+  .card__hero-bg--supplement {
+    background-image:
+      linear-gradient(160deg, rgba(23,103,184,0.55) 0%, rgba(23,103,184,0.20) 60%, transparent 100%),
+      repeating-linear-gradient(30deg, rgba(23,103,184,0.07) 0px, rgba(23,103,184,0.07) 1px, transparent 1px, transparent 14px),
+      linear-gradient(135deg, #0d3f72 0%, var(--cb-info-600) 55%, var(--cb-info-100) 100%);
+  }
+
+  .card__hero-chips {
+    position: absolute;
+    top: var(--cb-space-3); left: var(--cb-space-3); right: var(--cb-space-3);
+    display: flex; align-items: center; gap: var(--cb-space-2); flex-wrap: wrap;
+  }
+  .card__hero-chips .chip {
+    background: rgba(250,250,248,0.88);
+    color: var(--cb-neutral-900);
+    backdrop-filter: blur(6px);
+    border: var(--cb-border-default);
+  }
+  .card__hero-chips .badge {
+    background: rgba(250,250,248,0.88);
+    color: var(--cb-neutral-900);
+    backdrop-filter: blur(6px);
+    border: var(--cb-border-default);
+  }
+  .card__hero-chips .badge--a { background: rgba(221,243,230,0.92); color: var(--cb-success-600); }
+  .card__hero-chips .badge--b { background: rgba(217,234,251,0.92); color: var(--cb-info-600); }
+  .card__hero-chips .badge--c { background: rgba(232,230,225,0.92); color: var(--cb-neutral-700); }
+  .card__hero-chips .badge--d { background: rgba(253,235,213,0.92); color: var(--cb-warning-600); }
+
+  .card__celeb-strip {
+    position: absolute;
+    bottom: var(--cb-space-3); left: var(--cb-space-3); right: var(--cb-space-3);
+    display: flex; align-items: center; gap: var(--cb-space-2);
+  }
+  .card__celeb-strip .avatar {
+    width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+    border: 2px solid rgba(250,250,248,0.80);
+    box-shadow: var(--cb-shadow-1); flex-shrink: 0;
+  }
+  .card__celeb-strip .celeb-name {
+    font-size: 14px; font-weight: 700;
+    color: var(--cb-neutral-0);
+    text-shadow: 0 1px 4px rgba(26,25,23,0.5);
+    text-decoration: none;
+  }
+  .card__celeb-strip .celeb-name:hover { text-decoration: underline; }
+  .card__celeb-strip .celeb-dot { color: rgba(250,250,248,0.55); font-size: 11px; }
+  .card__celeb-strip .celeb-time {
+    font-size: 11px; color: rgba(250,250,248,0.75);
+    text-shadow: 0 1px 3px rgba(26,25,23,0.4);
+  }
+
+  /* Card body */
+  .card__body {
+    padding: var(--cb-space-4) var(--cb-space-5) var(--cb-space-5);
+    display: flex; flex-direction: column; gap: var(--cb-space-3);
+    flex: 1;
+  }
+
+  /* Chips / badges */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--cb-radius-pill);
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.4;
+    white-space: nowrap;
+  }
+  .chip svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .chip--food      { background: var(--cb-brand-100);              color: var(--cb-brand-700); }
+  .chip--workout   { background: rgba(14,143,155,0.14);            color: var(--cb-accent-biohacker); }
+  .chip--sleep     { background: rgba(123,94,167,0.14);            color: var(--cb-accent-glp1); }
+  .chip--beauty    { background: rgba(212,101,74,0.14);            color: var(--cb-accent-aspirational); }
+  .chip--brand     { background: var(--cb-neutral-100);            color: var(--cb-neutral-700); }
+  .chip--philosophy{ background: var(--cb-neutral-50);             color: var(--cb-neutral-700); }
+  .chip--supplement{ background: var(--cb-info-100);               color: var(--cb-info-600); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--cb-radius-pill);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em; line-height: 1.4;
+    white-space: nowrap;
+  }
+  .badge svg { width: 12px; height: 12px; stroke-width: 2; }
+  .badge--a { background: var(--cb-success-100); color: var(--cb-success-600); }
+  .badge--b { background: var(--cb-info-100);    color: var(--cb-info-600); }
+  .badge--c { background: var(--cb-neutral-100); color: var(--cb-neutral-700); }
+  .badge--d { background: var(--cb-warning-100); color: var(--cb-warning-600); }
+
+  /* Avatar placeholders */
+  .avatar { display: block; }
+  .avatar--ph-1 { background: linear-gradient(135deg, var(--cb-brand-100), var(--cb-brand-500)); }
+  .avatar--ph-2 { background: linear-gradient(135deg, var(--cb-accent-aspirational), var(--cb-brand-500)); }
+  .avatar--ph-3 { background: linear-gradient(135deg, var(--cb-neutral-200), var(--cb-neutral-400)); }
+  .avatar-ph-text {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cb-neutral-0); font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+  }
+
+  /* Headline */
+  .claim-headline {
+    font-size: 20px; font-weight: 600;
+    line-height: 1.32; letter-spacing: -0.01em;
+    color: var(--cb-neutral-900); margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    text-wrap: pretty;
+  }
+
+  /* More/Less toggle */
+  .more-btn {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--cb-neutral-500);
+    background: transparent; border: none; padding: 4px 0;
+    cursor: pointer; letter-spacing: 0.01em;
+    transition: color 120ms ease;
+  }
+  .more-btn svg { width: 14px; height: 14px; stroke-width: 2; transition: transform 200ms ease; }
+  .more-btn:hover { color: var(--cb-brand-700); }
+  .more-btn[aria-expanded="true"] { color: var(--cb-neutral-700); }
+  .more-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .more-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); border-radius: var(--cb-radius-xs); }
+
+  /* Expandable panel */
+  .card__details {
+    display: flex; flex-direction: column; gap: var(--cb-space-3);
+    overflow: hidden; max-height: 0; opacity: 0;
+    transition: max-height 280ms ease, opacity 200ms ease;
+  }
+  .card__details[data-open="true"] { max-height: 500px; opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .card__details { transition: none; } }
+
+  /* Body text */
+  .claim-body {
+    font-size: 16px; font-weight: 400; line-height: 1.5;
+    color: var(--cb-neutral-600); margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* Source */
+  .source-row {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--cb-neutral-500);
+    text-decoration: none; line-height: 1.5; align-self: flex-start;
+    padding: 2px 0; border-radius: var(--cb-radius-xs);
+    transition: color 120ms ease;
+  }
+  .source-row:hover { color: var(--cb-brand-700); }
+  .source-row:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+  .source-row svg { width: 13px; height: 13px; stroke-width: 1.75; }
+  .source-row .outlet { font-weight: 600; color: var(--cb-neutral-600); }
+  .source-row:hover .outlet { color: var(--cb-brand-700); }
+
+  /* Disclaimer */
+  .disclaimer {
+    background: var(--cb-info-100);
+    border-left: 3px solid var(--cb-info-600);
+    border-radius: var(--cb-radius-sm);
+    padding: var(--cb-space-3) var(--cb-space-4);
+    display: flex; gap: var(--cb-space-3); align-items: flex-start;
+  }
+  .disclaimer svg { width: 16px; height: 16px; stroke-width: 2; color: var(--cb-info-600); flex-shrink: 0; margin-top: 2px; }
+  .disclaimer p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--cb-neutral-600); }
+
+  /* CTA row */
+  .cta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--cb-space-3); margin-top: var(--cb-space-1);
+  }
+  .cta-row--no-primary { justify-content: flex-end; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--cb-brand-600); color: var(--cb-cta-text);
+    border: none; border-radius: var(--cb-radius-pill);
+    padding: 12px 20px; height: 44px;
+    font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.01em;
+    cursor: pointer; transition: background 120ms ease, transform 120ms ease; white-space: nowrap;
+  }
+  .btn-primary svg { width: 16px; height: 16px; stroke-width: 2; }
+  .btn-primary:hover { background: var(--cb-brand-700); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  .icon-actions { display: flex; gap: var(--cb-space-1); }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: var(--cb-radius-pill); border: none; background: transparent;
+    color: var(--cb-neutral-500); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  .icon-btn:hover { background: var(--cb-neutral-50); color: var(--cb-neutral-900); }
+  .icon-btn:focus-visible { outline: none; box-shadow: var(--cb-shadow-focus); }
+
+  /* Skeleton */
+  .sk {
+    background: var(--cb-skeleton-base);
+    border-radius: var(--cb-radius-sm);
+    position: relative; overflow: hidden;
+  }
+  .sk::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--cb-skeleton-shimmer) 50%, transparent 100%);
+    animation: shimmer 1.6s infinite; transform: translateX(-100%);
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) { .sk::after { animation: none; display: none; } }
+  .sk--chip   { width: 96px; height: 24px; border-radius: var(--cb-radius-pill); }
+  .sk--badge  { width: 64px; height: 22px; border-radius: var(--cb-radius-pill); }
+  .sk--line   { width: 100%; height: 18px; }
+  .sk--line.short { width: 68%; }
+  .sk--more   { width: 52px; height: 13px; }
+  .sk-row { display: flex; align-items: center; gap: var(--cb-space-2); flex-wrap: wrap; }
+  .sk-lines { display: flex; flex-direction: column; gap: 8px; }
+
+  /* Footnote */
+  .footnote {
+    margin-top: var(--cb-space-8); padding-top: var(--cb-space-5);
+    border-top: var(--cb-border-default);
+    font-size: 12px; color: var(--cb-neutral-400); line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <main class="page" role="main">
+    <h1 class="page-title">ClaimCard — Component Catalog</h1>
+    <p class="page-subtitle">Artifact A · 3 mocks + skeleton · mobile 375px column</p>
+
+    <!-- ===== A1: Grade A · Workout · CTA · no disclaimer ===== -->
+    <p class="case-label">A1 — Grade A · with CTA · no disclaimer</p>
+    <article class="claim-card" aria-labelledby="a1-headline">
+      <div class="card__hero">
+        <div class="card__hero-bg card__hero-bg--workout" aria-hidden="true"></div>
+        <div class="card__hero-chips">
+          <span class="chip chip--workout" aria-label="claim type: workout">
+            <i data-lucide="dumbbell" aria-hidden="true"></i><span>Workout</span>
+          </span>
+          <span class="badge badge--a" aria-label="trust grade A — primary source">
+            <i data-lucide="check" aria-hidden="true"></i><span>Grade A</span>
+          </span>
+        </div>
+        <div class="card__celeb-strip">
+          <div class="avatar avatar--ph-1" role="img" aria-label="Hailey Bieber profile photo">
+            <span class="avatar-ph-text" aria-hidden="true">HB</span>
+          </div>
+          <a href="#celeb/hailey-bieber" class="celeb-name">Hailey Bieber</a>
+          <span class="celeb-dot" aria-hidden="true">·</span>
+          <span class="celeb-time" title="2026-05-02T08:00:00Z">2 days ago</span>
+        </div>
+      </div>
+      <div class="card__body">
+        <h2 id="a1-headline" class="claim-headline">Pilates three times a week — for posture, not bulk.</h2>
+        <button class="more-btn" type="button" aria-expanded="false" aria-controls="a1-details">
+          <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="card__details" id="a1-details" data-open="false">
+          <p class="claim-body">She finishes the routine with a protein shake and magnesium glycinate to support recovery and sleep.</p>
+          <a class="source-row"
+             href="https://vogue.com/article/hailey-bieber-pilates-routine"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Source: Vogue, Nov 12, 2025 — opens in a new tab">
+            <i data-lucide="paperclip" aria-hidden="true"></i>
+            <span class="outlet">Vogue</span><span aria-hidden="true">·</span><span>Nov 12, 2025</span>
+            <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <div class="cta-row">
+            <button class="btn-primary" type="button">
+              <i data-lucide="utensils" aria-hidden="true"></i><span>Inspired Meal Plan</span>
+            </button>
+            <div class="icon-actions">
+              <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+              <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== A2: Grade B · Brand · no CTA · no disclaimer ===== -->
+    <p class="case-label">A2 — Grade B · CTA hidden (no base diet) · no disclaimer</p>
+    <article class="claim-card" aria-labelledby="a2-headline">
+      <div class="card__hero">
+        <div class="card__hero-bg card__hero-bg--brand" aria-hidden="true"></div>
+        <div class="card__hero-chips">
+          <span class="chip chip--brand" aria-label="claim type: brand">
+            <i data-lucide="tag" aria-hidden="true"></i><span>Brand</span>
+          </span>
+          <span class="badge badge--b" aria-label="trust grade B — vetted media interview">
+            <span>Grade B</span>
+          </span>
+        </div>
+        <div class="card__celeb-strip">
+          <div class="avatar avatar--ph-2" role="img" aria-label="Selena Gomez profile photo">
+            <span class="avatar-ph-text" aria-hidden="true">SG</span>
+          </div>
+          <a href="#celeb/selena-gomez" class="celeb-name">Selena Gomez</a>
+          <span class="celeb-dot" aria-hidden="true">·</span>
+          <span class="celeb-time" title="2026-04-28T10:30:00Z">6 days ago</span>
+        </div>
+      </div>
+      <div class="card__body">
+        <h2 id="a2-headline" class="claim-headline">She says she wears Rare Beauty&rsquo;s daily SPF 50 every single morning.</h2>
+        <button class="more-btn" type="button" aria-expanded="false" aria-controls="a2-details">
+          <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="card__details" id="a2-details" data-open="false">
+          <p class="claim-body">In the interview she noted that she curated the formula around calming ingredients for sensitive skin.</p>
+          <a class="source-row"
+             href="https://elle.com/beauty/selena-gomez-rare-beauty-spf-routine"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Source: ELLE, Feb 4, 2026 — opens in a new tab">
+            <i data-lucide="paperclip" aria-hidden="true"></i>
+            <span class="outlet">ELLE</span><span aria-hidden="true">·</span><span>Feb 4, 2026</span>
+            <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <div class="cta-row cta-row--no-primary">
+            <div class="icon-actions">
+              <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+              <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== A3: Grade D · Food · disclaimer · CTA ===== -->
+    <p class="case-label">A3 — Grade D · health claim → disclaimer · CTA shown</p>
+    <article class="claim-card" aria-labelledby="a3-headline">
+      <div class="card__hero">
+        <div class="card__hero-bg card__hero-bg--food" aria-hidden="true"></div>
+        <div class="card__hero-chips">
+          <span class="chip chip--food" aria-label="claim type: food">
+            <i data-lucide="utensils" aria-hidden="true"></i><span>Food</span>
+          </span>
+          <span class="badge badge--d" aria-label="trust grade D — secondary report, caution">
+            <i data-lucide="alert-triangle" aria-hidden="true"></i><span>Grade D</span>
+          </span>
+        </div>
+        <div class="card__celeb-strip">
+          <div class="avatar avatar--ph-3" role="img" aria-label="Gwyneth Paltrow profile photo">
+            <span class="avatar-ph-text" aria-hidden="true">GP</span>
+          </div>
+          <a href="#celeb/gwyneth-paltrow" class="celeb-name">Gwyneth Paltrow</a>
+          <span class="celeb-dot" aria-hidden="true">·</span>
+          <span class="celeb-time" title="2026-04-25T14:00:00Z">9 days ago</span>
+        </div>
+      </div>
+      <div class="card__body">
+        <h2 id="a3-headline" class="claim-headline">She is said to start most mornings with a warm cup of bone broth.</h2>
+        <button class="more-btn" type="button" aria-expanded="false" aria-controls="a3-details">
+          <span>More</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="card__details" id="a3-details" data-open="false">
+          <p class="claim-body">Multiple outlets have cited the routine, but no direct first-person quote has been verified.</p>
+          <a class="source-row"
+             href="https://people.com/health/gwyneth-paltrow-bone-broth-routine"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Source: People, Sep 21, 2025 — opens in a new tab">
+            <i data-lucide="paperclip" aria-hidden="true"></i>
+            <span class="outlet">People</span><span aria-hidden="true">·</span><span>Sep 21, 2025</span>
+            <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <aside class="disclaimer" role="note" aria-label="Health and source disclaimer">
+            <i data-lucide="info" aria-hidden="true"></i>
+            <p>This is a secondary report and may not be the celebrity&rsquo;s own words. Not medical advice — individual experiences vary and no specific outcome is guaranteed.</p>
+          </aside>
+          <div class="cta-row">
+            <button class="btn-primary" type="button">
+              <i data-lucide="utensils" aria-hidden="true"></i><span>Inspired Meal Plan</span>
+            </button>
+            <div class="icon-actions">
+              <button class="icon-btn" type="button" aria-label="Save"><i data-lucide="heart" aria-hidden="true"></i></button>
+              <button class="icon-btn" type="button" aria-label="Share"><i data-lucide="share-2" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== A4: Skeleton ===== -->
+    <p class="case-label">A4 — Loading skeleton (same anatomy)</p>
+    <article class="claim-card claim-card--skeleton" aria-busy="true" aria-label="Loading content">
+      <div class="card__hero" aria-hidden="true">
+        <div class="sk" style="position:absolute;inset:0;border-radius:0;"></div>
+      </div>
+      <div class="card__body">
+        <div class="sk-row" aria-hidden="true">
+          <span class="sk sk--chip"></span>
+          <span class="sk sk--badge"></span>
+        </div>
+        <div class="sk-lines" aria-hidden="true">
+          <span class="sk sk--line"></span>
+          <span class="sk sk--line short"></span>
+        </div>
+        <span class="sk sk--more" aria-hidden="true"></span>
+      </div>
+    </article>
+
+    <p class="footnote">
+      All colors / spacing / radii / shadows reference <code>--cb-*</code> tokens defined in §2.
+      No raw hex outside <code>:root</code>. Disclaimer uses <code>role="note"</code>, never <code>aria-hidden</code>.
+      More/Less toggles body excerpt, source row, disclaimer, and CTA.
+    </p>
+  </main>
+
+  <script>
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+    }
+    document.querySelectorAll('.more-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var panelId = btn.getAttribute('aria-controls');
+        var panel = document.getElementById(panelId);
+        var isOpen = panel.getAttribute('data-open') === 'true';
+        panel.setAttribute('data-open', String(!isOpen));
+        btn.setAttribute('aria-expanded', String(!isOpen));
+        btn.querySelector('span').textContent = isOpen ? 'More' : 'Less';
+      });
+    });
+  </script>
+</body>
+</html>
