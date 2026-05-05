@@ -68,3 +68,25 @@ export async function list(
 
   return { items, has_next: hasNext, next_cursor: nextCursor };
 }
+
+/**
+ * Admin: deactivate a celebrity (spec §9.3 #3, IMPL-021).
+ *
+ * Sets `is_active = FALSE`. A DB trigger
+ * (`trg_celebrities_deactivate_cascade_claims`, migration 0015) cascades
+ * the change to `lifestyle_claims` by archiving any rows with
+ * `status = 'published'` for this celebrity.
+ *
+ * Idempotent: returns null if the celebrity does not exist OR is already
+ * inactive (the WHERE clause filters on `is_active = TRUE`).
+ */
+export async function deactivate(pool: pg.Pool, id: string): Promise<Celebrity | null> {
+  const { rows } = await pool.query<Celebrity>(
+    `UPDATE celebrities
+     SET is_active = FALSE, updated_at = NOW()
+     WHERE id = $1 AND is_active = TRUE
+     RETURNING *`,
+    [id],
+  );
+  return rows[0] ?? null;
+}

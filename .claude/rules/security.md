@@ -99,6 +99,35 @@ isDev ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
 - `unsafe-eval` 없이 배포하면 React가 하이드레이션되지 않아 모든 인터랙션이 작동하지 않는다.
 - 증상: 폼이 JS 없이 네이티브 GET으로 제출됨, Console에 `EvalError: Evaluating a string as JavaScript violates CSP`.
 
+### Fail-Closed Guard Default Hygiene (IMPL-021 교훈)
+
+`process.exit(1)` 또는 401 강제 분기 같은 fail-closed 보안 가드가 환경 변수에 분기할 때 **`??` / `||` fallback default 사용 금지**. unset → prod 로 fall-through 하도록 명시 화이트리스트만 사용:
+
+```typescript
+// ❌ unset 시 dev-stub 진입 (fail-open)
+const nodeEnv = process.env['NODE_ENV'] ?? 'development';
+const isLocalDev = nodeEnv !== 'production';
+
+// ❌ unset 과 정상 prod 를 구별 불가 — 운영 가시성 손상
+const nodeEnv = process.env['NODE_ENV'] ?? 'production';
+
+// ✅ 명시 화이트리스트 + unset = prod fall-through
+const nodeEnv = process.env['NODE_ENV'];
+const isLocalDev = nodeEnv === 'development' || nodeEnv === 'test';
+```
+
+근거: codex+gemini review-r2 합의 — fallback default 는 두 방향 모두 위험. unset 을 dev 로 보면 prod 실수 시 가드 무력화, prod 로 보면 정상 prod 와 unset prod 를 구별 못 해 모니터링 손상.
+
+### Fail-Closed 가드 동반 NODE_ENV 정렬 (IMPL-021 교훈)
+
+새 fail-closed 가드를 도입할 때 host dev workflow 가 죽지 않도록 다음 세 경로 모두 NODE_ENV 명시 주입을 사전 확인:
+
+1. `services/<svc>/package.json` `"dev"` script — `"dev": "NODE_ENV=development tsx src/index.ts"` (prefix 필수)
+2. `docker-compose.yml` 해당 서비스 `environment.NODE_ENV: development`
+3. CI test runner / E2E spec — Playwright config, jest setup 등
+
+가드 추가 PR 의 DoD 에 위 세 항목 grep 검증을 명시한다. IMPL-021 fix-3 (review-r3 F6) 에서 (1) 누락으로 host dev 즉사 사례 발생.
+
 ## 시크릿 하드코딩 금지
 
 코드, 설정 파일, 커밋에 다음 패턴이 포함되면 CI에서 차단한다:

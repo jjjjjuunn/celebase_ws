@@ -3795,3 +3795,107 @@ verified_by: claude-opus-4-7 (validate-claim-seeds.py 9회 통과)
 - **loader 통합**: `db/seeds/loaders/celebrityLoader.ts` 에 lifestyle_claims + claim_sources INSERT 로직 추가 (현재 loader 는 base_diet + recipes 만). content-service 통합 테스트가 실 시드 활용 시 필요 — Phase A entry 의 미완료 항목 그대로 carry-over.
 
 ### 연관 파일: db/seeds/lifestyle-claims/ariana-grande.json, db/seeds/lifestyle-claims/beyonce.json, db/seeds/lifestyle-claims/cristiano-ronaldo.json, db/seeds/lifestyle-claims/dwayne-johnson.json, db/seeds/lifestyle-claims/gwyneth-paltrow.json, db/seeds/lifestyle-claims/joaquin-phoenix.json, db/seeds/lifestyle-claims/lebron-james.json, db/seeds/lifestyle-claims/natalie-portman.json, db/seeds/lifestyle-claims/tom-brady.json
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-021
+commit_sha: 9fa1d6a
+files_changed:
+  - services/content-service/src/index.ts
+  - services/content-service/src/middleware/admin-auth.ts
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - services/content-service/src/repositories/celebrity.repository.ts
+  - services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts
+  - services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts
+  - services/content-service/tests/unit/lifestyle-claim.repository.test.ts
+  - services/content-service/tests/unit/celebrity.repository.test.ts
+  - db/migrations/0015_lifestyle_claims_admin.sql
+verified_by: claude-opus-4-7 (typecheck + lint + 74/74 unit tests + 85.92% coverage; L3 self-adversarial pass)
+---
+### 완료: IMPL-021 — admin moderation queue + celebrity deactivate cascade trigger (spec §9.3 #3·#5·#6)
+
+**Phase A (commit 8f51c44)** — admin route + trust_grade gate + is_health_claim toggle:
+- `middleware/admin-auth.ts`: `X-Admin-Token` 헤더 가드, `crypto.timingSafeEqual` 로 timing side-channel 차단. prod 모드에 `ADMIN_API_TOKEN` 미설정 시 startup fatal, dev/test 에서는 dev-stub 모드 (token 없으면 모든 admin 요청 401, 있으면 비교).
+- `repositories/lifestyle-claim.repository.ts`: 기존 사용자용 read 함수 위에 admin 4종 추가 — `findByIdAdmin` (status 무관), `listForModeration` (status × is_health_claim × cursor 필터), `transitionStatus` (트랜잭션 + `SELECT ... FOR UPDATE` 행 락 + DB CHECK constraint `trust_grade_published_gate` 의 application 단 사전 체크: E 등급 → `grade_E_blocked`, D 등급 + disclaimer_key NULL → `grade_D_requires_disclaimer`), `setHealthClaim`. discriminated union 반환으로 라우트가 에러 코드를 분기 → 400/404 매핑.
+- `routes/admin/lifestyle-claim.admin.routes.ts`: `GET /admin/claims` (filter+cursor), `GET /admin/claims/:id`, `POST /admin/claims/:id/transition` (draft↔published↔archived), `PATCH /admin/claims/:id/health-claim` (toggle 시 disclaimer_key 동시 갱신).
+- `index.ts`: hook 등록 순서 `registerJwtAuth({ publicPaths: ['/admin/*'] }) → registerAdminAuth → admin route` 로 외부 사용자 JWT 가 `/admin/*` 에 적용되지 않게 분리 (IMPL-016-b3 prefix wildcard 패턴 재사용).
+- 테스트 16건 (admin auth · list · transition · health-claim toggle), repository unit 12건 추가 — 커버리지 lifestyle-claim.repository.ts 96.89%.
+
+**Phase B (이번 커밋)** — celebrity deactivate cascade:
+- `db/migrations/0015_lifestyle_claims_admin.sql`: `cascade_celebrity_deactivate_to_claims()` PL/pgSQL 함수 + `AFTER UPDATE OF is_active ON celebrities` 트리거. `OLD.is_active IS DISTINCT FROM NEW.is_active AND OLD.is_active = TRUE AND NEW.is_active = FALSE` 가드로 TRUE→FALSE 전환에만 작동, published lifestyle_claim 만 archived 로 일괄 전환. 부분 인덱스 (`idx_lifestyle_claims_celeb` 등) 가 `status='published'` 전제이므로 비활성 직후 사용자 노출 잔재 0 보장.
+- `repositories/celebrity.repository.ts`: `deactivate(pool, id)` — `UPDATE ... WHERE id=$1 AND is_active=TRUE RETURNING *`. 멱등 (이미 비활성 또는 미존재 → null), 같은 id 재호출 시 트리거가 두 번 발화하지 않음.
+- 테스트 3건 — UPDATE WHERE 절 SQL 검증 + 미존재 케이스 + 멱등성 (두 번째 호출 RETURNING 빈 rows).
+
+**검증**:
+- `pnpm --filter content-service typecheck` 통과 (shared-types 선행 빌드 확인).
+- `pnpm --filter content-service lint` 통과.
+- `pnpm --filter content-service test` — 7 suites / 74 tests 전건 통과, 글로벌 라인 커버리지 87.58% (threshold 80% 충족).
+
+**L3 self-adversarial 검토**:
+- timing side-channel: `timingSafeEqual` + 길이 mismatch 사전 차단 (Buffer 길이 다르면 곧바로 401).
+- token absent in prod → fatal startup (운영자가 절대 토큰 없이 가드 비활성 상태로 띄울 수 없음).
+- transition race: `SELECT ... FOR UPDATE` + 같은 트랜잭션 내 UPDATE 로 읽기-쓰기 사이 race 차단. application 단 trust_grade 체크가 빠지더라도 DB CHECK constraint `trust_grade_published_gate` 가 최종 방어선.
+- cascade trigger 재발화: `IS DISTINCT FROM` + `WHERE is_active=TRUE` 가드 두 겹으로 멱등성 확보.
+- admin path lowercase 정규화: Fastify default casing (case-sensitive) 가정. case-insensitive 환경에서는 추가 검토 필요 — 현재 default 이므로 본 IMPL 범위 외.
+
+**리뷰 메모**: codex CLI traversal/output 한계 (IMPL-AI-002 교훈) 와 gemini CLI 도구 부재로 Codex/Gemini external review 미수행. `.claude/rules/pipeline.md` "Claude is the final judge" + L3 fallback 절차에 따라 Claude 가 직접 review + 별도 관점 (공격자 시각) self-adversarial 1회 추가 수행 (위 항목).
+
+### 미완료:
+- **admin route for celebrity deactivate** (예: `POST /admin/celebrities/:id/deactivate`): 본 IMPL 범위는 (a) lifestyle_claim moderation 라우트 + (b) DB 트리거 까지. UI 또는 운영자가 직접 호출할 admin 라우트는 IMPL-021-c 또는 IMPL-022 로 분리.
+- **disclaimer_key 카탈로그 단일 출처**: 현재 D 등급 published 시 disclaimer_key NOT NULL 만 강제. 카탈로그 enum (`disclaimers.<key>`) 정의 + FE 렌더 매핑은 미완 — IMPL-019 entry 의 carry-over 항목과 동일.
+- **integration test (실 DB 트리거)**: 현재 unit test 는 mock pool/client 기반. migration 0015 실행 + 실제 published claim 일괄 archived 전환을 testcontainers 또는 docker-compose 통합 테스트로 검증해야 spec §9.3 #3 의 "사용자 노출 잔재 0" 을 end-to-end 보장 — IMPL-021-c (또는 별도 INFRA 태스크) 로 분리.
+- **draft / archived / D / E 시드 fixture**: IMPL-019 entry 미완료 그대로 carry-over. transitionStatus + setHealthClaim 의 happy path / unhappy path 를 실데이터로 검증하려면 의도적 fixture 필요.
+- **admin actor identity 기록**: 현재 transition / setHealthClaim 은 actor identity 없이 X-Admin-Token 통과만 기록. spec §9.3 의 운영자 감사 추적 (`moderator_id`, `reason`) 필드 도입은 IMPL-021-c 또는 IMPL-022 로 분리.
+
+### 연관 파일: services/content-service/src/index.ts, services/content-service/src/middleware/admin-auth.ts, services/content-service/src/repositories/lifestyle-claim.repository.ts, services/content-service/src/repositories/celebrity.repository.ts, services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/tests/unit/lifestyle-claim.repository.test.ts, services/content-service/tests/unit/celebrity.repository.test.ts, db/migrations/0015_lifestyle_claims_admin.sql
+
+---
+date: 2026-05-05
+agent: claude-opus-4-7
+task_id: IMPL-021
+commit_sha: cbee03d
+files_changed:
+  - services/content-service/src/middleware/admin-auth.ts
+  - services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts
+  - services/content-service/package.json
+verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review-r3 PASS F4-bis revalidation; 79/79 tests; admin-auth.ts 100% lines/functions)
+---
+### 완료: IMPL-021 (security review iterations) — F4 → F4-bis → F6 fix chain (PGE cycle 3/3)
+
+**배경**: Phase A+B 머지 직후 L3 정책 재실행 (codex CLI + gemini CLI 사용 가능 확인 후). codex×2 + gemini×1 adversarial 결과 4건 finding (F4 HIGH `?? 'development'` fallback / F5 MEDIUM `process.env.NODE_ENV` direct access / F1 MEDIUM dev-stub 401 message leak / F2 MEDIUM Buffer length disclosure timing). PGE 3-cycle fix loop 진입.
+
+**fix-1 (commit `7446361`)**:
+- F4: `admin-auth.ts:35` `process.env['NODE_ENV'] ?? 'development'` 의 nullish-coalescing default 제거 → `nodeEnv === 'development' || nodeEnv === 'test'` 명시 매칭으로 변경. 이 시점에는 `?? 'production'` 으로 우회.
+- F5: type-safe accessor `getEnv('NODE_ENV')` 도입.
+- F1: dev-stub 401 응답 본문 `message` 제거 — 스텁 모드 노출 방지.
+- F2: `timingSafeEqual` 호출 전 길이 mismatch 분기에서도 양쪽 Buffer 모두 32-byte fixed length 로 normalize → 길이 차이로 인한 timing leak 봉쇄.
+
+**review-r2 (codex 1× revalidation)**: F5/F1/F2 PASS. F4 → F4-bis HIGH 신규 finding. `?? 'production'` 도 본질적으로 NODE_ENV 미설정 시 dev-stub 진입 가능 여지가 있어 codex+gemini 양쪽 합의로 "fallback default 자체 제거 + fail-closed" 권고.
+
+**fix-2 (commit `4763926`)**:
+- F4-bis: `admin-auth.ts:35` 의 `?? 'production'` 도 제거. `const nodeEnv = process.env['NODE_ENV']` (기본값 없음). `nodeEnv === 'development' || nodeEnv === 'test'` 일 때만 `isLocalDev = true`. 그 외 (unset 포함) 는 production 경로 → ADMIN_API_TOKEN 미설정 시 `process.exit(1)` fatal startup.
+- 신규 unit test: NODE_ENV unset + ADMIN_API_TOKEN unset 시 `process.exit(1)` 호출 + structured fatal log emit 검증 (`makeFatalCaptureLogger` 헬퍼 추가).
+
+**review-r3 (codex 1× revalidation, final cycle 3/3)**: F4-bis security 완전 PASS. 그러나 신규 P1 (DX 회귀, 보안 회귀 아님) F6 제기 — `services/content-service/package.json:7` `"dev": "tsx src/index.ts"` 가 `NODE_ENV` 를 주입하지 않아 host `pnpm --filter @celebbase/content-service dev` 실행 시 fail-closed 가 즉시 발동, 서버 listen 불가. docker-compose 경로는 `docker-compose.yml:125` 가 이미 `NODE_ENV: development` 명시 → 영향 없음.
+
+**fix-3 (commit `cbee03d`)**:
+- F6: `package.json` 1줄 변경 — `"dev": "NODE_ENV=development tsx src/index.ts"`. 보안 모델 무변경 (config-only). 기존 admin-auth 테스트는 이미 `process.env['NODE_ENV'] = 'development'` 를 명시 설정하므로 회귀 없음.
+
+**검증**:
+- `pnpm --filter content-service typecheck` 통과.
+- `pnpm --filter content-service lint` 통과.
+- `pnpm --filter content-service test` — 7 suites / 79 tests 전건 통과 (Phase A+B 의 74건 + F4-bis fatal-exit 1건 추가 + 기존 4 테스트 유지). `admin-auth.ts` 라인 커버리지 100% / 함수 100% / statement 94.87%.
+- codex review-r3 stdout (`pipeline/runs/IMPL-021/review-r3/codex-review-r3.out`) 의 verdict 인용: "The security regression is closed".
+
+**L3 review 정책 재실행 (`.claude/rules/pipeline.md` Adaptive Review Intensity Policy)**:
+- **review-r1**: codex Phase A + codex Phase B + gemini adversarial 1회 (총 3 review pass) 실행. tier rubric 충족.
+- **review-r2**: codex 1× (F4-bis 한정 revalidation, gemini 는 review-r1 에서 동일 finding 합의 → 추가 adversarial 불필요).
+- **review-r3**: codex 1× (F4-bis 최종 revalidation). config-only 변경 인 fix-3 는 별도 codex revalidation 미수행 — `pipeline.md` 의 "config-only 는 보안 검증과 직교" 원칙 적용.
+- 본 사이클로 PGE rule #14 (max 3 fix cycles) 도달. 추가 fail 발생 시 `ESCALATE_TO_HUMAN`.
+
+### 미완료:
+- 기존 IMPL-021 Phase A+B entry (commit `9fa1d6a`) 의 carry-over 항목 모두 그대로 유지 (admin route for celebrity deactivate, disclaimer_key 카탈로그, integration test 실 DB, draft/archived 시드, admin actor identity).
+- **other-services dev script NODE_ENV 정렬**: `user-service`, `meal-plan-engine`, `commerce-service`, `analytics-service`, `social-bot` 도 동일 패턴 (`tsx src/index.ts` host dev 시 NODE_ENV 미주입) 가능성 — IMPL-021 범위 외, 후속 chore 분리 (각 서비스가 prod fail-closed 가드를 추가할 때 동시 검토 필요).
+
+### 연관 파일: services/content-service/src/middleware/admin-auth.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/package.json, pipeline/runs/IMPL-021/fix-request-1.md, pipeline/runs/IMPL-021/fix-request-2.md, pipeline/runs/IMPL-021/fix-request-3.md, pipeline/runs/IMPL-021/review-r1/, pipeline/runs/IMPL-021/review-r2/, pipeline/runs/IMPL-021/review-r3/
