@@ -30,6 +30,28 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-PAY-001a-2
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0017_processed_events_partial_unique.sql
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 + Claude self-adversarial L3
+---
+### 완료: processed_events backfill + partial UNIQUE — IMPL-MOBILE-PAY-001a-2
+- `db/migrations/0017_processed_events_partial_unique.sql` 신규 (Plan v5 §225-§240, expand 마무리, +35 lines)
+  1. `UPDATE … WHERE provider IS NULL OR event_id IS NULL` 백필 (1a-1 dual-write 활성화 후 잔존 NULL row)
+  2. `ALTER TABLE … ADD CONSTRAINT processed_events_provider_check CHECK (provider IS NULL OR provider IN ('stripe','revenuecat'))` (NULL-tolerant)
+  3. `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_processed_events_provider_event_id ON processed_events (provider, event_id) WHERE provider IS NOT NULL` (autocommit, transaction-free)
+- Stacked PR #38 base = `pipeline/IMPL-MOBILE-PAY-001a-1` (PR #37). PR body callout `⚠️ DO NOT MERGE before IMPL-MOBILE-PAY-001b` 명시
+- L3 review: codex r1 (2 MEDIUM 3 LOW) + r2 (1 CRITICAL 1 HIGH 2 MEDIUM 3 LOW) — 모든 finding `out_of_scope` (1a-1 stack docs/services), `plan_decided` (markProcessed ON CONFLICT mismatch → 1b mitigation), `deferred_backlog` (TEXT VARCHAR(50) cap → CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP), `accept` 분류
+- Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback (9 attack 시나리오 PASS — Stripe/RC duplicate, NULL bypass, lock DoS, CIC race, migration order)
+- gate-qa: 정적 SQL grep 16/16 expected count, services/ diff vs base = 0 lines, 0016 비손상, migration_freshness PASS, S11 psql apply optional skip (staging migration runner PR 위임)
+- fix-request: 0 회 (단일 commit, 단일 파일)
+### 미완료: IMPL-MOBILE-PAY-001b (RC webhook + ON CONFLICT (provider, event_id) 전환), Plan §57 contract phase (`stripe_event_id` drop), CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP, CHORE-WORKTREE-ENV-001 (worktree node_modules 부재)
+### 연관 파일: db/migrations/0017_processed_events_partial_unique.sql, pipeline/runs/IMPL-MOBILE-PAY-001a-2/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
 task_id: IMPL-MOBILE-AUTH-001
 commit_sha: 8f95ef8
 files_changed:
