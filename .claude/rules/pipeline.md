@@ -421,6 +421,41 @@ fake 탐지 시:
 
 또한 Codex qa-exec이 구현 파일을 "개선"한다는 명목으로 수정하는 경우 `git diff HEAD` 로 확인 후 불필요한 변경은 `git checkout <file>` 로 revert한다.
 
+### qa-exec 후 in-process server `listen EPERM` false-failure 인식 (IMPL-MOBILE-AUTH-001 교훈)
+
+macOS Codex sandbox 는 `server.listen(0, '127.0.0.1', ...)` 같은 loopback bind 도 차단한다 (`Error: listen EPERM: operation not permitted 127.0.0.1`). 이로 인해 in-process HTTP server 패턴을 사용하는 jest/pytest 테스트가 sandbox 안에서는 전부 fail 처럼 보이지만 실제 코드는 정상이다.
+
+해당 패턴 예시:
+- mock JWKS server (`packages/service-core/tests/helpers/mock-jwks-server.ts`)
+- mock OIDC server, mock Stripe webhook, mock RevenueCat 등 외부 IdP/SaaS 모의
+- Fastify/Express test server `app.listen(0, ...)`
+
+증상:
+1. `qa-result.md` 의 step B 에서 모든 jest 테스트가 timeout 또는 `Cannot read properties of undefined (reading 'stop')` 로 fail
+2. error log 에 `Test suite failed to run` + `listen EPERM: operation not permitted 127.0.0.1` 이 등장 (한두 개 describe 가 아니라 모든 describe 에 동시 발생)
+
+진단 절차:
+1. `gate-check.sh fake_stubs` 가 PASS 인지 먼저 확인 (fake stub 가능성 배제)
+2. `qa-result.md` 안에서 `listen EPERM` 검색 → 1 건 이상이면 sandbox 차단 확정
+3. Claude 가 worktree 에서 sandbox 외부 직접 실행:
+   ```bash
+   cd .worktrees/<TASK-ID>
+   pnpm --filter <pkg> test -- --testPathPattern=<pattern> --runInBand
+   ```
+4. 직접 실행 결과를 `qa-result.md` 의 "Claude 재검증" 섹션으로 append
+5. `pipeline-log.jsonl` 에 `verdict: pass / review_method: claude_direct / reason: codex_sandbox_listen_eperm_false_failure` 기록
+
+이 false-failure 는 fix-request 가 아니라 verdict 정정으로 닫는다 — 코드 변경 불필요.
+
+### gate-qa 의 `web#build` fail 진단 우선순위 (IMPL-MOBILE-AUTH-001 교훈)
+
+`gate-check.sh build` 에서 `web#build` 만 fail 이고 본 task affected paths 가 `services/**` 한정이면, 가장 흔한 원인은 worktree 의 `.env.local` 누락이다. next build 의 `Collecting page data` 단계가 BFF route 의 `process.env.USER_SERVICE_URL` 등을 strict 검증하면서 `Missing required env var: <NAME>` 으로 throw 한다.
+
+진단 절차:
+1. build output 끝부분에서 `Missing required env var:` grep
+2. 본 task 의 affected paths 가 `apps/web/**` 미포함이면 `verdict: out_of_scope`
+3. main repo 에서도 동일 환경변수 부재로 fail 가능성 있으므로 chore 로 backlog (worktree-aware `.env.local` 또는 dummy default)
+
 ### 신규 서비스 포트 할당 전 compose 상태 확인 (IMPL-016-c3 교훈)
 
 신규 서비스의 포트를 plan 에 명시하기 전, 반드시 `docker-compose.yml` 의 실제 포트 매핑을 확인한다:
