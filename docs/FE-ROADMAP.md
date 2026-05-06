@@ -248,7 +248,7 @@ Components required by spec but not yet assigned a chunk. These must be assigned
 ### Pivot-2026-05 additions (LifestyleClaim feed)
 | Composite | Task ID | Hook? | Anchor | Status |
 |---|---|---|---|---|
-| ClaimCard (ui-kit primitive) | IMPL-UI-031-a | yes (`'use client';`, expand state) | `docs/design/claim-card-feed/A-card-catalog.html`, spec.md §7.2 | HANDOFF drafted; Codex implement pending |
+| ClaimCard (ui-kit primitive) | IMPL-UI-031-a | yes (`'use client';`, expand state) | `docs/design/claim-card-feed/A-card-catalog.html`, spec.md §7.2 | **Merged** (PR #32, 1f78239) |
 | ClaimCard slice preview + Storybook story | IMPL-UI-031-b | n/a | `apps/web/src/app/slice/claim-card/page.tsx` | Queued (after `-a` merges) |
 | Wellness Claims Feed page (`/feed`) | IMPL-UI-032 | yes | spec.md §7.2 Tab 1 | Not started; depends on ClaimCard primitive |
 
