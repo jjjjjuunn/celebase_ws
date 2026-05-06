@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
 task_id: IMPL-MOBILE-PAY-001a-2
-commit_sha: PENDING
+commit_sha: ea9f3ff
 files_changed:
   - db/migrations/0017_processed_events_partial_unique.sql
 verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 + Claude self-adversarial L3
