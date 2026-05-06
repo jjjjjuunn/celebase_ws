@@ -171,10 +171,4 @@ resource "aws_cognito_user_pool_client" "mobile" {
     id_token      = "minutes"
     refresh_token = "days"
   }
-
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "terraform"
-    Ticket      = "INFRA-MOBILE-001"
-  }
 }
