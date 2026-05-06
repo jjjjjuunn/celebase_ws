@@ -37,13 +37,6 @@ files_changed:
   - infra/cognito/outputs.tf
   - .claude/rules/pipeline.md
   - docs/IMPLEMENTATION_LOG.md
-  - pipeline/runs/INFRA-MOBILE-001/CODEX-HANDOFF.md
-  - pipeline/runs/INFRA-MOBILE-001/QA-PLAN.md
-  - pipeline/runs/INFRA-MOBILE-001/LESSONS.md
-  - pipeline/runs/INFRA-MOBILE-001/review-r3.md
-  - pipeline/runs/INFRA-MOBILE-001/qa-output.txt
-  - pipeline/runs/INFRA-MOBILE-001/fix-request-1.md
-  - pipeline/runs/INFRA-MOBILE-001/pipeline-log.jsonl
 verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 PASS + Claude self-adversarial L3
 ---
 ### 완료: Cognito mobile public app client (Terraform-only) — INFRA-MOBILE-001
