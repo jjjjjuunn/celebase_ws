@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-06
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-PAY-001b
-commit_sha: PENDING
+commit_sha: 5362cd4
 files_changed:
   - services/commerce-service/src/routes/webhooks.routes.ts
   - services/commerce-service/src/repositories/processed-events.repository.ts
