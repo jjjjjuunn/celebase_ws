@@ -156,3 +156,47 @@ describe('CognitoAuthProvider.issueTokens', () => {
     expect(ttl).toBeGreaterThan(0);
   });
 });
+
+// IMPL-MOBILE-AUTH-001 — audience array (web BFF + mobile native client)
+describe('CognitoAuthProvider.verifyIdToken — mobile audience', () => {
+  let jwks: MockJwksHandle;
+  let provider: InstanceType<typeof CognitoAuthProvider>;
+  const MOBILE_AUD = 'mobile-client-id';
+
+  beforeAll(async () => {
+    jwks = await startMockJwksServer();
+    provider = new CognitoAuthProvider({
+      userPoolId: 'mock-pool',
+      clientId: jwks.audience,
+      mobileClientId: MOBILE_AUD,
+      region: 'us-west-2',
+      jwksUri: jwks.jwksUri,
+      issuer: jwks.issuer,
+    });
+  });
+
+  afterAll(async () => {
+    await jwks.stop();
+  });
+
+  it('accepts a token with web (BFF) audience', async () => {
+    const token = await jwks.mintIdToken({ sub: 'web-user', email: 'web@example.com' });
+    const payload = await provider.verifyIdToken(token);
+    expect(payload.sub).toBe('web-user');
+  });
+
+  it('accepts a token with mobile audience', async () => {
+    const token = await jwks.mintIdToken({
+      sub: 'mobile-user',
+      email: 'mobile@example.com',
+      audience: MOBILE_AUD,
+    });
+    const payload = await provider.verifyIdToken(token);
+    expect(payload.sub).toBe('mobile-user');
+  });
+
+  it('rejects a token with audience matching neither web nor mobile', async () => {
+    const token = await jwks.mintIdToken({ audience: 'unknown-client' });
+    await expect(provider.verifyIdToken(token)).rejects.toThrow(UnauthorizedError);
+  });
+});

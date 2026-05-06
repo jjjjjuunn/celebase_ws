@@ -53,12 +53,18 @@ const start = async (): Promise<void> => {
     authProvider = new CognitoAuthProvider({
       userPoolId: env.COGNITO_USER_POOL_ID,
       clientId: env.COGNITO_CLIENT_ID,
+      ...(env.COGNITO_MOBILE_CLIENT_ID
+        ? { mobileClientId: env.COGNITO_MOBILE_CLIENT_ID }
+        : {}),
       region: env.AWS_REGION,
       jwksUri: env.COGNITO_JWKS_URI,
       issuer: env.COGNITO_ISSUER,
       log: app.log,
     });
     app.log.info('Auth provider: cognito');
+    if (env.COGNITO_MOBILE_CLIENT_ID) {
+      app.log.info('Cognito mobile audience enabled');
+    }
   } else {
     authProvider = new DevAuthProvider();
     app.log.info('Auth provider: dev');

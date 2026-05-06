@@ -28,6 +28,9 @@ export const EnvSchema = z
     AWS_REGION: z.string().optional(),
     COGNITO_USER_POOL_ID: z.string().optional(),
     COGNITO_CLIENT_ID: z.string().optional(),
+    // Mobile (React Native) public app client id — optional, audience 확장용 (IMPL-MOBILE-AUTH-001)
+    // 미설정 시 mobile id_token 검증은 시도되지 않음 (web only 모드)
+    COGNITO_MOBILE_CLIENT_ID: z.string().optional(),
     COGNITO_JWKS_URI: z
       .string()
       .regex(COGNITO_JWKS_PATTERN, 'Must be a Cognito JWKS URI')
