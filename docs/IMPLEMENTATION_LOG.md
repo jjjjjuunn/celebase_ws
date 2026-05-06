@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: IMPL-UI-031-a
-commit_sha: PENDING
+commit_sha: ed6e4bd
 files_changed:
   - packages/ui-kit/src/components/ClaimCard/ClaimCard.tsx
   - packages/ui-kit/src/components/ClaimCard/ClaimCard.module.css
