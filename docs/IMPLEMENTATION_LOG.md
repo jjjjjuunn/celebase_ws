@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-06
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-PAY-001b
-commit_sha: 5362cd4
+commit_sha: 14921a6
 files_changed:
   - services/commerce-service/src/routes/webhooks.routes.ts
   - services/commerce-service/src/repositories/processed-events.repository.ts
@@ -49,7 +49,7 @@ verified_by: claude-opus-4-7 (39/39 jest PASS, lint/typecheck PASS) + Plan v5 §
 - 토큰 비로그 보장 — `disableRequestLogging: true` 환경에서 captured logs 가 Bearer 텍스트 부재 회귀 테스트 1건 추가 (Rule #8: "로그에 비밀번호, 토큰 남기지 않는다").
 - 통합 테스트 11/11 PASS (`tests/integration/revenuecat-webhook.integration.test.ts`, 300 lines): auth & validation 7건, dedup & happy path 3건, 토큰 비로그 회귀 1건. ESM mock singleton + Fastify `app.inject()` 패턴, `jest.unstable_mockModule('processed-events.repository')` 로 markProcessed 격리.
 - 회귀 검증: commerce-service 전체 6 suites / 39 tests PASS, Stripe webhook integration 영향 없음. lint/typecheck PASS.
-- 본 task 4 commits: `0877491` (wiring + RC env scaffolding) → `f31c9c8` (provider-aware ON CONFLICT in markProcessed) → `9492526` (webhook handler + 11 integration tests). 대표 SHA 는 9492526.
+- 본 task 3 commits: `da55596` (wiring + RC env scaffolding) → `d0cf95b` (provider-aware ON CONFLICT in markProcessed) → `6df7ce7` (webhook handler + 11 integration tests). 대표 SHA 는 6df7ce7. (rebase onto main 9d8acd4 — 1a-2 squash 흡수)
 ### 미완료: IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat upstream call → user-service tier sync), IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits), IMPL-MOBILE-AUTH-003 (5-code refresh enum), Plan §57 contract phase (`stripe_event_id` UNIQUE drop + 컬럼 NOT NULL backfill 후 제거), CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP, CHORE-WORKTREE-ENV-001.
 ### 연관 파일: services/commerce-service/src/routes/webhooks.routes.ts, services/commerce-service/src/repositories/processed-events.repository.ts, services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts, services/commerce-service/src/env.ts, services/commerce-service/src/index.ts, .env.example
 
