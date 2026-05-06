@@ -29,6 +29,32 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-06
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-PAY-001b
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/src/repositories/processed-events.repository.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/src/env.ts
+  - services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+  - .env.example
+verified_by: claude-opus-4-7 (39/39 jest PASS, lint/typecheck PASS) + Plan v5 §57·§225-§240·§243 trace
+---
+### 완료: RevenueCat webhook handler + provider-aware idempotency — IMPL-MOBILE-PAY-001b
+- `POST /webhooks/revenuecat` (`webhooks.routes.ts`): Bearer 토큰 timing-safe 비교 → Zod (`RevenuecatEventSchema`: `event.id`/`event.type` 필수) → JSON.parse → `markProcessed` 기반 idempotency 분기.
+- 응답 매트릭스: 첫 발생 200 + `revenuecat.webhook.received` / 중복 200 + `revenuecat.webhook.replay_skipped` / 저장 실패 500 + `revenuecat.webhook.dedup_failed` / `commerceWebhookEnabled=false` 또는 `revenuecatConfig` 미주입 503 / 토큰 mismatch·malformed·missing 401 / Zod·JSON.parse 실패 400 (`VALIDATION_ERROR`).
+- `markProcessed` 가 provider 별 ON CONFLICT 분기 — Stripe 는 legacy `(stripe_event_id)` 컬럼, RevenueCat 은 composite `(provider, event_id)` UNIQUE (1a-2 의 partial index `uq_processed_events_provider_event_id`) 사용. Plan v5 §225-§240 의 expand 머지 후에야 활성화되는 RC 코드 경로.
+- **Fastify content-type parser priority bug fix**: `scope.removeAllContentTypeParsers()` 를 wildcard `addContentTypeParser('*', { parseAs: 'buffer' }, ...)` 앞에 선행 호출. 그렇지 않으면 built-in `application/json` parser 가 RC 페이로드를 object 로 pre-parse → `(request.body as Buffer).toString()` 이 `'[object Object]'` 반환 → 5/11 RC 테스트 fail. Stripe (raw Buffer signature 검증) + RevenueCat (handler JSON.parse) 모두 동일 raw Buffer 패스로 통일.
+- 토큰 비로그 보장 — `disableRequestLogging: true` 환경에서 captured logs 가 Bearer 텍스트 부재 회귀 테스트 1건 추가 (Rule #8: "로그에 비밀번호, 토큰 남기지 않는다").
+- 통합 테스트 11/11 PASS (`tests/integration/revenuecat-webhook.integration.test.ts`, 300 lines): auth & validation 7건, dedup & happy path 3건, 토큰 비로그 회귀 1건. ESM mock singleton + Fastify `app.inject()` 패턴, `jest.unstable_mockModule('processed-events.repository')` 로 markProcessed 격리.
+- 회귀 검증: commerce-service 전체 6 suites / 39 tests PASS, Stripe webhook integration 영향 없음. lint/typecheck PASS.
+- 본 task 4 commits: `0877491` (wiring + RC env scaffolding) → `f31c9c8` (provider-aware ON CONFLICT in markProcessed) → `9492526` (webhook handler + 11 integration tests). 대표 SHA 는 9492526.
+### 미완료: IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat upstream call → user-service tier sync), IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits), IMPL-MOBILE-AUTH-003 (5-code refresh enum), Plan §57 contract phase (`stripe_event_id` UNIQUE drop + 컬럼 NOT NULL backfill 후 제거), CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP, CHORE-WORKTREE-ENV-001.
+### 연관 파일: services/commerce-service/src/routes/webhooks.routes.ts, services/commerce-service/src/repositories/processed-events.repository.ts, services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts, services/commerce-service/src/env.ts, services/commerce-service/src/index.ts, .env.example
+
+---
+date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
 task_id: IMPL-MOBILE-PAY-001a-2
 commit_sha: ea9f3ff
