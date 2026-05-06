@@ -5,8 +5,7 @@
 
 BEGIN;
 
-ALTER TABLE processed_events
-    ADD COLUMN IF NOT EXISTS provider TEXT,
-    ADD COLUMN IF NOT EXISTS event_id TEXT;
+ALTER TABLE processed_events ADD COLUMN provider TEXT;
+ALTER TABLE processed_events ADD COLUMN event_id TEXT;
 
 COMMIT;
