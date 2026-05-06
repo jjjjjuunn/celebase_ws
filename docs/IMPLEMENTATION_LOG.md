@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
+task_id: INFRA-MOBILE-001
+commit_sha: 46c35be
+files_changed:
+  - infra/cognito/main.tf
+  - infra/cognito/outputs.tf
+  - .claude/rules/pipeline.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 PASS + Claude self-adversarial L3
+---
+### 완료: Cognito mobile public app client (Terraform-only) — INFRA-MOBILE-001
+- `aws_cognito_user_pool_client.mobile` 추가: `generate_secret = false`, `ALLOW_USER_SRP_AUTH` + `ALLOW_REFRESH_TOKEN_AUTH`, `prevent_user_existence_errors=ENABLED`, `enable_token_revocation=true`, access/id 60min + refresh 30d
+- `output "cognito_mobile_client_id"` 추가 (Plan v5 §86 hand-off contract — `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID` placeholder)
+- 단독 머지 안전성 검증: user-service `cognito-auth.provider.ts:46` 단일 audience + 회귀 보호 테스트(line 53)로 mobile id_token 401 보장 — IMPL-MOBILE-AUTH-001 머지 전까지 mobile 트래픽 활성화 ≠
+- L3 review: codex r1+r2 PASS (LOW only), Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback (5 findings: 1 PLAN-DECIDED → IMPL-MOBILE-AUTH-001, 1 DEFERRED → CHORE-MOBILE-002, 3 ACCEPT)
+- fix-request-1: `aws_cognito_user_pool_client` `tags` 미지원 (provider 5.x) → Claude direct fix → terraform validate PASS
+- QA: `terraform fmt -check` + `terraform validate` + 6 grep 체크 모두 PASS (qa-output.txt)
+- rules 병합: `.claude/rules/pipeline.md` 에 4 항목 추가 (tags 미지원, plan-decided verdict 4분리, Terraform-only QA 패턴, Gemini fallback 누적 케이스)
+### 미완료: IMPL-MOBILE-AUTH-001 (Session B P0 — audience 배열 + client_id claim 검증), IMPL-MOBILE-AUTH-002 (refresh enum), CHORE-MOBILE-002 (refresh 7-14d + device_tracking), CHORE-INFRA-007 (gate-implement 에 worktree-aware terraform validate)
+### 연관 파일: infra/cognito/main.tf, infra/cognito/outputs.tf, services/user-service/src/services/cognito-auth.provider.ts (참조), pipeline/runs/INFRA-MOBILE-001/
+
+---
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: IMPL-UI-031-a

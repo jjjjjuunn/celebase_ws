@@ -263,6 +263,29 @@ gate-review Claude 판정 시:
 3. "테스트 없음" 은 테스트 파일이 다음 sub-task 로 명시 위임된 경우 "by plan design" 으로 PASS
 4. 판정 근거를 `pipeline-log.jsonl` 에 상세 기록
 
+#### verdict 종류 4분리 (INFRA-MOBILE-001 교훈)
+
+`out-of-scope` 와 `plan-decided` 는 다른 verdict 다 — 후자는 "이 finding 은 실제로 위험하지만 다음 sub-task 가 코드 레벨로 닫는다 + Plan 이 머지 순서를 강제한다" 를 의미한다. `pipeline-log.jsonl` 에 4가지를 분리해 기록한다:
+
+| verdict | 의미 | 예시 |
+|---------|------|------|
+| `out_of_scope` | HANDOFF 스코프와 무관, 다른 라인에서 처리 | 다른 서비스 파일에서 발견된 finding |
+| `plan_decided` | 위험 실재. 다음 sub-task 가 코드 레벨로 mitigation. Plan 이 머지 순서 강제 | INFRA-MOBILE-001 의 audience confusion → IMPL-MOBILE-AUTH-001 P0 |
+| `deferred_backlog` | 실제 위험이지만 본 HANDOFF DoD 외. backlog ticket 으로 추적 | mobile refresh TTL 단축 → CHORE-MOBILE-002 |
+| `accept` | finding 이 실제로 문제 아님 (default OK / 다른 layer 책임) | `auth_session_validity` default 3 분 (Amplify SDK 가 retry) |
+
+`plan_decided` 사용 조건 (전부 충족):
+- finding 이 단독 PR 머지 시 활성화되지 않음을 코드 레벨로 검증 (예: 회귀 보호 테스트 존재)
+- mitigation 이 Plan 의 명시된 후속 task 로 식별 가능 (Plan §section 인용)
+- Plan 의 머지 순서 강제 메커니즘 존재 (다른 task 의존성·gate 등)
+
+위 조건 미충족이면 `deferred_backlog` 또는 fix loop 로 강등.
+
+`pipeline-log.jsonl` 기록 예:
+```json
+{"verdict": "plan_decided", "mitigation_pr": "IMPL-MOBILE-AUTH-001", "must_merge_before": "동료 M1 시작", "plan_section": "§52, §92, §182, §203, §225"}
+```
+
 ### 판정 결과 기록
 - Pass: `log_event`로 기록, 다음 단계 진행
 - Fail: `pipeline/runs/<TASK-ID>/fix-request-N.md` 작성 후 `fix` 단계 호출
@@ -329,6 +352,45 @@ lifecycle {
 ```
 
 스테이징 전용 리소스(smoke client, debug endpoint 등)는 `count` gate + `lifecycle.precondition` 두 가지 모두 적용한다.
+
+### `aws_cognito_user_pool_client` 는 `tags` 미지원 (INFRA-MOBILE-001 교훈)
+
+AWS provider 5.x 의 `aws_cognito_user_pool_client` 리소스는 `tags` argument 를 지원하지 않는다. 같은 파일의 `aws_cognito_user_pool` (line 62-66, CHORE-006) 가 `tags` 를 사용한다고 해서 client 리소스에도 동일 패턴을 복사하면 `terraform validate` 가 실패한다:
+
+```hcl
+# ❌ tags 미지원 — terraform validate 실패
+resource "aws_cognito_user_pool_client" "mobile" {
+  name = "celebbase-mobile-${var.environment}"
+  tags = { env = var.environment }   # ← unsupported argument
+}
+
+# ✅ tags 블록 제거 — 기존 BFF/smoke client 와 동일 패턴
+resource "aws_cognito_user_pool_client" "mobile" {
+  name = "celebbase-mobile-${var.environment}"
+}
+```
+
+HANDOFF 작성 시 `aws_cognito_user_pool_client` 리소스 추가가 포함되면 Anti-Patterns 에 본 항목 + "기존 `bff` / `smoke` client 블록을 reference 로 사용" 을 명시한다. INFRA-MOBILE-001 fix-request-1 에서 발생.
+
+### Terraform-only HANDOFF QA 패턴 (INFRA-MOBILE-001 교훈)
+
+Terraform 만 변경하는 HANDOFF (DSL-only, TS/Python 코드 변경 없음) 의 QA 는 정적 검증 + grep 으로 한정한다. `terraform plan` 은 AWS creds 가 필요해 staging apply PR 단계로 위임:
+
+| 단계 | 명령 | 목적 |
+|------|------|------|
+| 1 | `terraform fmt -check` | 포맷 일관성 (exit 0) |
+| 2 | `terraform init -backend=false` | provider 다운로드 (backend 없이) |
+| 3 | `terraform validate` | 문법/타입/argument 검증 (exit 0) |
+| 4 | resource attribute grep | 신규 리소스의 필수 attribute 존재 확인 (`generate_secret`, `explicit_auth_flows` 등) |
+| 5 | anti-pattern 회귀 차단 grep | fix-request 에서 제거한 블록 (`tags`, `lifecycle`, `count` 등) 재발 방지 |
+| 6 | 비회귀 grep | 기존 리소스 (BFF/smoke client 등) 변경 없음 확인 |
+
+**스킵 항목과 사유**:
+- `terraform plan against tfvars` — AWS creds 필요, 운영 PR review 단계로 위임
+- Unit/Integration test — HCL 변경에는 매핑 없음
+- Mobile SDK smoke — 클라이언트 패키지 부재 (CHORE-MOBILE-001 후 e2e 로 검증)
+
+QA-PLAN.md 의 "Skipped Verifications" 섹션에 위 매핑을 표 형태로 기록한다.
 
 ### QA 단계 Python venv 사전 설치 (IMPL-004-c 교훈)
 
@@ -431,6 +493,25 @@ IMPL-AI-002 r1 의 codex CLI traversal 실패는 변경 범위가 컸기 때문 
 - HANDOFF Affected Paths 가 명확히 제한되어 codex 가 traversal 범위를 좁힐 수 있음
 
 따라서 fallback 절차로 바로 가지 말고 **(1) HANDOFF 범위 축소 → (2) codex 재시도 → (3) 그래도 traversal 실패 시 fallback** 의 순서를 따른다. IMPL-021 은 admin-auth.ts 1 file + test 1 file (단일 서비스) 라 codex × 2 + gemini × 1 가 그대로 작동.
+
+### Gemini CLI fallback 운영 케이스 누적 (INFRA-MOBILE-001 데이터포인트)
+
+INFRA-MOBILE-001 (Terraform 2 files / +44 -7) 은 codex r1+r2 모두 정상 (PASS, LOW only) 동작했으나 Gemini CLI 0.39.1 의 `run_shell_command` 도구 부재로 adversarial pass 가 불가능했다. → **Claude self-adversarial 로 대체** (IMPL-AI-002 교훈의 fallback 적용).
+
+누적 데이터포인트:
+
+| 케이스 | codex 동작 | Gemini 동작 | 적용한 fallback |
+|--------|-----------|-------------|-----------------|
+| IMPL-AI-002 (5+ files / 1000+ insertions) | traversal 실패 (80KB 출력만) | — | Claude 직접 review × 1 + adversarial × 1 |
+| IMPL-021 (admin-auth.ts + test, 단일 서비스) | 정상 (r1/r2/r3) | 정상 (adversarial finding 생성) | fallback 불필요 |
+| INFRA-MOBILE-001 (Terraform 2 files) | 정상 (r1/r2 PASS) | 도구 부재 (`run_shell_command` 없음) | Claude self-adversarial × 1 |
+
+운영 결론:
+- gemini-cli 는 0.39.1 시점에 L3 adversarial pass 가 **항상 불가능** — `run_shell_command` / `Bash` 도구 부재로 grep/검증 자체가 안 됨
+- 따라서 L3 task 에서 Gemini adversarial 은 **현재 구조적으로 fallback 필수** — codex 정상 동작 여부와 무관
+- `pipeline-log.jsonl` 에 `review_method: claude_direct` + `reason: gemini_cli_tool_absence` 로 기록
+- gemini-cli 가 `run_shell_command` 지원 버전으로 갱신될 때까지 본 fallback 유지
+- codex traversal 실패는 별개 이슈 — HANDOFF 범위 축소 (5 files / 1000 insertions 미만) 로 회피
 
 ---
 
