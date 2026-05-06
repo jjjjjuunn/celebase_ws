@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
 task_id: IMPL-MOBILE-AUTH-001
-commit_sha: PENDING
+commit_sha: 8f95ef8
 files_changed:
   - services/user-service/src/services/cognito-auth.provider.ts
   - services/user-service/src/env.ts
