@@ -70,6 +70,8 @@ export async function webhooksRoutes(
         .digest('hex');
 
       const { inserted } = await processedEventsRepo.markProcessed(pool, {
+        provider: 'stripe',
+        eventId: event.id,
         stripeEventId: event.id,
         eventType: event.type,
         payloadHash,
