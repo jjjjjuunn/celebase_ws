@@ -55,6 +55,30 @@ verified_by: claude-opus-4-7 (gate-qa Claude 재검증 16/16 PASS, 95.23% covera
 ---
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-PAY-001a-1
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0016_processed_events_expand_ddl.sql
+  - services/commerce-service/src/repositories/processed-events.repository.ts
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/tests/integration/webhook.integration.test.ts
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex review r1+r2 plan-decided + Claude self-adversarial L3 + qa-exec 26/26 PASS
+---
+### 완료: processed_events expand phase 1a — IMPL-MOBILE-PAY-001a-1
+- DDL: `provider VARCHAR(20) NULL`, `event_id VARCHAR(255) NULL` 컬럼 추가 (migration `0016_processed_events_expand_ddl.sql`). 기존 row에는 영향 없도록 nullable + default NULL.
+- Repository: `recordProcessedEvent` 가 7컬럼 (`stripe_event_id, event_type, payload_hash, result, error_message, provider, event_id`) INSERT 로 확장. legacy `ON CONFLICT (stripe_event_id) DO NOTHING` 그대로 유지 — composite UNIQUE 는 phase 1a-2 에서 추가.
+- `findProcessedEvent` 가 `provider` / `event_id` 까지 dual-read. 기존 호출자는 추가 필드를 무시하므로 호환.
+- Routes: stripe webhook handler 가 새 컬럼에 `provider='stripe'` + Stripe `event.id` 를 채워 dual-write.
+- Plan v5 expand+contract phase 1a 의 단독 머지 안전성: RC 코드 경로 미존재 + ON CONFLICT 가 여전히 `stripe_event_id` 단일 컬럼 → idempotency 회귀 zero. 1a-2 가 backfill + composite UNIQUE 머지 후에야 1b (RevenueCat webhook) 활성화.
+- L3 review: codex r1+r2 모두 plan-decided 판정 (HIGH 1: composite UNIQUE 부재, MEDIUM 2: backfill 부재 / ON CONFLICT 단일 컬럼) — 3-condition test 통과 (코드 레벨 안전 + 후속 task 명시 + Plan 머지 순서 강제). Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial 1회 추가, 5 perspective 모두 plan_decided.
+- QA: codex qa-exec 에서 26/26 jest tests PASS, ESLint 0, tsc 0, anti-pattern grep 모두 PASS. Codex 가 sandbox 적응을 위해 주입한 `tests/jest.setup.cjs` (PactV3.executeTest 영구 mock) 와 `package.json` setupFiles 항목, `.venv-python` 은 commit 전 revert. Sandbox 외부에서 `pnpm --filter commerce-service test` 재실행 시 동일 26/26 PASS 재현 (native pact library 사용).
+- Gate fails (out_of_scope): `web#build` (USER_SERVICE_URL env 미주입 — affected paths 외, gate-implement 와 동일 처리), `meal-plan-engine#test` (pythonjsonlogger 미설치 — 동일).
+### 미완료: IMPL-MOBILE-PAY-001a-2 (backfill `provider='stripe'` + composite UNIQUE `(provider, event_id)` + drop legacy `stripe_event_id` UNIQUE), IMPL-MOBILE-PAY-001b (RevenueCat webhook handler), IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat), IMPL-MOBILE-AUTH-002/003, CHORE-WORKTREE-ENV-001 (worktree-aware `.env.local` + Python venv).
+### 연관 파일: db/migrations/0016_processed_events_expand_ddl.sql, services/commerce-service/src/repositories/processed-events.repository.ts, services/commerce-service/src/routes/webhooks.routes.ts, services/commerce-service/tests/integration/webhook.integration.test.ts, pipeline/runs/IMPL-MOBILE-PAY-001a-1/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
 task_id: INFRA-MOBILE-001
 commit_sha: 46c35be
 files_changed:
