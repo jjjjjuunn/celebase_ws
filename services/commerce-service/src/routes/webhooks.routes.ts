@@ -10,12 +10,15 @@ export async function webhooksRoutes(
   app: FastifyInstance,
   options: {
     pool: pg.Pool;
-    stripeConfig: StripeConfig;
+    stripeConfig?: StripeConfig | undefined;
     userClient: UserServiceClient;
     commerceWebhookEnabled: boolean;
+    revenuecatConfig?: { enabled: boolean; authToken: string } | undefined;
   },
 ): Promise<void> {
+  // revenuecatConfig is consumed by IMPL-MOBILE-PAY-001b body handler — pre-flight signature only.
   const { pool, stripeConfig, userClient, commerceWebhookEnabled } = options;
+  void options.revenuecatConfig;
 
   await app.register((scope) => {
     scope.addContentTypeParser(
@@ -27,7 +30,7 @@ export async function webhooksRoutes(
     );
 
     scope.post('/webhooks/stripe', async (request: FastifyRequest, reply: FastifyReply) => {
-      if (!commerceWebhookEnabled) {
+      if (!commerceWebhookEnabled || !stripeConfig) {
         return reply.status(503).send({
           error: {
             code: 'SERVICE_UNAVAILABLE',
