@@ -200,3 +200,37 @@ describe('CognitoAuthProvider.verifyIdToken — mobile audience', () => {
     await expect(provider.verifyIdToken(token)).rejects.toThrow(UnauthorizedError);
   });
 });
+
+// IMPL-MOBILE-AUTH-001 — single-audience regression: mobile aud must be rejected when mobileClientId is NOT configured (web-only mode)
+describe('CognitoAuthProvider.verifyIdToken — single audience (web-only mode)', () => {
+  let jwks: MockJwksHandle;
+  let provider: InstanceType<typeof CognitoAuthProvider>;
+  const MOBILE_AUD = 'mobile-client-id';
+
+  beforeAll(async () => {
+    jwks = await startMockJwksServer();
+    provider = new CognitoAuthProvider({
+      userPoolId: 'mock-pool',
+      clientId: jwks.audience,
+      // mobileClientId intentionally omitted — web-only mode
+      region: 'us-west-2',
+      jwksUri: jwks.jwksUri,
+      issuer: jwks.issuer,
+    });
+  });
+
+  afterAll(async () => {
+    await jwks.stop();
+  });
+
+  it('rejects a mobile-audience token when mobileClientId is not configured', async () => {
+    const token = await jwks.mintIdToken({ audience: MOBILE_AUD });
+    await expect(provider.verifyIdToken(token)).rejects.toThrow(UnauthorizedError);
+  });
+
+  it('still accepts a web-audience token when mobileClientId is not configured', async () => {
+    const token = await jwks.mintIdToken({ sub: 'web-only-user', email: 'web@example.com' });
+    const payload = await provider.verifyIdToken(token);
+    expect(payload.sub).toBe('web-only-user');
+  });
+});
