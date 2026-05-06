@@ -56,7 +56,7 @@ verified_by: claude-opus-4-7 (gate-qa Claude 재검증 16/16 PASS, 95.23% covera
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
 task_id: IMPL-MOBILE-PAY-001a-1
-commit_sha: PENDING
+commit_sha: 95cd47c
 files_changed:
   - db/migrations/0016_processed_events_expand_ddl.sql
   - services/commerce-service/src/repositories/processed-events.repository.ts
