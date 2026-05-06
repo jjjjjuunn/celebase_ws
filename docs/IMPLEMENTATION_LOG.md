@@ -30,6 +30,31 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-06
 agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-AUTH-001
+commit_sha: 8f95ef8
+files_changed:
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/src/env.ts
+  - services/user-service/tests/unit/cognito-auth.provider.test.ts
+  - .env.example
+  - .claude/rules/pipeline.md
+verified_by: claude-opus-4-7 (gate-qa Claude 재검증 16/16 PASS, 95.23% coverage on cognito-auth.provider.ts) + codex-gpt-5 review r1+r2+r3 PASS + Claude self-adversarial L3
+---
+### 완료: Cognito audience array (web BFF + mobile native client) — IMPL-MOBILE-AUTH-001
+- `CognitoAuthProvider.verifyIdToken` 의 `audience` 옵션을 단일 string → array (`[clientId, mobileClientId]`) 로 확장. `jose.jwtVerify` 의 audience array ANY-match 시맨틱으로 web/mobile 두 토큰 모두 PASS
+- `mobileClientId` 는 옵션 — 미지정 시 web-only 동작 유지 (단독 PR 머지 안전성)
+- env empty-string guard: `COGNITO_MOBILE_CLIENT_ID=""` 일 때 undefined 로 처리해 빈 문자열이 audience 에 들어가지 않도록 방어
+- 테스트 (16/16 PASS): 4개 describe 블록 × 4개 케이스 (web-only 토큰 PASS / mobile 토큰 PASS / 잘못된 aud REJECT / mobile 토큰을 web-only provider 가 REJECT 회귀 보호)
+- INFRA-MOBILE-001 의 `plan_decided` audience-confusion finding 종결 — Plan v5 §52, §92, §182, §203, §225
+- L3 review: codex r1/r2/r3 PASS (LOW only), Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback 적용
+- gate-qa 판정: build=FAIL (out_of_scope, worktree `.env.local` 미존재로 web#build 의 collect-page-data 가 `Missing required env var: USER_SERVICE_URL`), test=FAIL (false_failure, Codex sandbox 의 `server.listen(0, '127.0.0.1', ...)` EPERM 차단 → Claude 직접 재실행 시 16/16 PASS 1.234s)
+- rules 병합: `.claude/rules/pipeline.md` 에 2 항목 추가 — qa-exec 후 in-process server `listen EPERM` false-failure 인식 + gate-qa 의 `web#build` fail 진단 우선순위
+### 미완료: IMPL-MOBILE-PAY-001a-1/a-2/b (RevenueCat webhook + processed_events DDL/backfill), IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat), IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits), IMPL-MOBILE-AUTH-003 (5-code refresh enum), CHORE-MOBILE-002 (mobile refresh TTL 7-14d + device_tracking), CHORE-INFRA-007 (gate-implement 에 worktree-aware terraform validate), CHORE-WORKTREE-ENV-001 (worktree `.env.local` propagation)
+### 연관 파일: services/user-service/src/services/cognito-auth.provider.ts, services/user-service/tests/unit/cognito-auth.provider.test.ts, infra/cognito/main.tf (참조), pipeline/runs/IMPL-MOBILE-AUTH-001/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
 task_id: INFRA-MOBILE-001
 commit_sha: 46c35be
 files_changed:
