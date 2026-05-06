@@ -75,6 +75,12 @@ export type {
   CelebrityCategory,
 } from './components/CelebrityCard/CelebrityCard.js';
 
+export { ClaimCard } from './components/ClaimCard/index.js';
+export type {
+  ClaimCardProps,
+  ClaimCardCelebrity,
+} from './components/ClaimCard/index.js';
+
 export { CategoryTabs } from './components/CategoryTabs/CategoryTabs.js';
 export type {
   CategoryTabsProps,
