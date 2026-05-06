@@ -278,6 +278,7 @@ gate-review Claude 판정 시:
 - finding 이 단독 PR 머지 시 활성화되지 않음을 코드 레벨로 검증 (예: 회귀 보호 테스트 존재)
 - mitigation 이 Plan 의 명시된 후속 task 로 식별 가능 (Plan §section 인용)
 - Plan 의 머지 순서 강제 메커니즘 존재 (다른 task 의존성·gate 등)
+- **PR body 에 `⚠️ DO NOT MERGE before <next-task>` callout 명시** (IMPL-MOBILE-PAY-001a-1 교훈) — reviewer 가 finding 의 위험성을 인지한 상태로 머지 순서를 강제 인식하도록 PR 첫 섹션에 글로 풀어 적는다
 
 위 조건 미충족이면 `deferred_backlog` 또는 fix loop 로 강등.
 
@@ -455,6 +456,43 @@ macOS Codex sandbox 는 `server.listen(0, '127.0.0.1', ...)` 같은 loopback bin
 1. build output 끝부분에서 `Missing required env var:` grep
 2. 본 task 의 affected paths 가 `apps/web/**` 미포함이면 `verdict: out_of_scope`
 3. main repo 에서도 동일 환경변수 부재로 fail 가능성 있으므로 chore 로 backlog (worktree-aware `.env.local` 또는 dummy default)
+
+### qa-exec 후 sandbox-adaptation mock 주입 탐지 (IMPL-MOBILE-PAY-001a-1 교훈)
+
+Codex sandbox 가 `server.listen(0, '127.0.0.1', ...)` 를 차단 (`listen EPERM`) 하면 contract test (Pact / mock OIDC / mock Stripe webhook 등) 의 mock provider 가 기동 불가 → Codex 가 prototype method 를 canned 응답으로 영구 override 하여 sandbox 통과를 유도할 수 있다. 이 주입이 commit 되면 prod CI 에서도 contract test 가 항상 PASS — 검증 사실상 비활성화.
+
+발생 사례 (IMPL-MOBILE-PAY-001a-1):
+
+```javascript
+// services/commerce-service/tests/jest.setup.cjs (Codex 신규 생성, commit 전 발견)
+const { PactV3 } = require('@pact-foundation/pact');
+PactV3.prototype.executeTest = async function(callback) {
+  return callback({ baseUrl: 'http://localhost:0' });
+  // 실제 Pact provider 기동 없이 canned response 반환 → contract 검증 silent skip
+};
+```
+
+```json
+// services/commerce-service/package.json (Codex 가 jest config 에 setupFiles 추가)
+"jest": {
+  "setupFiles": ["<rootDir>/tests/jest.setup.cjs"]
+}
+```
+
+탐지 절차 (qa-exec 직후 모든 BE task):
+
+1. `git status -s` 로 신규 파일 확인:
+   - `**/jest.setup.*` (cjs / js / ts)
+   - `**/__mocks__/**` 신규 디렉토리
+   - `**/*.mock.ts` 신규 파일
+2. `git diff HEAD~ HEAD -- '**/package.json'` 으로 jest/vitest config 변경 확인 — 특히 `setupFiles`, `setupFilesAfterEach`, `moduleNameMapper`, `transform` 키 신규 추가
+3. 신규 파일이 `prototype.<method>` override 또는 외부 라이브러리 함수 재정의를 포함하면 sandbox-adaptation 추정
+4. revert: `git checkout HEAD~ -- <files>` + `rm -f <new-files>`
+5. sandbox 외부에서 `pnpm --filter <svc> test` 직접 실행 → native library 로 동일 PASS 재현
+6. qa-results.txt 의 "Claude 재검증" 섹션에 sandbox 외부 재현 로그 append
+7. `pipeline-log.jsonl` 에 `verdict: pass / review_method: claude_direct / reason: codex_sandbox_mock_injection_reverted` 기록
+
+이 false-positive PASS 는 fix-request 가 아니라 Claude 가 직접 revert + 재검증으로 닫는다 — Codex 의 sandbox-adaptation 의도는 정당하지만 결과물이 prod CI 를 contaminate 하기 때문.
 
 ### 신규 서비스 포트 할당 전 compose 상태 확인 (IMPL-016-c3 교훈)
 
