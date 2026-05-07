@@ -43,6 +43,18 @@ export const EnvSchema = z
     COGNITO_LIVE_JWKS: z.enum(['1', 'true']).optional(),
     COGNITO_ENVIRONMENT: z.string().optional(),
 
+    // Per-route rate-limit overrides (Plan v5 §58, IMPL-MOBILE-AUTH-002b
+    // DECISION §3). Defaults reflect the post-mobile-pivot baseline:
+    // signup 3/min (unchanged), login 10/min (5→10 — mobile SRP needs
+    // initiate + PASSWORD_VERIFIER + retry headroom), refresh 30/min
+    // (20→30 — bucketed by sha256(token)+IP so distinct tokens are
+    // independent), logout 20/min (newly added — caps abuse without
+    // affecting normal users). Override via env to retune in staging/prod
+    // without redeploys.
+    AUTH_RATE_LIMIT_SIGNUP: z.coerce.number().int().min(1).max(1000).default(3),
+    AUTH_RATE_LIMIT_LOGIN: z.coerce.number().int().min(1).max(1000).default(10),
+    AUTH_RATE_LIMIT_REFRESH: z.coerce.number().int().min(1).max(1000).default(30),
+    AUTH_RATE_LIMIT_LOGOUT: z.coerce.number().int().min(1).max(1000).default(20),
   })
   .superRefine((env, ctx) => {
     // prod guard: AUTH_PROVIDER must be cognito in production

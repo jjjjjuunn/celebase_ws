@@ -30,6 +30,83 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b-fix1
+commit_sha: a2376e9
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (140/140 user-service jest PASS — rate-limit 8 case 신규 + 132 기존 회귀, monorepo turbo build/typecheck 19 successful, lint PASS)
+---
+### 완료: /auth/logout limiter ordering fix — IMPL-MOBILE-AUTH-002b-fix1 (codex r1 HIGH finding 대응, advisor 권고 적용)
+- **codex r1 HIGH 발견 (스펙 §9.3 invariant 위배)**: `registerJwtAuth` 가 `app.addHook('onRequest', ...)` 로 root-scope 등록되고 (`packages/service-core/src/middleware/jwt.ts:100`), 라우트 per-route `rateLimit.config` 는 plugin-scope onRequest 로 등록 → Fastify hook 우선순위에 따라 root-scope JWT verify 가 plugin-scope limiter 보다 먼저 실행. spec §9.3 "logout 라우트의 limiter 는 JWT verify 보다 먼저 실행" 와 정반대. 결과: 잘못된 토큰 spam 이 verify 단계에서 401 로 reject 되며 limiter bucket 에 카운트되지 않아 invalid-token DoS 방어 무력화 + 정상 토큰의 jti DB 정보가 timing 으로 누설될 위험.
+- **fix 핵심 (advisor 권고 일관)**: `/auth/logout` 을 `services/user-service/src/index.ts:28` 의 `publicPaths` 배열에 추가 → root-scope 외부 JWT onRequest hook 이 logout route 를 skip. 라우트 핸들러가 limiter 통과 후 직접 `verifyInternalRefresh(parsed.data.refresh_token)` 호출, `userId = verified.sub` 로 도출 (refresh_token 자체가 인증 — `/auth/refresh` 와 동일 모델, 별도 Bearer access token 불필요).
+- **변경 파일**:
+  - `services/user-service/src/index.ts:28` — `publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/auth/logout', '/internal/*']` (logout 추가)
+  - `services/user-service/src/routes/auth.routes.ts:158-220` — 라우트 핸들러 refactor: middleware-set `request.userId` 의존 제거 (`(request as FastifyRequest & { userId?: string }).userId` cast 삭제) → handler 내부 `verifyInternalRefresh` 가 `{ jti, sub }` 반환, `userId = verified.sub` 로 도출. 주석 갱신: limiter→verify 순서 + publicPaths 매핑 명시.
+  - `services/user-service/tests/integration/rate-limit.test.ts` — `mockVerifyInternalRefresh = jest.fn()` 으로 promotable mock 변환, `beforeEach` 에서 default resolve 설정. 신규 보안 회귀 테스트 추가: "limiter still caps even when verify rejects — invalid-token DoS protection" (mock verify reject + 20 req → 401 × 20 + 21st → 429, fix 전 코드에서는 limiter bucket 미증가로 통과 못함).
+  - `spec.md §9.3` 불변식 행에 구현 메커니즘 paragraph 추가 — publicPaths 매핑 + handler-inline verify + 순서 위반 시 invalid-token DoS 방어 무력화 explicit 명시.
+- **검증**:
+  - `pnpm --filter user-service test` → 13 suites / 140 tests PASS (rate-limit 8 cases 신규 + 132 기존 회귀)
+  - `pnpm --filter user-service typecheck` PASS
+  - `pnpm --filter user-service lint` PASS
+  - `pnpm turbo build typecheck --filter='!web'` → 19/19 successful
+- **mobile / web 회귀 0**: mobile 은 `/auth/logout` 호출 시 refresh_token body 만 전송 (별도 Bearer access token 헤더 불필요) — `/auth/refresh` 와 동일 calling convention 으로 단순화. web 은 BFF `apps/web/src/app/api/auth/logout/route.ts` 가 cookie 에서 refresh_token 추출 후 user-service 직접 호출 — Bearer 헤더 forward 안 함이라 동작 변화 없음.
+- **L2 tier review** (config + 라우트 핸들러 1개 보안 fix + 테스트 1 case 신규): codex r2 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정.
+
+### 미완료:
+- **codex r2 review**: PR push 후 본 fix 가 finding 1 을 close 하는지 + 신규 회귀 미발생 검증.
+- **다른 service public-path 목록 audit**: `commerce-service`, `analytics-service`, `content-service`, `meal-plan-engine` 의 `registerJwtAuth` 호출과 per-route limiter 가 있는 라우트 전수 점검 — 동일 ordering bug 재발 방지 (advisor 권고). 별도 chore task 로 분리 가능.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토 (현재 mobile 은 user-service `/auth/logout` 직접 호출).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` — 본 PR 머지 후 진입.
+
+### 연관 파일: services/user-service/src/{index.ts,routes/auth.routes.ts}, services/user-service/tests/integration/rate-limit.test.ts, spec.md, pipeline/runs/IMPL-MOBILE-AUTH-002b/codex-review-r1.txt
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b
+commit_sha: d2eccb0
+files_changed:
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - .env.example
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (139/139 user-service jest PASS — rate-limit 7 case 신규 + 132 기존 회귀, monorepo turbo typecheck 16 successful + lint 15 successful)
+---
+### 완료: user-service `/auth/*` rate limit 상향 + `AUTH_RATE_LIMIT_*` env override — IMPL-MOBILE-AUTH-002b (Plan v5 §58, DECISION §3)
+- `services/user-service/src/env.ts` 의 `EnvSchema` 에 `AUTH_RATE_LIMIT_SIGNUP / LOGIN / REFRESH / LOGOUT` 4종 추가. defaults: signup `3/min` (변경 없음) · login `10/min` (5→10) · refresh `30/min` (20→30) · logout `20/min` (신규). `z.coerce.number().int().min(1).max(1000)` 로 운영 입력 검증.
+- `services/user-service/src/routes/auth.routes.ts` 에 `AuthRateLimits` interface 추가 + `options.rateLimits?: Partial<AuthRateLimits>` 옵션. `DEFAULT_RATE_LIMITS` 상수로 fallback 보장 — 기존 호출자 (env override 없는 케이스) 도 새 baseline 한도 받음. signup/login/refresh 라우트의 `max:` 를 `rateLimits.signup` / `rateLimits.login` / `rateLimits.refresh` 로 교체. **logout 라우트에 `rateLimit: { max: rateLimits.logout, ... }` 신규 추가** (DECISION §3.4) — 기존 한도 없음 → 무한 polling 가능 회귀 차단. logout key generator 는 per-IP (JWT verify 가 limiter 후 실행이라 token 정보 키 사용 위험).
+- `services/user-service/src/index.ts` 의 `app.register(authRoutes, ...)` 에 `rateLimits` 객체 주입 — env 4종 값 그대로 전달.
+- `.env.example` 에 4개 변수 + 운영 가이드 주석 추가 — staging/prod 에서 redeploy 없이 retune 가능.
+- `services/user-service/tests/integration/rate-limit.test.ts` 7/7 PASS:
+  - signup 4번째 → 429 (변경 없음, 한도 3 검증)
+  - login 11번째 → 429 (한도 10 갱신 검증)
+  - refresh 31번째 → 429 (한도 30 갱신 + sha256(token)+IP 키 분리 검증)
+  - logout 21번째 → 429 (신규 추가 검증, mock revokeForLogout)
+  - NODE_ENV=test allowList bypass 검증 (회귀 0)
+  - **env override 검증** × 2: `rateLimits: { login: 20 }` 주입 시 login 21번째 → 429 + signup 은 default 3/min 보존 (partial override fallback 동작)
+- `mockRevokeForLogout` + `mockRevokeChainForLogout` 신규 추가 — logout 라우트 통합 테스트 통과를 위해 `refresh-token.repository` 를 unstable_mockModule.
+- spec.md sync (SPEC-PIVOT-PLAN row 35b 의무 충족): §9.3 Security "Rate limiting" 행에 user-service `/auth/*` per-route limits + `AUTH_RATE_LIMIT_*` env override 명시. 기존 "인증 실패 5회/분" 부정확한 표현 제거.
+- DECISION §3 보존된 수치 그대로 적용 — login 5→10 의 mobile SRP 헤드룸 근거, refresh 20→30 의 모바일 background refresh + suspended/resumed app burst 근거, logout 20 의 abuse 차단 근거 모두 유효.
+- L2 tier — Codex × 1 review (config tuning + 신규 라우트 1개 + 테스트, 보안 결정 변경 0 — DECISION 단계에서 이미 검토됨).
+### 미완료:
+- **L2 review**: PR push 후 codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` 라우트 — commerce-service `/internal/subscriptions/refresh-from-revenuecat` (#41) wrapper. 동료 M5 unblock 마지막 의존성.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority, CHORE-BFF-401-CONTRACT 후속): dead `SessionExpiredError` class + helper + branch 일괄 cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토.
+- **동료 M1 / M5**: 본 task + 이전 4 PR 머지 후 mobile signup/login/refresh/IAP 흐름 모두 unblock — 단 SUB-SYNC-002 머지 전까지는 IAP↔webhook blackout window 미해결.
+### 연관 파일: services/user-service/src/{env.ts,index.ts}, services/user-service/src/routes/auth.routes.ts, services/user-service/tests/integration/rate-limit.test.ts, .env.example, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-002/DECISION.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-BFF-401-CONTRACT
 commit_sha: 2580c5c
 files_changed:

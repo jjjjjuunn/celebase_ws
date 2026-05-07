@@ -31,19 +31,44 @@ const LogoutSchema = z.object({
 // option (silently ignored); use `allowList` callback instead.
 const testAllowList = (): boolean => process.env['NODE_ENV'] === 'test';
 
+// IMPL-MOBILE-AUTH-002b: per-route rate-limit overrides via env. Defaults
+// fall through when env is unset so existing call sites that don't pass
+// rateLimits still get the post-mobile-pivot baseline (Plan v5 §58 / DECISION §3).
+export interface AuthRateLimits {
+  signup: number;
+  login: number;
+  refresh: number;
+  logout: number;
+}
+
+const DEFAULT_RATE_LIMITS: AuthRateLimits = {
+  signup: 3,
+  login: 10,
+  refresh: 30,
+  logout: 20,
+};
+
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function authRoutes(
   app: FastifyInstance,
-  options: { pool: pg.Pool; authProvider: AuthProvider },
+  options: {
+    pool: pg.Pool;
+    authProvider: AuthProvider;
+    rateLimits?: Partial<AuthRateLimits>;
+  },
 ): Promise<void> {
   const { pool, authProvider } = options;
+  const rateLimits: AuthRateLimits = {
+    ...DEFAULT_RATE_LIMITS,
+    ...(options.rateLimits ?? {}),
+  };
 
   app.post(
     '/auth/signup',
     {
       config: {
         rateLimit: {
-          max: 3,
+          max: rateLimits.signup,
           timeWindow: '1 minute',
           allowList: testAllowList,
         },
@@ -71,7 +96,7 @@ export async function authRoutes(
     {
       config: {
         rateLimit: {
-          max: 5,
+          max: rateLimits.login,
           timeWindow: '1 minute',
           allowList: testAllowList,
         },
@@ -99,7 +124,7 @@ export async function authRoutes(
     {
       config: {
         rateLimit: {
-          max: 20,
+          max: rateLimits.refresh,
           timeWindow: '1 minute',
           hook: 'preHandler',
           keyGenerator: (req: FastifyRequest): string => {
@@ -131,9 +156,25 @@ export async function authRoutes(
   );
 
   // POST /auth/logout — Phase C stateful revocation via refresh_tokens table.
-  // JWT verify runs BEFORE any DB lookup (timing-safe: prevents token existence leakage).
+  //
+  // Mounted under publicPaths in services/user-service/src/index.ts so the
+  // root-scope external JWT onRequest hook does NOT run on this route. The
+  // handler self-verifies refresh_token (body) AFTER the per-route limiter,
+  // satisfying spec §9.3: limiter must run before crypto verify so junk-token
+  // DoS attempts are bucketed. userId is derived from the verified sub claim
+  // — the refresh_token itself authenticates the request (same model as
+  // /auth/refresh), no separate Bearer access token required.
   app.post(
     '/auth/logout',
+    {
+      config: {
+        rateLimit: {
+          max: rateLimits.logout,
+          timeWindow: '1 minute',
+          allowList: testAllowList,
+        },
+      },
+    },
     async (request: FastifyRequest, reply) => {
       const parsed = LogoutSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -143,16 +184,14 @@ export async function authRoutes(
         })));
       }
 
-      const userId = (request as FastifyRequest & { userId?: string }).userId;
-      if (typeof userId !== 'string' || !userId) {
-        throw new UnauthorizedError('Missing session');
-      }
-
-      // Verify JWT signature + expiry before any DB call (timing-safe)
+      // Verify JWT signature + expiry before any DB call (timing-safe).
+      // Limiter has already run by this point (onRequest hook in plugin scope).
       let jti: string;
+      let userId: string;
       try {
         const verified = await authService.verifyInternalRefresh(parsed.data.refresh_token);
         jti = verified.jti;
+        userId = verified.sub;
       } catch {
         throw new UnauthorizedError('Invalid refresh token');
       }
