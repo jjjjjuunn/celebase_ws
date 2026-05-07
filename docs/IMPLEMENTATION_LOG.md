@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-SUB-SYNC-001b
-commit_sha: PENDING
+commit_sha: 09acf8c
 files_changed:
   - services/commerce-service/src/middleware/internal-jwt.ts
   - services/commerce-service/src/routes/internal-subscriptions.routes.ts
