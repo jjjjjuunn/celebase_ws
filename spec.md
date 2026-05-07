@@ -612,6 +612,32 @@ CREATE TABLE subscriptions (
 );
 
 -- ============================================
+-- COMMERCE WEBHOOK IDEMPOTENCY (PIVOT-MOBILE-2026-05)
+-- ============================================
+
+-- Migration 0008 (initial — Stripe-only) + 0016 (IMPL-MOBILE-PAY-001a-1 expand: provider/event_id NULL columns).
+-- IMPL-MOBILE-PAY-001a-2 layers backfill + CHECK + partial UNIQUE on top (see §3.1 후속 노트).
+CREATE TABLE processed_events (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    stripe_event_id     VARCHAR(100) NOT NULL,                  -- Stripe path (legacy, web 잔존)
+    event_type          VARCHAR(100) NOT NULL,
+    processed_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    payload_hash        CHAR(64) NOT NULL,
+    result              VARCHAR(20) NOT NULL
+                        CHECK (result IN ('applied','skipped','error')),
+    error_message       TEXT,
+
+    -- IMPL-MOBILE-PAY-001a-1 expand phase: dual-provider columns (NULL allowed for legacy rows)
+    provider            TEXT,                                   -- 'stripe' | 'revenuecat' | NULL (legacy rows pre-001a-2 backfill)
+    event_id            TEXT,                                   -- provider-native event id (Stripe `evt_...` 또는 RevenueCat event uuid)
+
+    CONSTRAINT uq_processed_events_stripe_id UNIQUE (stripe_event_id)
+);
+
+CREATE INDEX idx_processed_events_processed_at ON processed_events (processed_at DESC);
+CREATE INDEX idx_processed_events_stripe_event_id ON processed_events (stripe_event_id);
+
+-- ============================================
 -- USER TRACKING / FEEDBACK
 -- ============================================
 
