@@ -2095,6 +2095,19 @@ celebbase-wellness/
 - user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
 - Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
 
+### 11.2 Mobile CI / ESLint Guard *(PIVOT-MOBILE-2026-05)*
+
+`apps/mobile` (Expo / React Native) 패키지가 **존재하기 전부터** mobile 도메인 위반을 차단하는 가드 두 종을 JUNWON 이 사전 배치한다 (CHORE-MOBILE-001).
+
+| 가드 | 위치 | 효과 |
+|------|------|-----|
+| ESLint `no-restricted-imports` overrides | `eslint.config.mjs` (루트) — `files: ['apps/mobile/**/*.{ts,tsx}']` 블록 | `@celebbase/service-core` (Fastify/pg/jose Node.js 전용) + `@celebbase/ui-kit` (react-dom + CSS Modules + DOM API) import 시 **lint error**. IDE 빨간 줄 + PR CI lint 단계에서 즉시 차단. |
+| Mobile CI workflow | `.github/workflows/mobile-ci.yml` | `apps/mobile/**` · `packages/shared-types/**` · `packages/design-tokens/**` · `eslint.config.mjs` · `pnpm-lock.yaml` 변경 PR/push 시 `pnpm --filter mobile lint/typecheck/test` 실행. `apps/mobile/package.json` 부재 시 (동료 M0 시작 전) 안전 스킵. |
+
+본 가드의 2차 방어선 (Metro `resolveRequest` throw, `apps/mobile/metro.config.js`) 는 동료 M0 작업 — multi-session.md §1 도메인 경계 (`apps/mobile/**` = 동료 단독). JUNWON 은 root config 만 사전 배치하여 도메인 침범 없이 동료 첫날 unblock 효과를 만든다 (Plan v5 §Pre-work Session C, `pipeline/templates/CODEX-HANDOFF.template.md` 미사용 — L1 chore 직접 구현).
+
+design-tokens 의 RN 익스포트 (`tokens.native.ts`) 는 web/mobile token drift 방지를 위해 두 클라이언트가 동일 source 를 import 한다.
+
 ---
 
 ## 12. Seed Data Requirements
