@@ -30,6 +30,47 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-002
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/internal-client.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (169/169 web jest PASS — 신규 sync 11 case + 158 기존 회귀, monorepo turbo build/typecheck/lint 7/7)
+---
+### 완료: BFF `POST /api/subscriptions/sync` wrapper — IMPL-MOBILE-SUB-SYNC-002 (JUNWON Pre-work 마지막, M5 IAP 흐름 unblock)
+- **목적**: mobile (M5 IAP 결제 직후) / web 클라이언트가 호출하는 BFF wrapper. `createProtectedRoute` cookie+Bearer hybrid 로 인증 후 commerce-service `/internal/subscriptions/refresh-from-revenuecat` (SUB-SYNC-001b PR #52) 를 internal JWT 로 호출, RevenueCat REST API 직조회 결과를 클라이언트에 forward. 동료 M5 paywall + Inspired plan unblock 의 마지막 의존성.
+- **신규 파일**:
+  - `apps/web/src/app/api/_lib/internal-client.ts` — BFF-side service-to-service helper. `jose.SignJWT` + `crypto.randomUUID` (jti) + INTERNAL_JWT_SECRET 으로 audience-aware internal JWT mint, fetch + 8s timeout + zod schema validate + envelope 정규화. fetchBff (user JWT forward) 와 분리 — `/internal/*` 호출은 internal JWT mint 모델을 강제.
+  - `apps/web/src/app/api/subscriptions/sync/route.ts` — `createProtectedRoute(handle)` 로 mounting. body schema = `{ source: 'purchase'|'app_open'|'manual' }` (`.strict()` 로 unknown key 거부 → user_id 등 client-supplied 거부 = T4 enforce). commerce 호출 시 body = `{ user_id: session.user_id, source }` — **session.user_id 만 사용** (T4 강제, SUB-SYNC-001b adversarial 권고). audience = `commerce-service:internal`.
+  - `apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts` — 11 cases: cookie session happy path (Authorization: Bearer fake-internal-jwt 검증, body user_id = session.user_id 검증), bearer session happy path (mobile), **T4 enforce** (body 의 user_id 키는 strict zod 가 400 VALIDATION_ERROR 로 거부 → upstream 호출 X), 401 no session, 400 missing source, 400 invalid source enum, 502 forward REVENUECAT_UNAVAILABLE, 504 fetch timeout, 502 UPSTREAM_UNREACHABLE network error, 502 UPSTREAM_SCHEMA_MISMATCH (zod 응답 검증), 401 envelope code unchanged forward (CHORE-BFF-401-CONTRACT 정합).
+- **수정 파일**:
+  - `spec.md §11 Project Structure` — Mobile auth ingress paragraph 직후 BFF subscription sync route 신규 paragraph 2개 추가: (1) internal client mint 모델 + audience 분리 근거 (user JWT 로 commerce internal endpoint 직접 호출 attack surface 차단), (2) T4 enforce 명시 (body user_id 무시, session user_id 사용, zod strict 400 거부).
+  - `docs/SPEC-PIVOT-PLAN.md` row 49 → "🟡 in-progress" + T4 enforce 명시.
+- **검증**:
+  - `pnpm --filter web test` → 17 suites / **169 tests PASS** (신규 11 + 기존 158 회귀)
+  - `pnpm --filter web typecheck` PASS, lint PASS (warnings only, errors 0)
+  - `pnpm turbo build typecheck lint --filter=web` → 7/7 successful
+  - internal-client.ts coverage: lines 93.33%, statements 89.36%
+- **mobile / commerce 영향**: mobile 은 M5 단계에서 RevenueCat purchasePackage 성공 직후 `POST /api/subscriptions/sync` 호출 (Plan v5 line 186 흐름). web 은 별도 액션 필요 없음 (기존 cookie session 으로 호출 가능). commerce 측 변경 0 — SUB-SYNC-001b 의 endpoint 가 그대로 사용됨.
+- **L2 tier review**: codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정. SUB-SYNC-001b 보다 surface 작음 (3 신규 file, 모두 BFF, 단일 라우트).
+
+### 미완료:
+- **L2 review (본 PR)**: PR push 후 codex r1 + Claude self-adversarial 1회.
+- **JUNWON Pre-work A/B/C 완료**: 본 PR 머지 후 Plan v5 Pre-work 모두 main 반영 — 동료 (Dohyun) M0/M0.5/M1/M2/M3/M4/M5 mobile 작업 시작 가능.
+- **CHORE-SUB-CACHE-001** (backlog, M5 진입 전 권장): single-flight 30s 캐시 (Plan v5 §M5) + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s).
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — 본 PR 머지 시점에 재검토. 현재 mobile 은 user-service `/auth/logout` 직접 호출 (publicPaths) — 동료 M1 인증 흐름 시작 시 결정.
+- **CHORE-AUTH-PUBLIC-PATHS-AUDIT** (AUTH-002b-fix1 권고): `analytics`, `content`, `meal-plan-engine` 의 `registerJwtAuth` + per-route limiter 정합성 점검. commerce 는 SUB-SYNC-001b 에서 audit 통과 (per-route limiter 부재).
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority, CHORE-BFF-401-CONTRACT 후속): dead `SessionExpiredError` class + helper + branch cleanup.
+
+### 연관 파일: apps/web/src/app/api/_lib/internal-client.ts, apps/web/src/app/api/subscriptions/sync/{route.ts,__tests__/sync.integration.test.ts}, spec.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-SUB-SYNC-001b
 commit_sha: 09acf8c
 files_changed:
