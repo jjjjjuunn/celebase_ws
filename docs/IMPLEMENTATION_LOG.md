@@ -30,6 +30,38 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-003
+commit_sha: 92d2052
+files_changed:
+  - packages/service-core/src/errors.ts
+  - packages/service-core/src/index.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (16/16 jest direct PASS — 기존 7 회귀 + 신규 9 envelope code 검증, monorepo turbo typecheck 16 successful + lint 15 successful, PRECHECK §7 회귀 grep 3/3 PASS) + advisor sanity check
+---
+### 완료: `/auth/refresh` 401 envelope reason codes 5종 — IMPL-MOBILE-AUTH-003 (Plan v5 §59, P0)
+- `packages/service-core/src/errors.ts` 에 5개 AppError 서브클래스 추가 (`RefreshExpiredOrMissingError` / `TokenReuseDetectedError` / `RefreshRevokedError` / `MalformedRefreshError` / `AccountDeletedError`). 모두 statusCode 401 + specific machine-readable code 만 차이. `packages/service-core/src/index.ts` barrel re-export. PRECHECK §6 Option A 결정 반영 — Plan §52 wording ("응답 body 의 `code` 필드 5종") 직접 매핑, shared-types 변경 0.
+- `services/user-service/src/services/auth.service.ts` `performRotation` 함수 리팩토링: ① jose `JWTExpired` instanceof 분기로 `REFRESH_EXPIRED_OR_MISSING` 와 `MALFORMED` 분리 (signature 위조·format 오류·issuer mismatch 모두 MALFORMED 통합) ② token_use mismatch / userId·jti 누락 → `MalformedRefreshError` ③ 트랜잭션 첫 액션으로 `findByIdInTx` + `user.deleted_at !== null` 게이트 신규 추가 (READ COMMITTED snapshot 일관성, 별도 lock 없음 — soft-delete + 30d grace 정책 정합) ④ DB rotation 실패 분기에서 meta null/expired → `RefreshExpiredOrMissingError` / rotated/reuse_detected → `TokenReuseDetectedError` (revokeAllByUser emit-before-throw 보존) / logout → `RefreshRevokedError`.
+- `services/user-service/src/repositories/user.repository.ts` 에 `findByIdInTx(client: pg.PoolClient, id)` 헬퍼 추가 — caller 트랜잭션 참여. 기존 `findById(pool)` 와 동일 SQL.
+- `services/user-service/tests/integration/refresh-rotation.test.ts` 16/16 PASS: 기존 7건 (rotation/race/reuse/expired/logout/ttl/invalid) + 신규 9건 (`MALFORMED` × 3 [signature 위조 / token_use 불일치 / user row 부재] + `REFRESH_EXPIRED_OR_MISSING` × 2 [jose JWTExpired / DB meta 부재] + `TOKEN_REUSE_DETECTED` × 1 [revokeAllByUser 호출 검증] + `REFRESH_REVOKED` × 1 [logout 분기] + `ACCOUNT_DELETED` × 1 [deleted_at 세팅] + envelope `requestId` × 1). `defaultClientQueryImpl` 기반 `mockClientQuery` SQL prefix 분기로 ACCOUNT_DELETED 게이트 추가에 따른 기존 mock 회귀 0. `buildApp` 에 service-core `setErrorHandler` 미러링 추가 — envelope assertions 가 production 핸들러와 동일 형식 (`{error: {code, message, details, requestId}}`) 사용.
+- spec.md sync (SPEC-PIVOT-PLAN row 36 의무 충족): §4.2 endpoint catalog `/auth/refresh` 행에 enum 5종 reference 추가 + §9.3 Security 신규 서브섹션 "Refresh Token Reason Codes" — 5종 표 (발생 조건 + 클라이언트 권장 행동) + 불변식 5건 (HTTP 401, internal HTTP error 분리, jose JWTExpired 분기 정책, revokeAllByUser fail-closed, ACCOUNT_DELETED 게이트 위치). diff 39 lines vs origin/main → spec_sync gate threshold 충족.
+- BFF cookie path forward 영향 분석 (PRECHECK §10): `apps/web/src/app/api/auth/refresh/route.ts:93` 가 user-service envelope `error.code` 그대로 forward — web production code grep `UNAUTHORIZED` 0 matches, 기존 통합 테스트는 status 401 만 assert (envelope code 직접 검증 없음) → 회귀 0. 모바일·웹이 동일 5종 enum 상태머신 공유는 의도된 설계.
+- L3 review 의무는 PR push 후 별도 단계: `pipeline.sh review` (Codex × 2) + Claude self-adversarial × 1 (gemini CLI 0.39.1 도구 부재 fallback, IMPL-MOBILE-BFF-001 와 동일 운영 케이스).
+### 미완료:
+- **L3 review**: PR push 후 Codex r1 + r2 + Claude self-adversarial (10 threats) 1회 실행. fix-request 발생 시 별도 chore commit.
+- **CHORE-AUTH-INTERNAL-ERR-MAPPING** (backlog): `services/user-service/src/services/auth.service.ts` 의 잔존 `throw new UnauthorizedError('Internal error: new jti missing')` (PRECHECK §3.2). server-side bug signal — 본질적으로 5xx 응답이 옳으나 본 task scope 외. 별도 ticket 으로 추적.
+- **IMPL-MOBILE-AUTH-002a/002b** (Session B 잔여): BFF mobile signup/login 라우트 신설 (DECISION §9 Option B 채택) + user-service rate limit 상향 (signup 3/min·login 5→10/min·refresh 20→30/min·logout 신규 20/min — DECISION §3 보존).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트 — commerce-service `/internal/subscriptions/refresh-from-revenuecat` (#41) wrapper. 동료 M5 unblock.
+- **동료 M2 client 상태머신**: 본 task 의 5종 enum 을 source of truth 로 사용 — `REFRESH_EXPIRED_OR_MISSING` → Cognito `Auth.currentSession()` silent re-issue / `TOKEN_REUSE_DETECTED` 또는 `REFRESH_REVOKED` → SecureStore clear + Amplify signOut 즉시 / `MALFORMED` → 강제 logout + 디버그 로그 / `ACCOUNT_DELETED` → 영구 logout + 사용자 안내. Plan v5 §183 + spec.md §9.3 의 표 그대로 적용.
+### 연관 파일: packages/service-core/src/errors.ts, packages/service-core/src/index.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/repositories/user.repository.ts, services/user-service/tests/integration/refresh-rotation.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-003/PRECHECK.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-MOBILE-001
 commit_sha: f4d9a3a
 files_changed:

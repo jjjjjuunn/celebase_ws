@@ -950,7 +950,7 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 |--------|------|-------------|------|
 | POST | `/auth/signup` | 소셜/이메일 가입. Cognito id_token 의 `aud` 는 `[bff_client_id, mobile_client_id]` 배열 ANY-match 검증 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-001 / PR #36) | No |
 | POST | `/auth/login` | 로그인 (Cognito SRP via Amplify on mobile / cookie-shaped on web BFF). 동일 audience 배열 검증 | No |
-| POST | `/auth/refresh` | 토큰 리프레시. 본 라우트는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 **직접 호출** (BFF 미경유 예외 — banner 참조) | Refresh |
+| POST | `/auth/refresh` | 토큰 리프레시. 본 라우트는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 **직접 호출** (BFF 미경유 예외 — banner 참조). 401 응답 envelope `error.code` 는 5종 enum 으로 분기 — §9.3 Refresh Token Reason Codes 참조 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003) | Refresh |
 | POST | `/ws/ticket` | WebSocket 1회용 연결 티켓 발급 (TTL 30초) | JWT |
 | GET | `/users/me` | 내 프로필 조회 | JWT |
 | PATCH | `/users/me` | 프로필 수정 | JWT |
@@ -1830,6 +1830,25 @@ User selects celebrity diet
 4. **Session.authSource 필수 필드**: `session: { user_id, email, cognito_sub, authSource: 'cookie' | 'bearer' }`. handler 가 분기 동작(예: PHI 감사 로그 source tagging, audit metric)을 결정할 수 있도록 caller-side 가시성 보장. `verifyAccessToken` 자체는 source-agnostic 하게 `Omit<Session, 'authSource'>` 반환 — caller (cookie / bearer 분기) 가 spread 로 주입.
 5. **Timing oracle 차단**: cookie 분기·bearer 분기·검증 성공/실패 모든 exit 가 `padToMinLatency(handlerStart)` (100ms anchor) 를 통과한다. 공격자가 응답 시간 차이로 cookie/bearer 존재·검증 결과를 구분하는 oracle 차단.
 6. **`/auth/refresh` 예외**: BFF 의 `/api/auth/refresh` 는 cookie-shaped(JSON 토큰 미반환) 이므로 mobile 은 user-service `/auth/refresh` 를 BFF 우회 직접 호출한다. 모든 다른 mobile path 는 BFF 경유 (path confusion 회피).
+
+#### Refresh Token Reason Codes — `/auth/refresh` 401 envelope *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003)*
+
+`POST /auth/refresh` (user-service) 는 401 응답의 `error.code` 를 다음 5종 enum 으로 분기한다 — mobile 클라이언트의 refresh 상태머신 source of truth. BFF cookie path 의 `/api/auth/refresh` 도 user-service envelope code 를 그대로 forward 하므로 web 클라이언트가 분기 로직을 추가하면 동일 enum 을 사용한다.
+
+| `error.code` | 발생 조건 | 클라이언트 권장 행동 |
+|--------------|----------|---------------------|
+| `REFRESH_EXPIRED_OR_MISSING` | (a) refresh JWT 가 jose `JWTExpired` 로 만료, 또는 (b) DB `refresh_tokens` row 부재 / `expires_at <= now()` | mobile: Cognito `Auth.currentSession()` 으로 silent re-issue 시도 후 실패 시 재로그인. web: 재로그인 redirect. |
+| `TOKEN_REUSE_DETECTED` | revoked 상태 (`revoked_reason in ('rotated','reuse_detected')`) 의 jti 가 다시 제시됨. 서버는 동일 트랜잭션에서 `revokeAllByUser(reason='reuse_detected')` 호출 + audit log emit (emit-before-throw 보장) | mobile: Cognito fallback **금지** (재인증으로도 신뢰 회복 불가) → SecureStore clear + 즉시 강제 logout + 사용자에게 보안 사유 안내. web: cookie clear + login redirect. |
+| `REFRESH_REVOKED` | revoked 상태 (`revoked_reason = 'logout'`). 사용자가 명시적으로 logout 한 토큰 재사용 | 즉시 강제 logout. 메시지 노출 불필요. |
+| `MALFORMED` | (a) JWT signature 위조 / format 오류 / issuer mismatch, (b) `token_use !== 'refresh'`, (c) `sub` / `jti` claim 누락, (d) JWT 의 sub 가 `users` 테이블에 부재 | 즉시 강제 logout + 디버그 로그. 정상 사용자에게 발생할 수 없음. |
+| `ACCOUNT_DELETED` | `users.deleted_at IS NOT NULL`. 트랜잭션 내부에서 `findByIdInTx` 로 조회 — 동시 `DELETE /users/me` race 차단 | 영구 로그아웃 + "계정이 삭제되었습니다" 안내. 복구 요청은 별도 channel. |
+
+**불변식**:
+- 5종 모두 HTTP status 401 + AppError 서브클래스 (`packages/service-core/src/errors.ts`) — Fastify `setErrorHandler` 가 envelope 으로 직렬화.
+- Internal HTTP error (`'Internal error: new jti missing'`) 는 본 enum 외 — 서버 버그 시그널, mobile 클라이언트는 일반 401 로 처리하고 backlog 추적.
+- JWT verify 단계 catch 는 `joseErrors.JWTExpired` instanceof 로 `REFRESH_EXPIRED_OR_MISSING` 분기, 그 외 모든 verify 실패 → `MALFORMED`. signature 위조와 format 오류는 클라이언트 입장에서 동일 거동 (강제 logout) 이라 통합한다.
+- `revokeAllByUser` 는 `TOKEN_REUSE_DETECTED` 분기에서 throw 이전에 `await` 완료 — fail-closed 보장 (CLAUDE.md Absolute Rule 5 정합).
+- ACCOUNT_DELETED 게이트는 `performRotation` 트랜잭션 첫 액션 — `client.query('BEGIN')` 직후. signup/login 은 별도 entry point 로 본 enum 의 적용 범위 외 (login 자체 deletion 분기는 §4.2 login 라우트의 `'Account has been deleted'` 응답을 그대로 유지).
 
 ### 9.4 Availability
 

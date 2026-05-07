@@ -33,7 +33,7 @@
 |---------|------|------------------------|-------------|
 | IMPL-MOBILE-AUTH-001 | ✅ merged (PR #36) | §4.2 Auth (audience 배열 검증), Appendix A env (`COGNITO_MOBILE_CLIENT_ID`) | ✅ `SPEC-SYNC-AUTH-001` 완료 — §3 행 참조 |
 | IMPL-MOBILE-AUTH-002 | planned | §11 Project Structure (mobile ingress 결정 — 옵션 A/B), §6 Rate Limiting | finalize — 결정 사항을 본문에 fix |
-| IMPL-MOBILE-AUTH-003 | planned (P0) | §6 Security (`/auth/refresh` error envelope enum 5종), API contract section (refresh response shape) | finalize — enum 5종 explicit 명시 |
+| IMPL-MOBILE-AUTH-003 | 🟡 in-progress (PR pending) | §4.2 endpoint catalog (`/auth/refresh` 행에 enum 5종 reference), §9.3 Security 신규 서브섹션 "Refresh Token Reason Codes" (5종 enum + 발생 조건 + 클라이언트 권장 행동 + 불변식 5건) | finalize patch 완료 — spec.md §4.2 + §9.3 갱신 |
 | IMPL-MOBILE-PAY-001a-1 | ✅ merged (PR #37) | §3 schema (`processed_events` expand DDL — `provider`, `event_id` NULL 허용 컬럼) | ✅ `SPEC-SYNC-PAY-001a-1` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001a-2 | ✅ merged (PR #40) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE provider IS NOT NULL`, CHECK constraint) | ✅ `SPEC-SYNC-PAY-001a-2` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001b | ✅ merged (PR #39) | §4.2 Subscriptions (RevenueCat webhook 라우트 + entitlement → tier mapping) | ✅ `SPEC-SYNC-PAY-001b` 완료 — §3 행 참조 |
