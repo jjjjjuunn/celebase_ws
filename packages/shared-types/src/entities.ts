@@ -257,12 +257,17 @@ export interface InstacartOrder {
 
 // ── subscriptions ──────────────────────────────────────────────────────────
 
+export type SubscriptionProvider = 'stripe' | 'revenuecat';
+
 export interface Subscription {
   id: string;
   user_id: string;
   tier: Exclude<SubscriptionTier, 'free'>; // subscriptions 테이블은 premium/elite만
+  provider: SubscriptionProvider;
   stripe_subscription_id: string | null;
   stripe_customer_id: string | null;
+  revenuecat_subscription_id: string | null;
+  revenuecat_app_user_id: string | null;
   status: SubscriptionStatus;
   current_period_start: Date | null;
   current_period_end: Date | null;

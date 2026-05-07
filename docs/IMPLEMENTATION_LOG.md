@@ -4048,6 +4048,44 @@ verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review
 ### 연관 파일: services/content-service/src/middleware/admin-auth.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/package.json, pipeline/runs/IMPL-021/fix-request-1.md, pipeline/runs/IMPL-021/fix-request-2.md, pipeline/runs/IMPL-021/fix-request-3.md, pipeline/runs/IMPL-021/review-r1/, pipeline/runs/IMPL-021/review-r2/, pipeline/runs/IMPL-021/review-r3/
 
 ---
+date: "2026-05-06"
+agent: claude-sonnet-4-6
+task_id: IMPL-MOBILE-SUB-SYNC-001
+commit_sha: 32c1c01
+files_changed:
+  - services/commerce-service/src/adapters/revenuecat.adapter.ts
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/src/repositories/subscription.repository.ts
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/src/env.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/tests/integration/revenuecat-sync.integration.test.ts
+  - services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+  - db/migrations/0018_subscriptions_revenuecat_columns.sql
+  - packages/shared-types/src/entities.ts
+verified_by: codex-review
+---
+
+### 완료
+- RevenueCat webhook integration (adapter, sync service, repository)
+- `RevenuecatAdapter` — `getSubscriber()` + `CircuitBreaker` + `RevenuecatUnavailableError`
+- `handleWebhookEvent()` — entitlement 우선순위 결정, `deriveStatusFromEntitlement`, `deriveUserTier`, `upsertRevenuecatSubscription`
+- `markProcessed()` — processed_events idempotency dedup (fail-closed: dedup 먼저, sync 나중)
+- DB migration — subscriptions `provider` discriminator + `revenuecat_subscription_id`, `revenuecat_app_user_id` 컬럼
+- `POST /webhooks/revenuecat` route — full RevenuecatSyncConfig + revenuecatAdapter 시그니처, 503 guard, 401 auth, Zod validation, dedup, sync, 로그
+- Integration tests — `revenuecat-sync.integration.test.ts` (4 cases: happy/generic-error/upstream-error/idempotency) + `revenuecat-webhook.integration.test.ts` 호환성 수정
+
+### 미완료
+- 없음
+
+### 연관 파일
+- services/commerce-service/src/adapters/revenuecat.adapter.ts
+- services/commerce-service/src/services/revenuecat-sync.service.ts
+- services/commerce-service/tests/integration/revenuecat-sync.integration.test.ts
+- services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+- db/migrations/0018_subscriptions_revenuecat_columns.sql
+
+---
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: CHORE-CI-RESTORE-2026-05-05

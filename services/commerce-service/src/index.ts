@@ -4,6 +4,8 @@ import { EnvSchema } from './env.js';
 import type { StripeConfig } from './services/subscription.service.js';
 import { createUserServiceClient } from './services/user-service.client.js';
 import { webhooksRoutes } from './routes/webhooks.routes.js';
+import { RevenuecatAdapter } from './adapters/revenuecat.adapter.js';
+import type { RevenuecatSyncConfig } from './services/revenuecat-sync.service.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -33,10 +35,26 @@ const start = async (): Promise<void> => {
     INTERNAL_JWT_SECRET: env.INTERNAL_JWT_SECRET ?? 'dev-secret-not-for-prod',
   });
 
-  const revenuecatConfig =
-    env.REVENUECAT_ENABLED === 'true' && env.REVENUECAT_WEBHOOK_AUTH_TOKEN
-      ? { enabled: true as const, authToken: env.REVENUECAT_WEBHOOK_AUTH_TOKEN }
-      : undefined;
+  // Build RevenueCat sync config + adapter only when feature is enabled.
+  // superRefine in env.ts guarantees fields are present + JSON parses to a valid product->tier map.
+  let revenuecatConfig: (RevenuecatSyncConfig & { authToken: string }) | undefined;
+  let revenuecatAdapter: RevenuecatAdapter | undefined;
+  if (env.REVENUECAT_ENABLED === 'true') {
+    const productTierMap = JSON.parse(
+      env.REVENUECAT_PRODUCT_TIER_MAP_JSON as string,
+    ) as Record<string, 'premium' | 'elite'>;
+    revenuecatConfig = {
+      enabled: true,
+      authToken: env.REVENUECAT_WEBHOOK_AUTH_TOKEN as string,
+      apiKey: env.REVENUECAT_API_KEY as string,
+      apiBaseUrl: env.REVENUECAT_API_BASE_URL,
+      productTierMap,
+    };
+    revenuecatAdapter = new RevenuecatAdapter({
+      apiKey: revenuecatConfig.apiKey,
+      baseUrl: revenuecatConfig.apiBaseUrl,
+    });
+  }
 
   await app.register(webhooksRoutes, {
     pool,
@@ -44,6 +62,7 @@ const start = async (): Promise<void> => {
     userClient,
     commerceWebhookEnabled: env.COMMERCE_WEBHOOK_ENABLED === 'true',
     ...(revenuecatConfig !== undefined ? { revenuecatConfig } : {}),
+    ...(revenuecatAdapter !== undefined ? { revenuecatAdapter } : {}),
   });
 
   // Deep readiness probe — verifies all external dependencies are reachable.
