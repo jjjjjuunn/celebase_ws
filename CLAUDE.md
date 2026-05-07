@@ -11,6 +11,21 @@
 - **Architecture**: PGE Harness (Planner-Generator-Evaluator)
 - **Monorepo**: pnpm workspaces + Turborepo
 - **Languages**: TypeScript (services, clients), Python (AI engine only)
+- **Active client (PIVOT-MOBILE-2026-05)**: `apps/mobile` — Expo / React Native (iOS + Android). 단일 코드베이스로 App Store + Play Store 양쪽 출시.
+- **Frozen client**: `apps/web` (Next.js) — 운영 중단. 자산만 보존 (admin·marketing 재활용 후보). 새 기능 추가 금지.
+- **Mobile architecture**: 모바일 → BE 서비스 직접 호출 (BFF 우회). Cognito SRP → user-service internal JWT 교환 흐름 사용. Next.js BFF (`apps/web/src/app/api/**`) 는 모바일에서 재사용하지 않음.
+
+### 1.1 Ownership (2026-05~)
+
+| Domain | Owner | Areas |
+|--------|-------|-------|
+| BE + 잔존 BFF | **JUNWON** | `services/**`, `apps/web/src/app/api/**`, `apps/web/src/lib/server/**`, `db/migrations/**`, `infra/**` |
+| FE (mobile) | **Dohyun** | `apps/mobile/**` (Expo / RN), `packages/design-tokens/**` (CSS 변수 + RN 익스포트 빌드 타겟) |
+| 공통 계약 | hold-then-merge | `packages/shared-types/**` — 한 명이 hold 후 머지, 다른 owner 동시 수정 금지 (`.claude/rules/multi-session.md` §2) |
+
+**Frozen** (어느 owner 도 새 기능 추가 X — 보안·deps 패치만 JUNWON 처리):
+- `apps/web/src/**` (단, `app/api/**` BFF 라우트는 위 BE owner 가 잔존 유지보수)
+- `packages/ui-kit/**` — web React + CSS Modules 컴포넌트로 RN 호환 X. 모바일 컴포넌트는 `apps/mobile/src/components/**` 에서 RN primitive 로 새로 구현
 
 ## 2. Absolute Rules (예외 없음, 위반 시 무조건 reject)
 

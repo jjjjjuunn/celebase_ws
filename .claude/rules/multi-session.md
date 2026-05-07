@@ -12,12 +12,15 @@ paths:
 
 세션은 도메인 경계를 따라 분리한다. 한 세션 = 한 도메인 = 한 활성 TASK-ID:
 
+> **PIVOT-MOBILE-2026-05 갱신**: active client 가 `apps/mobile` (Expo / RN) 단독으로 전환됨. `apps/web` + `packages/ui-kit` 은 frozen. owner 매핑은 `CLAUDE.md` §1.1 참조.
+
 | 세션 | 주 디렉토리 | 금지 영역 |
 |------|------------|----------|
-| **FE** | `apps/web/src/**` (단, `app/api/**` 제외), `packages/ui-kit/**`, `packages/design-tokens/**` | `services/**`, `db/migrations/**`, `apps/web/src/app/api/**` |
-| **BE** | `services/**/src/**`, `services/**/tests/**`, `db/migrations/**` | `apps/web/**`, `packages/ui-kit/**`, `packages/design-tokens/**` |
-| **BFF** | `apps/web/src/app/api/**`, `apps/web/src/lib/server/**` | `services/**` 내부 로직, `packages/ui-kit/**` 컴포넌트 |
-| **공통 (모든 세션)** | `packages/shared-types/**` 만 — **단 한 세션이 hold 후 머지** | 다른 세션은 동시 수정 금지 |
+| **FE-Mobile** (Dohyun) | `apps/mobile/**` (Expo / RN), `packages/design-tokens/**` (CSS 변수 + RN 익스포트 빌드 타겟) | `services/**`, `db/migrations/**`, `infra/**`, `apps/web/**`, `packages/ui-kit/**` |
+| **BE** (JUNWON) | `services/**/src/**`, `services/**/tests/**`, `db/migrations/**`, `infra/**` | `apps/mobile/**`, `packages/design-tokens/**` 의 RN 익스포트 |
+| **BFF** (JUNWON, web 잔존만) | `apps/web/src/app/api/**`, `apps/web/src/lib/server/**` | `services/**` 내부 로직, mobile 클라이언트 — **새 BFF 라우트 추가 금지** (모바일은 BE 직접 호출) |
+| **공통 (모든 세션)** | `packages/shared-types/**` — **단 한 세션이 hold 후 머지** | 다른 세션은 동시 수정 금지 |
+| **Frozen (new dev 금지)** | `apps/web/src/**` (단 `app/api/**` 제외 — BFF 잔존 유지보수), `packages/ui-kit/**` | 어느 세션도 새 기능 추가 X. 보안·deps 패치만 BE owner (JUNWON) 처리 |
 
 세션이 자기 영역을 벗어나야 하면 작업을 분할하거나, 다른 세션과 합의 후 진입한다.
 
@@ -71,6 +74,10 @@ scripts/session-start.sh <SESSION_ROLE> <TASK-ID>
 `pipeline/templates/COORDINATION-AGREEMENT.template.md` 에 서식 제공.
 
 ## 6. BFF 진입 타이밍
+
+> **PIVOT-MOBILE-2026-05 갱신**: 모바일 (`apps/mobile`) 은 BE 서비스 직접 호출 (BFF 우회). web BFF 는 frozen 상태로 유지보수만 — **새 BFF 라우트 추가 금지**. 본 절은 web 활성 시점 (PIVOT 이전) 의 운영 가이드로 보존하며, 향후 모바일 cross-cutting 요구사항 (push 토큰 등록·영수증 검증·device rate limit) 누적 시 별도 `mobile-bff` 도입을 재논의한다.
+
+(web 활성 시점 가이드)
 
 BFF 는 BE/FE 양쪽에 의존하므로 일반적으로 **마지막에 진입**:
 
