@@ -1,5 +1,13 @@
 # CelebBase Wellness — Technical Specification v1.5.0
 
+> **⚠ PIVOT-MOBILE-2026-05 BANNER (overrides spec body)**  
+> Active client = `apps/mobile` (Expo / React Native, iOS + Android). `apps/web` SSR/pages/components 는 **FROZEN** (no active dev) — 단 `apps/web/src/app/api/**` (BFF) + `apps/web/src/lib/server/**` 은 **모바일의 active gateway** 로 살아 있다. Where this spec body assumes web-first (project structure §11, Tab UX in §7, etc.), **mobile-first reality wins**. 본문 재작성은 별도 task 로 분리 (`docs/SPEC-PIVOT-PLAN.md` 트리거 레지스트리 참조).  
+> - Active roadmap: `docs/MOBILE-ROADMAP.md` (`docs/FE-ROADMAP.md` archived)  
+> - **Mobile architecture (hybrid BFF)**: mobile → BFF (`createProtectedRoute` cookie + `Authorization: Bearer` fallback) → BE 서비스. **예외**: `/auth/refresh` 는 BFF 가 cookie-shaped (JSON 토큰 미반환) 이라 mobile 이 user-service 를 **직접 호출**. 그 외 모든 path 는 BFF 경유 (mobile-driven 신규 라우트 추가 OK — 예: `POST /api/subscriptions/sync`).  
+> - Cognito SRP (Amplify) → id_token → user-service `/auth/signup` or `/auth/login` → internal access/refresh JWT (Plan v5 §Decisions).  
+> - Frozen scope: `apps/web/src/app/(app|auth|marketing|slice)/**`, `apps/web/src/components/**`, `packages/ui-kit/**` 만 — BFF 와 server lib 는 active.  
+> - Ownership: JUNWON (BE + active mobile-gateway BFF + infra), Dohyun (mobile FE)  
+
 > **Status**: Draft  
 > **Last Updated**: 2026-05-03 (v1.5.0)  
 > **Changelog v1.5.0**: 셀럽 웰니스 피벗 (PIVOT-2026-05) — 첫 사용자 경험을 "출처 기반 lifestyle claim 카드 피드"로 전환, meal-plan-engine 은 보조 CTA. 신규 도메인 §3.5 LifestyleClaim (lifestyle_claims + claim_sources DDL, claim_type/trust_grade/claim_status 열거형, partial UNIQUE on is_primary, GIN index on tags), §3.4 Enum Glossary 3행 추가, §7.2 Tab 1 Discover → Wellness Claims Feed 재작성, §9.3 Security claim 도메인 7원칙 추가 (HTML sanitize, URL allowlist/SSRF 차단, soft delete propagation, draft 미노출, trust_grade published gate, is_health_claim 설정 주체, allowlist-only seed validator), §6A Trend Intelligence 에 §3.5 cross-ref  
@@ -10,7 +18,8 @@
 > **Changelog v1.2**: 영양 데이터 표준화, Two-Pass, PHI 최소화, 감사 로그, Materialized View, Instacart 배치  
 > **Changelog v1.1**: 실시간 트렌드 비전, Trend Intelligence Service, Instacart 에러 핸들링 확장  
 > **Architecture**: PGE (Planner-Generator-Evaluator) Harness  
-> **Target Platform**: iOS / Android (React Native) + Web (Next.js)
+> **Target Platform** (PIVOT-MOBILE-2026-05): iOS / Android (Expo / React Native) — primary. Web (Next.js, `apps/web`) SSR/pages 는 **FROZEN** — 단 `apps/web/src/app/api/**` (BFF) + `apps/web/src/lib/server/**` 은 모바일의 active gateway. See `docs/MOBILE-ROADMAP.md`.  
+> **Active client roadmap**: `docs/MOBILE-ROADMAP.md`. `docs/FE-ROADMAP.md` is archived.
 
 ---
 
@@ -63,8 +72,9 @@ CelebBase Wellness는 셀러브리티 식단을 사용자의 생체 데이터에
 ┌─────────────────────────────────────────────────────────────┐
 │                        CLIENT LAYER                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │ React Native │  │   Next.js    │  │  Admin Dashboard │   │
-│  │  (iOS/AOS)   │  │   (Web App)  │  │    (Internal)    │   │
+│  │ Expo / RN    │  │   Next.js    │  │  Admin Dashboard │   │
+│  │  (iOS/AOS)   │  │ (Web FROZEN) │  │    (Internal)    │   │
+│  │  ★ primary   │  │  reference   │  │                  │   │
 │  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘   │
 └─────────┼─────────────────┼───────────────────┼─────────────┘
           │                 │                   │
@@ -99,8 +109,8 @@ CelebBase Wellness는 셀러브리티 식단을 사용자의 생체 데이터에
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Mobile | React Native 0.76+ (New Arch) | 크로스 플랫폼, Hermes 엔진 성능 |
-| Web | Next.js 15 (App Router) | SSR/ISR, SEO, 공유 컴포넌트 |
+| Mobile (★ primary) | Expo SDK 52+ / React Native 0.76+ (New Arch) | 단일 코드베이스 → App Store + Play Store, EAS Build/Submit, shared-types/design-tokens 그대로 재사용 |
+| Web (FROZEN) | Next.js 15 (App Router) — `apps/web` | PIVOT-MOBILE-2026-05 이후 비활성. 자산 보존 (admin·marketing 재활용 후보) |
 | API Gateway | Kong Gateway | 인증 플러그인, rate limiting, 로깅 |
 | Backend Services | Node.js 22 (Fastify) | 고성능 JSON 처리, TypeScript 공유 |
 | AI Engine | Python 3.12 (FastAPI) | ML 생태계, 모델 서빙 최적화 |

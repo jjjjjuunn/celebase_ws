@@ -4176,3 +4176,43 @@ verified_by: human-junwon (genre-agnostic 정책 + IMPL-019 close 결정 confirm
 - **셀럽 카테고리 다양화 시 allowlist 확장 PR**: athletes 깊이 확보 위해 ESPN/Sports Illustrated/Men's Health 등 추가 검토 — IMPL-019-extend 진입 시 함께 결정.
 
 ### 연관 파일: .claude/rules/domain/content.md, spec.md, .claude/tasks.yaml, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: DOCS-PIVOT-MOBILE-2026-05
+commit_sha: 24f6e38
+files_changed:
+  - CLAUDE.md
+  - spec.md
+  - apps/web/README.md
+  - docs/MOBILE-ROADMAP.md
+  - docs/FE-ROADMAP.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - .claude/rules/multi-session.md
+  - .claude/rules/spec-dod.md
+  - scripts/gate-check.sh
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (gate-check.sh spec_sync smoke + Plan v5 §Decisions reconciliation)
+---
+### 완료: PIVOT-MOBILE-2026-05 governance + BFF framing 정정 + spec sync registry — DOCS-PIVOT-MOBILE-2026-05
+- **PIVOT 결정 기록**: `apps/mobile` (Expo / RN, iOS+Android 단일 코드베이스) 를 active client 로 전환. `apps/web` 의 SSR pages/components/route groups 는 frozen 처리하되, **BFF (`apps/web/src/app/api/**`) + server lib (`apps/web/src/lib/server/**`) 은 mobile 의 active gateway 로 보존** — 이 framing 이 본 PR 의 핵심 정정 포인트 (이전 문서의 "web 전체 frozen" 표현 시정).
+- **CLAUDE.md §1 + §1.1 갱신**: Active client = `apps/mobile`, partially frozen = `apps/web` (SSR only). hybrid BFF 설명 추가 — `createProtectedRoute` 가 cookie 와 `Authorization: Bearer` 둘 다 인식, `/auth/refresh` 만 cookie-shaped 예외로 mobile 이 user-service 직접 호출. ownership 표 갱신: BFF 라인이 BE owner (JUNWON) 의 active gateway 로 명시.
+- **spec.md PIVOT BANNER 추가**: 본문 web-first 표현이 그대로 남아 있으므로 상단 banner 가 우선함을 명시 + "MOBILE PIVOT spec sync 의무" 섹션을 `.claude/rules/spec-dod.md` 에 신설 — `IMPL-MOBILE-*` / `INFRA-MOBILE-*` / `CHORE-MOBILE-*` / `SPEC-SYNC-*` task 모두 자기 영역의 spec.md 섹션을 함께 patch 하거나 `pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md` 마커 작성 의무.
+- **SPEC-PIVOT-PLAN.md 신규 (registry)**: 모든 mobile-pivot task ID ↔ spec.md 갱신 의무 섹션 매핑 트리거 레지스트리. §3 에 retroactive backfill 행 (INFRA-MOBILE-001 / IMPL-MOBILE-AUTH-001 / IMPL-MOBILE-PAY-001a-1·a-2·b / IMPL-MOBILE-SUB-SYNC-001) 등록 — 본 PR 후속 PR #43, #44 에서 stacked 로 처리.
+- **scripts/gate-check.sh `spec_sync` 추가**: PR 머지 전 mobile-pivot task ID 매칭 시 (1) `git diff origin/main...HEAD -- spec.md` 가 ≥3 line 변경이거나 (2) `pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md` 존재 — 둘 다 부재 시 gate FAIL. 자동 enforcement 로 spec drift 방지.
+- **multi-session.md §1 + §6 갱신**: hybrid BFF 운영 — BFF 가 mobile 의 active gateway 가 되면서 "BFF 마지막 진입" 운영 가이드는 web 활성 시점 한정으로 표시 변경. mobile 시점에는 BE 서비스 mobile-facing endpoint 안정화 직후 BFF route 가 따라가는 패턴 우세.
+- **docs/MOBILE-ROADMAP.md 갱신 + docs/FE-ROADMAP.md archived**: 신규 north-star 가 MOBILE-ROADMAP. FE-ROADMAP 은 PIVOT 이전 시점 기록으로 archive marker 추가.
+- **stacked PR chain 로 분리**: 본 entry 는 PR #42 (BFF framing 정정 + governance + registry) 만 커버. PR #43 = 3 retroactive backfills (INFRA-MOBILE-001 / IMPL-MOBILE-PAY-001b / IMPL-MOBILE-SUB-SYNC-001 의 spec sync), PR #44 = 3 follow-ups (IMPL-MOBILE-AUTH-001 + IMPL-MOBILE-PAY-001a-1 + a-2). 머지 순서 #42 → #43 → #44 에서 base 자동 cascade.
+- **검증**:
+  - `scripts/gate-check.sh spec_sync` (DOCS task 자체는 mobile-pivot task ID 패턴 미일치 → skip 동작 PASS) → PASS.
+  - `python3 scripts/validate_impl_log.py` (pre-commit hook) → PASS 예상.
+  - Plan v5 §Decisions (§52, §92, §182, §203, §225) 와 본 PR governance 정합성 reconciliation 완료.
+
+### 미완료:
+- **PR #42 → #43 → #44 stacked 머지**: 본 entry 가 들어간 PR #42 머지 후 #43, #44 의 base 가 자동 main 으로 cascade. CI 통과 후 사용자 머지.
+- **spec.md 본문 web-first 표현 점진적 absorption**: BANNER 가 우선하지만 본문 자체를 mobile-aware 로 재구성하는 작업은 별도 SPEC-SYNC-* task 로 후속.
+- **mobile FE 본격 개발 진입 전 BE/BFF blocker**: P0 = IMPL-MOBILE-BFF-001 (Bearer fallback 활성화) + IMPL-MOBILE-AUTH-003 (refresh rotation jti) + WORKSPACE-001 (apps/mobile 워크스페이스 부트스트랩). 이 셋이 끝나야 동료 (Dohyun) 가 RN smoke 시작 가능.
+- **gemini-cli `run_shell_command` 부재 미해결**: L3 adversarial pass 가 현재 항상 Claude self-adversarial 로 fallback. gemini-cli 갱신 시까지 유지.
+
+### 연관 파일: CLAUDE.md, spec.md, apps/web/README.md, docs/MOBILE-ROADMAP.md, docs/FE-ROADMAP.md, docs/SPEC-PIVOT-PLAN.md, .claude/rules/multi-session.md, .claude/rules/spec-dod.md, scripts/gate-check.sh, docs/IMPLEMENTATION_LOG.md
