@@ -6,10 +6,16 @@ const REVENUECAT_AUTH_TOKEN = 'rc-test-token-abcdef123456';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockMarkProcessed = jest.fn<any>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockHandleWebhookEvent = jest.fn<any>();
 
 jest.unstable_mockModule('../../src/repositories/processed-events.repository.js', () => ({
   markProcessed: mockMarkProcessed,
   findByEventId: jest.fn(),
+}));
+
+jest.unstable_mockModule('../../src/services/revenuecat-sync.service.js', () => ({
+  handleWebhookEvent: mockHandleWebhookEvent,
 }));
 
 const { default: Fastify } = await import('fastify');
@@ -55,24 +61,35 @@ function buildApp(opts: {
   });
   const stubPool = { query: jest.fn() } as unknown as pg.Pool;
   const stubUserClient = {} as UserServiceClient;
+  const stubAdapter = { getSubscriber: jest.fn() };
   void app.register((scope, _o, done) => {
     void webhooksRoutes(scope, {
       pool: stubPool,
       userClient: stubUserClient,
       commerceWebhookEnabled: opts.commerceWebhookEnabled,
       ...(opts.revenuecatEnabled
-        ? { revenuecatConfig: { enabled: true, authToken: REVENUECAT_AUTH_TOKEN } }
+        ? {
+            revenuecatConfig: {
+              enabled: true,
+              authToken: REVENUECAT_AUTH_TOKEN,
+              apiKey: 'test-key',
+              apiBaseUrl: 'https://api.revenuecat.com/v1',
+              productTierMap: { 'celebbase_premium_monthly': 'premium' },
+            },
+            revenuecatAdapter: stubAdapter,
+          }
         : {}),
     }).then(done);
   });
   return app;
 }
 
-const validEvent = { event: { id: 'rc-evt-123', type: 'INITIAL_PURCHASE' } };
+const validEvent = { event: { id: 'rc-evt-123', type: 'INITIAL_PURCHASE', app_user_id: 'user-abc-123' } };
 
 describe('POST /webhooks/revenuecat — auth & validation', () => {
   beforeEach(() => {
     mockMarkProcessed.mockReset();
+    mockHandleWebhookEvent.mockReset();
   });
 
   it('returns 503 when commerceWebhookEnabled=false', async () => {
@@ -197,10 +214,12 @@ describe('POST /webhooks/revenuecat — auth & validation', () => {
 describe('POST /webhooks/revenuecat — dedup & happy path', () => {
   beforeEach(() => {
     mockMarkProcessed.mockReset();
+    mockHandleWebhookEvent.mockReset();
   });
 
-  it('returns 200 + emits revenuecat.webhook.received on first occurrence', async () => {
+  it('returns 200 + emits revenuecat.webhook.processed on first occurrence', async () => {
     mockMarkProcessed.mockResolvedValueOnce({ inserted: true });
+    mockHandleWebhookEvent.mockResolvedValueOnce(undefined);
     const captured: CapturedLog[] = [];
     const app = buildApp({ captured, commerceWebhookEnabled: true, revenuecatEnabled: true });
     await app.ready();
@@ -224,7 +243,7 @@ describe('POST /webhooks/revenuecat — dedup & happy path', () => {
       eventType: 'INITIAL_PURCHASE',
       result: 'applied',
     });
-    expect(captured.some((l) => l.msg === 'revenuecat.webhook.received')).toBe(true);
+    expect(captured.some((l) => l.msg === 'revenuecat.webhook.processed')).toBe(true);
     expect(captured.some((l) => l.msg === 'revenuecat.webhook.replay_skipped')).toBe(false);
     await app.close();
   });
@@ -277,10 +296,12 @@ describe('POST /webhooks/revenuecat — dedup & happy path', () => {
 describe('POST /webhooks/revenuecat — Authorization header does NOT log token', () => {
   beforeEach(() => {
     mockMarkProcessed.mockReset();
+    mockHandleWebhookEvent.mockReset();
   });
 
   it('does not include Bearer token text in any captured log', async () => {
     mockMarkProcessed.mockResolvedValueOnce({ inserted: true });
+    mockHandleWebhookEvent.mockResolvedValueOnce(undefined);
     const captured: CapturedLog[] = [];
     const app = buildApp({ captured, commerceWebhookEnabled: true, revenuecatEnabled: true });
     await app.ready();
