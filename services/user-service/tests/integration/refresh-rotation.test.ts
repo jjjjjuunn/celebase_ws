@@ -64,13 +64,42 @@ async function makeRefreshToken(
 
 // Pool mock: performRotation uses pool.connect() for the rotation transaction.
 // Mocked PoolClient handles BEGIN/COMMIT/ROLLBACK transparently.
-const mockClientQuery = jest.fn<() => Promise<pg.QueryResult>>().mockResolvedValue({
-  rows: [],
-  rowCount: 0,
-  command: '',
-  oid: 0,
-  fields: [],
-} as pg.QueryResult);
+//
+// IMPL-MOBILE-AUTH-003: performRotation now reads the users row inside the tx
+// to gate ACCOUNT_DELETED. The default implementation here returns a live user
+// (deleted_at = null) for any `SELECT * FROM users` query so existing tests
+// keep their happy-path semantics. Tests that exercise ACCOUNT_DELETED or
+// "user row missing" override mockClientQuery with a per-case impl.
+const liveUserRow = {
+  id: 'user-default',
+  email: 'test@example.com',
+  cognito_sub: 'dev-sub',
+  display_name: 'Test User',
+  deleted_at: null,
+  created_at: new Date(),
+  updated_at: new Date(),
+};
+
+function makeQueryResult(rows: unknown[] = []): pg.QueryResult {
+  return {
+    rows,
+    rowCount: rows.length,
+    command: '',
+    oid: 0,
+    fields: [],
+  } as pg.QueryResult;
+}
+
+function defaultClientQueryImpl(sql: unknown): Promise<pg.QueryResult> {
+  if (typeof sql === 'string' && sql.startsWith('SELECT * FROM users')) {
+    return Promise.resolve(makeQueryResult([liveUserRow]));
+  }
+  return Promise.resolve(makeQueryResult([]));
+}
+
+const mockClientQuery = jest.fn<(sql: unknown) => Promise<pg.QueryResult>>(
+  defaultClientQueryImpl,
+);
 const mockRelease = jest.fn<(err?: Error | undefined) => void>();
 const mockClient = {
   query: mockClientQuery,
@@ -114,6 +143,25 @@ async function buildApp(captured: CapturedLog[]): Promise<FastifyInstance> {
     allowList: (_req, _key) => process.env['NODE_ENV'] === 'test',
   });
 
+  // Mirror packages/service-core/src/app.ts:44 — production wraps AppError into
+  // `{error: {code, message, details, requestId}}`. Replicating it here keeps
+  // envelope assertions consistent with what mobile clients see in prod.
+  const { AppError } = await import('@celebbase/service-core');
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof AppError) {
+      void reply.status(error.statusCode).send({
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          requestId: request.id,
+        },
+      });
+      return;
+    }
+    void reply.send(error);
+  });
+
   const provider = new DevAuthProvider();
   await app.register(authRoutes, { pool: mockPool, authProvider: provider });
   return app;
@@ -128,13 +176,7 @@ describe('POST /auth/refresh — Phase C rotation', () => {
     jest.resetAllMocks();
     mockInsert.mockResolvedValue(undefined);
     mockRevokeAllByUser.mockResolvedValue(0);
-    mockClientQuery.mockResolvedValue({
-      rows: [],
-      rowCount: 0,
-      command: '',
-      oid: 0,
-      fields: [],
-    } as pg.QueryResult);
+    mockClientQuery.mockImplementation(defaultClientQueryImpl);
     mockConnectFn.mockResolvedValue(mockClient);
   });
 
@@ -299,5 +341,279 @@ describe('POST /auth/refresh — Phase C rotation', () => {
     });
 
     expect(res.statusCode).toBe(400);
+  });
+});
+
+// IMPL-MOBILE-AUTH-003 (Plan v5 §59) — `/auth/refresh` 응답 envelope `error.code`
+// 가 5종 enum 으로 분기되는지 검증. mobile state machine 의 source of truth.
+describe('POST /auth/refresh — IMPL-MOBILE-AUTH-003 envelope reason codes', () => {
+  let captured: CapturedLog[];
+  let app: FastifyInstance;
+
+  beforeEach(() => {
+    captured = [];
+    jest.resetAllMocks();
+    mockInsert.mockResolvedValue(undefined);
+    mockRevokeAllByUser.mockResolvedValue(0);
+    mockClientQuery.mockImplementation(defaultClientQueryImpl);
+    mockConnectFn.mockResolvedValue(mockClient);
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  function readEnvelope(body: string): {
+    code: string;
+    message: string;
+    requestId: string;
+  } {
+    const parsed = JSON.parse(body) as {
+      error: { code: string; message: string; requestId: string };
+    };
+    return parsed.error;
+  }
+
+  it('MALFORMED — JWT signature 위조 시 envelope code=MALFORMED', async () => {
+    const wrongSecret = new TextEncoder().encode(
+      'wrong-secret-32-chars-padding!!!',
+    );
+    const forged = await new SignJWT({
+      sub: 'user-forged',
+      email: 't@e.com',
+      cognito_sub: 'dev-sub',
+      token_use: 'refresh',
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .setIssuer('celebbase-internal')
+      .setJti('jti-forged')
+      .sign(wrongSecret);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: forged },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('MALFORMED');
+  });
+
+  it('MALFORMED — token_use !== "refresh" → envelope code=MALFORMED', async () => {
+    const accessToken = await new SignJWT({
+      sub: 'user-x',
+      email: 't@e.com',
+      cognito_sub: 'dev-sub',
+      token_use: 'access', // ← refresh 가 아님
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('15m')
+      .setIssuer('celebbase-internal')
+      .setJti('jti-access')
+      .sign(TEST_SECRET);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: accessToken },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('MALFORMED');
+  });
+
+  it('REFRESH_EXPIRED_OR_MISSING — jose JWTExpired → envelope code=REFRESH_EXPIRED_OR_MISSING', async () => {
+    // 60초 전에 만료된 토큰
+    const expiredToken = await new SignJWT({
+      sub: 'user-expired-jwt',
+      email: 't@e.com',
+      cognito_sub: 'dev-sub',
+      token_use: 'refresh',
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt(Math.floor(Date.now() / 1000) - 3600)
+      .setExpirationTime(Math.floor(Date.now() / 1000) - 60)
+      .setIssuer('celebbase-internal')
+      .setJti('jti-expired-jwt')
+      .sign(TEST_SECRET);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: expiredToken },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('REFRESH_EXPIRED_OR_MISSING');
+  });
+
+  it('REFRESH_EXPIRED_OR_MISSING — DB meta 부재 → envelope code=REFRESH_EXPIRED_OR_MISSING', async () => {
+    const { token: rt } = await makeRefreshToken('user-meta-missing');
+    mockRevokeForRotation.mockResolvedValue(false);
+    mockFindMetadata.mockResolvedValue(null);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('REFRESH_EXPIRED_OR_MISSING');
+    expect(mockRevokeAllByUser).not.toHaveBeenCalled();
+  });
+
+  it('TOKEN_REUSE_DETECTED — revokedReason=rotated → envelope code=TOKEN_REUSE_DETECTED + revokeAllByUser 호출', async () => {
+    const { token: rt } = await makeRefreshToken('user-reuse-envelope');
+    mockRevokeForRotation.mockResolvedValue(false);
+    mockFindMetadata.mockResolvedValue({
+      revokedReason: 'rotated',
+      expiresAt: new Date(Date.now() + 86400_000),
+    });
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('TOKEN_REUSE_DETECTED');
+    expect(mockRevokeAllByUser).toHaveBeenCalledWith(
+      mockPool,
+      expect.objectContaining({ reason: 'reuse_detected' }),
+    );
+  });
+
+  it('REFRESH_REVOKED — revokedReason=logout → envelope code=REFRESH_REVOKED', async () => {
+    const { token: rt } = await makeRefreshToken('user-logout-envelope');
+    mockRevokeForRotation.mockResolvedValue(false);
+    mockFindMetadata.mockResolvedValue({
+      revokedReason: 'logout',
+      expiresAt: new Date(Date.now() + 86400_000),
+    });
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('REFRESH_REVOKED');
+    expect(mockRevokeAllByUser).not.toHaveBeenCalled();
+  });
+
+  it('ACCOUNT_DELETED — users.deleted_at IS NOT NULL → envelope code=ACCOUNT_DELETED', async () => {
+    const { token: rt } = await makeRefreshToken('user-deleted');
+    mockClientQuery.mockImplementation((sql) => {
+      if (typeof sql === 'string' && sql.startsWith('SELECT * FROM users')) {
+        return Promise.resolve(
+          makeQueryResult([{ ...liveUserRow, deleted_at: new Date() }]),
+        );
+      }
+      return Promise.resolve(makeQueryResult([]));
+    });
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('ACCOUNT_DELETED');
+    // ROLLBACK 이후 issueInternalTokens 가 호출되지 않으므로 refreshTokenRepo.insert 도 미호출
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockRevokeForRotation).not.toHaveBeenCalled();
+  });
+
+  it('MALFORMED — user row 부재 시 envelope code=MALFORMED (token sub 가 DB 에 없음)', async () => {
+    const { token: rt } = await makeRefreshToken('user-ghost');
+    mockClientQuery.mockImplementation((sql) => {
+      if (typeof sql === 'string' && sql.startsWith('SELECT * FROM users')) {
+        return Promise.resolve(makeQueryResult([])); // ← user row 없음
+      }
+      return Promise.resolve(makeQueryResult([]));
+    });
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(readEnvelope(res.body).code).toBe('MALFORMED');
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('envelope 의 requestId 가 모든 케이스에서 string', async () => {
+    const wrongSecret = new TextEncoder().encode(
+      'another-wrong-secret-32-chars!!!',
+    );
+    const forged = await new SignJWT({
+      sub: 'user-req-id',
+      email: 't@e.com',
+      cognito_sub: 'dev-sub',
+      token_use: 'refresh',
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .setIssuer('celebbase-internal')
+      .setJti('jti-rid')
+      .sign(wrongSecret);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: forged },
+    });
+
+    expect(res.statusCode).toBe(401);
+    const env = readEnvelope(res.body);
+    expect(env.code).toBe('MALFORMED');
+    expect(typeof env.requestId).toBe('string');
+    expect(env.requestId.length).toBeGreaterThan(0);
   });
 });

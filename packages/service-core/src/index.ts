@@ -7,6 +7,11 @@ export {
   ForbiddenError,
   AuditFailureError,
   SubscriptionRequiredError,
+  RefreshExpiredOrMissingError,
+  TokenReuseDetectedError,
+  RefreshRevokedError,
+  MalformedRefreshError,
+  AccountDeletedError,
 } from './errors.js';
 export { BaseConfigSchema, type BaseConfig } from './config.js';
 export { createLogger } from './logger.js';
