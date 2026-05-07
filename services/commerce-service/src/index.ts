@@ -4,6 +4,8 @@ import { EnvSchema } from './env.js';
 import type { StripeConfig } from './services/subscription.service.js';
 import { createUserServiceClient } from './services/user-service.client.js';
 import { webhooksRoutes } from './routes/webhooks.routes.js';
+import { internalSubscriptionsRoutes } from './routes/internal-subscriptions.routes.js';
+import { registerInternalJwtAuth } from './middleware/internal-jwt.js';
 import { RevenuecatAdapter } from './adapters/revenuecat.adapter.js';
 import type { RevenuecatSyncConfig } from './services/revenuecat-sync.service.js';
 
@@ -13,9 +15,15 @@ const start = async (): Promise<void> => {
 
   const app = await createApp({ serviceName: 'commerce-service' });
 
+  // External JWT guard skips webhooks (signature-verified) and /internal/* (guarded
+  // by registerInternalJwtAuth instead with audience = commerce-service:internal).
   registerJwtAuth(app, {
-    publicPaths: ['/webhooks/stripe', '/webhooks/revenuecat'],
+    publicPaths: ['/webhooks/stripe', '/webhooks/revenuecat', '/internal/*'],
   });
+
+  // Internal JWT guard — strict iss/aud/jti validation for /internal/* routes.
+  // BFF -> commerce-service pull-sync uses this audience.
+  registerInternalJwtAuth(app);
 
   // Build StripeConfig only when feature is enabled — superRefine guarantees fields are present.
   let stripeConfig: StripeConfig | undefined;
@@ -64,6 +72,17 @@ const start = async (): Promise<void> => {
     ...(revenuecatConfig !== undefined ? { revenuecatConfig } : {}),
     ...(revenuecatAdapter !== undefined ? { revenuecatAdapter } : {}),
   });
+
+  // Internal pull-sync route — only available when RevenueCat is enabled
+  // (otherwise no adapter to call).
+  if (revenuecatConfig !== undefined && revenuecatAdapter !== undefined) {
+    await app.register(internalSubscriptionsRoutes, {
+      pool,
+      revenuecatConfig,
+      revenuecatAdapter,
+      userClient,
+    });
+  }
 
   // Deep readiness probe — verifies all external dependencies are reachable.
   app.get('/ready', async (_request, reply) => {

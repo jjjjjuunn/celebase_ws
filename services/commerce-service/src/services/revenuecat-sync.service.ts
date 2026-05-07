@@ -136,6 +136,149 @@ interface HandleWebhookEventDeps {
   log: FastifyBaseLogger;
 }
 
+export type SyncSource = 'purchase' | 'app_open' | 'manual';
+
+export interface SyncFromRevenuecatDeps {
+  pool: pg.Pool;
+  config: RevenuecatSyncConfig;
+  userClient: UserServiceClient;
+  adapter: RevenuecatAdapter;
+  log: FastifyBaseLogger;
+}
+
+export interface SyncFromRevenuecatParams {
+  userId: string;
+  source: SyncSource;
+}
+
+export interface SyncFromRevenuecatResult {
+  user_id: string;
+  tier: UserTier;
+  status: SubscriptionStatus | 'free';
+  current_period_end: string | null;
+  source: SyncSource;
+}
+
+/**
+ * Pull-style sync: client (mobile) calls BFF → BFF → this internal handler.
+ * RevenueCat REST API 를 직접 조회하여 entitlement → tier 도출 후
+ * `subscriptions` upsert + user-service `tier` 동기화.
+ *
+ * webhook 의 handleWebhookEvent 와의 차이:
+ * - event_id 가 없음 → idempotency key 는 `${userId}:${tier}:sync:${period_end_ms}`
+ *   형태로 구성 (period_end 가 같으면 동일 sync 상태 → 자연 idempotent)
+ * - eventType 분기 없음 → INITIAL_PURCHASE 와 동일하게 처리 (active → active)
+ */
+export async function syncFromRevenuecat(
+  deps: SyncFromRevenuecatDeps,
+  params: SyncFromRevenuecatParams,
+): Promise<SyncFromRevenuecatResult> {
+  const { pool, config, userClient, adapter, log } = deps;
+  const { userId, source } = params;
+
+  const snapshot = await adapter.getSubscriber(userId);
+
+  let resolved = selectActiveKnownEntitlement(snapshot, config.productTierMap);
+  if (resolved == null) {
+    resolved = selectMostRecentEntitlement(snapshot);
+  }
+
+  if (resolved == null) {
+    // No entitlement at all — sync to free.
+    const idempotencyKey = `${userId}:free:sync:0`;
+    await userClient.syncTier(userId, 'free', { idempotencyKey });
+    log.info(
+      { user_id: userId, tier: 'free', source },
+      'revenuecat.sync.no-entitlement',
+    );
+    return { user_id: userId, tier: 'free', status: 'free', current_period_end: null, source };
+  }
+
+  const subTier = mapRevenuecatProductToTier(
+    resolved.entitlement.product_identifier,
+    config.productTierMap,
+  );
+
+  if (subTier == null) {
+    // Unknown product (revenuecat dashboard config drift) — sync to free.
+    log.warn(
+      { user_id: userId, product_identifier: resolved.entitlement.product_identifier, source },
+      'revenuecat.sync.unknown-product',
+    );
+    const idempotencyKey = `${userId}:free:sync:0`;
+    await userClient.syncTier(userId, 'free', { idempotencyKey });
+    return { user_id: userId, tier: 'free', status: 'free', current_period_end: null, source };
+  }
+
+  // Pull-sync 는 webhook eventType 가 없음. INITIAL_PURCHASE 로 분류 — 활성 entitlement 면
+  // active, expires_date 가 과거면 expired, 그 외 자체 분기.
+  const status = deriveStatusFromEntitlement(resolved.entitlement, 'INITIAL_PURCHASE');
+  const userTier = deriveUserTier(status, subTier);
+
+  const currentPeriodStart = (() => {
+    const ms = Date.parse(resolved.entitlement.purchase_date);
+    return Number.isFinite(ms) ? new Date(ms) : null;
+  })();
+  const currentPeriodEnd =
+    resolved.entitlement.expires_date != null
+      ? (() => {
+          const ms = Date.parse(resolved.entitlement.expires_date);
+          return Number.isFinite(ms) ? new Date(ms) : null;
+        })()
+      : null;
+
+  const revenuecatSubscriptionId = `${userId}:${resolved.entitlement.product_identifier}`;
+
+  await upsertRevenuecatSubscription(pool, {
+    userId,
+    revenuecatSubscriptionId,
+    revenuecatAppUserId: userId,
+    tier: subTier,
+    status,
+    currentPeriodStart,
+    currentPeriodEnd,
+    cancelAtPeriodEnd:
+      resolved.entitlement.unsubscribe_detected_at != null && status === 'active',
+  });
+
+  // Idempotency key: period_end_ms 포함 → 갱신될 때만 user-service updateTier 적용,
+  // 동일 sync 상태 재호출은 user-service 가 409 DUPLICATE_REQUEST 로 skip.
+  const periodEndMs = currentPeriodEnd != null ? currentPeriodEnd.getTime() : 0;
+  const idempotencyKey = `${userId}:${userTier}:sync:${String(periodEndMs)}`;
+
+  try {
+    await userClient.syncTier(userId, userTier, { idempotencyKey });
+  } catch (err) {
+    // user-service 의 409 DUPLICATE_REQUEST 는 정상 idempotent skip — InternalClientError 로
+    // 래핑되어 throw 됨. 메시지로 분기.
+    const msg = err instanceof Error ? err.message : '';
+    if (!msg.includes('409')) throw err;
+    log.debug(
+      { user_id: userId, tier: userTier, idempotency_key: idempotencyKey },
+      'revenuecat.sync.tier-already-synced',
+    );
+  }
+
+  log.info(
+    {
+      user_id: userId,
+      sub_tier: subTier,
+      user_tier: userTier,
+      status,
+      source,
+    },
+    'revenuecat.sync.synced',
+  );
+
+  return {
+    user_id: userId,
+    tier: userTier,
+    status,
+    current_period_end: currentPeriodEnd != null ? currentPeriodEnd.toISOString() : null,
+    source,
+  };
+}
+
 export async function handleWebhookEvent(deps: HandleWebhookEventDeps): Promise<void> {
   const { pool, payload, config, userClient, adapter, log } = deps;
   const appUserId = payload.app_user_id;
