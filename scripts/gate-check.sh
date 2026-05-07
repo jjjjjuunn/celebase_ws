@@ -7,7 +7,7 @@
 #
 # Checks: typecheck, lint, python_lint, test, policy, secrets, sql_schema,
 #          service_boundary, phi_audit, migration_freshness,
-#          fe_token_hardcode, fe_slice_smoke, fe_axe, all
+#          fe_token_hardcode, fe_slice_smoke, fe_axe, spec_sync, all
 
 set -euo pipefail
 
@@ -875,6 +875,93 @@ check_fe_be_probe() {
   RESULTS+=("{\"name\":\"fe_be_probe\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
 }
 
+# MOBILE PIVOT spec sync gate (PIVOT-MOBILE-2026-05~):
+# enforces .claude/rules/spec-dod.md "MOBILE PIVOT spec sync 의무".
+# Pass when:
+#   (a) current branch / recent commits do NOT match IMPL-MOBILE-* / INFRA-MOBILE-* /
+#       CHORE-MOBILE-* / SPEC-SYNC-* — gate is N/A, return passed:true SKIP.
+#   (b) match found AND spec.md has >=3 lines changed vs origin/main (or main).
+#   (c) match found AND pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md exists.
+# Fail otherwise. Emits machine-readable JSON.
+check_spec_sync() {
+  cd "$WORK_DIR"
+
+  # Determine diff base
+  local base=""
+  if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    base="origin/main"
+  elif git rev-parse --verify main >/dev/null 2>&1; then
+    base="main"
+  else
+    base="HEAD~1"
+  fi
+
+  # Detect TASK-ID from branch name + recent commit messages.
+  # Patterns: IMPL-MOBILE-<rest>, INFRA-MOBILE-<rest>, CHORE-MOBILE-<rest>, SPEC-SYNC-<rest>
+  local pattern='(IMPL-MOBILE|INFRA-MOBILE|CHORE-MOBILE|SPEC-SYNC)-[A-Za-z0-9_-]+'
+  local task_ids=""
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ "$branch" =~ $pattern ]]; then
+    task_ids="${BASH_REMATCH[0]}"
+  fi
+  # Also scan commit subjects since base
+  local commit_subjects
+  commit_subjects=$(git log --format='%s' "${base}...HEAD" 2>/dev/null || true)
+  while IFS= read -r line; do
+    if [[ "$line" =~ $pattern ]]; then
+      local tid="${BASH_REMATCH[0]}"
+      if [[ -z "$task_ids" ]]; then
+        task_ids="$tid"
+      elif [[ "$task_ids" != *"$tid"* ]]; then
+        task_ids="$task_ids,$tid"
+      fi
+    fi
+  done <<< "$commit_subjects"
+
+  if [[ -z "$task_ids" ]]; then
+    RESULTS+=('{"name":"spec_sync","passed":true,"exit_code":0,"output":"SKIP: no IMPL-MOBILE-* / INFRA-MOBILE-* / CHORE-MOBILE-* / SPEC-SYNC-* task ID detected in branch or commits"}')
+    return
+  fi
+
+  # Check spec.md diff size
+  local spec_diff_lines
+  spec_diff_lines=$(git diff "${base}...HEAD" -- spec.md 2>/dev/null | grep -cE '^[+-][^+-]' || echo 0)
+  spec_diff_lines=$(echo "$spec_diff_lines" | tr -d '[:space:]')
+  [[ -z "$spec_diff_lines" ]] && spec_diff_lines=0
+
+  # Check for deferral markers — any task ID in detected list
+  local defer_found=""
+  IFS=',' read -ra task_arr <<< "$task_ids"
+  for tid in "${task_arr[@]}"; do
+    local marker="pipeline/runs/${tid}/SPEC-SYNC-DEFER.md"
+    if [[ -f "$marker" ]]; then
+      defer_found="$marker"
+      break
+    fi
+  done
+
+  local passed="true"
+  local exit_code=0
+  local output=""
+
+  if [[ "$spec_diff_lines" -ge 3 ]]; then
+    output="PASS: ${task_ids} — spec.md changed (${spec_diff_lines} lines vs ${base})"
+  elif [[ -n "$defer_found" ]]; then
+    output="PASS: ${task_ids} — deferral marker present (${defer_found})"
+  else
+    passed="false"
+    exit_code=1
+    OVERALL_PASS=false
+    output="FAIL: ${task_ids} requires spec.md sync (>=3 lines vs ${base}) OR pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md. See .claude/rules/spec-dod.md and docs/SPEC-PIVOT-PLAN.md"
+  fi
+
+  local truncated
+  truncated=$(printf '%s' "$output" | head -c 500 | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n' ' ')
+
+  RESULTS+=("{\"name\":\"spec_sync\",\"passed\":$passed,\"exit_code\":$exit_code,\"output\":\"$truncated\"}")
+}
+
 # Plan 20-vast-adleman · Phase D-0 gate (H3): validate Instacart credentials
 # + allowlist posture before any /api/instacart/* route can run against prod.
 # Passes when:
@@ -982,6 +1069,9 @@ case "$CHECK" in
   instacart_cred)
     check_instacart_cred
     ;;
+  spec_sync)
+    check_spec_sync
+    ;;
   all)
     run_check "typecheck" "pnpm turbo run typecheck --force"
     run_check "lint" "pnpm turbo run lint --force"
@@ -997,6 +1087,7 @@ case "$CHECK" in
     check_migration_freshness
     check_fe_token_hardcode
     check_fe_axe
+    check_spec_sync
     # fe_slice_smoke is not run in 'all' — it boots a dev server. Invoke explicitly:
     #   scripts/gate-check.sh fe_slice_smoke
     # fe_bff_compliance / fe_bff_smoke / fe_contract_check are also out of 'all':
@@ -1005,7 +1096,7 @@ case "$CHECK" in
     ;;
   *)
     echo "Unknown check: $CHECK" >&2
-    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, instacart_cred, all" >&2
+    echo "Available: typecheck, lint, python_lint, test, policy, secrets, sql_schema, service_boundary, phi_audit, migration_freshness, fe_token_hardcode, fe_slice_smoke, fe_axe, fe_bff_compliance, fe_bff_smoke, fe_contract_check, fe_be_probe, instacart_cred, spec_sync, all" >&2
     exit 1
     ;;
 esac

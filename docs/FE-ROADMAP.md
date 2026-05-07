@@ -1,7 +1,8 @@
 # CelebBase Wellness — Frontend Roadmap
 
 > **⚠ ARCHIVED 2026-05-07 — superseded by `docs/MOBILE-ROADMAP.md`**  
-> 본 문서는 PIVOT-MOBILE-2026-05 이전 web-first 시점의 north star. 본문은 historical record 로 보존하되 **새로운 결정/계획의 근거로 인용 X**. `apps/web` 은 frozen, 운영 채널은 모바일 (Expo / React Native) 단독.  
+> 본 문서는 PIVOT-MOBILE-2026-05 이전 web-first 시점의 north star. 본문은 historical record 로 보존하되 **새로운 결정/계획의 근거로 인용 X**.  
+> Frozen 범위: `apps/web/src/app/(app|auth|marketing|slice)/**` (SSR pages) + `apps/web/src/components/**` + `packages/ui-kit/**`. **BFF (`apps/web/src/app/api/**`) 와 server lib (`apps/web/src/lib/server/**`) 은 모바일의 active gateway 로 살아 있다** (Plan v5 hybrid BFF — IMPL-MOBILE-BFF-001 / SUB-SYNC-002).  
 > 모바일 트랙 north-star: `docs/MOBILE-ROADMAP.md`. 운영 sprint 분해는 Plan v5.
 
 > North-star planning document. Complements `spec.md` and per-sprint `IMPL-APP-*` plans.

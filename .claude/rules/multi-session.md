@@ -12,15 +12,15 @@ paths:
 
 세션은 도메인 경계를 따라 분리한다. 한 세션 = 한 도메인 = 한 활성 TASK-ID:
 
-> **PIVOT-MOBILE-2026-05 갱신**: active client 가 `apps/mobile` (Expo / RN) 단독으로 전환됨. `apps/web` + `packages/ui-kit` 은 frozen. owner 매핑은 `CLAUDE.md` §1.1 참조.
+> **PIVOT-MOBILE-2026-05 갱신**: active client 가 `apps/mobile` (Expo / RN) 단독으로 전환됨. `apps/web` 의 **SSR/pages/components 만 frozen**, BFF (`apps/web/src/app/api/**`) + server lib (`apps/web/src/lib/server/**`) 은 모바일 의 **active gateway** 로 살아 있다 (Plan v5 IMPL-MOBILE-BFF-001 / SUB-SYNC-002 의존). owner 매핑은 `CLAUDE.md` §1.1 참조.
 
 | 세션 | 주 디렉토리 | 금지 영역 |
 |------|------------|----------|
 | **FE-Mobile** (Dohyun) | `apps/mobile/**` (Expo / RN), `packages/design-tokens/**` (CSS 변수 + RN 익스포트 빌드 타겟) | `services/**`, `db/migrations/**`, `infra/**`, `apps/web/**`, `packages/ui-kit/**` |
 | **BE** (JUNWON) | `services/**/src/**`, `services/**/tests/**`, `db/migrations/**`, `infra/**` | `apps/mobile/**`, `packages/design-tokens/**` 의 RN 익스포트 |
-| **BFF** (JUNWON, web 잔존만) | `apps/web/src/app/api/**`, `apps/web/src/lib/server/**` | `services/**` 내부 로직, mobile 클라이언트 — **새 BFF 라우트 추가 금지** (모바일은 BE 직접 호출) |
+| **BFF** (JUNWON, mobile gateway active) | `apps/web/src/app/api/**`, `apps/web/src/lib/server/**` | `services/**` 내부 로직, mobile 클라이언트 — **mobile-driven 신규 BFF 라우트 추가 OK** (예: `POST /api/subscriptions/sync`). cookie path 는 web 호환 유지, bearer path 는 mobile 전용 (`createProtectedRoute` Bearer fallback). `/auth/refresh` 는 cookie-shaped 이라 mobile 이 user-service 직접 호출 (BFF 미사용 예외). |
 | **공통 (모든 세션)** | `packages/shared-types/**` — **단 한 세션이 hold 후 머지** | 다른 세션은 동시 수정 금지 |
-| **Frozen (new dev 금지)** | `apps/web/src/**` (단 `app/api/**` 제외 — BFF 잔존 유지보수), `packages/ui-kit/**` | 어느 세션도 새 기능 추가 X. 보안·deps 패치만 BE owner (JUNWON) 처리 |
+| **Frozen (new dev 금지)** | `apps/web/src/app/(app|auth|marketing|slice)/**`, `apps/web/src/components/**`, `packages/ui-kit/**` | 어느 세션도 새 기능 추가 X. 보안·deps 패치만 BE owner (JUNWON) 처리. **BFF (`apps/web/src/app/api/**`) 와 server lib (`apps/web/src/lib/server/**`) 는 frozen 아님** — mobile gateway 로 active. |
 
 세션이 자기 영역을 벗어나야 하면 작업을 분할하거나, 다른 세션과 합의 후 진입한다.
 
@@ -75,9 +75,11 @@ scripts/session-start.sh <SESSION_ROLE> <TASK-ID>
 
 ## 6. BFF 진입 타이밍
 
-> **PIVOT-MOBILE-2026-05 갱신**: 모바일 (`apps/mobile`) 은 BE 서비스 직접 호출 (BFF 우회). web BFF 는 frozen 상태로 유지보수만 — **새 BFF 라우트 추가 금지**. 본 절은 web 활성 시점 (PIVOT 이전) 의 운영 가이드로 보존하며, 향후 모바일 cross-cutting 요구사항 (push 토큰 등록·영수증 검증·device rate limit) 누적 시 별도 `mobile-bff` 도입을 재논의한다.
+> **PIVOT-MOBILE-2026-05 갱신 (hybrid BFF)**: 모바일 (`apps/mobile`) 은 web BFF 를 **재사용** — `createProtectedRoute` 가 cookie 와 `Authorization: Bearer` 둘 다 인식 (Plan v5 IMPL-MOBILE-BFF-001). cookie path = web (그대로 유지), bearer path = mobile (신규). 새 mobile-driven BFF 라우트 추가 OK (예: SUB-SYNC-002 `POST /api/subscriptions/sync`). **유일 예외**: `/auth/refresh` 는 BFF 라우트가 cookie-shaped (JSON 토큰 미반환) 이라 mobile 이 user-service `/auth/refresh` 를 직접 호출.
 
-(web 활성 시점 가이드)
+본 절 본문은 PIVOT 이전 (web-only 시절) 의 BFF "마지막 진입" 운영 가이드 — mobile hybrid BFF 시점에는 **BE 서비스의 mobile-facing endpoint 가 안정화된 직후 BFF route 가 같이 따라가는** 패턴이 더 자주 발생한다 (예: SUB-SYNC-001 internal endpoint 머지 → SUB-SYNC-002 BFF 라우트 추가). 아래 가이드는 신규 web 페이지가 추가되는 (재활성화) 시점에만 그대로 적용.
+
+(web 활성 시점 / 신규 web 페이지 추가 시 가이드)
 
 BFF 는 BE/FE 양쪽에 의존하므로 일반적으로 **마지막에 진입**:
 

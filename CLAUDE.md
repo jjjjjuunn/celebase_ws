@@ -12,20 +12,22 @@
 - **Monorepo**: pnpm workspaces + Turborepo
 - **Languages**: TypeScript (services, clients), Python (AI engine only)
 - **Active client (PIVOT-MOBILE-2026-05)**: `apps/mobile` — Expo / React Native (iOS + Android). 단일 코드베이스로 App Store + Play Store 양쪽 출시.
-- **Frozen client**: `apps/web` (Next.js) — 운영 중단. 자산만 보존 (admin·marketing 재활용 후보). 새 기능 추가 금지.
-- **Mobile architecture**: 모바일 → BE 서비스 직접 호출 (BFF 우회). Cognito SRP → user-service internal JWT 교환 흐름 사용. Next.js BFF (`apps/web/src/app/api/**`) 는 모바일에서 재사용하지 않음.
+- **Partially frozen client**: `apps/web` (Next.js) — SSR pages/components/route groups 만 frozen. **BFF (`apps/web/src/app/api/**`) + server lib (`apps/web/src/lib/server/**`) 는 모바일의 active gateway** 로 살아 있다.
+- **Mobile architecture (hybrid BFF)**: mobile → BFF (`createProtectedRoute` cookie + `Authorization: Bearer` fallback) → BE 서비스. **예외**: `/auth/refresh` 는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 직접 호출. 그 외 path 는 BFF 경유 (mobile-driven 신규 라우트 추가 OK — Plan v5 IMPL-MOBILE-BFF-001 / SUB-SYNC-002). Cognito SRP (Amplify) → id_token → user-service `/auth/signup`·`/auth/login` 으로 internal JWT 교환.
 
 ### 1.1 Ownership (2026-05~)
 
 | Domain | Owner | Areas |
 |--------|-------|-------|
-| BE + 잔존 BFF | **JUNWON** | `services/**`, `apps/web/src/app/api/**`, `apps/web/src/lib/server/**`, `db/migrations/**`, `infra/**` |
+| BE + active mobile-gateway BFF + infra | **JUNWON** | `services/**`, `apps/web/src/app/api/**` (BFF, mobile gateway active), `apps/web/src/lib/server/**`, `db/migrations/**`, `infra/**` |
 | FE (mobile) | **Dohyun** | `apps/mobile/**` (Expo / RN), `packages/design-tokens/**` (CSS 변수 + RN 익스포트 빌드 타겟) |
 | 공통 계약 | hold-then-merge | `packages/shared-types/**` — 한 명이 hold 후 머지, 다른 owner 동시 수정 금지 (`.claude/rules/multi-session.md` §2) |
 
 **Frozen** (어느 owner 도 새 기능 추가 X — 보안·deps 패치만 JUNWON 처리):
-- `apps/web/src/**` (단, `app/api/**` BFF 라우트는 위 BE owner 가 잔존 유지보수)
+- `apps/web/src/app/(app|auth|marketing|slice)/**`, `apps/web/src/components/**` — Next.js SSR pages/components 만 frozen
 - `packages/ui-kit/**` — web React + CSS Modules 컴포넌트로 RN 호환 X. 모바일 컴포넌트는 `apps/mobile/src/components/**` 에서 RN primitive 로 새로 구현
+
+**Frozen 영역 외**: `apps/web/src/app/api/**` (BFF) + `apps/web/src/lib/server/**` 은 mobile 의 **active gateway** — JUNWON 이 mobile-driven 신규 라우트 추가 가능 (`createProtectedRoute` Bearer fallback path).
 
 ## 2. Absolute Rules (예외 없음, 위반 시 무조건 reject)
 
@@ -61,6 +63,8 @@
 | `.claude/rules/evaluator-runtime.md` | Evaluator 검증 순서, 브라우저 런타임 검증, 리포트 형식 |
 | `.claude/rules/spec-dod.md` | spec.md DoD 해석 규칙, 근거 유형, 3층 구조 |
 | `.claude/rules/multi-session.md` | FE/BE/BFF 다중 세션 협업 규칙, shared-types 계약, 48h 통합 룰 |
+| `docs/MOBILE-ROADMAP.md` | Active client (Expo / RN) roadmap — PIVOT-MOBILE-2026-05 이후 north-star (`docs/FE-ROADMAP.md` archived) |
+| `docs/SPEC-PIVOT-PLAN.md` | IMPL-MOBILE-* / INFRA-MOBILE-* task ↔ spec.md 갱신 섹션 매핑 트리거 레지스트리 |
 | `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
 | `services/commerce-service/docs/openapi.yaml` | commerce-service OpenAPI 3.1 스펙 (결제·구독·장바구니 경계, IMPL-016) |
 | `services/analytics-service/docs/openapi.yaml` | analytics-service OpenAPI 3.1 스펙 (daily-log CRUD·요약·reports, IMPL-017) |

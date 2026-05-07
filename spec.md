@@ -1,11 +1,12 @@
 # CelebBase Wellness — Technical Specification v1.5.0
 
 > **⚠ PIVOT-MOBILE-2026-05 BANNER (overrides spec body)**  
-> Active client = `apps/mobile` (Expo / React Native, iOS + Android). `apps/web` (Next.js) is **FROZEN** — no active dev. Where this spec body assumes web-first (project structure §11, BFF routes, Tab UX in §7, etc.), **mobile-first reality wins**. 본문 재작성은 별도 task 로 분리.  
+> Active client = `apps/mobile` (Expo / React Native, iOS + Android). `apps/web` SSR/pages/components 는 **FROZEN** (no active dev) — 단 `apps/web/src/app/api/**` (BFF) + `apps/web/src/lib/server/**` 은 **모바일의 active gateway** 로 살아 있다. Where this spec body assumes web-first (project structure §11, Tab UX in §7, etc.), **mobile-first reality wins**. 본문 재작성은 별도 task 로 분리 (`docs/SPEC-PIVOT-PLAN.md` 트리거 레지스트리 참조).  
 > - Active roadmap: `docs/MOBILE-ROADMAP.md` (`docs/FE-ROADMAP.md` archived)  
-> - Mobile architecture: 모바일 → BE 서비스 직접 호출 (BFF 우회). Cognito SRP → user-service internal JWT 교환  
-> - Web BFF (`apps/web/src/app/api/**`): frozen 상태로 유지보수만, 모바일 재사용 X  
-> - Ownership: JUNWON (BE + 잔존 BFF + infra), Dohyun (mobile FE)  
+> - **Mobile architecture (hybrid BFF)**: mobile → BFF (`createProtectedRoute` cookie + `Authorization: Bearer` fallback) → BE 서비스. **예외**: `/auth/refresh` 는 BFF 가 cookie-shaped (JSON 토큰 미반환) 이라 mobile 이 user-service 를 **직접 호출**. 그 외 모든 path 는 BFF 경유 (mobile-driven 신규 라우트 추가 OK — 예: `POST /api/subscriptions/sync`).  
+> - Cognito SRP (Amplify) → id_token → user-service `/auth/signup` or `/auth/login` → internal access/refresh JWT (Plan v5 §Decisions).  
+> - Frozen scope: `apps/web/src/app/(app|auth|marketing|slice)/**`, `apps/web/src/components/**`, `packages/ui-kit/**` 만 — BFF 와 server lib 는 active.  
+> - Ownership: JUNWON (BE + active mobile-gateway BFF + infra), Dohyun (mobile FE)  
 
 > **Status**: Draft  
 > **Last Updated**: 2026-05-03 (v1.5.0)  
@@ -17,7 +18,7 @@
 > **Changelog v1.2**: 영양 데이터 표준화, Two-Pass, PHI 최소화, 감사 로그, Materialized View, Instacart 배치  
 > **Changelog v1.1**: 실시간 트렌드 비전, Trend Intelligence Service, Instacart 에러 핸들링 확장  
 > **Architecture**: PGE (Planner-Generator-Evaluator) Harness  
-> **Target Platform** (PIVOT-MOBILE-2026-05): iOS / Android (Expo / React Native) — primary. Web (Next.js, `apps/web`) is **FROZEN** (preserved as reference; no active dev). See `docs/MOBILE-ROADMAP.md`.  
+> **Target Platform** (PIVOT-MOBILE-2026-05): iOS / Android (Expo / React Native) — primary. Web (Next.js, `apps/web`) SSR/pages 는 **FROZEN** — 단 `apps/web/src/app/api/**` (BFF) + `apps/web/src/lib/server/**` 은 모바일의 active gateway. See `docs/MOBILE-ROADMAP.md`.  
 > **Active client roadmap**: `docs/MOBILE-ROADMAP.md`. `docs/FE-ROADMAP.md` is archived.
 
 ---
