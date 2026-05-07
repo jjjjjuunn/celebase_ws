@@ -1874,6 +1874,17 @@ User selects celebrity diet
 - logout 라우트의 limiter 는 JWT verify 보다 먼저 실행 — token 정보 누설 방지를 위해 key 는 per-IP 로 한정. **구현 메커니즘**: `/auth/logout` 은 `registerJwtAuth` 의 `publicPaths` 목록에 포함되어 root-scope 외부 JWT onRequest hook 을 우회한다. 라우트 핸들러가 limiter 통과 후 `verifyInternalRefresh(body.refresh_token)` 으로 직접 검증하고 `userId = verified.sub` 로 도출 (Bearer access token 별도 불필요 — `/auth/refresh` 와 동일 모델). 이 순서가 깨지면 (e.g. /auth/logout 을 publicPaths 에서 빼면) 잘못된 토큰 spam 이 limiter bucket 에 카운트되지 않아 invalid-token DoS 방어가 무력화된다.
 - `NODE_ENV=test` allowList bypass 는 통합 테스트 회귀 보호 — production 에서는 절대 적용되지 않음.
 
+##### Per-route limiter ordering — 두 패턴 *(CHORE-AUTH-PUBLIC-PATHS-AUDIT)*
+
+신규 per-route rate-limit 도입 시 다음 두 패턴 중 하나로 명시 분류한다 (PR description 또는 라우트 주석). 혼용 금지 — 잘못된 패턴 선택은 DoS 방어 무력화 (logout-style 미적용) 또는 정상 사용자 분리 손실 (ws-ticket-style 미적용) 를 유발한다.
+
+| Pattern | 적용 조건 | 구현 |
+|---------|----------|------|
+| **A — limiter-first** (logout-style) | invalid-token spam 자체가 BE cost (signature verify, JWKS round-trip, audit log emit 등) → invalid-token DoS 방어 필수. token 자체가 인증 매개체인 경우 (refresh_token, signup, login, logout) | (1) 라우트를 `publicPaths` 에 추가 → root-scope JWT 가드 skip. (2) 라우트 핸들러에서 직접 token verify (limiter 통과 후). (3) limiter bucket key = **per-IP only** (token 정보 포함 시 enumeration 가능). 예: `/auth/{signup,login,refresh,logout}` |
+| **B — auth-first** (ws-ticket-style) | 인증된 사용자만 호출 가능 (token = user identity, abuse 패턴이 user 행동) | (1) 라우트를 `publicPaths` 에 **포함하지 않음** → root-scope JWT 먼저 실행. (2) 라우트 핸들러는 `request.userId` (middleware-set) 의존. (3) limiter `keyGenerator: (request) => request.userId` — per-user-id bucket 분리. 예: `/ws/ticket` (분당 10회 per user) |
+
+결정 트리: (1) "이 라우트는 인증된 사용자만 호출하는가?" — No → Pattern A. Yes → (2) "invalid token spam 이 의미 있는 BE cost?" — Yes → Pattern A, No → Pattern B. 자세한 audit 결과는 `pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md` 참조 — 2026-05-07 시점 commerce/content/analytics/meal-plan-engine 모두 per-route limiter 부재로 ordering bug 0건.
+
 #### Refresh Token Reason Codes — `/auth/refresh` 401 envelope *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003)*
 
 `POST /auth/refresh` (user-service) 는 401 응답의 `error.code` 를 다음 5종 enum 으로 분기한다 — mobile 클라이언트의 refresh 상태머신 source of truth. **BFF forward 보장 (CHORE-BFF-401-CONTRACT)**: `apps/web/src/app/api/_lib/bff-fetch.ts` 가 upstream 401 을 일반 status 처럼 `Result<T>.ok=false + upstream code` 로 반환한다 (이전 `SessionExpiredError` throw → `'TOKEN_EXPIRED'` 통일 동작은 폐기). 따라서 `POST /api/auth/refresh` 뿐 아니라 `POST /api/auth/mobile/{signup,login}` + 모든 protected BFF route 가 user-service envelope code 를 그대로 forward 한다 — mobile 의 5종 enum 분기와 web 클라이언트의 enum-aware 로직이 동일 source 를 본다.
