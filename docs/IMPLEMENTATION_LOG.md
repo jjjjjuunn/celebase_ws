@@ -4051,7 +4051,7 @@ verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review
 date: "2026-05-06"
 agent: claude-sonnet-4-6
 task_id: IMPL-MOBILE-SUB-SYNC-001
-commit_sha: PENDING
+commit_sha: 32c1c01
 files_changed:
   - services/commerce-service/src/adapters/revenuecat.adapter.ts
   - services/commerce-service/src/services/revenuecat-sync.service.ts
