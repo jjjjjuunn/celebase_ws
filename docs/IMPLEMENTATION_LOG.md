@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-PUBLIC-PATHS-AUDIT
-commit_sha: PENDING
+commit_sha: ffa78eb
 files_changed:
   - pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md
   - spec.md
