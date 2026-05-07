@@ -30,6 +30,29 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-002-fix1
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/internal-client.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (170/170 web jest PASS — 신규 PAYLOAD_TOO_LARGE case 1 + 기존 169 회귀, codex r1 HIGH+MEDIUM 2건 close)
+---
+### 완료: codex r1 finding 대응 — IMPL-MOBILE-SUB-SYNC-002-fix1 (HIGH `nbf` clock skew + MEDIUM 응답 크기 무제한)
+- **HIGH (`internal-client.ts:55-58`)**: BFF 가 mint 한 internal JWT 의 `setNotBefore(now)` claim 이 commerce/user-service `jwtVerify` 의 `clockTolerance` 부재와 결합되어 BFF↔commerce 시계 차이 (수백 ms) 만으로도 401 발생 가능. **fix**: `setNotBefore(now)` 제거 — `setIssuedAt + setExpirationTime(now+60s)` 만으로 충분. 토큰은 mint 직후 동기 사용이라 freshness window 가 명시 불필요.
+- **MEDIUM (`internal-client.ts:142-149`)**: `response.text()` 가 무제한 — 내부 서비스 이상 시 OOM 가능. **fix**: `MAX_RESPONSE_BYTES = 1MB` 가드 신설 (fetchBff 의 동일 패턴 — `bff-fetch.ts:71`). content-length 헤더 사전 차단 + .text() 후 byteLength 재검증 → 413 PAYLOAD_TOO_LARGE.
+- **신규 테스트**: "413 PAYLOAD_TOO_LARGE when upstream response > 1 MB (codex r1 MEDIUM)" — content-length 헤더 2MB 시뮬레이션 → 413 검증.
+- **검증**: 170/170 web jest PASS (신규 1 + 기존 169 회귀), typecheck PASS, lint PASS. internal-client.ts coverage 92.15% lines.
+
+### 미완료:
+- **codex r2 review**: PR push 후 finding 2건 close 검증.
+- **JUNWON Pre-work A/B/C 완료**: 본 fix 통과 후 머지 → Plan v5 Pre-work 모두 main 반영.
+
+### 연관 파일: apps/web/src/app/api/_lib/internal-client.ts, apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts, pipeline/runs/IMPL-MOBILE-SUB-SYNC-002/codex-review-r1.txt
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-SUB-SYNC-002
 commit_sha: 1ec201c
 files_changed:

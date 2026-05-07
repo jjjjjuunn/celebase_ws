@@ -215,6 +215,21 @@ describe('BFF integration — POST /api/subscriptions/sync', () => {
     expect(body.error.code).toBe('UPSTREAM_SCHEMA_MISMATCH');
   });
 
+  it('413 PAYLOAD_TOO_LARGE when upstream response > 1 MB (codex r1 MEDIUM)', async () => {
+    validSession();
+    // Synthesize content-length > 1 MB header. The actual body is small but
+    // the advisory header trips the guard before .text() is called.
+    fetchSpy.mockResolvedValueOnce(
+      upstreamResponse(HAPPY_RESPONSE, 200, { 'content-length': String(2 * 1024 * 1024) }),
+    );
+    const req = makeRequest({ cookie: 'valid-access', body: { source: 'purchase' } });
+    const res = await syncPOST(req);
+
+    expect(res.status).toBe(413);
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
+
   it('forwards upstream 401 envelope code unchanged (CHORE-BFF-401-CONTRACT)', async () => {
     validSession();
     fetchSpy.mockResolvedValueOnce(

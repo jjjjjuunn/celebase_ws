@@ -20,6 +20,10 @@ const log = createLogger('bff-internal-client');
 const DEFAULT_DEV_SECRET = 'dev-secret-not-for-prod';
 const DEFAULT_TIMEOUT_MS = 8_000;
 const INTERNAL_ISSUER = 'celebbase-internal';
+// Match fetchBff's defense (apps/web/src/app/api/_lib/bff-fetch.ts:71). Internal
+// services should never return > 1 MB; if they do, fail fast rather than
+// streaming the entire payload into memory.
+const MAX_RESPONSE_BYTES = 1 * 1024 * 1024;
 
 interface InternalCallOpts<T> {
   audience: string;
@@ -51,10 +55,13 @@ function getInternalSecret(): string {
 async function mintInternalToken(audience: string): Promise<string> {
   const secret = new TextEncoder().encode(getInternalSecret());
   const now = Math.floor(Date.now() / 1000);
+  // No setNotBefore: commerce-service / user-service jwtVerify does not pass
+  // clockTolerance, so even sub-second BFF↔commerce clock skew would 401 the
+  // request immediately. iat + exp are sufficient — the token is used
+  // synchronously after mint so the freshness window is implicit.
   return new SignJWT({})
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt(now)
-    .setNotBefore(now)
     .setExpirationTime(now + 60)
     .setIssuer(INTERNAL_ISSUER)
     .setAudience(audience)
@@ -139,7 +146,37 @@ export async function callInternal<T>(
     };
   }
 
+  // Defense: bound response size before reading. content-length header is
+  // advisory; even when missing, the byte count after .text() is checked.
+  const contentLength = response.headers.get('content-length');
+  if (
+    contentLength !== null &&
+    Number.parseInt(contentLength, 10) > MAX_RESPONSE_BYTES
+  ) {
+    return {
+      ok: false,
+      error: {
+        status: 413,
+        code: 'PAYLOAD_TOO_LARGE',
+        message: 'Upstream response exceeds 1 MB',
+        requestId,
+      },
+    };
+  }
+
   const rawText = await response.text().catch(() => '');
+  if (Buffer.byteLength(rawText, 'utf-8') > MAX_RESPONSE_BYTES) {
+    return {
+      ok: false,
+      error: {
+        status: 413,
+        code: 'PAYLOAD_TOO_LARGE',
+        message: 'Upstream response exceeds 1 MB',
+        requestId,
+      },
+    };
+  }
+
   let parsed: unknown = {};
   if (rawText.length > 0) {
     try {
