@@ -12,6 +12,10 @@ export const EnvSchema = z
     // Feature gates
     STRIPE_ENABLED: z.enum(['true', 'false']).default('false'),
     COMMERCE_WEBHOOK_ENABLED: z.enum(['true', 'false']).default('false'),
+    REVENUECAT_ENABLED: z.enum(['true', 'false']).default('false'),
+
+    // RevenueCat — required only when REVENUECAT_ENABLED=true
+    REVENUECAT_WEBHOOK_AUTH_TOKEN: z.string().optional(),
 
     // Stripe — required only when STRIPE_ENABLED=true
     STRIPE_SECRET_KEY: z.string().optional(),
@@ -78,6 +82,16 @@ export const EnvSchema = z
             path: [field],
           });
         }
+      }
+    }
+
+    if (env.REVENUECAT_ENABLED === 'true') {
+      if (!env.REVENUECAT_WEBHOOK_AUTH_TOKEN) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'REVENUECAT_WEBHOOK_AUTH_TOKEN is required when REVENUECAT_ENABLED=true',
+          path: ['REVENUECAT_WEBHOOK_AUTH_TOKEN'],
+        });
       }
     }
   });

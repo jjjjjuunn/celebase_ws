@@ -1,6 +1,9 @@
 import { createApp, createPool, registerJwtAuth } from '@celebbase/service-core';
 import Stripe from 'stripe';
 import { EnvSchema } from './env.js';
+import type { StripeConfig } from './services/subscription.service.js';
+import { createUserServiceClient } from './services/user-service.client.js';
+import { webhooksRoutes } from './routes/webhooks.routes.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -9,7 +12,38 @@ const start = async (): Promise<void> => {
   const app = await createApp({ serviceName: 'commerce-service' });
 
   registerJwtAuth(app, {
-    publicPaths: ['/webhooks/stripe'],
+    publicPaths: ['/webhooks/stripe', '/webhooks/revenuecat'],
+  });
+
+  // Build StripeConfig only when feature is enabled — superRefine guarantees fields are present.
+  let stripeConfig: StripeConfig | undefined;
+  if (env.STRIPE_ENABLED === 'true') {
+    stripeConfig = {
+      stripe: new Stripe(env.STRIPE_SECRET_KEY as string),
+      premiumPriceId: env.STRIPE_PREMIUM_PRICE_ID as string,
+      elitePriceId: env.STRIPE_ELITE_PRICE_ID as string,
+      webhookSecret: env.STRIPE_WEBHOOK_SECRET as string,
+      successUrl: env.STRIPE_SUCCESS_URL as string,
+      cancelUrl: env.STRIPE_CANCEL_URL as string,
+    };
+  }
+
+  const userClient = createUserServiceClient({
+    USER_SERVICE_URL: env.USER_SERVICE_URL,
+    INTERNAL_JWT_SECRET: env.INTERNAL_JWT_SECRET ?? 'dev-secret-not-for-prod',
+  });
+
+  const revenuecatConfig =
+    env.REVENUECAT_ENABLED === 'true' && env.REVENUECAT_WEBHOOK_AUTH_TOKEN
+      ? { enabled: true as const, authToken: env.REVENUECAT_WEBHOOK_AUTH_TOKEN }
+      : undefined;
+
+  await app.register(webhooksRoutes, {
+    pool,
+    ...(stripeConfig !== undefined ? { stripeConfig } : {}),
+    userClient,
+    commerceWebhookEnabled: env.COMMERCE_WEBHOOK_ENABLED === 'true',
+    ...(revenuecatConfig !== undefined ? { revenuecatConfig } : {}),
   });
 
   // Deep readiness probe — verifies all external dependencies are reachable.

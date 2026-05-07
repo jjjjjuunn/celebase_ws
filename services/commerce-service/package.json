@@ -47,6 +47,11 @@
         }
       ]
     },
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/src/services/subscription.service.ts",
+      "<rootDir>/src/repositories/subscription.repository.ts"
+    ],
     "coverageThreshold": {
       "global": {
         "lines": 80

@@ -267,3 +267,49 @@ describe('Stripe webhook idempotency flow (updated params)', () => {
     expect(webhookHandled).toContain(invoicePaymentFailed.stripe_event_id);
   });
 });
+
+describe('markProcessed — provider-aware ON CONFLICT branching', () => {
+  it('uses (stripe_event_id) conflict target for stripe provider', async () => {
+    const queryFn = jest
+      .fn<() => Promise<{ rows: unknown[]; rowCount: number }>>()
+      .mockResolvedValue({ rows: [], rowCount: 1 });
+    const pool = { query: queryFn } as unknown as pg.Pool;
+
+    await markProcessed(pool, {
+      provider: 'stripe',
+      eventId: 'evt_stripe_001',
+      stripeEventId: 'evt_stripe_001',
+      eventType: 'checkout.session.completed',
+      payloadHash: 'a'.repeat(64),
+      result: 'applied',
+    });
+
+    const [sql] = queryFn.mock.calls[0] as [string, unknown[]];
+    expect(sql).toMatch(/ON CONFLICT \(stripe_event_id\) DO NOTHING/);
+    expect(sql).not.toMatch(/ON CONFLICT \(provider, event_id\)/);
+  });
+
+  it('uses (provider, event_id) conflict target for revenuecat provider', async () => {
+    const queryFn = jest
+      .fn<() => Promise<{ rows: unknown[]; rowCount: number }>>()
+      .mockResolvedValue({ rows: [], rowCount: 1 });
+    const pool = { query: queryFn } as unknown as pg.Pool;
+
+    await markProcessed(pool, {
+      provider: 'revenuecat',
+      eventId: 'rc_evt_001',
+      // For non-stripe providers, callers still pass stripeEventId (kept for
+      // legacy NOT NULL column compatibility — typically the same value).
+      stripeEventId: 'rc_evt_001',
+      eventType: 'INITIAL_PURCHASE',
+      payloadHash: 'b'.repeat(64),
+      result: 'applied',
+    });
+
+    const [sql, values] = queryFn.mock.calls[0] as [string, unknown[]];
+    expect(sql).toMatch(/ON CONFLICT \(provider, event_id\) DO NOTHING/);
+    expect(sql).not.toMatch(/ON CONFLICT \(stripe_event_id\)/);
+    expect(values[5]).toBe('revenuecat');
+    expect(values[6]).toBe('rc_evt_001');
+  });
+});

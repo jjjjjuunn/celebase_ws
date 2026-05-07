@@ -37,11 +37,15 @@ export async function markProcessed(
   params: MarkProcessedParams,
 ): Promise<MarkProcessedResult> {
   const { provider, eventId, stripeEventId, eventType, payloadHash, result, errorMessage } = params;
+  // Provider-aware conflict target. Stripe rows still rely on the legacy
+  // stripe_event_id UNIQUE column for backward compatibility (phase 1a-1).
+  // Other providers use the partial UNIQUE index on (provider, event_id) added in 1a-2.
+  const conflictTarget = provider === 'stripe' ? '(stripe_event_id)' : '(provider, event_id)';
   const { rowCount } = await pool.query(
     `INSERT INTO processed_events
        (stripe_event_id, event_type, payload_hash, result, error_message, provider, event_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (stripe_event_id) DO NOTHING`,
+     ON CONFLICT ${conflictTarget} DO NOTHING`,
     [stripeEventId, eventType, payloadHash, result, errorMessage ?? null, provider, eventId],
   );
   return { inserted: rowCount === 1 };
