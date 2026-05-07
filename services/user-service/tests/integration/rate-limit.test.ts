@@ -26,11 +26,17 @@ import type pg from 'pg';
 const mockSignup = jest.fn();
 const mockLogin = jest.fn();
 const mockRefresh = jest.fn();
+// Promotable mock — handler-inline JWT verify uses this. The "limiter still
+// caps invalid tokens" test below reconfigures it to reject.
+const mockVerifyInternalRefresh =
+  jest.fn<
+    () => Promise<{ sub: string; email: string; cognito_sub: string; jti: string }>
+  >();
 
-// IMPL-MOBILE-AUTH-002b: logout route now has rate-limiting + JWT verify before
-// DB. The pre-existing logout flow needs: verifyInternalRefresh(token) → jti,
-// then refreshTokenRepo.revokeForLogout. We mock both refresh-token repo
-// fns so /auth/logout returns 204 idempotently inside the rate-limit test.
+// IMPL-MOBILE-AUTH-002b: logout route now has rate-limiting + handler-inline
+// JWT verify (verifyInternalRefresh derives both jti and userId=sub from the
+// refresh_token). We mock refresh-token repo + verifyInternalRefresh so
+// /auth/logout returns 204 idempotently inside the rate-limit test.
 jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
   signup: mockSignup,
   login: mockLogin,
@@ -46,8 +52,7 @@ jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
   loadDevSecret: (): Uint8Array => new TextEncoder().encode('test-secret-32-bytes-xxxxxxxxxxxx'),
   issueInternalTokens: (): Promise<{ access_token: string; refresh_token: string }> =>
     Promise.resolve({ access_token: 'a', refresh_token: 'r' }),
-  verifyInternalRefresh: (): Promise<{ sub: string; email: string; cognito_sub: string; jti: string }> =>
-    Promise.resolve({ sub: 'stub', email: 'stub@example.com', cognito_sub: 'stub', jti: 'stub-jti' }),
+  verifyInternalRefresh: mockVerifyInternalRefresh,
 }));
 
 const mockRevokeForLogout = jest.fn<() => Promise<null | { rotatedToJti: string | null }>>();
@@ -98,6 +103,12 @@ describe('per-route rate limits', () => {
       refresh_token: 'r',
     } as never);
     mockRefresh.mockResolvedValue({ access_token: 'a', refresh_token: 'r' } as never);
+    mockVerifyInternalRefresh.mockResolvedValue({
+      sub: 'stub',
+      email: 'stub@example.com',
+      cognito_sub: 'stub',
+      jti: 'stub-jti',
+    });
     app = await buildApp();
     await app.ready();
   });
@@ -153,17 +164,33 @@ describe('per-route rate limits', () => {
   });
 
   it('/auth/logout returns 429 on the 21st request from the same IP — DECISION §3.4 newly added', async () => {
-    // logout flow: verifyInternalRefresh (mocked to resolve) + revokeForLogout
-    // mocked to return null → idempotent 204. We don't care about the internal
-    // logout outcome here, only that the rate-limiter caps at 20/min.
+    // Happy path: verify resolves (mocked) → revokeForLogout returns null →
+    // idempotent 204. Limiter caps at the 21st request.
     mockRevokeForLogout.mockResolvedValue(null);
     const payload = { refresh_token: 'stub-token' };
-    // logout requires Authorization: Bearer (userId derived from external JWT).
-    // The rate-limiter runs before the userId check, so we can hit it with
-    // bare requests — the route returns 401 each time but the limiter still
-    // counts. Once exhausted, the 21st request should return 429.
     for (let i = 0; i < 20; i++) {
-      await app.inject({ method: 'POST', url: '/auth/logout', payload });
+      const res = await app.inject({ method: 'POST', url: '/auth/logout', payload });
+      expect(res.statusCode).toBe(204);
+    }
+    const limited = await app.inject({ method: 'POST', url: '/auth/logout', payload });
+    expect(limited.statusCode).toBe(429);
+  });
+
+  // Security regression: spec §9.3 requires the limiter to bucket invalid
+  // tokens too, so a flood of junk refresh_token values cannot waste crypto
+  // cycles indefinitely. Before the fix (/auth/logout NOT in publicPaths),
+  // the root-scope external JWT onRequest hook ran first and 401'd every
+  // request without incrementing the bucket. After the fix, the route is
+  // public from the framework's POV, the per-route limiter runs first, and
+  // verify (mocked here to reject) only gates the handler body.
+  it('/auth/logout: limiter still caps even when verify rejects — invalid-token DoS protection', async () => {
+    mockVerifyInternalRefresh.mockRejectedValue(new Error('jwt signature invalid'));
+    const payload = { refresh_token: 'junk-token' };
+    for (let i = 0; i < 20; i++) {
+      const res = await app.inject({ method: 'POST', url: '/auth/logout', payload });
+      // Each request should reach the handler, fail verify, and return 401.
+      // The limiter bucket increments regardless.
+      expect(res.statusCode).toBe(401);
     }
     const limited = await app.inject({ method: 'POST', url: '/auth/logout', payload });
     expect(limited.statusCode).toBe(429);

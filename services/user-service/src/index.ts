@@ -23,9 +23,21 @@ const start = async (): Promise<void> => {
 
   const app = await createApp({ serviceName: 'user-service' });
 
-  // External JWT guard — skips /internal/* (protected by internal JWT guard instead)
+  // External JWT guard — skips /internal/* (protected by internal JWT guard instead).
+  // /auth/logout is public from the framework's POV: handler self-verifies the
+  // refresh_token in body. This is required for the per-route limiter to run
+  // BEFORE crypto verify (spec §9.3 — invalid-token DoS protection). If we
+  // mounted it inside the JWT guard, the root-scope onRequest hook would run
+  // before the plugin-scope rate-limit hook and verify junk tokens on every
+  // request without incrementing the bucket.
   registerJwtAuth(app, {
-    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/internal/*'],
+    publicPaths: [
+      '/auth/signup',
+      '/auth/login',
+      '/auth/refresh',
+      '/auth/logout',
+      '/internal/*',
+    ],
   });
 
   // Internal JWT guard — strict iss/aud/jti validation for /internal/* routes

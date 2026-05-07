@@ -1846,7 +1846,7 @@ User selects celebrity diet
 
 **불변식**:
 - rate-limit 429 와 `auth.token.reuse_detected` 는 **독립 메커니즘** — 통과 후에도 reuse_detection 발화 가능, 그 반대도 가능.
-- logout 라우트의 limiter 는 JWT verify 보다 먼저 실행 — token 정보 누설 방지를 위해 key 는 per-IP 로 한정.
+- logout 라우트의 limiter 는 JWT verify 보다 먼저 실행 — token 정보 누설 방지를 위해 key 는 per-IP 로 한정. **구현 메커니즘**: `/auth/logout` 은 `registerJwtAuth` 의 `publicPaths` 목록에 포함되어 root-scope 외부 JWT onRequest hook 을 우회한다. 라우트 핸들러가 limiter 통과 후 `verifyInternalRefresh(body.refresh_token)` 으로 직접 검증하고 `userId = verified.sub` 로 도출 (Bearer access token 별도 불필요 — `/auth/refresh` 와 동일 모델). 이 순서가 깨지면 (e.g. /auth/logout 을 publicPaths 에서 빼면) 잘못된 토큰 spam 이 limiter bucket 에 카운트되지 않아 invalid-token DoS 방어가 무력화된다.
 - `NODE_ENV=test` allowList bypass 는 통합 테스트 회귀 보호 — production 에서는 절대 적용되지 않음.
 
 #### Refresh Token Reason Codes — `/auth/refresh` 401 envelope *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003)*

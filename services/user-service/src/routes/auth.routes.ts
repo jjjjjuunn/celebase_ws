@@ -156,11 +156,14 @@ export async function authRoutes(
   );
 
   // POST /auth/logout — Phase C stateful revocation via refresh_tokens table.
-  // JWT verify runs BEFORE any DB lookup (timing-safe: prevents token existence leakage).
-  // IMPL-MOBILE-AUTH-002b: rate limit added (DECISION §3.4) — caps abuse
-  // (forced-logout polling) without affecting normal users (single logout
-  // per session). Bucket per-IP — JWT verify runs after the limiter so the
-  // key cannot include token info safely.
+  //
+  // Mounted under publicPaths in services/user-service/src/index.ts so the
+  // root-scope external JWT onRequest hook does NOT run on this route. The
+  // handler self-verifies refresh_token (body) AFTER the per-route limiter,
+  // satisfying spec §9.3: limiter must run before crypto verify so junk-token
+  // DoS attempts are bucketed. userId is derived from the verified sub claim
+  // — the refresh_token itself authenticates the request (same model as
+  // /auth/refresh), no separate Bearer access token required.
   app.post(
     '/auth/logout',
     {
@@ -181,16 +184,14 @@ export async function authRoutes(
         })));
       }
 
-      const userId = (request as FastifyRequest & { userId?: string }).userId;
-      if (typeof userId !== 'string' || !userId) {
-        throw new UnauthorizedError('Missing session');
-      }
-
-      // Verify JWT signature + expiry before any DB call (timing-safe)
+      // Verify JWT signature + expiry before any DB call (timing-safe).
+      // Limiter has already run by this point (onRequest hook in plugin scope).
       let jti: string;
+      let userId: string;
       try {
         const verified = await authService.verifyInternalRefresh(parsed.data.refresh_token);
         jti = verified.jti;
+        userId = verified.sub;
       } catch {
         throw new UnauthorizedError('Invalid refresh token');
       }

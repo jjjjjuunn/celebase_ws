@@ -30,6 +30,43 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b-fix1
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (140/140 user-service jest PASS — rate-limit 8 case 신규 + 132 기존 회귀, monorepo turbo build/typecheck 19 successful, lint PASS)
+---
+### 완료: /auth/logout limiter ordering fix — IMPL-MOBILE-AUTH-002b-fix1 (codex r1 HIGH finding 대응, advisor 권고 적용)
+- **codex r1 HIGH 발견 (스펙 §9.3 invariant 위배)**: `registerJwtAuth` 가 `app.addHook('onRequest', ...)` 로 root-scope 등록되고 (`packages/service-core/src/middleware/jwt.ts:100`), 라우트 per-route `rateLimit.config` 는 plugin-scope onRequest 로 등록 → Fastify hook 우선순위에 따라 root-scope JWT verify 가 plugin-scope limiter 보다 먼저 실행. spec §9.3 "logout 라우트의 limiter 는 JWT verify 보다 먼저 실행" 와 정반대. 결과: 잘못된 토큰 spam 이 verify 단계에서 401 로 reject 되며 limiter bucket 에 카운트되지 않아 invalid-token DoS 방어 무력화 + 정상 토큰의 jti DB 정보가 timing 으로 누설될 위험.
+- **fix 핵심 (advisor 권고 일관)**: `/auth/logout` 을 `services/user-service/src/index.ts:28` 의 `publicPaths` 배열에 추가 → root-scope 외부 JWT onRequest hook 이 logout route 를 skip. 라우트 핸들러가 limiter 통과 후 직접 `verifyInternalRefresh(parsed.data.refresh_token)` 호출, `userId = verified.sub` 로 도출 (refresh_token 자체가 인증 — `/auth/refresh` 와 동일 모델, 별도 Bearer access token 불필요).
+- **변경 파일**:
+  - `services/user-service/src/index.ts:28` — `publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/auth/logout', '/internal/*']` (logout 추가)
+  - `services/user-service/src/routes/auth.routes.ts:158-220` — 라우트 핸들러 refactor: middleware-set `request.userId` 의존 제거 (`(request as FastifyRequest & { userId?: string }).userId` cast 삭제) → handler 내부 `verifyInternalRefresh` 가 `{ jti, sub }` 반환, `userId = verified.sub` 로 도출. 주석 갱신: limiter→verify 순서 + publicPaths 매핑 명시.
+  - `services/user-service/tests/integration/rate-limit.test.ts` — `mockVerifyInternalRefresh = jest.fn()` 으로 promotable mock 변환, `beforeEach` 에서 default resolve 설정. 신규 보안 회귀 테스트 추가: "limiter still caps even when verify rejects — invalid-token DoS protection" (mock verify reject + 20 req → 401 × 20 + 21st → 429, fix 전 코드에서는 limiter bucket 미증가로 통과 못함).
+  - `spec.md §9.3` 불변식 행에 구현 메커니즘 paragraph 추가 — publicPaths 매핑 + handler-inline verify + 순서 위반 시 invalid-token DoS 방어 무력화 explicit 명시.
+- **검증**:
+  - `pnpm --filter user-service test` → 13 suites / 140 tests PASS (rate-limit 8 cases 신규 + 132 기존 회귀)
+  - `pnpm --filter user-service typecheck` PASS
+  - `pnpm --filter user-service lint` PASS
+  - `pnpm turbo build typecheck --filter='!web'` → 19/19 successful
+- **mobile / web 회귀 0**: mobile 은 `/auth/logout` 호출 시 refresh_token body 만 전송 (별도 Bearer access token 헤더 불필요) — `/auth/refresh` 와 동일 calling convention 으로 단순화. web 은 BFF `apps/web/src/app/api/auth/logout/route.ts` 가 cookie 에서 refresh_token 추출 후 user-service 직접 호출 — Bearer 헤더 forward 안 함이라 동작 변화 없음.
+- **L2 tier review** (config + 라우트 핸들러 1개 보안 fix + 테스트 1 case 신규): codex r2 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정.
+
+### 미완료:
+- **codex r2 review**: PR push 후 본 fix 가 finding 1 을 close 하는지 + 신규 회귀 미발생 검증.
+- **다른 service public-path 목록 audit**: `commerce-service`, `analytics-service`, `content-service`, `meal-plan-engine` 의 `registerJwtAuth` 호출과 per-route limiter 가 있는 라우트 전수 점검 — 동일 ordering bug 재발 방지 (advisor 권고). 별도 chore task 로 분리 가능.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토 (현재 mobile 은 user-service `/auth/logout` 직접 호출).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` — 본 PR 머지 후 진입.
+
+### 연관 파일: services/user-service/src/{index.ts,routes/auth.routes.ts}, services/user-service/tests/integration/rate-limit.test.ts, spec.md, pipeline/runs/IMPL-MOBILE-AUTH-002b/codex-review-r1.txt
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-AUTH-002b
 commit_sha: d2eccb0
 files_changed:
