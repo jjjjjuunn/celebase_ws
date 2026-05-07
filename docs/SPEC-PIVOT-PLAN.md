@@ -32,7 +32,8 @@
 | Task ID | 상태 | spec.md 갱신 의무 섹션 | Sync 트리거 |
 |---------|------|------------------------|-------------|
 | IMPL-MOBILE-AUTH-001 | ✅ merged (PR #36) | §4.2 Auth (audience 배열 검증), Appendix A env (`COGNITO_MOBILE_CLIENT_ID`) | ✅ `SPEC-SYNC-AUTH-001` 완료 — §3 행 참조 |
-| IMPL-MOBILE-AUTH-002 | planned | §11 Project Structure (mobile ingress 결정 — 옵션 A/B), §6 Rate Limiting | finalize — 결정 사항을 본문에 fix |
+| IMPL-MOBILE-AUTH-002a | 🟡 in-progress (PR pending) | §4.2 endpoint catalog (mobile 진입점 행 갱신 — `/api/auth/mobile/{signup,login}`), §11 Project Structure (Mobile auth ingress 결정 paragraph — Option B BFF mobile route + Set-Cookie 미발급 + JSON 토큰 직반환) | finalize patch 완료 — Option B 채택 명시 |
+| IMPL-MOBILE-AUTH-002b | planned | §6 Rate Limiting (user-service `/auth/*` 한도 상향 — login 5→10/min, refresh 20→30/min, logout 신규 20/min) | finalize — 한도 수치 + env override 명시 |
 | IMPL-MOBILE-AUTH-003 | 🟡 in-progress (PR pending) | §4.2 endpoint catalog (`/auth/refresh` 행에 enum 5종 reference), §9.3 Security 신규 서브섹션 "Refresh Token Reason Codes" (5종 enum + 발생 조건 + 클라이언트 권장 행동 + 불변식 5건) | finalize patch 완료 — spec.md §4.2 + §9.3 갱신 |
 | IMPL-MOBILE-PAY-001a-1 | ✅ merged (PR #37) | §3 schema (`processed_events` expand DDL — `provider`, `event_id` NULL 허용 컬럼) | ✅ `SPEC-SYNC-PAY-001a-1` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001a-2 | ✅ merged (PR #40) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE provider IS NOT NULL`, CHECK constraint) | ✅ `SPEC-SYNC-PAY-001a-2` 완료 — §3 행 참조 |

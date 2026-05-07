@@ -30,6 +30,35 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002a
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/auth/mobile/signup/route.ts
+  - apps/web/src/app/api/auth/mobile/login/route.ts
+  - apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (158/158 web jest PASS — mobile-auth 6 신규 + 152 기존 회귀, monorepo turbo typecheck 16 successful, web lint warnings only — pre-existing 본 PR 스코프 외)
+---
+### 완료: BFF mobile signup/login 라우트 신설 — IMPL-MOBILE-AUTH-002a (Plan v5 §58, DECISION §9 Option B)
+- `apps/web/src/app/api/auth/mobile/signup/route.ts` + `.../login/route.ts` 신규. 기존 web `apps/web/src/app/api/auth/{signup,login}/route.ts` 의 mobile 변형: ① **Set-Cookie 절대 미발급** (mobile 은 `expo-secure-store` 사용 — web cookie jar pollution 방지) ② **`{user, access_token, refresh_token}` JSON body 직반환** (cookie 대신). user-service `/auth/{signup,login}` 으로 fetchBff proxy. forwardedFor 헤더 propagation. shared-types `Signup/LoginResponseSchema` (이미 `AuthTokensSchema.extend({ user })` 형태) 그대로 사용 — schema 변경 0.
+- `apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts` 신규 — 6 case PASS: ① mobile login 200 + JSON 토큰 + `expect(res.headers.getSetCookie()).toHaveLength(0)` ② mobile login 400 VALIDATION_ERROR + Set-Cookie 0 ③ upstream 401 forward (envelope code 보존, 예: AUTH-003 의 `MALFORMED` enum) + Set-Cookie 0 ④ 502 UPSTREAM_UNREACHABLE + Set-Cookie 0 ⑤ mobile signup 201 + JSON 토큰 + Set-Cookie 0 ⑥ mobile signup 400 VALIDATION_ERROR + Set-Cookie 0. test-helpers (`makeRequest`, `upstreamResponse`) + `resetRateLimitBucketsForTest` 기존 인프라 재사용.
+- BFF rate limit: 기존 `/auth/*` path 의 20/min BFF rate-limit (`auth-bff.integration.test.ts:101-115` 참조) 가 자동 적용 — `/api/auth/mobile/*` 도 동일 path prefix 매칭. user-service Fastify `@fastify/rate-limit` (signup 3/min, login 5/min) 가 1차 layer, BFF 가 2차 layer (DECISION §9.3 의도된 아키텍처).
+- spec.md sync (SPEC-PIVOT-PLAN row 35a 의무 충족): §4.2 Auth & User 표의 `/auth/signup` `/auth/login` 행에 "Mobile 진입점: BFF `POST /api/auth/mobile/{signup,login}` (Set-Cookie 미발급)" 명시. §11 Project Structure 의 BFF active gateway banner 직후에 "Mobile auth ingress 결정 (Option B)" paragraph 추가 — `/auth/refresh` BFF 미경유 예외 + `/auth/logout` 현재 user-service 직호출 + SUB-SYNC-002 시점 재검토 메모 포함. SPEC-PIVOT-PLAN row 002a 갱신 (002b 신규 row 분리).
+- DECISION §9 Option B 채택 근거: PIVOT 갱신 후 BFF 가 mobile gateway active (CLAUDE.md §1.1), IMPL-MOBILE-BFF-001 (#46) Bearer fallback 과 일관성, infra 변경 0 (Kong/WAF 신규 작성 불필요), 새 ingress origin 미추가 — 운영 표면 감소. Option A (직노출+WAF) 의 latency 50-150ms 절약 이점은 인증 흐름 사용자 체감 빈도 낮아 무의미.
+- L2 tier — Codex × 1 review (Plan v5 §58 "L2~L3" 중 L2 채택, AUTH-001 audience array 가 BE 에서 이미 처리되어 본 task 는 단순 proxy 라 신규 보안 결정 0).
+### 미완료:
+- **L2 review**: PR push 후 codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback, IMPL-MOBILE-BFF-001 / AUTH-003 와 동일 운영 케이스).
+- **IMPL-MOBILE-AUTH-002b** (Session B 잔여): user-service `/auth/*` rate limit 상향 (signup 3/min, login 5→10/min, refresh 20→30/min, logout 신규 20/min) + `AUTH_RATE_LIMIT_*` env override. DECISION §3 보존된 수치 그대로.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토 (현재 user-service 직호출).
+- **동료 M1**: 본 task + AUTH-003 머지 후 mobile signup/login 흐름 unblock — Amplify SRP signIn → id_token → BFF `POST /api/auth/mobile/{signup,login}` → SecureStore 저장.
+### 연관 파일: apps/web/src/app/api/auth/mobile/signup/route.ts, apps/web/src/app/api/auth/mobile/login/route.ts, apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-002/DECISION.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-AUTH-003
 commit_sha: 92d2052
 files_changed:
