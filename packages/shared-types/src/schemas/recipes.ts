@@ -6,6 +6,29 @@ import type { Recipe } from '../entities.js';
 import { IsoDateTime, UuidV7 } from './_utils.js';
 import { CitationSchema, InstructionStepSchema, NutritionSchema } from '../jsonb/index.js';
 
+// Recipe detail에서 함께 내려오는 ingredient row.
+// content-service `assembleRecipe()` 가 recipe_ingredients JOIN ingredient 결과를
+// nested 객체로 반환한다 (services/content-service/src/repositories/recipe.repository.ts).
+export const RecipeIngredientWireSchema = z.object({
+  id: UuidV7,
+  recipe_id: UuidV7,
+  ingredient_id: UuidV7,
+  quantity: z.number(),
+  unit: z.string(),
+  preparation: z.string().nullable(),
+  is_optional: z.boolean(),
+  sort_order: z.number().int(),
+  ingredient: z.object({
+    id: UuidV7,
+    name: z.string(),
+    name_normalized: z.string(),
+    category: z.string().nullable(),
+    default_unit: z.string().nullable(),
+    allergens: z.array(z.string()),
+  }),
+});
+export type RecipeIngredientWire = z.infer<typeof RecipeIngredientWireSchema>;
+
 // Plan 22 · Phase B — Meal Rationale Drawer data contract.
 // `citations` mirrors recipes.citations JSONB (migration 0011). Default [] preserves
 // backwards compatibility for rule-based engine output (no citations). `narrative`
@@ -32,6 +55,9 @@ export const RecipeWireSchema = z.object({
   is_active: z.boolean(),
   created_at: IsoDateTime,
   updated_at: IsoDateTime,
+  // content-service `getRecipe()` 가 JOIN 결과를 함께 반환한다.
+  // `getList`/`getBatch` 등 일부 경로에서는 누락되므로 optional 로 둔다.
+  recipe_ingredients: z.array(RecipeIngredientWireSchema).optional(),
 });
 export type RecipeWire = z.infer<typeof RecipeWireSchema>;
 
@@ -75,7 +101,7 @@ export type PersonalizedRecipeResponse = z.infer<typeof PersonalizedRecipeRespon
 // on meal_plans.days[].meals[].narrative JSONB, surfaced on recipe detail by the BFF).
 const _recipeWireRowParity = null as unknown as Omit<
   RecipeWire,
-  'instructions' | 'nutrition' | 'citations' | 'narrative'
+  'instructions' | 'nutrition' | 'citations' | 'narrative' | 'recipe_ingredients'
 > satisfies {
   id: Recipe['id'];
   base_diet_id: Recipe['base_diet_id'];

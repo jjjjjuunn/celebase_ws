@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { WsStatusBanner } from '@celebbase/ui-kit';
 import { useMealPlanStream, type MealPlanStreamStatus } from '../../../../lib/useMealPlanStream.js';
 import { postJson } from '../../../../lib/fetcher.js';
 import { schemas } from '@celebbase/shared-types';
+import { GenerationStepper } from '../../../../features/plans/GenerationStepper.js';
 import styles from './plans-new.module.css';
 
 const MIN_DAYS = 1;
@@ -53,7 +53,7 @@ function PlansNewContent(): React.ReactElement {
 
   useEffect(() => {
     if (streamState.completedMealPlanId !== null) {
-      router.replace(`/plans/${streamState.completedMealPlanId}/preview`);
+      router.replace(`/plans/${streamState.completedMealPlanId}`);
     }
   }, [streamState.completedMealPlanId, router]);
 
@@ -151,13 +151,15 @@ function PlansNewContent(): React.ReactElement {
           : 'Generating your meal plan'}
       </h1>
 
-      <WsStatusBanner
+      <GenerationStepper
         status={wsStatus}
-        progressPct={streamState.progressPct}
-        message={streamState.message}
+        stage={streamState.stage}
+        detail={streamState.detail}
+        candidateRecipes={streamState.candidateRecipes}
+        llmMode={false}
+        celebrityName={celebrity !== null ? decodeURIComponent(celebrity) : null}
         error={wsError}
         onRetry={showRetry ? handleRetry : undefined}
-        className={styles.banner}
       />
 
       {wsStatus === 'connecting' || wsStatus === 'streaming' ? (

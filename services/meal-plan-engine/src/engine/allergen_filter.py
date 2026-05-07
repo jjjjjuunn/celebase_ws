@@ -34,6 +34,7 @@ class RecipeSlot:
     allergens: List[str]
     ingredients: List[str]
     nutrition: Optional[Dict[str, Any]] = None
+    name: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

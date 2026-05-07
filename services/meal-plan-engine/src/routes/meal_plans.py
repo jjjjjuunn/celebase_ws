@@ -81,6 +81,7 @@ def _serialize_meal_plan_row(row: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "id": str(row["id"]),
+        "name": row.get("name"),
         "status": row.get("status"),
         "mode": mode,
         "start_date": _fmt(row.get("start_date")),
@@ -389,7 +390,7 @@ async def patch_meal_plan(
         )
 
     updated = await repo.update_meal_plan(pool, plan_id, user_id, updates)
-    return updated
+    return _serialize_meal_plan_row(updated)
 
 
 # POST /meal-plans/{plan_id}/regenerate ---------------------------------------

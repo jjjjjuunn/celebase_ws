@@ -14,7 +14,7 @@ import httpx
 
 from src.config import settings
 
-__all__ = ["get_base_diet", "get_recipes_for_diet"]
+__all__ = ["get_base_diet", "get_celebrity", "get_recipes_for_diet"]
 
 _logger = logging.getLogger(__name__)
 
@@ -30,6 +30,28 @@ async def get_base_diet(base_diet_id: str) -> Dict[str, Any]:
         resp.raise_for_status()
         data: Dict[str, Any] = resp.json()
         return data
+
+
+async def get_celebrity(celebrity_id: str) -> Dict[str, Any] | None:
+    """Fetch celebrity row by ID. Returns None on transport/server failure."""
+
+    url = f"{settings.CONTENT_SERVICE_URL}/celebrities/by-id/{celebrity_id}"
+    try:
+        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            data: Dict[str, Any] = resp.json()
+            return data
+    except httpx.TimeoutException:
+        _logger.warning("content-service timeout fetching celebrity %s", celebrity_id)
+        return None
+    except httpx.HTTPStatusError as exc:
+        _logger.warning(
+            "content-service %s fetching celebrity %s",
+            exc.response.status_code,
+            celebrity_id,
+        )
+        return None
 
 
 async def get_recipes_for_diet(base_diet_id: str) -> List[Dict[str, Any]]:

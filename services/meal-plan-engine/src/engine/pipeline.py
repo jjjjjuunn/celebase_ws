@@ -77,6 +77,43 @@ async def _emit(
         )
 
 
+async def _emit_stage(
+    on_progress: Callable[[Dict[str, Any]], None],
+    *,
+    pass_: int,
+    pct: int,
+    stage: str,
+    detail: str | None,
+    citations_count: int | None = None,
+    candidate_recipes: List[str] | None = None,
+) -> None:
+    """Emit a stage-labelled progress event for IMPL-AI-003 transparency.
+
+    PHI guard: ``detail`` MUST contain only aggregates (counts, kcal,
+    macro ranges). Never include user_id, allergens, medical_conditions,
+    or biomarkers — wire schema (`WsPlanProgressEventSchema`) caps it at
+    120 chars but the responsibility for staying PHI-free lives at each
+    call-site here.
+
+    ``candidate_recipes`` is an optional sample of recipe names from the
+    post-allergen-filter pool — public food data, not PHI. FE shows them
+    as a "thinking" ticker so the user sees real recipes being considered.
+    """
+
+    payload: Dict[str, Any] = {
+        "type": "progress",
+        "pass": pass_,
+        "pct": pct,
+        "stage": stage,
+        "detail": detail,
+    }
+    if citations_count is not None:
+        payload["citations_count"] = citations_count
+    if candidate_recipes is not None:
+        payload["candidate_recipes"] = candidate_recipes
+    await _emit(on_progress, payload)
+
+
 def _build_weekly_plan(
     safe_recipes: List[RecipeSlot],
     duration_days: int,
@@ -133,7 +170,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # Pass 1 – lightning draft (steps 1 & 4)
     # ---------------------------------------------------------------------
 
-    await _emit(on_progress, {"pass": 1, "pct": 0})
+    await _emit_stage(
+        on_progress,
+        pass_=1,
+        pct=0,
+        stage="analyzing_profile",
+        detail="Reading goals & restrictions",
+    )
 
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
@@ -145,7 +188,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     target_kcal = calorie_adjuster.adjust_calories(tdee, primary_goal, activity_level)
 
-    await _emit(on_progress, {"pass": 1, "pct": 30})
+    await _emit_stage(
+        on_progress,
+        pass_=1,
+        pct=30,
+        stage="selecting_recipes",
+        detail=f"Targeting {int(target_kcal)} kcal/day",
+    )
 
     # --- 1b. Allergen filter ---------------------------------------------
     user_allergies = preferences.get("allergies", [])
@@ -154,7 +203,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         base_diet.get("recipes", []), user_allergies, user_intolerances, candidate_pool
     )  # type: ignore[arg-type]
 
-    await _emit(on_progress, {"pass": 1, "pct": 100})
+    await _emit_stage(
+        on_progress,
+        pass_=1,
+        pct=100,
+        stage="selecting_recipes",
+        detail=f"Drafted {len(draft_recipes)} candidate recipes",
+    )
 
     # draft_out available for Pass 1 early-return if needed in future
     _ = {"plan_id": plan_id, "status": "draft", "target_kcal": target_kcal}
@@ -163,7 +218,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # Pass 2 – deep optimisation (full stack)
     # ---------------------------------------------------------------------
 
-    await _emit(on_progress, {"pass": 2, "pct": 0})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=0,
+        stage="selecting_recipes",
+        detail="Refining recipe selection",
+    )
 
     # Step 2 – Macro rebalance
     prof_macro = phi_minimizer.minimize_profile(bio_profile, "macro_rebalance")
@@ -178,14 +239,34 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         medications=prof_macro.get("medications") or [],
     )
 
-    await _emit(on_progress, {"pass": 2, "pct": 25})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=25,
+        stage="verifying_nutrition",
+        detail=(
+            f"Macros: {int(macros['protein_g'])}p / "
+            f"{int(macros['carb_g'])}c / "
+            f"{int(macros['fat_g'])}f"
+        ),
+    )
 
     # Step 3 – Allergen (already applied in pass 1 but re-run against updated pool)
     safe_recipes = filter_allergens(
         draft_recipes, user_allergies, user_intolerances, candidate_pool
     )
 
-    await _emit(on_progress, {"pass": 2, "pct": 35})
+    candidate_names = [
+        slot.name for slot in safe_recipes if slot.name
+    ][:8]
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=35,
+        stage="selecting_recipes",
+        detail=f"Filtered to {len(safe_recipes)} allergen-safe recipes",
+        candidate_recipes=candidate_names if candidate_names else None,
+    )
 
     # Step 4 – Micronutrient adequacy (simplified – aggregate per-recipe nutrition)
     daily_totals: Dict[str, float] = {}
@@ -197,7 +278,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     micro_report = micronutrient_checker.check_micronutrients(daily_totals)
 
-    await _emit(on_progress, {"pass": 2, "pct": 55})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=55,
+        stage="verifying_nutrition",
+        detail="Checking micronutrient coverage",
+    )
 
     # Step 5 – Variety optimiser (weekly plan)
     weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
@@ -206,7 +293,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     else:
         varied_plan = []
 
-    await _emit(on_progress, {"pass": 2, "pct": 70})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=70,
+        stage="verifying_nutrition",
+        detail="Optimizing weekly variety",
+    )
 
     # Step 5.5 – LLM Reranker + Narrator (optional, spec §5.8)
     llm_result: LlmRerankResult | None = None
@@ -232,7 +325,29 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
             _logger.exception("pipeline step5.5 llm_reranker crashed, standard mode")
             llm_result = LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
-    await _emit(on_progress, {"pass": 2, "pct": 80})
+    _llm_active = bool(llm_result and llm_result.mode == "llm")
+    _citations_count: int | None = None
+    if _llm_active and llm_result is not None:
+        total_cites = 0
+        for slot in llm_result.ranked_plan:
+            if isinstance(slot, dict):
+                cites = slot.get("citations") or []
+                if isinstance(cites, list):
+                    total_cites += len(cites)
+        _citations_count = total_cites
+
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=80,
+        stage="personalizing",
+        detail=(
+            f"Citing {_citations_count} sources from interviews"
+            if _llm_active and _citations_count is not None
+            else None
+        ),
+        citations_count=_citations_count,
+    )
 
     # Step 6 – Nutrition normalisation
     nutrition_std = nutrition_normalizer.normalize(
@@ -246,7 +361,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         source="engine_pipeline",
     )
 
-    await _emit(on_progress, {"pass": 2, "pct": 95})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=95,
+        stage="verifying_nutrition",
+        detail=f"Normalized to {int(target_kcal)} kcal",
+    )
 
     # ── LLM mode 결정 ─────────────────────────────────────────────────────────
     llm_mode = llm_result.mode if llm_result else "standard"
@@ -307,6 +428,12 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         ],
     }
 
-    await _emit(on_progress, {"pass": 2, "pct": 100})
+    await _emit_stage(
+        on_progress,
+        pass_=2,
+        pct=100,
+        stage="verifying_nutrition",
+        detail=None,
+    )
 
     return final_out

@@ -6,6 +6,7 @@ variety_optimizer 이후 · nutrition_normalizer 이전 단일 진입 지점.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import logging
 import re
@@ -29,11 +30,7 @@ from ..config import settings
 from .allergen_filter import RecipeSlot
 from .llm_metrics import metrics
 from .llm_safety import (
-    AllergenViolationError,
     LlmProfileInjectionError,
-    PoolViolationError,
-    assert_no_allergen_violation,
-    assert_recipe_ids_in_pool,
     check_endorsement_regex,
     sanitize_llm_profile,
 )
@@ -105,6 +102,95 @@ _OUTPUT_SCHEMA: dict[str, Any] = {
     "required": ["meals", "mode"],
     "additionalProperties": False,
 }
+
+
+def _build_output_schema(recipe_ids: list[str]) -> dict[str, Any]:
+    """Inject candidate recipe_ids as an enum constraint on `meals[].recipe_id`.
+
+    OpenAI Structured Output에서 enum을 강제하면 LLM이 풀 외부 ID를 생성하는
+    것을 schema 레벨에서 차단한다 (gate2_pool_violation 근본 차단).
+    """
+    schema = copy.deepcopy(_OUTPUT_SCHEMA)
+    schema["properties"]["meals"]["items"]["properties"]["recipe_id"] = {
+        "type": "string",
+        "enum": list(recipe_ids),
+    }
+    return schema
+
+
+def _filter_valid_meals(
+    parsed_meals: list[Any],
+    pool_ids: set[str],
+    recipe_allergen_map: dict[str, list[str]],
+    user_allergies: list[str],
+    plan_id: str,
+) -> tuple[list[Any], dict[str, int]]:
+    """Meal-level filter for partial-LLM recovery (gate2 / gate3 / gate6).
+
+    개별 meal 단위로 duplicate / pool_violation / allergen / endorsement
+    를 검사해 위반한 meal 만 드랍하고 나머지는 mode="llm" 으로 보존한다.
+    드랍된 slot 은 호출자에서 varied_plan 의 recipe_id 로 채워지며 (이미
+    allergen_filter 단계를 통과했으므로 fail-closed 안전 보장), narrative
+    / citations 는 빈 값이 된다.
+    """
+    valid: list[Any] = []
+    seen_ids: set[str] = set()
+    dropped = {
+        "duplicate": 0,
+        "pool_violation": 0,
+        "allergen": 0,
+        "endorsement": 0,
+    }
+    user_allergy_set = {a.lower() for a in user_allergies}
+
+    for meal in parsed_meals:
+        rid = meal.recipe_id
+
+        if rid in seen_ids:
+            dropped["duplicate"] += 1
+            _logger.warning(
+                "llm_reranker meal_dropped reason=duplicate recipe=%s plan=%s",
+                rid,
+                plan_id,
+            )
+            metrics.record_gate_failure("2", reason="duplicate_meal")
+            continue
+
+        if rid not in pool_ids:
+            dropped["pool_violation"] += 1
+            _logger.warning(
+                "llm_reranker meal_dropped reason=pool_violation recipe=%s plan=%s",
+                rid,
+                plan_id,
+            )
+            metrics.record_gate_failure("2", reason="pool_violation_meal")
+            continue
+
+        recipe_allergens = {a.lower() for a in recipe_allergen_map.get(rid, [])}
+        if recipe_allergens & user_allergy_set:
+            dropped["allergen"] += 1
+            _logger.warning(
+                "llm_reranker meal_dropped reason=allergen recipe=%s plan=%s",
+                rid,
+                plan_id,
+            )
+            metrics.record_gate_failure("3", reason="allergen_meal")
+            continue
+
+        if check_endorsement_regex(meal.narrative):
+            dropped["endorsement"] += 1
+            _logger.warning(
+                "llm_reranker meal_dropped reason=endorsement recipe=%s plan=%s",
+                rid,
+                plan_id,
+            )
+            metrics.record_gate_failure("6", reason="endorsement_meal")
+            continue
+
+        valid.append(meal)
+        seen_ids.add(rid)
+
+    return valid, dropped
 
 
 def _build_system_prompt(persona_id: str, llm_profile: dict[str, Any]) -> str:
@@ -262,7 +348,7 @@ async def llm_rerank_and_narrate(
         parsed, prompt_hash, output_hash = await call_openai_ranker(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
-            json_schema=_OUTPUT_SCHEMA,
+            json_schema=_build_output_schema(recipe_ids),
         )
     except (OpenAIError, ValidationError, TimeoutError) as exc:
         elapsed = time.monotonic() - t0
@@ -285,67 +371,60 @@ async def llm_rerank_and_narrate(
 
     elapsed = time.monotonic() - t0
 
-    # ── Gate 2: Pool 검증 + 중복 recipe_id 검사 (Gemini BS-05) ─────────────────
-    llm_ids = [m.recipe_id for m in parsed.meals]
-    if len(llm_ids) != len(set(llm_ids)):
-        _logger.warning("llm_reranker gate2_duplicate_ids plan=%s", plan_id)
-        metrics.record_gate_failure("2", reason="duplicate_ids")
-        metrics.record_call(mode="standard", reason="gate2_duplicate_ids")
-        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
-    try:
-        assert_recipe_ids_in_pool(llm_ids, pool_ids)
-    except PoolViolationError:
-        _logger.warning("llm_reranker gate2_pool_violation plan=%s", plan_id)
-        metrics.record_gate_failure("2", reason="pool_violation")
-        metrics.record_call(mode="standard", reason="gate2_pool_violation")
-        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
+    # ── Gate 2 / 3 / 6 partial-recovery — meal 단위 필터 (BS-NEW-04) ─────────
+    # gate2.5 (partial_response) 는 폐기 — 누락 slot 은 varied_plan default 로 채움.
+    valid_meals, dropped = _filter_valid_meals(
+        parsed.meals,
+        pool_ids,
+        recipe_allergen_map,
+        user_allergies,
+        plan_id,
+    )
+    total_dropped = sum(dropped.values())
+    partial_recovery = total_dropped > 0 and len(valid_meals) > 0
 
-    # ── Gate 2.5: 부분 응답 검증 — LLM이 입력 recipe 전부를 반환했는지 확인 (BS-16) ──
-    if len(llm_ids) < len(recipe_ids):
+    if not valid_meals:
         _logger.warning(
-            "llm_reranker gate2_partial_response llm=%d expected=%d plan=%s",
-            len(llm_ids),
-            len(recipe_ids),
+            "llm_reranker all_meals_dropped plan=%s dropped=%s",
             plan_id,
+            dropped,
         )
-        metrics.record_gate_failure("2", reason="partial_response")
-        metrics.record_call(mode="standard", reason="gate2_partial_response")
+        metrics.record_call(
+            mode="standard",
+            reason="all_meals_dropped",
+            estimated_cost=estimated_cost,
+        )
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
-    # ── Gate 3: 알레르겐 순수 검증 (mutate 금지 — Codex FINDING-02) ───────────
-    try:
-        assert_no_allergen_violation(llm_ids, recipe_allergen_map, user_allergies)
-    except AllergenViolationError:
-        _logger.warning("llm_reranker gate3_allergen_violation plan=%s", plan_id)
-        metrics.record_gate_failure("3", reason="allergen_violation")
-        metrics.record_call(mode="standard", reason="gate3_allergen_violation")
-        return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
-
-    # ── Gate 4: Bounds 검증 ───────────────────────────────────────────────────
-    if not (1 <= len(parsed.meals) <= len(pool_ids) + 1):
+    # ── Gate 4: Bounds 재검증 (filtered) ─────────────────────────────────────
+    if not (1 <= len(valid_meals) <= len(pool_ids) + 1):
         _logger.warning(
-            "llm_reranker gate4_bounds_violation meals=%d pool=%d plan=%s",
-            len(parsed.meals),
+            "llm_reranker gate4_bounds_violation valid=%d pool=%d plan=%s",
+            len(valid_meals),
             len(pool_ids),
             plan_id,
         )
         metrics.record_gate_failure("4", reason="bounds_violation")
-        metrics.record_call(mode="standard", reason="gate4_bounds_violation")
+        metrics.record_call(
+            mode="standard",
+            reason="gate4_bounds_violation",
+            estimated_cost=estimated_cost,
+        )
         return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
 
-    # ── Gate 5 + 6: disclaimer 첨부 + endorsement 탐지 ───────────────────────
+    if partial_recovery:
+        _logger.info(
+            "llm_reranker partial_recovery valid=%d total=%d dropped=%s plan=%s",
+            len(valid_meals),
+            len(parsed.meals),
+            dropped,
+            plan_id,
+        )
+        metrics.inc("llm_partial_recovery_total")
+
+    # ── disclaimer/citations enrichment (gate5 는 enrichment 단계에서 첨부) ──
     enriched: dict[str, dict[str, Any]] = {}
-    for meal in parsed.meals:
-        if check_endorsement_regex(meal.narrative):
-            _logger.warning(
-                "llm_reranker gate6_endorsement recipe=%s plan=%s narrative=%r",
-                meal.recipe_id,
-                plan_id,
-                meal.narrative[:300],
-            )
-            metrics.record_gate_failure("6", reason="endorsement")
-            metrics.record_call(mode="standard", reason="gate6_endorsement")
-            return LlmRerankResult(ranked_plan=varied_plan, mode="standard")
+    for meal in valid_meals:
         enriched[meal.recipe_id] = {
             "rank": meal.rank,
             "narrative": meal.narrative,

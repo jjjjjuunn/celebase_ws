@@ -28,6 +28,7 @@ from src.database import get_pool
 from src.repositories import meal_plan_repository as repo
 from src.clients import content_client, user_client
 from src.engine.pipeline import run_pipeline
+from src.engine.plan_naming import derive_plan_name
 from src.engine.allergen_filter import RecipeSlot
 from src.services.sqs_publisher import PlanGenerationMessage
 
@@ -83,6 +84,7 @@ async def _build_candidate_pool(recipes: list[Dict[str, Any]]) -> list[RecipeSlo
                 allergens=r.get("allergens", []),
                 ingredients=r.get("ingredients", []),
                 nutrition=r.get("nutrition"),
+                name=r.get("name") or r.get("title"),
             )
         )
     return slots
@@ -152,6 +154,20 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         llm_context=llm_context,
     )
 
+    # Auto-name: celebrity inspiration + user personalization.
+    celebrity_id = base_diet.get("celebrity_id")
+    celebrity_display_name: str | None = None
+    if celebrity_id:
+        celeb = await content_client.get_celebrity(str(celebrity_id))
+        if celeb:
+            celebrity_display_name = celeb.get("display_name")
+    plan_name = derive_plan_name(
+        celebrity_display_name,
+        duration_days,
+        preferences.get("primary_goal") or bio_profile.get("primary_goal"),
+        seed=str(plan_id),
+    )
+
     # Persist result — BS-NEW-03 final_out 가드: standard/llm 양쪽 mode 필드 모두 보존.
     await repo.update_meal_plan(
         pool,
@@ -159,6 +175,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         user_id,
         {
             "status": "completed",
+            "name": plan_name,
             "daily_plans": result.get("weekly_plan", []),
             "adjustments": {
                 "target_kcal": result.get("target_kcal"),

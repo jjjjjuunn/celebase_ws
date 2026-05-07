@@ -454,15 +454,15 @@ def test_bs03_sanitize_llm_profile_injection_blocked() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Gemini BS-05: 중복 recipe_id 게이트 테스트
+# Gemini BS-05 → BS-NEW-04: 중복 recipe_id 는 meal 단위 드랍 + mode=llm 보존
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_bs05_duplicate_recipe_id_triggers_gate2_fallback() -> None:
+async def test_bs05_duplicate_recipe_id_drops_meal_keeps_llm_mode() -> None:
     pool = [_slot("r1"), _slot("r2")]
     plan = [[pool[0]]]
-    parsed = _parsed(["r1", "r1"])  # 중복 ID
+    parsed = _parsed(["r1", "r1"])  # 중복 ID — 두 번째 meal 만 드랍, 첫 meal 보존
 
     with (
         patch("src.engine.llm_reranker._should_run_llm", return_value=True),
@@ -479,6 +479,7 @@ async def test_bs05_duplicate_recipe_id_triggers_gate2_fallback() -> None:
             "src.engine.llm_reranker.call_openai_ranker",
             AsyncMock(return_value=(parsed, "ph", "oh")),
         ),
+        patch("src.engine.llm_reranker.increment_monthly_cost", AsyncMock()),
     ):
         result = await llm_rerank_and_narrate(
             varied_plan=plan,
@@ -490,7 +491,8 @@ async def test_bs05_duplicate_recipe_id_triggers_gate2_fallback() -> None:
             user_allergies=[],
             redis_client=AsyncMock(),
         )
-    assert result.mode == "standard"
+    assert result.mode == "llm"
+    assert result.ranked_plan[0][0]["recipe_id"] == "r1"
 
 
 # ---------------------------------------------------------------------------
@@ -566,13 +568,13 @@ async def test_bs14_valid_persona_id_passes() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Gemini #2 BS-16: LLM 부분 응답 게이트
+# Gemini #2 BS-16 → BS-NEW-04: 부분 응답은 누락 slot 만 default 채움 + mode=llm 유지
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_bs16_partial_llm_response_triggers_fallback() -> None:
-    """LLM이 입력보다 적은 recipe 반환 시 standard mode fallback."""
+async def test_bs16_partial_llm_response_recovers_per_meal() -> None:
+    """LLM이 입력보다 적은 recipe 반환 시 누락 slot 은 빈 narrative, 나머지는 mode=llm."""
     r1, r2 = _slot("r1"), _slot("r2")
     pool = [r1, r2]
     plan = [[r1], [r2]]  # recipe_ids = ["r1", "r2"]
@@ -593,6 +595,7 @@ async def test_bs16_partial_llm_response_triggers_fallback() -> None:
             "src.engine.llm_reranker.call_openai_ranker",
             AsyncMock(return_value=(parsed, "ph", "oh")),
         ),
+        patch("src.engine.llm_reranker.increment_monthly_cost", AsyncMock()),
     ):
         result = await llm_rerank_and_narrate(
             varied_plan=plan,
@@ -604,7 +607,13 @@ async def test_bs16_partial_llm_response_triggers_fallback() -> None:
             user_allergies=[],
             redis_client=AsyncMock(),
         )
-    assert result.mode == "standard"
+    assert result.mode == "llm"
+    # day1: r1 ranked (narrative present)
+    assert result.ranked_plan[0][0]["recipe_id"] == "r1"
+    assert result.ranked_plan[0][0]["narrative"] != ""
+    # day2: r2 missing from LLM output → default empty narrative, recipe_id 보존
+    assert result.ranked_plan[1][0]["recipe_id"] == "r2"
+    assert result.ranked_plan[1][0]["narrative"] == ""
 
 
 # ---------------------------------------------------------------------------

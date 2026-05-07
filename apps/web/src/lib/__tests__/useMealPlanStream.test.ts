@@ -106,8 +106,8 @@ function makeCallbacks(
     onStreaming: () => {
       calls.push('streaming');
     },
-    onProgress: (pct, msg) => {
-      calls.push(`progress:${String(pct)}:${msg}`);
+    onProgress: (event) => {
+      calls.push(`progress:${String(event.pct)}:${event.stage}:${event.detail ?? ''}`);
     },
     onComplete: (id) => {
       calls.push(`complete:${id}`);
@@ -163,7 +163,7 @@ describe('openMealPlanStream', () => {
     expect(cb.calls).toContain('streaming');
   });
 
-  it('dispatches progress events with pct and message', async () => {
+  it('dispatches progress events with stage and detail', async () => {
     mockFetch.mockResolvedValueOnce(makeJsonResponse(makeTicketResponse()));
     const cb = makeCallbacks();
     const abort = new AbortController();
@@ -173,11 +173,39 @@ describe('openMealPlanStream', () => {
 
     const ws = ControllableWebSocket.last!;
     ws._open();
-    ws._message({ type: 'progress', pct: 30, message: 'Preparing ingredients…' });
-    ws._message({ type: 'progress', pct: 70, message: 'Building day 3…' });
+    ws._message({
+      type: 'progress',
+      pass: 1,
+      pct: 30,
+      stage: 'selecting_recipes',
+      detail: 'Targeting 2000 kcal/day',
+    });
+    ws._message({
+      type: 'progress',
+      pass: 2,
+      pct: 70,
+      stage: 'verifying_nutrition',
+      detail: null,
+    });
 
-    expect(cb.calls).toContain('progress:30:Preparing ingredients…');
-    expect(cb.calls).toContain('progress:70:Building day 3…');
+    expect(cb.calls).toContain('progress:30:selecting_recipes:Targeting 2000 kcal/day');
+    expect(cb.calls).toContain('progress:70:verifying_nutrition:');
+  });
+
+  it('drops malformed progress events instead of crashing', async () => {
+    mockFetch.mockResolvedValueOnce(makeJsonResponse(makeTicketResponse()));
+    const cb = makeCallbacks();
+    const abort = new AbortController();
+
+    openMealPlanStream('plan-003b', cb, abort.signal);
+    await flushPromises();
+
+    const ws = ControllableWebSocket.last!;
+    ws._open();
+    // Old shape (no stage) — must be silently rejected by the schema parse
+    ws._message({ type: 'progress', pct: 30, message: 'legacy-shape' });
+
+    expect(cb.calls.filter((c) => c.startsWith('progress:'))).toHaveLength(0);
   });
 
   it('calls onComplete with meal_plan_id and closes WS on complete event', async () => {
@@ -190,9 +218,9 @@ describe('openMealPlanStream', () => {
 
     const ws = ControllableWebSocket.last!;
     ws._open();
-    ws._message({ type: 'complete', meal_plan_id: 'finished-plan-uuid' });
+    ws._message({ type: 'complete', meal_plan_id: '0190abcd-ef01-7234-8567-000000000004' });
 
-    expect(cb.calls).toContain('complete:finished-plan-uuid');
+    expect(cb.calls).toContain('complete:0190abcd-ef01-7234-8567-000000000004');
     expect(ws.readyState).toBe(ControllableWebSocket.CLOSED);
   });
 
@@ -249,11 +277,11 @@ describe('openMealPlanStream', () => {
 
     const ws = ControllableWebSocket.last!;
     ws._open();
-    ws._message({ type: 'complete', meal_plan_id: 'mp-done' });
+    ws._message({ type: 'complete', meal_plan_id: '0190abcd-ef01-7234-8567-000000000008' });
 
     const errorCalls = cb.calls.filter((c) => c.startsWith('error:'));
     expect(errorCalls).toHaveLength(0);
-    expect(cb.calls).toContain('complete:mp-done');
+    expect(cb.calls).toContain('complete:0190abcd-ef01-7234-8567-000000000008');
   });
 
   it('calls onError when ticket fetch returns a non-ok response', async () => {

@@ -136,6 +136,50 @@ export const WsTicketResponseSchema = z.object({
 });
 export type WsTicketResponse = z.infer<typeof WsTicketResponseSchema>;
 
+// IMPL-AI-003 — Generation transparency wire format.
+// detail strings MUST contain only aggregates (counts, kcal, macro ranges).
+// Never include user_id, allergens, medical_conditions, or biomarkers.
+export const WsPlanProgressStageSchema = z.enum([
+  'analyzing_profile',
+  'selecting_recipes',
+  'verifying_nutrition',
+  'personalizing',
+]);
+export type WsPlanProgressStage = z.infer<typeof WsPlanProgressStageSchema>;
+
+export const WsPlanProgressEventSchema = z.object({
+  type: z.literal('progress'),
+  pass: z.union([z.literal(1), z.literal(2)]),
+  pct: z.number().int().min(0).max(100),
+  stage: WsPlanProgressStageSchema,
+  detail: z.string().max(120).nullable(),
+  citations_count: z.number().int().min(0).optional(),
+  // Optional sample of recipe names from the post-allergen-filter pool the LLM is
+  // selecting from. FE shows them as a "thinking" ticker. Public food data, not PHI.
+  candidate_recipes: z.array(z.string().min(1).max(80)).max(10).optional(),
+});
+export type WsPlanProgressEvent = z.infer<typeof WsPlanProgressEventSchema>;
+
+export const WsPlanCompleteEventSchema = z.object({
+  type: z.literal('complete'),
+  meal_plan_id: UuidV7,
+});
+export type WsPlanCompleteEvent = z.infer<typeof WsPlanCompleteEventSchema>;
+
+export const WsPlanErrorEventSchema = z.object({
+  type: z.literal('error'),
+  code: z.string(),
+  message: z.string(),
+});
+export type WsPlanErrorEvent = z.infer<typeof WsPlanErrorEventSchema>;
+
+export const WsPlanStreamEventSchema = z.discriminatedUnion('type', [
+  WsPlanProgressEventSchema,
+  WsPlanCompleteEventSchema,
+  WsPlanErrorEventSchema,
+]);
+export type WsPlanStreamEvent = z.infer<typeof WsPlanStreamEventSchema>;
+
 // Wire↔Row parity guard (D1). `preferences` + `deleted_at` are wire-only / optional.
 // `adjustments` + `daily_plans` are JSONB-shared via MealPlanAdjustmentsSchema /
 // DailyPlanSchema (same z.infer instance) — structural parity is by construction,

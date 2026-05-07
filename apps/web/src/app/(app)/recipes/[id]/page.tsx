@@ -222,6 +222,33 @@ export default function RecipeDetailPage(): React.ReactElement {
         <PersonalizedSection recipeId={id} />
       </TierGate>
 
+      {recipe.recipe_ingredients !== undefined && recipe.recipe_ingredients.length > 0 && (
+        <section aria-labelledby="ingredients-heading">
+          <h2 id="ingredients-heading" className={styles.sectionHeading}>Ingredients</h2>
+          <ul className={styles.ingredientList}>
+            {recipe.recipe_ingredients
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((ri) => (
+                <li key={ri.id} className={styles.ingredientItem}>
+                  <span className={styles.ingredientQty}>
+                    {ri.quantity} {ri.unit}
+                  </span>
+                  <span className={styles.ingredientName}>
+                    {ri.ingredient.name}
+                    {ri.preparation != null && (
+                      <span className={styles.ingredientPrep}>, {ri.preparation}</span>
+                    )}
+                    {ri.is_optional && (
+                      <span className={styles.ingredientOptional}> (optional)</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
+
       {recipe.instructions.length > 0 && (
         <section aria-labelledby="instructions-heading">
           <h2 id="instructions-heading" className={styles.sectionHeading}>Instructions</h2>
@@ -243,6 +270,31 @@ export default function RecipeDetailPage(): React.ReactElement {
         <section aria-labelledby="tips-heading">
           <h2 id="tips-heading" className={styles.sectionHeading}>Tips</h2>
           <p className={styles.tips}>{recipe.tips}</p>
+        </section>
+      )}
+
+      {recipe.citations.length > 0 && (
+        <section aria-labelledby="citations-heading">
+          <h2 id="citations-heading" className={styles.sectionHeading}>Sources</h2>
+          <ul className={styles.citationList}>
+            {recipe.citations.map((c, idx) => (
+              <li key={`${c.url ?? 'no-url'}-${String(idx)}`} className={styles.citationItem}>
+                {c.url !== undefined ? (
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.citationLink}
+                  >
+                    {c.title}
+                  </a>
+                ) : (
+                  <span>{c.title}</span>
+                )}
+                <span className={styles.citationType}>· {c.source_type}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

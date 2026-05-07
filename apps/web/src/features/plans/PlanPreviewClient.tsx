@@ -258,24 +258,26 @@ export function PlanPreviewClient({ planId }: Props): React.ReactElement {
         </p>
       </header>
 
-      <div className={styles.viewControls} role="group" aria-label="View mode">
-        <button
-          type="button"
-          className={viewMode === 'week' ? styles.viewToggleActive : styles.viewToggle}
-          aria-pressed={viewMode === 'week'}
-          onClick={() => { setViewMode('week'); }}
-        >
-          Weekly
-        </button>
-        <button
-          type="button"
-          className={viewMode === 'summary' ? styles.viewToggleActive : styles.viewToggle}
-          aria-pressed={viewMode === 'summary'}
-          onClick={() => { setViewMode('summary'); }}
-        >
-          Summary
-        </button>
-      </div>
+      {durationDays > 7 && (
+        <div className={styles.viewControls} role="group" aria-label="View mode">
+          <button
+            type="button"
+            className={viewMode === 'week' ? styles.viewToggleActive : styles.viewToggle}
+            aria-pressed={viewMode === 'week'}
+            onClick={() => { setViewMode('week'); }}
+          >
+            Weekly
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'summary' ? styles.viewToggleActive : styles.viewToggle}
+            aria-pressed={viewMode === 'summary'}
+            onClick={() => { setViewMode('summary'); }}
+          >
+            Summary
+          </button>
+        </div>
+      )}
 
       {showWeekTabs && (
         <div

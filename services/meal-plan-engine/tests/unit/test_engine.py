@@ -261,9 +261,11 @@ async def test_run_pipeline_produces_weekly_plan_of_duration_length():  # noqa: 
 
     assert result["status"] == "completed"
     assert len(result["weekly_plan"]) == 7
-    # Progress events fired in expected order.
-    assert events[0] == {"pass": 1, "pct": 0}
-    assert events[-1] == {"pass": 2, "pct": 100}
+    # Progress events fired in expected order — IMPL-AI-003 4-stage shape.
+    assert events[0]["pass"] == 1 and events[0]["pct"] == 0
+    assert events[0]["stage"] == "analyzing_profile"
+    assert events[0]["type"] == "progress"
+    assert events[-1]["pass"] == 2 and events[-1]["pct"] == 100
 
 
 @pytest.mark.asyncio
