@@ -80,7 +80,22 @@ describe('BFF integration — POST /api/auth/mobile/login', () => {
     expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 
-  it('upstream 401 forwarded — envelope code preserved (e.g., MALFORMED enum survives)', async () => {
+  it('upstream 401 forwarded — status + no cookies (envelope code preservation deferred to CHORE-BFF-401-CONTRACT)', async () => {
+    // Codex r1 review of IMPL-MOBILE-AUTH-002a caught: fetchBff currently
+    // throws SessionExpiredError on upstream 401 (bff-fetch.ts:275), which
+    // createPublicRoute collapses into envelope code='TOKEN_EXPIRED'. This
+    // breaks AUTH-003's 5-code enum forward (MALFORMED / TOKEN_REUSE_DETECTED
+    // etc.) for mobile.
+    //
+    // The fix is cross-cutting (touches every public route's 401 handling
+    // + modifies an existing auth-bff integration test that asserts the old
+    // 'TOKEN_EXPIRED' value at line 90-99). Split out as CHORE-BFF-401-CONTRACT
+    // followup PR — see IMPLEMENTATION_LOG `### 미완료` entry. Mobile state
+    // machine reliance on the enum is blocked until that followup lands.
+    //
+    // Until then we assert only status + Set-Cookie absence — NOT envelope
+    // code, because asserting either 'MALFORMED' (preferred) or 'TOKEN_EXPIRED'
+    // (current bug) would cement the wrong contract.
     fetchSpy.mockResolvedValueOnce(
       upstreamResponse({ error: { code: 'MALFORMED', message: 'Malformed or invalid refresh token' } }, 401),
     );
@@ -88,7 +103,6 @@ describe('BFF integration — POST /api/auth/mobile/login', () => {
     const res = await mobileLoginPOST(req);
 
     expect(res.status).toBe(401);
-    // No cookies on error path either
     expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 
