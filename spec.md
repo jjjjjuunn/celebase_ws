@@ -612,6 +612,43 @@ CREATE TABLE subscriptions (
 );
 
 -- ============================================
+-- COMMERCE WEBHOOK IDEMPOTENCY (PIVOT-MOBILE-2026-05)
+-- ============================================
+
+-- Migration 0008 (initial — Stripe-only) + 0016 (IMPL-MOBILE-PAY-001a-1 expand: provider/event_id NULL columns)
+-- + 0017 (IMPL-MOBILE-PAY-001a-2 backfill + CHECK + partial UNIQUE).
+CREATE TABLE processed_events (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    stripe_event_id     VARCHAR(100) NOT NULL,                  -- Stripe path (legacy, web 잔존)
+    event_type          VARCHAR(100) NOT NULL,
+    processed_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    payload_hash        CHAR(64) NOT NULL,
+    result              VARCHAR(20) NOT NULL
+                        CHECK (result IN ('applied','skipped','error')),
+    error_message       TEXT,
+
+    -- IMPL-MOBILE-PAY-001a-1 expand phase: dual-provider columns (NULL allowed for legacy rows)
+    provider            TEXT,                                   -- 'stripe' | 'revenuecat' | NULL (legacy rows tolerated)
+    event_id            TEXT,                                   -- provider-native event id (Stripe `evt_...` 또는 RevenueCat event uuid)
+
+    CONSTRAINT uq_processed_events_stripe_id UNIQUE (stripe_event_id),
+
+    -- IMPL-MOBILE-PAY-001a-2: NULL-tolerant whitelist (matches partial UNIQUE design)
+    CONSTRAINT processed_events_provider_check
+                        CHECK (provider IS NULL OR provider IN ('stripe','revenuecat'))
+);
+
+CREATE INDEX idx_processed_events_processed_at ON processed_events (processed_at DESC);
+CREATE INDEX idx_processed_events_stripe_event_id ON processed_events (stripe_event_id);
+
+-- IMPL-MOBILE-PAY-001a-2: partial UNIQUE — replaces stripe_event_id UNIQUE 의 idempotency 역할 (RevenueCat 전환 후).
+-- WHERE provider IS NOT NULL → legacy NULL rows 는 인덱스에서 제외 (CONCURRENTLY 빌드, online).
+-- 001a-2 migration 은 이 인덱스 생성 직전 UPDATE 로 NULL rows 를 (provider='stripe', event_id=stripe_event_id) backfill.
+CREATE UNIQUE INDEX CONCURRENTLY uq_processed_events_provider_event_id
+    ON processed_events (provider, event_id)
+    WHERE provider IS NOT NULL;
+
+-- ============================================
 -- USER TRACKING / FEEDBACK
 -- ============================================
 
@@ -911,9 +948,9 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/auth/signup` | 소셜/이메일 가입 | No |
-| POST | `/auth/login` | 로그인 (Cognito) | No |
-| POST | `/auth/refresh` | 토큰 리프레시 | Refresh |
+| POST | `/auth/signup` | 소셜/이메일 가입. Cognito id_token 의 `aud` 는 `[bff_client_id, mobile_client_id]` 배열 ANY-match 검증 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-001 / PR #36) | No |
+| POST | `/auth/login` | 로그인 (Cognito SRP via Amplify on mobile / cookie-shaped on web BFF). 동일 audience 배열 검증 | No |
+| POST | `/auth/refresh` | 토큰 리프레시. 본 라우트는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 **직접 호출** (BFF 미경유 예외 — banner 참조) | Refresh |
 | POST | `/ws/ticket` | WebSocket 1회용 연결 티켓 발급 (TTL 30초) | JWT |
 | GET | `/users/me` | 내 프로필 조회 | JWT |
 | PATCH | `/users/me` | 프로필 수정 | JWT |
@@ -2089,7 +2126,10 @@ REDIS_URL=redis://host:6379
 # AWS
 AWS_REGION=us-west-2
 AWS_COGNITO_USER_POOL_ID=us-west-2_xxxxx
-AWS_COGNITO_CLIENT_ID=xxxxx
+AWS_COGNITO_CLIENT_ID=xxxxx          # web BFF (confidential, with secret)
+COGNITO_MOBILE_CLIENT_ID=xxxxx       # apps/mobile (public, no secret) — PIVOT-MOBILE-2026-05 / IMPL-MOBILE-AUTH-001
+                                     # user-service 는 audience = [client_id, mobile_client_id] 배열 ANY-match 로 검증
+                                     # empty string 은 undefined 로 normalize (web-only deployment 호환)
 AWS_S3_BUCKET=celebbase-assets
 AWS_SQS_MEAL_PLAN_QUEUE=celebbase-meal-plan-queue
 
