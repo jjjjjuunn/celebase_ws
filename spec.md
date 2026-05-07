@@ -1100,10 +1100,17 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/subscriptions` | 구독 시작 (Stripe) | JWT |
+| POST | `/subscriptions` | 구독 시작 (Stripe — web 잔존, 현재 미사용) | JWT |
 | GET | `/subscriptions/me` | 내 구독 정보 | JWT |
-| POST | `/subscriptions/me/cancel` | 구독 해지 | JWT |
-| POST | `/webhooks/stripe` | Stripe 웹훅 수신 | Stripe Sig |
+| POST | `/subscriptions/me/cancel` | 구독 해지 (Stripe path) | JWT |
+| POST | `/webhooks/stripe` | Stripe 웹훅 수신 (web 잔존) | Stripe Sig |
+| POST | `/webhooks/revenuecat` | RevenueCat 웹훅 수신 (mobile IAP) — `entitlement_id` → `subscription_tier` 매핑 후 `subscriptions` 갱신 + `processed_events` idempotency 기록 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-PAY-001b / PR #39) | RevenueCat `Authorization` header secret |
+
+**Internal (service-to-service)** *(PIVOT-MOBILE-2026-05)*:
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/internal/subscriptions/refresh-from-revenuecat` | mobile pull-sync 진입점: client 가 BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) 를 호출하면 BFF 가 본 엔드포인트로 위임 → commerce-service 가 RevenueCat REST API 를 조회해 entitlement → tier 를 갱신한다. **캐시 정책**: `source=purchase` 는 캐시 우회 + 8s timeout, `source=app_open` / `source=manual` 은 60s 캐시 (IMPL-MOBILE-SUB-SYNC-001 / PR #41). | Internal JWT |
 
 ---
 
@@ -2022,6 +2029,21 @@ celebbase-wellness/
 └── .github/
     └── workflows/                  # CI/CD pipelines
 ```
+
+---
+
+### 11.1 Cognito Identity Resources *(PIVOT-MOBILE-2026-05)*
+
+`infra/terraform/cognito.tf` 가 두 종류의 Cognito User Pool Client 를 산출한다 (INFRA-MOBILE-001 / PR #35):
+
+| Client | type | 용도 | id_token audience |
+|--------|------|-----|-------------------|
+| `aws_cognito_user_pool_client.bff` | confidential (with secret) | web BFF (server-to-server), 향후 admin 콘솔 | `bff` client_id |
+| `aws_cognito_user_pool_client.mobile` | public (no secret) | `apps/mobile` Amplify SRP / Hosted UI | `mobile` client_id |
+
+- Mobile public client: `generate_secret = false` + `explicit_auth_flows = ["ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"]` — App Store / Play Store 배포 바이너리에 client secret 미포함.
+- user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
+- Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
 
 ---
 
