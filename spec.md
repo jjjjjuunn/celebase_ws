@@ -612,6 +612,43 @@ CREATE TABLE subscriptions (
 );
 
 -- ============================================
+-- COMMERCE WEBHOOK IDEMPOTENCY (PIVOT-MOBILE-2026-05)
+-- ============================================
+
+-- Migration 0008 (initial — Stripe-only) + 0016 (IMPL-MOBILE-PAY-001a-1 expand: provider/event_id NULL columns)
+-- + 0017 (IMPL-MOBILE-PAY-001a-2 backfill + CHECK + partial UNIQUE).
+CREATE TABLE processed_events (
+    id                  UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    stripe_event_id     VARCHAR(100) NOT NULL,                  -- Stripe path (legacy, web 잔존)
+    event_type          VARCHAR(100) NOT NULL,
+    processed_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    payload_hash        CHAR(64) NOT NULL,
+    result              VARCHAR(20) NOT NULL
+                        CHECK (result IN ('applied','skipped','error')),
+    error_message       TEXT,
+
+    -- IMPL-MOBILE-PAY-001a-1 expand phase: dual-provider columns (NULL allowed for legacy rows)
+    provider            TEXT,                                   -- 'stripe' | 'revenuecat' | NULL (legacy rows tolerated)
+    event_id            TEXT,                                   -- provider-native event id (Stripe `evt_...` 또는 RevenueCat event uuid)
+
+    CONSTRAINT uq_processed_events_stripe_id UNIQUE (stripe_event_id),
+
+    -- IMPL-MOBILE-PAY-001a-2: NULL-tolerant whitelist (matches partial UNIQUE design)
+    CONSTRAINT processed_events_provider_check
+                        CHECK (provider IS NULL OR provider IN ('stripe','revenuecat'))
+);
+
+CREATE INDEX idx_processed_events_processed_at ON processed_events (processed_at DESC);
+CREATE INDEX idx_processed_events_stripe_event_id ON processed_events (stripe_event_id);
+
+-- IMPL-MOBILE-PAY-001a-2: partial UNIQUE — replaces stripe_event_id UNIQUE 의 idempotency 역할 (RevenueCat 전환 후).
+-- WHERE provider IS NOT NULL → legacy NULL rows 는 인덱스에서 제외 (CONCURRENTLY 빌드, online).
+-- 001a-2 migration 은 이 인덱스 생성 직전 UPDATE 로 NULL rows 를 (provider='stripe', event_id=stripe_event_id) backfill.
+CREATE UNIQUE INDEX CONCURRENTLY uq_processed_events_provider_event_id
+    ON processed_events (provider, event_id)
+    WHERE provider IS NOT NULL;
+
+-- ============================================
 -- USER TRACKING / FEEDBACK
 -- ============================================
 
@@ -911,9 +948,9 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/auth/signup` | 소셜/이메일 가입 | No |
-| POST | `/auth/login` | 로그인 (Cognito) | No |
-| POST | `/auth/refresh` | 토큰 리프레시 | Refresh |
+| POST | `/auth/signup` | 소셜/이메일 가입. Cognito id_token 의 `aud` 는 `[bff_client_id, mobile_client_id]` 배열 ANY-match 검증 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-001 / PR #36) | No |
+| POST | `/auth/login` | 로그인 (Cognito SRP via Amplify on mobile / cookie-shaped on web BFF). 동일 audience 배열 검증 | No |
+| POST | `/auth/refresh` | 토큰 리프레시. 본 라우트는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 **직접 호출** (BFF 미경유 예외 — banner 참조) | Refresh |
 | POST | `/ws/ticket` | WebSocket 1회용 연결 티켓 발급 (TTL 30초) | JWT |
 | GET | `/users/me` | 내 프로필 조회 | JWT |
 | PATCH | `/users/me` | 프로필 수정 | JWT |
@@ -1100,10 +1137,17 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/subscriptions` | 구독 시작 (Stripe) | JWT |
+| POST | `/subscriptions` | 구독 시작 (Stripe — web 잔존, 현재 미사용) | JWT |
 | GET | `/subscriptions/me` | 내 구독 정보 | JWT |
-| POST | `/subscriptions/me/cancel` | 구독 해지 | JWT |
-| POST | `/webhooks/stripe` | Stripe 웹훅 수신 | Stripe Sig |
+| POST | `/subscriptions/me/cancel` | 구독 해지 (Stripe path) | JWT |
+| POST | `/webhooks/stripe` | Stripe 웹훅 수신 (web 잔존) | Stripe Sig |
+| POST | `/webhooks/revenuecat` | RevenueCat 웹훅 수신 (mobile IAP) — `entitlement_id` → `subscription_tier` 매핑 후 `subscriptions` 갱신 + `processed_events` idempotency 기록 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-PAY-001b / PR #39) | RevenueCat `Authorization` header secret |
+
+**Internal (service-to-service)** *(PIVOT-MOBILE-2026-05)*:
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/internal/subscriptions/refresh-from-revenuecat` | mobile pull-sync 진입점: client 가 BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) 를 호출하면 BFF 가 본 엔드포인트로 위임 → commerce-service 가 RevenueCat REST API 를 조회해 entitlement → tier 를 갱신한다. **캐시 정책**: `source=purchase` 는 캐시 우회 + 8s timeout, `source=app_open` / `source=manual` 은 60s 캐시 (IMPL-MOBILE-SUB-SYNC-001 / PR #41). | Internal JWT |
 
 ---
 
@@ -2025,6 +2069,21 @@ celebbase-wellness/
 
 ---
 
+### 11.1 Cognito Identity Resources *(PIVOT-MOBILE-2026-05)*
+
+`infra/terraform/cognito.tf` 가 두 종류의 Cognito User Pool Client 를 산출한다 (INFRA-MOBILE-001 / PR #35):
+
+| Client | type | 용도 | id_token audience |
+|--------|------|-----|-------------------|
+| `aws_cognito_user_pool_client.bff` | confidential (with secret) | web BFF (server-to-server), 향후 admin 콘솔 | `bff` client_id |
+| `aws_cognito_user_pool_client.mobile` | public (no secret) | `apps/mobile` Amplify SRP / Hosted UI | `mobile` client_id |
+
+- Mobile public client: `generate_secret = false` + `explicit_auth_flows = ["ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"]` — App Store / Play Store 배포 바이너리에 client secret 미포함.
+- user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
+- Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
+
+---
+
 ## 12. Seed Data Requirements
 
 MVP 출시 시 최소 10명의 셀럽 프로필과 식단 데이터가 필요하다.
@@ -2067,7 +2126,10 @@ REDIS_URL=redis://host:6379
 # AWS
 AWS_REGION=us-west-2
 AWS_COGNITO_USER_POOL_ID=us-west-2_xxxxx
-AWS_COGNITO_CLIENT_ID=xxxxx
+AWS_COGNITO_CLIENT_ID=xxxxx          # web BFF (confidential, with secret)
+COGNITO_MOBILE_CLIENT_ID=xxxxx       # apps/mobile (public, no secret) — PIVOT-MOBILE-2026-05 / IMPL-MOBILE-AUTH-001
+                                     # user-service 는 audience = [client_id, mobile_client_id] 배열 ANY-match 로 검증
+                                     # empty string 은 undefined 로 normalize (web-only deployment 호환)
 AWS_S3_BUCKET=celebbase-assets
 AWS_SQS_MEAL_PLAN_QUEUE=celebbase-meal-plan-queue
 
