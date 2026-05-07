@@ -39,7 +39,8 @@
 | IMPL-MOBILE-PAY-001a-2 | ✅ merged (PR #40) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE provider IS NOT NULL`, CHECK constraint) | ✅ `SPEC-SYNC-PAY-001a-2` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001b | ✅ merged (PR #39) | §4.2 Subscriptions (RevenueCat webhook 라우트 + entitlement → tier mapping) | ✅ `SPEC-SYNC-PAY-001b` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001c | backlog | §3 schema (`stripe_event_id` drop) | contract phase 별도 진행 |
-| IMPL-MOBILE-SUB-SYNC-001 | ✅ merged (PR #41) | §4.2 Subscriptions Internal (`POST /internal/subscriptions/refresh-from-revenuecat` + 캐시 정책 source=purchase 우회 / source=app_open 60s) | ✅ `SPEC-SYNC-SUB-001` 완료 — §3 행 참조 |
+| IMPL-MOBILE-SUB-SYNC-001 | ✅ merged (PR #41) — **부분 ship** (webhook + adapter + sync helper 만, internal route 미구현) | §4.2 Subscriptions Internal (`POST /internal/subscriptions/refresh-from-revenuecat` + 캐시 정책 source=purchase 우회 / source=app_open 60s) | ✅ `SPEC-SYNC-SUB-001` 완료 — §3 행 참조. 실제 internal route 는 IMPL-MOBILE-SUB-SYNC-001b 에서 backfill. |
+| IMPL-MOBILE-SUB-SYNC-001b | 🟡 in-progress (PR pending) | §4.2 Subscriptions Internal — 본 PR 이 실제 route 신설 (request/response shape, idempotencyKey, 캐시 X 명시). Internal JWT audience = `commerce-service:internal` 추가 | finalize patch — spec line 1150 cache 정책 정정 (cache 없음 + CHORE-SUB-CACHE-001 backlog 명시) |
 
 ### Session C — BFF + CI
 

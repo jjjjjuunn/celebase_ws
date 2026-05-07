@@ -1147,7 +1147,32 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/internal/subscriptions/refresh-from-revenuecat` | mobile pull-sync 진입점: client 가 BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) 를 호출하면 BFF 가 본 엔드포인트로 위임 → commerce-service 가 RevenueCat REST API 를 조회해 entitlement → tier 를 갱신한다. **캐시 정책**: `source=purchase` 는 캐시 우회 + 8s timeout, `source=app_open` / `source=manual` 은 60s 캐시 (IMPL-MOBILE-SUB-SYNC-001 / PR #41). | Internal JWT |
+| POST | `/internal/subscriptions/refresh-from-revenuecat` | mobile pull-sync 진입점 (IMPL-MOBILE-SUB-SYNC-001b). 상세 명세는 본 표 아래 섹션 참조. | Internal JWT (audience = `commerce-service:internal`) |
+
+##### `/internal/subscriptions/refresh-from-revenuecat` 상세 *(IMPL-MOBILE-SUB-SYNC-001b)*
+
+mobile client → BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) → 본 endpoint 로 위임. commerce-service 가 RevenueCat REST API 를 조회하여 entitlement → tier 를 도출한 뒤 `subscriptions` upsert + user-service `/internal/users/:id/tier` 동기화를 한 번에 수행한다.
+
+**Request body**:
+```json
+{ "user_id": "<UUID v7>", "source": "purchase" | "app_open" | "manual" }
+```
+
+**Response 200**:
+```json
+{ "user_id": "<UUID>", "tier": "free|premium|elite", "status": "active|past_due|cancelled|expired|free", "current_period_end": "<ISO8601 | null>", "source": "<request 와 동일>" }
+```
+
+**에러**:
+- `502 REVENUECAT_UNAVAILABLE` — circuit breaker open 또는 upstream 5xx
+- `400 VALIDATION_ERROR` — body shape 위반
+- `401 UNAUTHORIZED` — internal JWT 누락 / audience mismatch / jti replay
+
+**Idempotency**: user-service `/internal/users/:id/tier` 호출 시 idempotencyKey = `${userId}:${tier}:sync:${period_end_ms}`. 동일 sync 상태 (RevenueCat 측 변경 없음) 재호출은 user-service 가 409 DUPLICATE_REQUEST 로 응답 → commerce 가 silent skip 후 200 으로 정상 응답.
+
+**캐시 정책**: 현재 캐시 없음 — `source` 는 응답 메타데이터 + 로그 dimension 으로만 사용되고 모든 호출이 RevenueCat REST API 직조회. single-flight + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s / `source=manual` 60s) 및 Plan v5 §M5 단위 테스트의 30s 캐시 요구사항은 backlog **CHORE-SUB-CACHE-001** 범위.
+
+**구현 history**: PR #41 (SUB-SYNC-001) 이 webhook + adapter + `handleWebhookEvent` + `upsertRevenuecatSubscription` 까지 ship 했고, IMPL-MOBILE-SUB-SYNC-001b (본 항목) 가 internal route 자체 + `syncFromRevenuecat()` helper 추출 + commerce 측 internal JWT middleware 를 backfill.
 
 ---
 

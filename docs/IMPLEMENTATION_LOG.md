@@ -30,6 +30,49 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-001b
+commit_sha: 09acf8c
+files_changed:
+  - services/commerce-service/src/middleware/internal-jwt.ts
+  - services/commerce-service/src/routes/internal-subscriptions.routes.ts
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (78/78 commerce-service jest PASS — 신규 internal route 12 case + 기존 66 회귀, monorepo turbo build/typecheck/lint 28 successful, coverage 87.07% lines)
+---
+### 완료: commerce-service `/internal/subscriptions/refresh-from-revenuecat` backfill — IMPL-MOBILE-SUB-SYNC-001b (PR #41 SUB-SYNC-001 의 internal route 누락분 보완, SUB-SYNC-002 BFF wrapper 의 dependency)
+- **배경**: PR #41 (SUB-SYNC-001) 이 spec.md §4.2 line 1150 + SPEC-SYNC-SUB-001 의 retroactive backfill 에서 `/internal/subscriptions/refresh-from-revenuecat` 를 already-shipped 처럼 기술했으나 실제 코드는 webhook (`POST /webhooks/revenuecat`) + `RevenuecatAdapter` + `handleWebhookEvent` + `upsertRevenuecatSubscription` 까지만 ship. internal pull-sync route 자체는 미구현. SUB-SYNC-002 (BFF wrapper) 가 호출할 endpoint 가 없어 진입 차단됨. Plan v5 line 66 정의는 SUB-SYNC-002 = BFF only 이므로 본 task (001b) 신설로 commerce internal endpoint 만 backfill.
+- **신규 파일**:
+  - `services/commerce-service/src/middleware/internal-jwt.ts` — user-service `internal-jwt.ts` 패턴 복사, audience = `commerce-service:internal` (user-service 와 다른 audience 로 cross-service token 사용 차단). jti replay cache + 60s TTL + `setTimeout(...).unref()` (jest open-handle 방지).
+  - `services/commerce-service/src/routes/internal-subscriptions.routes.ts` — `POST /internal/subscriptions/refresh-from-revenuecat`. body Zod (`user_id: UUID, source: 'purchase'|'app_open'|'manual'`), `RevenuecatUnavailableError` → 502, validation → 400, 그 외 propagate → 500.
+  - `services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts` — 12 케이스: happy path (active premium → upsert + syncTier), no entitlement → free, unknown product → free, expired entitlement → free, RevenuecatUnavailable → 502, validation × 2, JWT 누락 → 401, JWT wrong audience → 401, idempotency (user-service 409 silent skip), non-409 propagation → 500, **handleWebhookEvent backfill × 3** (happy / missing app_user_id / no entitlement) — PR #41 webhook 통합 테스트가 mock 으로 우회한 코드 경로 직접 호출 회귀 보호 + coverage 임계값 (80% lines) 충족.
+- **수정 파일**:
+  - `services/commerce-service/src/services/revenuecat-sync.service.ts` — 신규 export `syncFromRevenuecat()` (pull-sync helper). webhook flow 의 entitlement select → tier derive → upsert → user-service syncTier 패턴을 `payload.id` 의존 없이 단독 호출 가능하게 추출. `handleWebhookEvent` 변경 없음 (PR #41 회귀 0). idempotency key = `${userId}:${tier}:sync:${period_end_ms}` — 동일 sync 상태 재호출은 user-service 가 409 DUPLICATE_REQUEST 로 silent skip (InternalClientError 가 message 에 '409' 포함 → catch 후 debug log).
+  - `services/commerce-service/src/index.ts` — `registerJwtAuth` publicPaths 에 `/internal/*` 추가, `registerInternalJwtAuth(app)` 호출 (root-scope onRequest hook), `revenuecatConfig !== undefined` 분기 안에서 `internalSubscriptionsRoutes` register (RevenueCat disabled 환경에서는 internal route 도 비활성).
+  - `spec.md §4.2 line 1150` — 캐시 정책 paragraph 정정. 기존 "source=purchase 우회 + 8s timeout, app_open/manual 60s 캐시 (PR #41)" → "현재 캐시 없음 — 모든 호출이 RevenueCat REST API 직조회. single-flight + source-aware TTL 은 backlog **CHORE-SUB-CACHE-001** 범위." 추가: request/response shape, error codes, idempotency key 모델, audience 표기.
+  - `docs/SPEC-PIVOT-PLAN.md` row 42 (SUB-SYNC-001) → "**부분 ship**" 명시 + row 43 (신규 SUB-SYNC-001b) 추가.
+- **검증**:
+  - `pnpm --filter commerce-service test` → 10 suites / **78 tests PASS** (신규 12 + 기존 66 회귀)
+  - `pnpm --filter commerce-service typecheck` PASS, lint PASS
+  - `pnpm turbo build typecheck lint --filter='!web'` → 28/28 successful
+  - Coverage: lines 87.07%, statements 85.41%, branches 68.29%, functions 90.47% (이전 main 82.45% → 본 PR 87.07% 향상)
+- **mobile / BFF 영향**: 본 PR 은 commerce-service 내부 route 만 ship — mobile 또는 BFF 변경 0. SUB-SYNC-002 (BFF wrapper) 가 다음 PR 에서 본 endpoint 를 호출.
+- **L2 tier review** (단일 service, 신규 3 + 수정 2 = 5 files, 보안 결정 변경 0): codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정.
+
+### 미완료:
+- **L2 review (본 PR)**: PR push 후 codex r1 + Claude self-adversarial 1회.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여, JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` — 본 PR 머지 후 진입. mobile IAP 결제 직후 호출하는 client-driven sync 진입점. 동료 M5 unblock 의 마지막 의존성.
+- **CHORE-SUB-CACHE-001** (backlog, M5 진입 전 처리 권장): single-flight 30s 캐시 (Plan v5 §M5 단위 테스트 요구사항) + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s, `source=manual` 60s).
+- **CHORE-AUTH-PUBLIC-PATHS-AUDIT** (AUTH-002b-fix1 권고): `commerce`, `analytics`, `content`, `meal-plan-engine` 의 `registerJwtAuth` 호출 + per-route limiter 정합성 전수 점검. 본 PR 이 commerce-service 의 publicPaths 에 `/internal/*` 추가 — commerce 에 per-route limiter 부재로 limiter 가드 audit 시 별 issue 없을 전망.
+
+### 연관 파일: services/commerce-service/src/{middleware/internal-jwt.ts,routes/internal-subscriptions.routes.ts,services/revenuecat-sync.service.ts,index.ts}, services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-AUTH-002b-fix1
 commit_sha: a2376e9
 files_changed:
