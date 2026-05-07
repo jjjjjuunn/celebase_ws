@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: CHORE-BFF-401-CONTRACT
-commit_sha: PENDING
+commit_sha: 2580c5c
 files_changed:
   - apps/web/src/app/api/_lib/bff-fetch.ts
   - apps/web/src/app/api/_lib/session.ts
