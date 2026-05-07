@@ -28,6 +28,35 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-BFF-001
+commit_sha: 6948e9c
+files_changed:
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/_lib/__tests__/test-helpers.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - .gitignore
+verified_by: claude-opus-4-7 (gate-implement/qa Claude verdict + 32/32 jest direct PASS) + codex-gpt-5 r1+r2 PASS + Claude self-adversarial L3 (10 threats)
+---
+### 완료: Hybrid BFF auth — cookie path A + Authorization Bearer fallback (mobile gateway) — IMPL-MOBILE-BFF-001
+- `createProtectedRoute` 가 cookie 와 `Authorization: Bearer` 둘 다 인식 (Plan v5 §IMPL-MOBILE-BFF-001). cookie path A 강제 — `cb_access` 쿠키 존재 시 검증 실패해도 bearer 분기로 fallthrough 하지 않음 (D1 path-confusion downgrade 방어).
+- `Session.authSource: 'cookie' | 'bearer'` required 필드 추가. `verifyAccessToken: Promise<Omit<Session, 'authSource'>>` 시그니처로 caller 가 spread 시 명시 강제 (`as Session` cast 차단). 핸들러/observability 가 web vs. mobile 클라이언트 구분.
+- bearer 경로: silent refresh 미수행 (모바일은 `JWTExpired` → 401 + `X-Token-Expired:1` 후 user-service `/auth/refresh` 직접 호출), `Set-Cookie` 절대 미발급 (web/mobile cookie jar 혼선 차단), RFC 6750 case-sensitive `^Bearer (.+)$` (lowercase scheme 거부) + `match[1].trim()`.
+- 모든 401 분기 `padToMinLatency(handlerStart)` 100ms 앵커링 — JWTExpired vs forged vs missing 사이의 timing oracle 제거. 5ms slack (≥95ms) 으로 jest 회귀 테스트 안정화.
+- `/auth/refresh` 는 BFF 가 cookie-shaped (JSON 토큰 미반환) 이라 mobile 이 user-service `/auth/refresh` 직접 호출 — multi-session.md §1 BFF 표 + spec.md §9.3 에 명시.
+- 32/32 jest tests PASS (직접 실행): cookie 17개 (기존) + bearer path 5개 (case-mismatch / empty / valid / expired / forged) + cookie+bearer D1 confusion 4개 (forged-cookie+valid-bearer fallthrough 금지 + timing) + bearer timing regression 4개 + 기타 expanded.
+- L3 review: codex r1 (0 CRITICAL/HIGH, 1 MEDIUM `DEFAULT_DEV_SECRET` — origin/main line 31 에 pre-existing → out_of_scope, 3 LOW deferral-eligible) + r2 (0 CRITICAL/HIGH/MEDIUM, 2 LOW: MIN_LATENCY_MS 상수화, regex `[^\s]+` 가독성). Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback 1회 추가 (10 threats inspected: T1 path confusion / T2 empty cookie / T3 scheme case / T4 CRLF / T5 timing oracle / T6 authSource omission / T7 Set-Cookie cross-pollination / T8 /auth/refresh 예외 / T9 JWT rotation race / T10 DEFAULT_DEV_SECRET — all PASS).
+- spec.md sync: §9.3 BFF Authentication subsection 6 numbered rules + §11 BFF active gateway banner. SPEC-PIVOT-PLAN.md row 상태 `🟡 in-progress` + §6 → §9.3 정정.
+- gate-implement/qa: 14/15 PASS, 1 FAIL `meal-plan-engine#test` (ModuleNotFoundError pythonjsonlogger) → out_of_scope (origin/main 에도 pre-existing, services/meal-plan-engine/** affected paths 외, services/meal-plan-engine/.venv/bin/pytest 직접 호출 시 124/2-skipped PASS).
+- fix-request: 0 회 (단일 feat commit + 1 chore .gitignore 정리).
+- chore commit `d0fb633`: `.gitignore` 에 `.venv-python` 추가 — `step_qa_exec` 가 만드는 venv binary 심볼릭 링크가 `step_finalize` 의 `git add -A` 에 흡수되는 함정 차단.
+### 미완료: IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits — §11 / §6), IMPL-MOBILE-AUTH-003 (5-code refresh enum — §6 + AUTH-003 짝), IMPL-MOBILE-SUB-SYNC-002 (BFF route `POST /api/subscriptions/sync` — §11 / §6.5), CHORE-MOBILE-001 (mobile-ci.yml + ESLint overrides), CHORE-MOBILE-002 (mobile refresh TTL 7-14d + device_tracking), CHORE-WORKTREE-ENV-001 (worktree-aware `.env.local` propagation — gate-implement web#build out_of_scope 사유와 동일), CHORE-MEAL-PLAN-VENV-PATH (`pnpm test` 가 `.venv/bin/pytest` 가 아닌 PATH `pytest` 호출 — gate-implement/qa 의 `meal-plan-engine#test` 영구 fail). 동료 트랙: M2 API client + refresh 상태머신 (§6 — refresh code enum 클라이언트 분기), M3 Claim feed (§7 / §3.5).
+### 연관 파일: apps/web/src/app/api/_lib/session.ts, apps/web/src/app/api/_lib/__tests__/session.test.ts, apps/web/src/app/api/_lib/__tests__/test-helpers.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-BFF-001/
+
+---
 date: 2026-05-06
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-PAY-001b
