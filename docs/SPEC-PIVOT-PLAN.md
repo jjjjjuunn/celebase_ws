@@ -35,7 +35,7 @@
 | IMPL-MOBILE-AUTH-002 | planned | §11 Project Structure (mobile ingress 결정 — 옵션 A/B), §6 Rate Limiting | finalize — 결정 사항을 본문에 fix |
 | IMPL-MOBILE-AUTH-003 | planned (P0) | §6 Security (`/auth/refresh` error envelope enum 5종), API contract section (refresh response shape) | finalize — enum 5종 explicit 명시 |
 | IMPL-MOBILE-PAY-001a-1 | ✅ merged (PR #37) | §3 schema (`processed_events` expand DDL — `provider`, `event_id` NULL 허용 컬럼) | ✅ `SPEC-SYNC-PAY-001a-1` 완료 — §3 행 참조 |
-| IMPL-MOBILE-PAY-001a-2 | planned (P0) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE NOT NULL`) | finalize patch |
+| IMPL-MOBILE-PAY-001a-2 | ✅ merged (PR #40) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE provider IS NOT NULL`, CHECK constraint) | ✅ `SPEC-SYNC-PAY-001a-2` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001b | ✅ merged (PR #39) | §4.2 Subscriptions (RevenueCat webhook 라우트 + entitlement → tier mapping) | ✅ `SPEC-SYNC-PAY-001b` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001c | backlog | §3 schema (`stripe_event_id` drop) | contract phase 별도 진행 |
 | IMPL-MOBILE-SUB-SYNC-001 | ✅ merged (PR #41) | §4.2 Subscriptions Internal (`POST /internal/subscriptions/refresh-from-revenuecat` + 캐시 정책 source=purchase 우회 / source=app_open 60s) | ✅ `SPEC-SYNC-SUB-001` 완료 — §3 행 참조 |
@@ -80,6 +80,7 @@
 | ✅ `SPEC-SYNC-INFRA-001` | INFRA-MOBILE-001 (PR #35) | §11.1 Cognito Identity Resources — bff/mobile public client + audience 배열 |
 | ✅ `SPEC-SYNC-AUTH-001` | IMPL-MOBILE-AUTH-001 (PR #36) | §4.2 Auth — audience 배열 ANY-match 검증, Appendix A — `COGNITO_MOBILE_CLIENT_ID` |
 | ✅ `SPEC-SYNC-PAY-001a-1` | IMPL-MOBILE-PAY-001a-1 (PR #37) | §3.1 — `processed_events` 테이블 신설 + dual-provider 컬럼 (`provider`, `event_id` NULL 허용) |
+| ✅ `SPEC-SYNC-PAY-001a-2` | IMPL-MOBILE-PAY-001a-2 (PR #40) | §3.1 — `processed_events_provider_check` CHECK + partial UNIQUE `(provider, event_id) WHERE provider IS NOT NULL` |
 | ✅ `SPEC-SYNC-PAY-001b` | IMPL-MOBILE-PAY-001b (PR #39) | §4.2 Subscriptions — `/webhooks/revenuecat` 라우트 + entitlement → tier mapping |
 | ✅ `SPEC-SYNC-SUB-001` | IMPL-MOBILE-SUB-SYNC-001 (PR #41) | §4.2 Subscriptions Internal — refresh-from-revenuecat + 캐시 정책 (source=purchase 우회 / 60s) |
 

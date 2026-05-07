@@ -615,8 +615,8 @@ CREATE TABLE subscriptions (
 -- COMMERCE WEBHOOK IDEMPOTENCY (PIVOT-MOBILE-2026-05)
 -- ============================================
 
--- Migration 0008 (initial — Stripe-only) + 0016 (IMPL-MOBILE-PAY-001a-1 expand: provider/event_id NULL columns).
--- IMPL-MOBILE-PAY-001a-2 layers backfill + CHECK + partial UNIQUE on top (see §3.1 후속 노트).
+-- Migration 0008 (initial — Stripe-only) + 0016 (IMPL-MOBILE-PAY-001a-1 expand: provider/event_id NULL columns)
+-- + 0017 (IMPL-MOBILE-PAY-001a-2 backfill + CHECK + partial UNIQUE).
 CREATE TABLE processed_events (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     stripe_event_id     VARCHAR(100) NOT NULL,                  -- Stripe path (legacy, web 잔존)
@@ -628,14 +628,25 @@ CREATE TABLE processed_events (
     error_message       TEXT,
 
     -- IMPL-MOBILE-PAY-001a-1 expand phase: dual-provider columns (NULL allowed for legacy rows)
-    provider            TEXT,                                   -- 'stripe' | 'revenuecat' | NULL (legacy rows pre-001a-2 backfill)
+    provider            TEXT,                                   -- 'stripe' | 'revenuecat' | NULL (legacy rows tolerated)
     event_id            TEXT,                                   -- provider-native event id (Stripe `evt_...` 또는 RevenueCat event uuid)
 
-    CONSTRAINT uq_processed_events_stripe_id UNIQUE (stripe_event_id)
+    CONSTRAINT uq_processed_events_stripe_id UNIQUE (stripe_event_id),
+
+    -- IMPL-MOBILE-PAY-001a-2: NULL-tolerant whitelist (matches partial UNIQUE design)
+    CONSTRAINT processed_events_provider_check
+                        CHECK (provider IS NULL OR provider IN ('stripe','revenuecat'))
 );
 
 CREATE INDEX idx_processed_events_processed_at ON processed_events (processed_at DESC);
 CREATE INDEX idx_processed_events_stripe_event_id ON processed_events (stripe_event_id);
+
+-- IMPL-MOBILE-PAY-001a-2: partial UNIQUE — replaces stripe_event_id UNIQUE 의 idempotency 역할 (RevenueCat 전환 후).
+-- WHERE provider IS NOT NULL → legacy NULL rows 는 인덱스에서 제외 (CONCURRENTLY 빌드, online).
+-- 001a-2 migration 은 이 인덱스 생성 직전 UPDATE 로 NULL rows 를 (provider='stripe', event_id=stripe_event_id) backfill.
+CREATE UNIQUE INDEX CONCURRENTLY uq_processed_events_provider_event_id
+    ON processed_events (provider, event_id)
+    WHERE provider IS NOT NULL;
 
 -- ============================================
 -- USER TRACKING / FEEDBACK
