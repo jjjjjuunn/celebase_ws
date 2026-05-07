@@ -1789,7 +1789,7 @@ User selects celebrity diet
 - TLS 1.3 in transit (전 구간)
 - SOC 2 Type II 준비 설계
 - OWASP Top 10 방어
-- Rate limiting: 인증 실패 5회/분, API 1000회/시간 (유저당)
+- Rate limiting: API 1000회/시간 (유저당). user-service `/auth/*` per-route limits (IMPL-MOBILE-AUTH-002b, post-mobile-pivot 기준): signup 3/min/IP (변경 없음), login 10/min/IP (5→10 — mobile SRP 의 initiate + PASSWORD_VERIFIER + retry 헤드룸), refresh 30/min/(`sha256(refresh_token)+IP`) (20→30 — distinct token 별 독립 bucket), logout 20/min/IP (신규 — abuse 차단). 모두 `AUTH_RATE_LIMIT_*` env 로 staging/prod 에서 redeploy 없이 retune.
 - URL allowlist 강제: 사용자 입력에서 외부 URL 수용 금지 (CLAUDE.md § 2.1)
 - Semgrep 정적 분석: CI 파이프라인 필수 (CLAUDE.md § 14 DoD)
 

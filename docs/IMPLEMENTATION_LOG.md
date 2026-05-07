@@ -30,6 +30,46 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - .env.example
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (139/139 user-service jest PASS — rate-limit 7 case 신규 + 132 기존 회귀, monorepo turbo typecheck 16 successful + lint 15 successful)
+---
+### 완료: user-service `/auth/*` rate limit 상향 + `AUTH_RATE_LIMIT_*` env override — IMPL-MOBILE-AUTH-002b (Plan v5 §58, DECISION §3)
+- `services/user-service/src/env.ts` 의 `EnvSchema` 에 `AUTH_RATE_LIMIT_SIGNUP / LOGIN / REFRESH / LOGOUT` 4종 추가. defaults: signup `3/min` (변경 없음) · login `10/min` (5→10) · refresh `30/min` (20→30) · logout `20/min` (신규). `z.coerce.number().int().min(1).max(1000)` 로 운영 입력 검증.
+- `services/user-service/src/routes/auth.routes.ts` 에 `AuthRateLimits` interface 추가 + `options.rateLimits?: Partial<AuthRateLimits>` 옵션. `DEFAULT_RATE_LIMITS` 상수로 fallback 보장 — 기존 호출자 (env override 없는 케이스) 도 새 baseline 한도 받음. signup/login/refresh 라우트의 `max:` 를 `rateLimits.signup` / `rateLimits.login` / `rateLimits.refresh` 로 교체. **logout 라우트에 `rateLimit: { max: rateLimits.logout, ... }` 신규 추가** (DECISION §3.4) — 기존 한도 없음 → 무한 polling 가능 회귀 차단. logout key generator 는 per-IP (JWT verify 가 limiter 후 실행이라 token 정보 키 사용 위험).
+- `services/user-service/src/index.ts` 의 `app.register(authRoutes, ...)` 에 `rateLimits` 객체 주입 — env 4종 값 그대로 전달.
+- `.env.example` 에 4개 변수 + 운영 가이드 주석 추가 — staging/prod 에서 redeploy 없이 retune 가능.
+- `services/user-service/tests/integration/rate-limit.test.ts` 7/7 PASS:
+  - signup 4번째 → 429 (변경 없음, 한도 3 검증)
+  - login 11번째 → 429 (한도 10 갱신 검증)
+  - refresh 31번째 → 429 (한도 30 갱신 + sha256(token)+IP 키 분리 검증)
+  - logout 21번째 → 429 (신규 추가 검증, mock revokeForLogout)
+  - NODE_ENV=test allowList bypass 검증 (회귀 0)
+  - **env override 검증** × 2: `rateLimits: { login: 20 }` 주입 시 login 21번째 → 429 + signup 은 default 3/min 보존 (partial override fallback 동작)
+- `mockRevokeForLogout` + `mockRevokeChainForLogout` 신규 추가 — logout 라우트 통합 테스트 통과를 위해 `refresh-token.repository` 를 unstable_mockModule.
+- spec.md sync (SPEC-PIVOT-PLAN row 35b 의무 충족): §9.3 Security "Rate limiting" 행에 user-service `/auth/*` per-route limits + `AUTH_RATE_LIMIT_*` env override 명시. 기존 "인증 실패 5회/분" 부정확한 표현 제거.
+- DECISION §3 보존된 수치 그대로 적용 — login 5→10 의 mobile SRP 헤드룸 근거, refresh 20→30 의 모바일 background refresh + suspended/resumed app burst 근거, logout 20 의 abuse 차단 근거 모두 유효.
+- L2 tier — Codex × 1 review (config tuning + 신규 라우트 1개 + 테스트, 보안 결정 변경 0 — DECISION 단계에서 이미 검토됨).
+### 미완료:
+- **L2 review**: PR push 후 codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` 라우트 — commerce-service `/internal/subscriptions/refresh-from-revenuecat` (#41) wrapper. 동료 M5 unblock 마지막 의존성.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority, CHORE-BFF-401-CONTRACT 후속): dead `SessionExpiredError` class + helper + branch 일괄 cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토.
+- **동료 M1 / M5**: 본 task + 이전 4 PR 머지 후 mobile signup/login/refresh/IAP 흐름 모두 unblock — 단 SUB-SYNC-002 머지 전까지는 IAP↔webhook blackout window 미해결.
+### 연관 파일: services/user-service/src/{env.ts,index.ts}, services/user-service/src/routes/auth.routes.ts, services/user-service/tests/integration/rate-limit.test.ts, .env.example, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-002/DECISION.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-BFF-401-CONTRACT
 commit_sha: 2580c5c
 files_changed:

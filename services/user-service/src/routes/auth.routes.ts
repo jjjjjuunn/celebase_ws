@@ -31,19 +31,44 @@ const LogoutSchema = z.object({
 // option (silently ignored); use `allowList` callback instead.
 const testAllowList = (): boolean => process.env['NODE_ENV'] === 'test';
 
+// IMPL-MOBILE-AUTH-002b: per-route rate-limit overrides via env. Defaults
+// fall through when env is unset so existing call sites that don't pass
+// rateLimits still get the post-mobile-pivot baseline (Plan v5 §58 / DECISION §3).
+export interface AuthRateLimits {
+  signup: number;
+  login: number;
+  refresh: number;
+  logout: number;
+}
+
+const DEFAULT_RATE_LIMITS: AuthRateLimits = {
+  signup: 3,
+  login: 10,
+  refresh: 30,
+  logout: 20,
+};
+
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function authRoutes(
   app: FastifyInstance,
-  options: { pool: pg.Pool; authProvider: AuthProvider },
+  options: {
+    pool: pg.Pool;
+    authProvider: AuthProvider;
+    rateLimits?: Partial<AuthRateLimits>;
+  },
 ): Promise<void> {
   const { pool, authProvider } = options;
+  const rateLimits: AuthRateLimits = {
+    ...DEFAULT_RATE_LIMITS,
+    ...(options.rateLimits ?? {}),
+  };
 
   app.post(
     '/auth/signup',
     {
       config: {
         rateLimit: {
-          max: 3,
+          max: rateLimits.signup,
           timeWindow: '1 minute',
           allowList: testAllowList,
         },
@@ -71,7 +96,7 @@ export async function authRoutes(
     {
       config: {
         rateLimit: {
-          max: 5,
+          max: rateLimits.login,
           timeWindow: '1 minute',
           allowList: testAllowList,
         },
@@ -99,7 +124,7 @@ export async function authRoutes(
     {
       config: {
         rateLimit: {
-          max: 20,
+          max: rateLimits.refresh,
           timeWindow: '1 minute',
           hook: 'preHandler',
           keyGenerator: (req: FastifyRequest): string => {
@@ -132,8 +157,21 @@ export async function authRoutes(
 
   // POST /auth/logout — Phase C stateful revocation via refresh_tokens table.
   // JWT verify runs BEFORE any DB lookup (timing-safe: prevents token existence leakage).
+  // IMPL-MOBILE-AUTH-002b: rate limit added (DECISION §3.4) — caps abuse
+  // (forced-logout polling) without affecting normal users (single logout
+  // per session). Bucket per-IP — JWT verify runs after the limiter so the
+  // key cannot include token info safely.
   app.post(
     '/auth/logout',
+    {
+      config: {
+        rateLimit: {
+          max: rateLimits.logout,
+          timeWindow: '1 minute',
+          allowList: testAllowList,
+        },
+      },
+    },
     async (request: FastifyRequest, reply) => {
       const parsed = LogoutSchema.safeParse(request.body);
       if (!parsed.success) {

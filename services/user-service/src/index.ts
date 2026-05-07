@@ -69,7 +69,16 @@ const start = async (): Promise<void> => {
     authProvider = new DevAuthProvider();
     app.log.info('Auth provider: dev');
   }
-  await app.register(authRoutes, { pool, authProvider });
+  await app.register(authRoutes, {
+    pool,
+    authProvider,
+    rateLimits: {
+      signup: env.AUTH_RATE_LIMIT_SIGNUP,
+      login: env.AUTH_RATE_LIMIT_LOGIN,
+      refresh: env.AUTH_RATE_LIMIT_REFRESH,
+      logout: env.AUTH_RATE_LIMIT_LOGOUT,
+    },
+  });
 
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
