@@ -77,7 +77,7 @@
 
 | 신규 Task | 대상 머지 task | spec.md 갱신 영역 |
 |-----------|----------------|-------------------|
-| `SPEC-SYNC-INFRA-001` | INFRA-MOBILE-001 (PR #35) | §11 Cognito mobile public client output |
+| ✅ `SPEC-SYNC-INFRA-001` | INFRA-MOBILE-001 (PR #35) | §11.1 Cognito Identity Resources — bff/mobile public client + audience 배열 |
 | `SPEC-SYNC-PAY-001b` | IMPL-MOBILE-PAY-001b (PR #39) | §6.5 RevenueCat webhook + entitlement mapping |
 | `SPEC-SYNC-SUB-001` | IMPL-MOBILE-SUB-SYNC-001 (PR #41) | §6.5 internal sync endpoint + 캐시 정책 |
 

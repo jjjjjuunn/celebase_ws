@@ -2025,6 +2025,21 @@ celebbase-wellness/
 
 ---
 
+### 11.1 Cognito Identity Resources *(PIVOT-MOBILE-2026-05)*
+
+`infra/terraform/cognito.tf` 가 두 종류의 Cognito User Pool Client 를 산출한다 (INFRA-MOBILE-001 / PR #35):
+
+| Client | type | 용도 | id_token audience |
+|--------|------|-----|-------------------|
+| `aws_cognito_user_pool_client.bff` | confidential (with secret) | web BFF (server-to-server), 향후 admin 콘솔 | `bff` client_id |
+| `aws_cognito_user_pool_client.mobile` | public (no secret) | `apps/mobile` Amplify SRP / Hosted UI | `mobile` client_id |
+
+- Mobile public client: `generate_secret = false` + `explicit_auth_flows = ["ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"]` — App Store / Play Store 배포 바이너리에 client secret 미포함.
+- user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
+- Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
+
+---
+
 ## 12. Seed Data Requirements
 
 MVP 출시 시 최소 10명의 셀럽 프로필과 식단 데이터가 필요하다.
