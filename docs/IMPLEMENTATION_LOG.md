@@ -30,6 +30,34 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-MOBILE-001
+commit_sha: PENDING
+files_changed:
+  - eslint.config.mjs
+  - .github/workflows/mobile-ci.yml
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (eslint --print-config 스코프 검증 + pnpm turbo lint/typecheck 회귀 PASS + python yaml.safe_load OK)
+---
+### 완료: Mobile 도메인 사전 가드 (ESLint + CI workflow) — CHORE-MOBILE-001
+- `eslint.config.mjs` 루트 config 에 `files: ['apps/mobile/**/*.{ts,tsx}']` overrides 블록 추가. `no-restricted-imports` 로 `@celebbase/service-core` (Fastify/pg/jose Node.js-only) 와 `@celebbase/ui-kit` (react-dom + CSS Modules + DOM API) 의 import 를 lint error 로 차단. `paths` + `patterns` 동시 사용으로 root + subpath import 모두 커버. 메시지에는 한국어로 거부 사유 + 대안 명시 (RN primitive 새 구현 안내).
+- `eslint --print-config apps/mobile/src/test.ts` → `no-restricted-imports: [2, {paths, patterns}]` 적용 확인. `apps/web/src/middleware.ts` 에는 rule null → scope 누수 없음 검증.
+- `.github/workflows/mobile-ci.yml` 신규 — `apps/mobile/**` · `packages/shared-types/**` · `packages/design-tokens/**` · `eslint.config.mjs` · `pnpm-lock.yaml` · `mobile-ci.yml` 변경 PR/push 시에만 실행 (paths filter). `apps/mobile/package.json` 부재 시 (동료 M0 시작 전 현 시점) 모든 후속 step 을 `if: steps.detect.outputs.exists == 'true'` 로 skip — 안전 사전 배치.
+- workflow 단계: pnpm/action-setup@v4 + setup-node@v4 (node 22, cache pnpm) → `pnpm install --frozen-lockfile` → `pnpm --filter shared-types --filter design-tokens build` (mobile 빌드 의존성 prebuild) → `pnpm --filter mobile lint/typecheck/test` 직렬. 기존 `ci.yml` 패턴과 동일한 setup, mobile filter 만 다름.
+- spec.md §11 직후 §11.2 "Mobile CI / ESLint Guard" 신규. 두 가드 표 + 2차 방어선 (Metro `resolveRequest`) 가 동료 M0 도메인 (`apps/mobile/metro.config.js`) 임을 명시 — multi-session.md §1 도메인 침범 없이 root config 만 사전 배치하여 동료 첫날 unblock 효과 확보. design-tokens RN 익스포트 (`tokens.native.ts`) 정합성도 sub-section 에 명시.
+- 회귀 검증: `pnpm turbo run lint` (15 successful, mobile package 부재로 자동 skip) + `pnpm turbo run typecheck` (16 successful) PASS. `python3 -c "import yaml; yaml.safe_load(...)"` mobile-ci.yml YAML 문법 검증 PASS.
+- Plan v5 §Pre-work Session C, SPEC-PIVOT-PLAN.md row 49 (`§11 CI/build (mobile-ci.yml + ESLint overrides)`) 의무 충족. v5 슬림화 결정 따라 `pnpm-workspace.yaml` / `turbo.json` 편집 불필요 — 이미 `apps/*` glob + 글로벌 lint/typecheck/test pipeline 정의 (사전 확인 완료).
+- L1 chore — Codex review 0회, CI auto 만 (CHORE-MOBILE-001 pipeline.md "Adaptive Review Intensity Policy" L1 chore 매핑).
+### 미완료:
+- **IMPL-MOBILE-AUTH-003** (Session B P0): `/auth/refresh` 응답 enum 5종 (`REFRESH_EXPIRED_OR_MISSING` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `MALFORMED` / `ACCOUNT_DELETED`) — 동료 M2 client 상태머신의 source of truth. 사전 PRECHECK.md 의무.
+- **IMPL-MOBILE-AUTH-002** (Session B): mobile ingress 결정 (옵션 A 직노출+WAF / 옵션 B BFF mobile 라우트) + rate limit 명시화.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C): BFF `POST /api/subscriptions/sync` route — commerce-service internal endpoint wrapper. 동료 M5 unblock.
+- **2차 방어선 Metro `resolveRequest` throw** (`apps/mobile/metro.config.js`): 동료 M0 작업 — multi-session.md §1 `apps/mobile/**` 도메인 = 동료 단독.
+### 연관 파일: eslint.config.mjs, .github/workflows/mobile-ci.yml, spec.md, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-BFF-001
 commit_sha: 6948e9c
 files_changed:
