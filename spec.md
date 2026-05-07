@@ -1106,6 +1106,12 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 | POST | `/webhooks/stripe` | Stripe 웹훅 수신 (web 잔존) | Stripe Sig |
 | POST | `/webhooks/revenuecat` | RevenueCat 웹훅 수신 (mobile IAP) — `entitlement_id` → `subscription_tier` 매핑 후 `subscriptions` 갱신 + `processed_events` idempotency 기록 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-PAY-001b / PR #39) | RevenueCat `Authorization` header secret |
 
+**Internal (service-to-service)** *(PIVOT-MOBILE-2026-05)*:
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/internal/subscriptions/refresh-from-revenuecat` | mobile pull-sync 진입점: client 가 BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) 를 호출하면 BFF 가 본 엔드포인트로 위임 → commerce-service 가 RevenueCat REST API 를 조회해 entitlement → tier 를 갱신한다. **캐시 정책**: `source=purchase` 는 캐시 우회 + 8s timeout, `source=app_open` / `source=manual` 은 60s 캐시 (IMPL-MOBILE-SUB-SYNC-001 / PR #41). | Internal JWT |
+
 ---
 
 ## 5. AI Personalization Engine
