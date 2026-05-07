@@ -1789,7 +1789,7 @@ User selects celebrity diet
 - TLS 1.3 in transit (전 구간)
 - SOC 2 Type II 준비 설계
 - OWASP Top 10 방어
-- Rate limiting: API 1000회/시간 (유저당). user-service `/auth/*` per-route limits (IMPL-MOBILE-AUTH-002b, post-mobile-pivot 기준): signup 3/min/IP (변경 없음), login 10/min/IP (5→10 — mobile SRP 의 initiate + PASSWORD_VERIFIER + retry 헤드룸), refresh 30/min/(`sha256(refresh_token)+IP`) (20→30 — distinct token 별 독립 bucket), logout 20/min/IP (신규 — abuse 차단). 모두 `AUTH_RATE_LIMIT_*` env 로 staging/prod 에서 redeploy 없이 retune.
+- Rate limiting: API 1000회/시간 (유저당). user-service `/auth/*` per-route limits 는 아래 "user-service `/auth/*` Rate Limits" subsection 의 단일 출처를 따른다.
 - URL allowlist 강제: 사용자 입력에서 외부 URL 수용 금지 (CLAUDE.md § 2.1)
 - Semgrep 정적 분석: CI 파이프라인 필수 (CLAUDE.md § 14 DoD)
 
@@ -1830,6 +1830,24 @@ User selects celebrity diet
 4. **Session.authSource 필수 필드**: `session: { user_id, email, cognito_sub, authSource: 'cookie' | 'bearer' }`. handler 가 분기 동작(예: PHI 감사 로그 source tagging, audit metric)을 결정할 수 있도록 caller-side 가시성 보장. `verifyAccessToken` 자체는 source-agnostic 하게 `Omit<Session, 'authSource'>` 반환 — caller (cookie / bearer 분기) 가 spread 로 주입.
 5. **Timing oracle 차단**: cookie 분기·bearer 분기·검증 성공/실패 모든 exit 가 `padToMinLatency(handlerStart)` (100ms anchor) 를 통과한다. 공격자가 응답 시간 차이로 cookie/bearer 존재·검증 결과를 구분하는 oracle 차단.
 6. **`/auth/refresh` 예외**: BFF 의 `/api/auth/refresh` 는 cookie-shaped(JSON 토큰 미반환) 이므로 mobile 은 user-service `/auth/refresh` 를 BFF 우회 직접 호출한다. 모든 다른 mobile path 는 BFF 경유 (path confusion 회피).
+
+#### user-service `/auth/*` Rate Limits *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-002b)*
+
+`services/user-service/src/routes/auth.routes.ts` 의 per-route rate-limit 한도. mobile-pivot baseline — 모바일 SRP 흐름의 짧은 burst 와 background refresh 빈도를 흡수하면서 brute-force / abuse 는 차단한다. 모두 `@fastify/rate-limit` v10 사용, `NODE_ENV=test` 에서는 `allowList` 콜백으로 bypass.
+
+| Route | max / min | bucket key | 근거 |
+|-------|-----------|-----------|------|
+| `POST /auth/signup` | **3** | per-IP | NAT 환경 인간 trigger only — 봇/스크립트 차단 효과 유지 |
+| `POST /auth/login` | **10** | per-IP | 5→10 상향. 모바일 SRP 의 initiate + PASSWORD_VERIFIER + 재시도 (오타) headroom. NAT 뒤 동시 사용자 4-5명 허용. brute-force 효율은 5와 10 사이 유의미 차이 없음 (Cognito SRP server-cost 비대칭) |
+| `POST /auth/refresh` | **30** | sha256(refresh_token) + IP | 20→30 상향. 모바일 access token TTL 5분 → 분당 1회 정상 + background → foreground race + 다중 in-flight retry burst. token-fingerprint 키 라 NAT 영향 없음 (다른 사용자 distinct token) |
+| `POST /auth/logout` | **20** | per-IP | 신규 추가 (DECISION §3.4). 기존 한도 0 → 무한 polling 회귀 차단. JWT verify 가 limiter 후 실행이라 token 키 사용 위험 (per-IP 만 안전) |
+
+**환경 변수 override**: `AUTH_RATE_LIMIT_SIGNUP / LOGIN / REFRESH / LOGOUT` 4종 (default = 위 표 수치). `services/user-service/src/env.ts` `EnvSchema` 가 `z.coerce.number().int().min(1).max(1000)` 로 검증. 운영 환경에서 redeploy 없이 retune 가능 (예: 트래픽 spike 시 login 임시 상향).
+
+**불변식**:
+- rate-limit 429 와 `auth.token.reuse_detected` 는 **독립 메커니즘** — 통과 후에도 reuse_detection 발화 가능, 그 반대도 가능.
+- logout 라우트의 limiter 는 JWT verify 보다 먼저 실행 — token 정보 누설 방지를 위해 key 는 per-IP 로 한정.
+- `NODE_ENV=test` allowList bypass 는 통합 테스트 회귀 보호 — production 에서는 절대 적용되지 않음.
 
 #### Refresh Token Reason Codes — `/auth/refresh` 401 envelope *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003)*
 
