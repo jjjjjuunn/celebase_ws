@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: CHORE-MOBILE-001
-commit_sha: PENDING
+commit_sha: f4d9a3a
 files_changed:
   - eslint.config.mjs
   - .github/workflows/mobile-ci.yml
