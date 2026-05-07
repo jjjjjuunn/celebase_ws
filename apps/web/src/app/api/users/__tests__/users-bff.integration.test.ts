@@ -112,18 +112,21 @@ describe('BFF integration — GET /api/users/me', () => {
     expect(body.error.code).toBe('UPSTREAM_TIMEOUT');
   });
 
-  it('maps upstream 401 → BFF 401 TOKEN_EXPIRED (SessionExpiredError branch)', async () => {
+  it('forwards upstream 401 envelope code unchanged — CHORE-BFF-401-CONTRACT', async () => {
+    // CHORE-BFF-401-CONTRACT: fetchBff no longer throws SessionExpiredError
+    // on upstream 401. Envelope code is preserved (e.g., AUTH-003's 5-code
+    // refresh enum) so mobile state machine can branch.
     validSession();
     fetchSpy.mockResolvedValueOnce(
-      upstreamResponse({ error: { code: 'TOKEN_EXPIRED' } }, 401),
+      upstreamResponse({ error: { code: 'TOKEN_REUSE_DETECTED', message: 'Token reuse detected' } }, 401),
     );
     const req = makeRequest({ cookie: 'valid-access' });
     const res = await meGET(req);
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('X-Token-Expired')).toBe('true');
-    const body = await res.json() as { error: { code: string } };
-    expect(body.error.code).toBe('TOKEN_EXPIRED');
+    const body = await res.json() as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('TOKEN_REUSE_DETECTED');
+    expect(body.error.message).toBe('Token reuse detected');
   });
 });
 

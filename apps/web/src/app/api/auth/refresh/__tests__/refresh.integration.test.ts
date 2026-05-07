@@ -72,21 +72,27 @@ describe('POST /api/auth/refresh', () => {
     expect(setCookies[1]).toContain('Max-Age=2592000');
   });
 
-  it('returns 401 TOKEN_EXPIRED + clears cookies when upstream responds 401', async () => {
+  it('forwards upstream 401 envelope code + clears cookies — CHORE-BFF-401-CONTRACT', async () => {
+    // Previously the BFF refresh route collapsed every upstream 401 into
+    // 'TOKEN_EXPIRED' (via fetchBff's SessionExpiredError throw). Now it
+    // forwards the upstream code (e.g., AUTH-003's MALFORMED enum) so
+    // mobile clients can branch on the specific reason. Cookies are still
+    // cleared and X-Token-Expired is set for the web fetch interceptor.
     fetchSpy.mockResolvedValue(
       new Response(
-        JSON.stringify({ error: { code: 'INVALID_REFRESH_TOKEN' } }),
+        JSON.stringify({ error: { code: 'TOKEN_REUSE_DETECTED', message: 'Token reuse detected' } }),
         { status: 401 },
       ),
     );
     const res = await POST(
-      makeRequest({ refreshToken: 'expired-token' }),
+      makeRequest({ refreshToken: 'reused-token' }),
     );
 
     expect(res.status).toBe(401);
     expect(res.headers.get('X-Token-Expired')).toBe('true');
-    const body = await res.json() as { error: { code: string } };
-    expect(body.error.code).toBe('TOKEN_EXPIRED');
+    const body = await res.json() as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('TOKEN_REUSE_DETECTED');
+    expect(body.error.message).toBe('Token reuse detected');
     const setCookies = res.headers.getSetCookie();
     expect(setCookies).toHaveLength(2);
     expect(setCookies[0]).toContain('cb_access=');
