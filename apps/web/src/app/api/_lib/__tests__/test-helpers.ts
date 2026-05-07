@@ -19,6 +19,10 @@ export interface MakeRequestOpts {
   forwardedFor?: string;
   search?: string;
   body?: unknown;
+  // Raw `Authorization` header value (e.g. `'Bearer eyJ...'`). Pass without a
+  // scheme prefix to test scheme-mismatch rejection (case-insensitive get is
+  // expected from NextRequest.headers).
+  authorization?: string;
 }
 
 // Minimal NextRequest-shaped mock — only the fields createProtectedRoute /
@@ -38,6 +42,7 @@ export function makeRequest(
         const lower = name.toLowerCase();
         if (lower === 'x-request-id') return opts?.requestId ?? null;
         if (lower === 'x-forwarded-for') return opts?.forwardedFor ?? null;
+        if (lower === 'authorization') return opts?.authorization ?? null;
         return null;
       },
     },
