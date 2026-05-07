@@ -1100,10 +1100,11 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/subscriptions` | 구독 시작 (Stripe) | JWT |
+| POST | `/subscriptions` | 구독 시작 (Stripe — web 잔존, 현재 미사용) | JWT |
 | GET | `/subscriptions/me` | 내 구독 정보 | JWT |
-| POST | `/subscriptions/me/cancel` | 구독 해지 | JWT |
-| POST | `/webhooks/stripe` | Stripe 웹훅 수신 | Stripe Sig |
+| POST | `/subscriptions/me/cancel` | 구독 해지 (Stripe path) | JWT |
+| POST | `/webhooks/stripe` | Stripe 웹훅 수신 (web 잔존) | Stripe Sig |
+| POST | `/webhooks/revenuecat` | RevenueCat 웹훅 수신 (mobile IAP) — `entitlement_id` → `subscription_tier` 매핑 후 `subscriptions` 갱신 + `processed_events` idempotency 기록 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-PAY-001b / PR #39) | RevenueCat `Authorization` header secret |
 
 ---
 

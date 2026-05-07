@@ -36,7 +36,7 @@
 | IMPL-MOBILE-AUTH-003 | planned (P0) | §6 Security (`/auth/refresh` error envelope enum 5종), API contract section (refresh response shape) | finalize — enum 5종 explicit 명시 |
 | IMPL-MOBILE-PAY-001a-1 | planned (P0) | §3 schema (`processed_events` expand DDL — `provider`, `event_id` NULL 허용 컬럼), §6.5 commerce idempotency | DDL 머지 후 동일 PR or 다음 PR (deferral marker OK) |
 | IMPL-MOBILE-PAY-001a-2 | planned (P0) | §3 schema (backfill + partial unique index `(provider, event_id) WHERE NOT NULL`) | finalize patch |
-| IMPL-MOBILE-PAY-001b | ✅ merged (PR #39) | §6.5 commerce (RevenueCat webhook 라우트 + entitlement → tier mapping) | retroactive — `SPEC-SYNC-PAY-001b` backfill task 분리 |
+| IMPL-MOBILE-PAY-001b | ✅ merged (PR #39) | §4.2 Subscriptions (RevenueCat webhook 라우트 + entitlement → tier mapping) | ✅ `SPEC-SYNC-PAY-001b` 완료 — §3 행 참조 |
 | IMPL-MOBILE-PAY-001c | backlog | §3 schema (`stripe_event_id` drop) | contract phase 별도 진행 |
 | IMPL-MOBILE-SUB-SYNC-001 | ✅ merged (PR #41) | §6.5 commerce (internal `POST /internal/subscriptions/refresh-from-revenuecat` + 캐시 정책 source=purchase 우회 / source=app_open 60s), API contract | retroactive — `SPEC-SYNC-SUB-001` backfill task 분리 |
 
@@ -78,7 +78,7 @@
 | 신규 Task | 대상 머지 task | spec.md 갱신 영역 |
 |-----------|----------------|-------------------|
 | ✅ `SPEC-SYNC-INFRA-001` | INFRA-MOBILE-001 (PR #35) | §11.1 Cognito Identity Resources — bff/mobile public client + audience 배열 |
-| `SPEC-SYNC-PAY-001b` | IMPL-MOBILE-PAY-001b (PR #39) | §6.5 RevenueCat webhook + entitlement mapping |
+| ✅ `SPEC-SYNC-PAY-001b` | IMPL-MOBILE-PAY-001b (PR #39) | §4.2 Subscriptions — `/webhooks/revenuecat` 라우트 + entitlement → tier mapping |
 | `SPEC-SYNC-SUB-001` | IMPL-MOBILE-SUB-SYNC-001 (PR #41) | §6.5 internal sync endpoint + 캐시 정책 |
 
 각 SPEC-SYNC-* task 는 단일 commit, light review (L1 ~ L2), 본 레지스트리 행에 ✅ 표기 후 closing.
