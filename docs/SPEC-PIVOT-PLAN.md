@@ -44,7 +44,7 @@
 
 | Task ID | 상태 | spec.md 갱신 의무 섹션 | Sync 트리거 |
 |---------|------|------------------------|-------------|
-| IMPL-MOBILE-BFF-001 | planned | §11 Project Structure (BFF active gateway 명시 — banner 흡수), §6 Security (cookie + bearer 분기, authSource 트래킹) | finalize patch — hybrid BFF 본문 흡수의 첫 도화선 |
+| IMPL-MOBILE-BFF-001 | 🟡 in-progress | §11 Project Structure (BFF active gateway 명시 — banner 흡수), §9.3 Security (cookie + bearer 분기, authSource 트래킹, padToMinLatency timing oracle, /auth/refresh 예외) | finalize patch — hybrid BFF 본문 흡수의 첫 도화선 |
 | IMPL-MOBILE-SUB-SYNC-002 | planned | §11 BFF layer (신규 라우트 `POST /api/subscriptions/sync`), §6.5 commerce | finalize patch |
 | CHORE-MOBILE-001 | planned | §11 CI/build (mobile-ci.yml + ESLint overrides) | finalize patch (light) |
 
