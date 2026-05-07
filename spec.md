@@ -911,9 +911,9 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/auth/signup` | 소셜/이메일 가입 | No |
-| POST | `/auth/login` | 로그인 (Cognito) | No |
-| POST | `/auth/refresh` | 토큰 리프레시 | Refresh |
+| POST | `/auth/signup` | 소셜/이메일 가입. Cognito id_token 의 `aud` 는 `[bff_client_id, mobile_client_id]` 배열 ANY-match 검증 (PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-001 / PR #36) | No |
+| POST | `/auth/login` | 로그인 (Cognito SRP via Amplify on mobile / cookie-shaped on web BFF). 동일 audience 배열 검증 | No |
+| POST | `/auth/refresh` | 토큰 리프레시. 본 라우트는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 **직접 호출** (BFF 미경유 예외 — banner 참조) | Refresh |
 | POST | `/ws/ticket` | WebSocket 1회용 연결 티켓 발급 (TTL 30초) | JWT |
 | GET | `/users/me` | 내 프로필 조회 | JWT |
 | PATCH | `/users/me` | 프로필 수정 | JWT |
@@ -2089,7 +2089,10 @@ REDIS_URL=redis://host:6379
 # AWS
 AWS_REGION=us-west-2
 AWS_COGNITO_USER_POOL_ID=us-west-2_xxxxx
-AWS_COGNITO_CLIENT_ID=xxxxx
+AWS_COGNITO_CLIENT_ID=xxxxx          # web BFF (confidential, with secret)
+COGNITO_MOBILE_CLIENT_ID=xxxxx       # apps/mobile (public, no secret) — PIVOT-MOBILE-2026-05 / IMPL-MOBILE-AUTH-001
+                                     # user-service 는 audience = [client_id, mobile_client_id] 배열 ANY-match 로 검증
+                                     # empty string 은 undefined 로 normalize (web-only deployment 호환)
 AWS_S3_BUCKET=celebbase-assets
 AWS_SQS_MEAL_PLAN_QUEUE=celebbase-meal-plan-queue
 
