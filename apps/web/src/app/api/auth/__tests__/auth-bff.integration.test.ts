@@ -87,15 +87,22 @@ describe('BFF integration — POST /api/auth/login', () => {
     expect(body.error.code).toBe('UPSTREAM_TIMEOUT');
   });
 
-  it('maps upstream 401 via SessionExpiredError — public route returns 401 TOKEN_EXPIRED', async () => {
+  it('forwards upstream 401 envelope code — preserves specific reason (INVALID_CREDENTIALS, MALFORMED, etc.) — CHORE-BFF-401-CONTRACT', async () => {
     fetchSpy.mockResolvedValueOnce(
-      upstreamResponse({ error: { code: 'INVALID_CREDENTIALS' } }, 401),
+      upstreamResponse({ error: { code: 'INVALID_CREDENTIALS', message: 'Wrong password' } }, 401),
     );
     const req = makeRequest({ body: VALID_LOGIN_BODY });
     const res = await loginPOST(req);
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    // Previously this test asserted code='TOKEN_EXPIRED' because fetchBff
+    // threw SessionExpiredError on 401 and createPublicRoute collapsed it.
+    // CHORE-BFF-401-CONTRACT: 401 now flows through Result.ok=false so the
+    // upstream code survives intact (required for IMPL-MOBILE-AUTH-003's
+    // 5-code refresh enum forward to mobile clients).
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('INVALID_CREDENTIALS');
+    expect(body.error.message).toBe('Wrong password');
   });
 
   it('429 RATE_LIMITED after exceeding 20 /auth/ requests in burst', async () => {

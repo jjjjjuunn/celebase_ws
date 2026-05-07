@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
-import { fetchBff, SessionExpiredError } from '../../_lib/bff-fetch.js';
+import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createLogger } from '../../_lib/bff-error.js';
 import { createPublicRoute, readEnv } from '../../_lib/session.js';
 
@@ -133,6 +133,9 @@ export const GET = createPublicRoute(async (req: NextRequest) => {
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
 
+  // CHORE-BFF-401-CONTRACT: fetchBff no longer throws on upstream 401.
+  // OAuth callback treats any user-service rejection (401 included) as
+  // AUTH_FAILED — uniform via Result.ok=false.
   let loginResult: Awaited<ReturnType<typeof fetchBff<typeof schemas.LoginResponseSchema._type>>>;
   try {
     loginResult = await fetchBff('user', '/auth/login', {
@@ -143,11 +146,7 @@ export const GET = createPublicRoute(async (req: NextRequest) => {
       forwardedFor,
     });
   } catch (err: unknown) {
-    // Covers SessionExpiredError (user-service returned 401) + network errors.
-    // Neither is a session-expiry in the OAuth context — treat as auth failure.
-    if (!(err instanceof SessionExpiredError)) {
-      log.warn({ err }, 'Unexpected error during user-service auth login');
-    }
+    log.warn({ err }, 'Unexpected error during user-service auth login');
     return makeRedirect(req, '/login?error=AUTH_FAILED');
   }
 

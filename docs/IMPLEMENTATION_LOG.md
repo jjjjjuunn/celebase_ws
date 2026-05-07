@@ -30,6 +30,54 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-BFF-401-CONTRACT
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/auth/callback/route.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/__tests__/auth-bff.integration.test.ts
+  - apps/web/src/app/api/auth/refresh/__tests__/refresh.integration.test.ts
+  - apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts
+  - apps/web/src/app/api/users/__tests__/users-bff.integration.test.ts
+  - apps/web/src/app/api/subscriptions/__tests__/subscriptions-bff.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (158/158 web jest PASS — 16 test suites, monorepo turbo typecheck 16 successful + lint 15 successful, AUTH-002a mobile-auth MALFORMED assertion 복원 후 PASS)
+---
+### 완료: BFF 401 envelope code preservation contract — CHORE-BFF-401-CONTRACT (advisor D-split followup, AUTH-002a 알아낸 회귀)
+- **회귀 발견 (AUTH-002a codex r1 review)**: `apps/web/src/app/api/_lib/bff-fetch.ts:275` 가 upstream 401 을 `throw new SessionExpiredError()` 처리, `createPublicRoute` (`session.ts:368`) 가 catch 해서 envelope `code='TOKEN_EXPIRED'` 로 통일. IMPL-MOBILE-AUTH-003 의 5종 enum (`MALFORMED` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `REFRESH_EXPIRED_OR_MISSING` / `ACCOUNT_DELETED`) 이 mobile route 에서 silent 손실되는 것을 catch.
+- **fix 핵심 (advisor Option D)**: `bff-fetch.ts` 의 401 throw 제거 → 일반 status 처럼 `Result<T>.ok=false + upstream code` 반환. "401 means redirect" semantic 은 `createProtectedRoute` cookie path 의 access-token verify 에서만 의미 — public route + protected handler 내부 fetchBff 401 은 단순 forward.
+- **변경 파일**:
+  - `bff-fetch.ts:273-292` — 401 throw 제거, `pickUpstreamError` 로 일반 status 처럼 처리
+  - `session.ts` — `createProtectedRoute` cookie path / bearer path / `createPublicRoute` 의 `SessionExpiredError` catch 분기 모두 제거 (generic fallback `toBffErrorResponse` 만 유지)
+  - `auth/refresh/route.ts` — `unauthorizedClearCookies` helper 제거, 401 분기에 `X-Token-Expired: true` 헤더 + `clearSessionCookies` + upstream code forward 통합
+  - `auth/logout/route.ts` — `SessionExpiredError` catch 제거 (best-effort 시 401 도 `result.ok=false` 로 자연 fall-through)
+  - `auth/callback/route.ts` — `SessionExpiredError` catch 제거 (OAuth context 에서 모든 user-service rejection 동일 `AUTH_FAILED`)
+- **회귀 보호 / 신규 contract 검증 테스트**:
+  - `_lib/__tests__/session.test.ts` 2개 SessionExpiredError throw 테스트 → 새 contract (handler 가 401 Response 반환 → wrapper forward) 로 갱신, MALFORMED + TOKEN_REUSE_DETECTED envelope code 보존 검증
+  - `auth-bff.integration.test.ts:90-99` — TOKEN_EXPIRED hardcoded → INVALID_CREDENTIALS upstream code 보존 검증
+  - `mobile-auth.integration.test.ts:81-104` — AUTH-002a 에서 deferred 됐던 MALFORMED envelope code assertion 복원
+  - `refresh.integration.test.ts:75-96` — TOKEN_EXPIRED hardcoded → TOKEN_REUSE_DETECTED upstream code 보존 검증 (X-Token-Expired + clearCookies 동작 유지)
+  - `users-bff.integration.test.ts:115-127` + `subscriptions-bff.integration.test.ts:102-114` — TOKEN_EXPIRED hardcoded → upstream code 보존 검증
+- **Web 클라이언트 회귀 분석 (CHORE-BFF-401-CONTRACT spec.md §9.3 명시 근거)**: `apps/web/src/lib/fetcher.ts:89` 가 status 401 받으면 X-Token-Expired 헤더 유무와 무관하게 logout + redirect. 따라서 protected route 가 더 이상 X-Token-Expired 헤더를 자동 추가하지 않아도 web 동작 동일 — **web 회귀 0**.
+- **SessionExpiredError 클래스 dead-but-export**: `bff-error.ts` 의 클래스 + `bff-fetch.ts` 의 re-export + `redirectOnSessionExpired` helper 는 더 이상 throw site 가 없어 dead code. 보수적으로 제거하지 않고 유지 (RSC 호출자가 catch 패턴 사용 시 silent breakage 방지) — 향후 별도 cleanup task 에서 deprecate 가능.
+- **spec.md sync**: §9.3 "Refresh Token Reason Codes" 의 BFF forward paragraph 갱신 — `bff-fetch.ts` 의 동작 변경 + 모든 BFF route (refresh + mobile + protected) 가 envelope code forward 함을 single source 에 명시.
+- **L3 tier** — Codex × 2 + Claude self-adversarial × 1 (gemini CLI 0.39.1 도구 부재 fallback) review 의무. AUTH-002a / AUTH-003 와 동일 운영 케이스. PR push 후 별도 단계.
+### 미완료:
+- **L3 review (본 PR)**: PR push 후 codex r1 + r2 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback).
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): `SessionExpiredError` 클래스 + `redirectOnSessionExpired` helper 의 throw site 가 모두 제거된 후 보수적으로 export 유지 중. 별도 cleanup task 에서 dead code 제거 + RSC 호출자가 사용하던 패턴을 `Result.ok=false + redirect` 패턴으로 마이그레이션.
+- **IMPL-MOBILE-AUTH-002b** (Session B 잔여): user-service `/auth/*` rate limit 상향 (signup 3/min, login 5→10/min, refresh 20→30/min, logout 신규 20/min) + `AUTH_RATE_LIMIT_*` env override.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트.
+- **동료 M2 unblock**: 본 PR 머지 후 mobile state machine 의 5종 enum 분기가 실제 동작 — `REFRESH_EXPIRED_OR_MISSING` → Cognito silent re-issue / `TOKEN_REUSE_DETECTED` 또는 `REFRESH_REVOKED` → SecureStore clear + signOut / `MALFORMED` → 강제 logout / `ACCOUNT_DELETED` → 영구 logout.
+### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/_lib/session.ts, apps/web/src/app/api/auth/{refresh,logout,callback}/route.ts, apps/web/src/app/api/auth/{refresh,mobile}/__tests__/, apps/web/src/app/api/_lib/__tests__/session.test.ts, apps/web/src/app/api/{users,subscriptions}/__tests__/, spec.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-AUTH-002a
 commit_sha: 8d6d0dc
 files_changed:

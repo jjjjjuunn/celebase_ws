@@ -1833,7 +1833,7 @@ User selects celebrity diet
 
 #### Refresh Token Reason Codes — `/auth/refresh` 401 envelope *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-003)*
 
-`POST /auth/refresh` (user-service) 는 401 응답의 `error.code` 를 다음 5종 enum 으로 분기한다 — mobile 클라이언트의 refresh 상태머신 source of truth. BFF cookie path 의 `/api/auth/refresh` 도 user-service envelope code 를 그대로 forward 하므로 web 클라이언트가 분기 로직을 추가하면 동일 enum 을 사용한다.
+`POST /auth/refresh` (user-service) 는 401 응답의 `error.code` 를 다음 5종 enum 으로 분기한다 — mobile 클라이언트의 refresh 상태머신 source of truth. **BFF forward 보장 (CHORE-BFF-401-CONTRACT)**: `apps/web/src/app/api/_lib/bff-fetch.ts` 가 upstream 401 을 일반 status 처럼 `Result<T>.ok=false + upstream code` 로 반환한다 (이전 `SessionExpiredError` throw → `'TOKEN_EXPIRED'` 통일 동작은 폐기). 따라서 `POST /api/auth/refresh` 뿐 아니라 `POST /api/auth/mobile/{signup,login}` + 모든 protected BFF route 가 user-service envelope code 를 그대로 forward 한다 — mobile 의 5종 enum 분기와 web 클라이언트의 enum-aware 로직이 동일 source 를 본다.
 
 | `error.code` | 발생 조건 | 클라이언트 권장 행동 |
 |--------------|----------|---------------------|

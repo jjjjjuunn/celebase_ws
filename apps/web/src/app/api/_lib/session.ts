@@ -2,7 +2,6 @@ import type { NextRequest } from 'next/server';
 import { errors as joseErrors, jwtVerify } from 'jose';
 import {
   createLogger,
-  SessionExpiredError,
   toBffErrorResponse,
   type BffError,
 } from './bff-error.js';
@@ -249,30 +248,19 @@ export function createProtectedRoute(
       try {
         handlerRes = withRequestId(await handler(req, session), requestId);
       } catch (err) {
-        // D29: fetchBff from an API route handler throws SessionExpiredError
-        // on BE 401. API routes must return 401 JSON (not redirect) — clients
-        // expect a JSON body + X-Token-Expired for the query-client refresh
-        // interceptor, not a 307 Location.
-        if (err instanceof SessionExpiredError) {
-          handlerRes = unauthorizedResponse(
-            requestId,
-            'TOKEN_EXPIRED',
-            'Access token expired',
-            true,
-          );
-          // Second expiry after a successful refresh → the refreshed session
-          // is already dead upstream. Drop the newly-issued cookies instead of
-          // leaving stale ones on the client.
-          if (newCookies !== null) newCookies = null;
-          for (const c of clearSessionCookies()) {
-            handlerRes.headers.append('Set-Cookie', c);
-          }
-        } else {
-          handlerRes = withRequestId(
-            toBffErrorResponse(err, requestId),
-            requestId,
-          );
-        }
+        // CHORE-BFF-401-CONTRACT: previously caught SessionExpiredError thrown
+        // by fetchBff on upstream 401 and collapsed it into 'TOKEN_EXPIRED'.
+        // fetchBff now returns Result.ok=false with the upstream code, so the
+        // handler forwards the envelope directly — no exception path.
+        // 'Second expiry after a successful refresh' (handler returns 401)
+        // is now reflected in the handler's response itself; clients clear
+        // stale cookies on the next access-token verify failure (the cookie
+        // path's natural retry loop). This catch keeps the generic fallback
+        // for non-fetchBff exceptions.
+        handlerRes = withRequestId(
+          toBffErrorResponse(err, requestId),
+          requestId,
+        );
       }
       if (newCookies !== null) {
         for (const c of newCookies) {
@@ -319,23 +307,15 @@ export function createProtectedRoute(
       try {
         handlerRes = withRequestId(await handler(req, session), requestId);
       } catch (err) {
-        if (err instanceof SessionExpiredError) {
-          // Bearer path emits NO Set-Cookie — clearSessionCookies() is not
-          // called even on session expiry. Mobile's cookie jar is empty, and
-          // appending Set-Cookie here would leak into a co-resident web
-          // browser if the same network stack is reused.
-          handlerRes = unauthorizedResponse(
-            requestId,
-            'TOKEN_EXPIRED',
-            'Access token expired',
-            true,
-          );
-        } else {
-          handlerRes = withRequestId(
-            toBffErrorResponse(err, requestId),
-            requestId,
-          );
-        }
+        // CHORE-BFF-401-CONTRACT: bearer path also no longer collapses
+        // upstream 401 into 'TOKEN_EXPIRED'. handler forwards Result.ok=false
+        // envelope (including AUTH-003 5-code refresh enum) directly. Mobile's
+        // cookie jar is empty so Set-Cookie is irrelevant. This catch keeps
+        // the generic fallback for non-fetchBff exceptions.
+        handlerRes = withRequestId(
+          toBffErrorResponse(err, requestId),
+          requestId,
+        );
       }
       await padToMinLatency(handlerStart);
       return handlerRes;
@@ -361,18 +341,11 @@ export function createPublicRoute(
       const res = await handler(req);
       return withRequestId(res, requestId);
     } catch (err) {
-      // Public routes can't refresh — surface the 401 as a normal error
-      // envelope. toBffErrorResponse falls through to INTERNAL_ERROR for
-      // unknown errors; SessionExpiredError shouldn't occur here (public
-      // BE endpoints don't require auth) but we keep the path explicit.
-      if (err instanceof SessionExpiredError) {
-        return unauthorizedResponse(
-          requestId,
-          'TOKEN_EXPIRED',
-          'Access token expired',
-          true,
-        );
-      }
+      // CHORE-BFF-401-CONTRACT: previously caught SessionExpiredError and
+      // collapsed it into 'TOKEN_EXPIRED'. fetchBff no longer throws on 401;
+      // handlers return Result.ok=false envelopes directly via
+      // toBffErrorResponse, preserving the upstream code (e.g., AUTH-003
+      // 5-code enum). Generic fallback kept for unexpected exceptions.
       return withRequestId(toBffErrorResponse(err, requestId), requestId);
     }
   };

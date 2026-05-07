@@ -80,22 +80,11 @@ describe('BFF integration — POST /api/auth/mobile/login', () => {
     expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 
-  it('upstream 401 forwarded — status + no cookies (envelope code preservation deferred to CHORE-BFF-401-CONTRACT)', async () => {
-    // Codex r1 review of IMPL-MOBILE-AUTH-002a caught: fetchBff currently
-    // throws SessionExpiredError on upstream 401 (bff-fetch.ts:275), which
-    // createPublicRoute collapses into envelope code='TOKEN_EXPIRED'. This
-    // breaks AUTH-003's 5-code enum forward (MALFORMED / TOKEN_REUSE_DETECTED
-    // etc.) for mobile.
-    //
-    // The fix is cross-cutting (touches every public route's 401 handling
-    // + modifies an existing auth-bff integration test that asserts the old
-    // 'TOKEN_EXPIRED' value at line 90-99). Split out as CHORE-BFF-401-CONTRACT
-    // followup PR — see IMPLEMENTATION_LOG `### 미완료` entry. Mobile state
-    // machine reliance on the enum is blocked until that followup lands.
-    //
-    // Until then we assert only status + Set-Cookie absence — NOT envelope
-    // code, because asserting either 'MALFORMED' (preferred) or 'TOKEN_EXPIRED'
-    // (current bug) would cement the wrong contract.
+  it('upstream 401 forwarded — envelope code preserved (e.g., AUTH-003 MALFORMED enum survives)', async () => {
+    // CHORE-BFF-401-CONTRACT (this PR): fetchBff no longer throws on upstream
+    // 401, so the upstream code survives BFF forward. Mobile state machine
+    // can now branch on AUTH-003's 5-code enum (REFRESH_EXPIRED_OR_MISSING /
+    // TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED).
     fetchSpy.mockResolvedValueOnce(
       upstreamResponse({ error: { code: 'MALFORMED', message: 'Malformed or invalid refresh token' } }, 401),
     );
@@ -104,6 +93,9 @@ describe('BFF integration — POST /api/auth/mobile/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.headers.getSetCookie()).toHaveLength(0);
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('MALFORMED');
+    expect(body.error.message).toBe('Malformed or invalid refresh token');
   });
 
   it('502 UPSTREAM_UNREACHABLE on network error — no cookies', async () => {

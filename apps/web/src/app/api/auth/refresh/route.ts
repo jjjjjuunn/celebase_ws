@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
-import { fetchBff, SessionExpiredError } from '../../_lib/bff-fetch.js';
+import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createPublicRoute } from '../../_lib/session.js';
 import { toBffErrorResponse } from '../../_lib/bff-error.js';
 import {
@@ -14,27 +14,6 @@ import {
 // If user-service ever changes these, update here in lockstep.
 const ACCESS_MAX_AGE_SEC = 900;
 const REFRESH_MAX_AGE_SEC = 2_592_000;
-
-function unauthorizedClearCookies(requestId: string): Response {
-  const responseHeaders = new Headers({
-    'Content-Type': 'application/json',
-    'X-Request-Id': requestId,
-    'X-Token-Expired': 'true',
-  });
-  for (const cookie of clearSessionCookies()) {
-    responseHeaders.append('Set-Cookie', cookie);
-  }
-  return new Response(
-    JSON.stringify({
-      error: {
-        code: 'TOKEN_EXPIRED',
-        message: 'Refresh token expired',
-        requestId,
-      },
-    }),
-    { status: 401, headers: responseHeaders },
-  );
-}
 
 export const POST = createPublicRoute(async (req: NextRequest) => {
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
@@ -59,25 +38,18 @@ export const POST = createPublicRoute(async (req: NextRequest) => {
   }
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
 
-  // fetchBff throws SessionExpiredError on upstream 401. The public-route
-  // wrapper can't refresh (that's exactly what this route is for), so catch
-  // it here and return 401 + cleared cookies. Non-401 errors fall through to
-  // the normal Result<T>.ok === false branch.
-  let result: Awaited<ReturnType<typeof fetchBff<typeof schemas.RefreshResponseSchema._type>>>;
-  try {
-    result = await fetchBff('user', '/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refresh_token: refreshToken }),
-      schema: schemas.RefreshResponseSchema,
-      requestId,
-      ...(forwardedFor !== undefined ? { forwardedFor } : {}),
-    });
-  } catch (err) {
-    if (err instanceof SessionExpiredError) {
-      return unauthorizedClearCookies(requestId);
-    }
-    throw err;
-  }
+  // CHORE-BFF-401-CONTRACT: fetchBff no longer throws on upstream 401 —
+  // it returns Result.ok=false with the upstream code (e.g., AUTH-003's
+  // 5-code refresh enum). The 401/403 branch below clears cookies and
+  // forwards the envelope unchanged so mobile and web both see the same
+  // specific reason code.
+  const result = await fetchBff('user', '/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refresh_token: refreshToken }),
+    schema: schemas.RefreshResponseSchema,
+    requestId,
+    ...(forwardedFor !== undefined ? { forwardedFor } : {}),
+  });
   if (!result.ok) {
     const responseHeaders = new Headers({
       'Content-Type': 'application/json',
@@ -87,6 +59,9 @@ export const POST = createPublicRoute(async (req: NextRequest) => {
       for (const cookie of clearSessionCookies()) {
         responseHeaders.append('Set-Cookie', cookie);
       }
+      // Mark token-expired for the client refresh interceptor on web. Mobile
+      // ignores this header — it switches on envelope error.code.
+      responseHeaders.set('X-Token-Expired', 'true');
       return new Response(
         JSON.stringify({
           error: {

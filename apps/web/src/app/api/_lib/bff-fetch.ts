@@ -271,9 +271,15 @@ export async function fetchBff<T>(
   }
 
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new SessionExpiredError();
-    }
+    // CHORE-BFF-401-CONTRACT: 401 used to throw SessionExpiredError, which
+    // collapsed every upstream 401 into envelope code='TOKEN_EXPIRED' (web's
+    // cookie-redirect semantic). That broke IMPL-MOBILE-AUTH-003's 5-code
+    // refresh enum forward (MALFORMED / TOKEN_REUSE_DETECTED / etc.) for
+    // mobile clients. Now 401 returns Result.ok=false with the upstream code,
+    // like every other status. The "401 means redirect" semantic moves up
+    // into createProtectedRoute (cookie path), which is the only caller that
+    // can attempt a silent refresh — public routes (mobile, signup, login)
+    // and the refresh route just forward the envelope.
     const picked = pickUpstreamError(parsedBody);
     return {
       ok: false,
