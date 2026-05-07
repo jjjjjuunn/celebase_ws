@@ -4181,7 +4181,7 @@ verified_by: human-junwon (genre-agnostic 정책 + IMPL-019 close 결정 confirm
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: DOCS-PIVOT-MOBILE-2026-05
-commit_sha: PENDING
+commit_sha: 24f6e38
 files_changed:
   - CLAUDE.md
   - spec.md
