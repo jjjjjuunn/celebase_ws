@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-AUTH-002b-fix1
-commit_sha: PENDING
+commit_sha: a2376e9
 files_changed:
   - services/user-service/src/index.ts
   - services/user-service/src/routes/auth.routes.ts
