@@ -202,7 +202,7 @@ export async function handleWebhookEvent(deps: HandleWebhookEventDeps): Promise<
   const currentPeriodEnd =
     resolved.entitlement.expires_date != null
       ? (() => {
-          const ms = Date.parse(resolved.entitlement.expires_date as string);
+          const ms = Date.parse(resolved.entitlement.expires_date);
           return Number.isFinite(ms) ? new Date(ms) : null;
         })()
       : null;
