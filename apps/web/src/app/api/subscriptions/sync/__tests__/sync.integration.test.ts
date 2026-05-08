@@ -40,6 +40,7 @@ jest.mock('jose', () => {
 
 import { jwtVerify } from 'jose';
 import { resetRateLimitBucketsForTest } from '../../../_lib/bff-fetch';
+import { resetRouteRateLimitForTest } from '../../../_lib/route-rate-limit';
 import {
   makeRequest,
   upstreamResponse,
@@ -72,6 +73,7 @@ describe('BFF integration — POST /api/subscriptions/sync', () => {
 
   beforeEach(() => {
     resetRateLimitBucketsForTest();
+    resetRouteRateLimitForTest();
     fetchSpy = jest.spyOn(globalThis, 'fetch');
   });
 
@@ -228,6 +230,48 @@ describe('BFF integration — POST /api/subscriptions/sync', () => {
     expect(res.status).toBe(413);
     const body = await res.json() as { error: { code: string } };
     expect(body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
+
+  it('429 RATE_LIMITED on 6th call within 1 minute per session.user_id (CHORE-SUB-SYNC-RATE-LIMIT-001)', async () => {
+    // 5 calls succeed (capacity), 6th hits the bucket-empty branch.
+    for (let i = 0; i < 5; i++) {
+      validSession();
+      fetchSpy.mockResolvedValueOnce(upstreamResponse(HAPPY_RESPONSE, 200));
+      const req = makeRequest({ cookie: 'valid-access', body: { source: 'app_open' } });
+      const res = await syncPOST(req);
+      expect(res.status).toBe(200);
+    }
+    // 6th call: rate-limit triggers BEFORE callInternal — no upstream fetch.
+    validSession();
+    const before = fetchSpy.mock.calls.length;
+    const req6 = makeRequest({ cookie: 'valid-access', body: { source: 'app_open' } });
+    const res6 = await syncPOST(req6);
+    expect(res6.status).toBe(429);
+    expect(res6.headers.get('Retry-After')).toBe('60');
+    expect(fetchSpy.mock.calls.length).toBe(before);
+    const body = await res6.json() as { error: { code: string; retry_after: number } };
+    expect(body.error.code).toBe('RATE_LIMITED');
+    expect(body.error.retry_after).toBe(60);
+  });
+
+  it('rate-limit bucket is per-user-id (different user not blocked)', async () => {
+    // Exhaust user A's bucket
+    for (let i = 0; i < 5; i++) {
+      validSession();
+      fetchSpy.mockResolvedValueOnce(upstreamResponse(HAPPY_RESPONSE, 200));
+      const req = makeRequest({ cookie: 'valid-access', body: { source: 'purchase' } });
+      const res = await syncPOST(req);
+      expect(res.status).toBe(200);
+    }
+    // User B (different sub) — still allowed
+    const userBPayload = { ...VALID_SESSION_PAYLOAD, sub: 'user-different-456' };
+    mockJwtVerify.mockResolvedValueOnce(
+      { payload: userBPayload, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+    );
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(HAPPY_RESPONSE, 200));
+    const reqB = makeRequest({ cookie: 'valid-access', body: { source: 'purchase' } });
+    const resB = await syncPOST(reqB);
+    expect(resB.status).toBe(200);
   });
 
   it('forwards upstream 401 envelope code unchanged (CHORE-BFF-401-CONTRACT)', async () => {

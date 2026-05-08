@@ -30,6 +30,37 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-SUB-SYNC-RATE-LIMIT-001
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/route-rate-limit.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (172/172 web jest PASS — 신규 rate-limit case 2 + 기존 170 회귀, route-rate-limit.ts 100% coverage)
+---
+### 완료: BFF /api/subscriptions/sync per-user-id rate limit — CHORE-SUB-SYNC-RATE-LIMIT-001 (SUB-SYNC-002 adversarial T8 close)
+- **트리거**: SUB-SYNC-002 의 Claude self-adversarial T8 발견 — `/api/subscriptions/sync` 가 rate-limit 가드 없음 → abuse 시 commerce → RevenueCat REST API quota 소진 위험.
+- **신규 helper**: `apps/web/src/app/api/_lib/route-rate-limit.ts` — token bucket pattern, 자체 in-memory Map (bff-fetch 의 `rateLimitBuckets` 와 namespace 분리, 향후 다른 BFF 라우트 재사용 가능). `checkRouteRateLimit(key, capacity, requestId)` + `rateLimitErrorToResponse(err)` + `resetRouteRateLimitForTest()`. envelope 에 `Retry-After: 60` 헤더 포함.
+- **sync route 통합**: `apps/web/src/app/api/subscriptions/sync/route.ts` — handler 진입 직후 (body parse 전) `checkRouteRateLimit('sync:${session.user_id}', 5, requestId)` 호출. 한도 초과 시 즉시 429 반환, callInternal 미호출. M5 IAP 정상 흐름 (결제당 1회) 에 5회 헤드룸 + foreground/app_open burst 흡수 + 자동화 abuse 차단.
+- **패턴 분류**: §9.3 + CHORE-AUTH-PUBLIC-PATHS-AUDIT 의 **Pattern B (auth-first)** — key = authenticated `session.user_id`. `createProtectedRoute` 가 unauth 를 401 로 차단하므로 invalid session 은 본 gate 도달 불가.
+- **신규 테스트** (2 case): "429 RATE_LIMITED on 6th call within 1 minute" (5회 200 + 6회 429 + Retry-After:60 + fetchSpy 미증가 검증), "rate-limit bucket is per-user-id" (user A 한도 소진 후 user B 정상 200 검증). `resetRouteRateLimitForTest()` 를 beforeEach 추가.
+- **spec.md sync**: §11 BFF subscription sync paragraph 4번째 항목으로 rate limit 사양 명시.
+- **검증**: 172/172 web jest PASS (신규 2 + 기존 170), typecheck PASS, lint PASS, route-rate-limit.ts 100% coverage.
+- **L1 chore** (단일 BFF 라우트 + helper, 보안 결정 변경 0): review 불필요.
+
+### 미완료:
+- **CHORE-SUB-CACHE-001** (다음 우선순위, M5 진입 전 권장): single-flight 30s 캐시 + source-aware TTL.
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority): dead `import rateLimit` cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): dead `SessionExpiredError` cleanup.
+
+### 연관 파일: apps/web/src/app/api/_lib/route-rate-limit.ts, apps/web/src/app/api/subscriptions/sync/{route.ts,__tests__/sync.integration.test.ts}, spec.md (§11)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-AUTH-PUBLIC-PATHS-AUDIT
 commit_sha: ffa78eb
 files_changed:
