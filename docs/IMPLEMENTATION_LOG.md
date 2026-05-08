@@ -28,6 +28,62 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-08
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-WORKSPACE-001-followup
+commit_sha: 91c458e
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/metro.config.js
+  - package.json
+  - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx
+  - services/user-service/src/repositories/bio-profile.repository.ts
+  - services/content-service/src/repositories/recipe.repository.ts
+  - pnpm-lock.yaml
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (28/28 monorepo turbo lint+typecheck PASS, 2026-05-08 사용자 iPhone 실기기 Expo Go 검증 완료)
+---
+### 완료: PR #60 squash 머지 누락 보완 — IMPL-MOBILE-WORKSPACE-001-followup
+- **트리거**: PR #60 (IMPL-MOBILE-WORKSPACE-001 minimal Expo scaffold) 의 squash merge 가 head SHA `0715ca6` (SDK 52 fix 단계) 에서 잘려, 이후 push 한 fix 2개 (`f567e50` SDK54+overrides, `6bcfb42` symlinks+lint cleanup) 가 main 미반영. 결과: main 의 mobile stack 이 **사용자가 iPhone 실기기에서 검증한 상태와 다름** (SDK 52 + 옛 metro.config + pnpm.overrides 없음).
+- **재적용 1 — Expo SDK 54 복원** (`apps/mobile/package.json`):
+  - expo: 52 → `~54.0.33`
+  - expo-status-bar: ~2.0 → `~3.0.9`
+  - react: 18.3.1 → `19.1.0` (iOS Expo Go SDK 54 호환)
+  - react-native: 0.76.5 → `0.81.5`
+  - @types/react: ~18.3.12 → `~19.1.0`
+  - typescript: ~5.3.3 → `~5.9.2`
+  - 사유: iOS Expo Go App Store 정책상 최신 SDK 만 설치 가능 → 실기기 검증 위해 SDK 54 강제.
+- **재적용 2 — `pnpm.overrides`** (`package.json`):
+  - `@types/react`: `~18.3.12` 강제
+  - `@types/react-dom`: `~18.3.1` 강제
+  - 사유: mobile runtime 은 React 19 그대로, types 만 18 강제 → web 의 React 18 stack 보호. pnpm hoist 가 React 19 types 를 root 까지 끌어올려 web typecheck (Next.js 15.1) 가 `ReactPortal.children` 등에서 mismatch 하던 문제 해결.
+- **재적용 3 — Metro resolver 강화** (`apps/mobile/metro.config.js`):
+  - `unstable_enableSymlinks: true` — pnpm `.pnpm/` 의 isolated symlink 를 Metro 가 따라가게
+  - `unstable_enablePackageExports: true` — modern packages 의 `exports` map 사용
+  - `disableHierarchicalLookup: true` 제거 → transitive lookup 허용
+  - 사유: pnpm strict isolation (`shamefully-hoist=false`) + Metro 의 transitive autolinking 비호환으로 `expo-modules-core` RCTFatal "could not be found" 발생. SDK 51+ 에서 Metro 의 unstable_enableSymlinks 가 안정적.
+- **재적용 4 — lint cleanup** (typescript-eslint type narrowing 정밀도 향상으로 발견):
+  - `packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx:63` — `ref as ...` cast 제거
+  - `services/user-service/src/repositories/bio-profile.repository.ts:21` — `{} as Biomarkers` 등 cast 제거
+  - `services/content-service/src/repositories/recipe.repository.ts:124` — cast 제거
+  - 사유: pnpm-lock 재생성 후 typescript-eslint 의 `no-unnecessary-type-assertion` 가 redundant cast 감지. 코드 동작 동일.
+- **검증**:
+  - `pnpm turbo run lint typecheck` → **28/28 successful**
+  - 2026-05-08 사용자 iPhone 실기기 Expo Go (SDK 54) 검증 완료 — default `App.tsx` ("Open up App.tsx to start working on your app!") 화면 정상 렌더링
+- **L1 chore** (PR #60 의 누락된 fix 재적용, 새 기능 추가 0): review 불필요.
+
+### 미완료:
+- **동료 Dohyun M0 본격 작업**: EAS / Metro `resolveRequest` throw / jest / design-tokens RN 익스포트 연동 / App.tsx 첫 화면. 본 PR 머지 후 진입.
+- **Repo branch 정리**: ABSORBED 16개 origin 삭제 완료, local 9개 삭제 완료. archive/* 6개 (14d+) 는 보존 결정.
+- **post-MVP backlog** (동료 진행 페이스 보고 결정):
+  - CHORE-MOBILE-002 (refresh TTL 7-14d)
+  - IMPL-MOBILE-PUSH-001 (FCM/APNs)
+  - CHORE-MOBILE-LOGOUT-BFF (M1 시점)
+  - spec.md 본문 web-first 표현 absorption (long-horizon)
+
+### 연관 파일: apps/mobile/{package.json,metro.config.js}, package.json (root pnpm.overrides), packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx, services/{user-service,content-service}/src/repositories/, pnpm-lock.yaml
+
+---
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-WORKSPACE-001

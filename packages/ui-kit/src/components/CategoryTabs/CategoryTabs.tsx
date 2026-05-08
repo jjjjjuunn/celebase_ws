@@ -60,7 +60,7 @@ export function CategoryTabs({
             aria-selected={isSelected ? 'true' : 'false'}
             aria-disabled={isDisabled || undefined}
             tabIndex={tabIndex}
-            ref={ref as (el: HTMLButtonElement | null) => void}
+            ref={ref}
             onClick={() => {
               if (!isDisabled && !isSelected) onChange(opt.value);
             }}

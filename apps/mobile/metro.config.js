@@ -1,13 +1,8 @@
 // Metro bundler config for pnpm monorepo.
 // Reference: https://docs.expo.dev/guides/monorepos/
 //
-// pnpm 의 hoist 패턴 + per-package node_modules 둘 다 검색하기 위해
-// `nodeModulesPaths` 와 `watchFolders` 를 root 까지 확장한다.
-//
-// (옵션) `resolver.resolveRequest` 로 service-core / ui-kit import 차단은
-// Plan v5 §M0 의 동료 작업. 현재 ESLint `no-restricted-imports` 가
-// CHORE-MOBILE-001 (PR #47) 에서 동일 가드를 IDE 레벨로 제공하므로 본
-// scaffold 에서는 생략. 동료 M0 진행 시 fail-fast Metro 차단 추가 가능.
+// pnpm strict isolation (.pnpm/ 깊은 경로) + Metro 의 transitive autolinking
+// 호환을 위해 unstable_enableSymlinks 활성화 + hierarchical lookup 허용.
 
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('node:path');
@@ -28,8 +23,13 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// 3) Disable hierarchical lookup — pnpm 모노레포에서는 정확한 nodeModulesPaths
-//    경로만 사용해야 cross-package import 가 안전하게 차단된다.
-config.resolver.disableHierarchicalLookup = true;
+// 3) pnpm 의 .pnpm/ 안 symlink 를 Metro 가 따라가도록 활성화. SDK 51+ 에서
+//    안정적. 이게 없으면 expo-modules-core 같은 transitive dep 이 isolated
+//    경로 안에 갇혀 RCTFatal "could not be found" 발생.
+config.resolver.unstable_enableSymlinks = true;
+
+// 4) package.json 의 "exports" 필드를 Metro 가 사용하도록 활성화. SDK 51+
+//    의 권장 설정 — 일부 modern packages (jose 등) 가 exports map 만 제공.
+config.resolver.unstable_enablePackageExports = true;
 
 module.exports = config;
