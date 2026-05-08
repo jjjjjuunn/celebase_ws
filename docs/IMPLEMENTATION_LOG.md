@@ -30,6 +30,63 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-WORKSPACE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/App.tsx
+  - apps/mobile/index.ts
+  - apps/mobile/app.json
+  - apps/mobile/tsconfig.json
+  - apps/mobile/.gitignore
+  - apps/mobile/metro.config.js
+  - apps/mobile/.env.example
+  - apps/mobile/README.md
+  - apps/mobile/assets/ (4 PNG icons)
+  - pnpm-lock.yaml
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (mobile typecheck/lint PASS — turbo 2/2, scripts/gate-check.sh spec_sync PASS — 6 lines spec.md diff)
+---
+### 완료: apps/mobile minimal Expo scaffold — IMPL-MOBILE-WORKSPACE-001 (사용자 요청, JUNWON 직접 진행)
+- **트리거**: 사용자가 "expo로 우리 앱 보고 싶다 — 일단 세팅부터" 요청. Plan v5 §M0 의 동료 (Dohyun) 본격 작업 entry point 로 minimal scaffold 만 JUNWON 이 진행. 동료가 위에 EAS / Metro resolveRequest / jest 셋업 추가 가능.
+- **scaffold 명령**: `npx create-expo-app@latest apps/mobile --template blank-typescript --no-install` (Expo SDK 54 default — React 19 + RN 0.81 + TypeScript). 이후 root `pnpm install` 으로 monorepo workspace 등록 (322 packages 추가).
+- **monorepo 통합 — `metro.config.js` 신규**:
+  - `watchFolders: [workspaceRoot]` — packages/* / shared-types 변경이 Metro fast-refresh 에 반영
+  - `resolver.nodeModulesPaths: [project, workspaceRoot]` — pnpm hoist + per-package node_modules 둘 다 검색
+  - `disableHierarchicalLookup: true` — pnpm 모노레포 cross-package import 차단 (정확한 nodeModulesPaths 만 사용)
+  - 2차 방어 `resolver.resolveRequest` throw (service-core/ui-kit 차단) 는 동료 M0 작업으로 위임 — 현재 ESLint `no-restricted-imports` (CHORE-MOBILE-001 / PR #47) 가 동일 가드를 IDE/CI 레벨로 제공.
+- **`package.json` scripts** (mobile-ci.yml CHORE-MOBILE-001 가 호출하는 3개):
+  - `typecheck`: `tsc --noEmit` — Expo tsconfig.base extend, strict mode
+  - `lint`: `eslint "**/*.{ts,tsx}" --max-warnings=0` — root flat config + apps/mobile override 활용. metro.config.js (CommonJS) 는 glob 으로 제외.
+  - `test`: placeholder echo + exit 0 — 동료 M0 에서 jest 셋업 시 갱신
+- **.env.example 신규**: `EXPO_PUBLIC_BFF_BASE_URL` / `EXPO_PUBLIC_USER_SERVICE_URL` (`/auth/refresh` 직접 호출 예외) / `EXPO_PUBLIC_COGNITO_USER_POOL_ID` / `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID` / `EXPO_PUBLIC_AWS_REGION` / `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`. Expo 의 `EXPO_PUBLIC_` 접두사 규칙 준수.
+- **.gitignore 보강**: Expo default 의 `.env*.local` 만 ignore 였는데 `.env` / `.env.local` 명시 추가 (`.env.example` 는 추적 대상).
+- **README.md 신규**: 빠른 실행 가이드 (`pnpm install` → `cp .env.example .env` → `pnpm start` → Expo Go QR / iOS 시뮬레이터 / Android 에뮬레이터 / 웹 브라우저 4가지 실행 방법) + Plan v5 §M0~M5 흐름 + 주의사항 (service-core/ui-kit import 금지 + multi-session.md §1 ownership).
+- **spec.md §11 sync**: PIVOT BANNER 직후 paragraph 3개 신규 — Expo SDK 54 stack 명시, monorepo metro.config 동작, scripts + .env.example, ESLint 가드 활용 + Metro resolveRequest 동료 위임. (gate-check.sh spec_sync ≥3 line 충족 — 6 line diff)
+- **SPEC-PIVOT-PLAN row 58**: "next (동료)" → "🟡 in-progress (PR pending — minimal scaffold by JUNWON, M0 본격 작업은 동료)".
+- **검증**:
+  - `pnpm --filter mobile typecheck` PASS
+  - `pnpm --filter mobile lint` PASS (warnings 0)
+  - `pnpm --filter mobile test` placeholder PASS
+  - `pnpm turbo lint typecheck --filter=mobile` 2/2 successful
+  - `bash scripts/gate-check.sh spec_sync` PASS (6 line diff)
+- **L1 chore + scaffold** (코드 비즈니스 로직 0, default Expo blank): review 불필요. mobile-ci.yml 가 push 시 자동 lint/typecheck/test trigger.
+
+### 미완료:
+- **동료 Dohyun M0 본격 작업**: EAS 셋업, Metro `resolveRequest` throw 추가, jest 셋업, design-tokens RN 익스포트 연동, App.tsx 첫 화면 디자인. 본 PR 머지 후 진입 가능.
+- **동료 M0.5 / M1 ~ M5**: Plan v5 line 60-186 매핑.
+- **다음 BE backlog (필요시)**:
+  - CHORE-MOBILE-002 (refresh TTL 7-14d) — M1 진행 페이스 보고 결정
+  - IMPL-MOBILE-PUSH-001 (FCM/APNs) — post-MVP
+  - IMPL-MOBILE-LOGOUT-BFF — M1 시점 결정
+
+### 연관 파일: apps/mobile/{package.json,App.tsx,index.ts,app.json,tsconfig.json,metro.config.js,.env.example,.gitignore,README.md,assets/}, spec.md (§11), docs/SPEC-PIVOT-PLAN.md (row 58), pnpm-lock.yaml
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-BFF-SESSION-EXPIRED-CLEANUP
 commit_sha: aa1b58b
 files_changed:
