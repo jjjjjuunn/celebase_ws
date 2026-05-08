@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: CHORE-SUB-CACHE-001
-commit_sha: PENDING
+commit_sha: 9b1b6d0
 files_changed:
   - services/commerce-service/src/services/revenuecat-sync.service.ts
   - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
