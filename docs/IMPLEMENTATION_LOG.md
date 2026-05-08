@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-07
 agent: claude-opus-4-7
 task_id: CHORE-BFF-SESSION-EXPIRED-CLEANUP
-commit_sha: PENDING
+commit_sha: 2bb16f7
 files_changed:
   - apps/web/src/app/api/_lib/bff-error.ts
   - apps/web/src/app/api/_lib/bff-fetch.ts
