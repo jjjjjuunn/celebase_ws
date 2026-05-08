@@ -159,10 +159,40 @@ export interface SyncFromRevenuecatResult {
   source: SyncSource;
 }
 
+// CHORE-SUB-CACHE-001: source-aware cache + single-flight in front of doSync.
+//
+// - `source=purchase` bypasses cache (mobile just completed IAP — always fetch
+//   fresh entitlement to avoid showing stale tier post-purchase)
+// - `source=app_open` / `source=manual` use 60s TTL cache to absorb foreground
+//   re-check burst + reduce RevenueCat REST API quota burn
+// - in-flight Promise dedup: concurrent calls for the same userId hit the
+//   adapter exactly once (Plan v5 §M5 single-flight requirement)
+
+const SYNC_CACHE_TTL_MS = 60_000;
+
+// Result shape stored in cache. We strip `source` because cache value is
+// shared across different request sources — caller's source is re-stamped on
+// hit to keep response/log dimension accurate.
+type CachedSyncResult = Omit<SyncFromRevenuecatResult, 'source'>;
+
+const syncCache = new Map<string, { result: CachedSyncResult; expiresAt: number }>();
+const inFlightSync = new Map<string, Promise<CachedSyncResult>>();
+
+// Test-only helper. Module Map persists across Jest tests; integration tests
+// reset in beforeEach for isolation.
+export function resetSyncCacheForTest(): void {
+  syncCache.clear();
+  inFlightSync.clear();
+}
+
 /**
  * Pull-style sync: client (mobile) calls BFF → BFF → this internal handler.
  * RevenueCat REST API 를 직접 조회하여 entitlement → tier 도출 후
  * `subscriptions` upsert + user-service `tier` 동기화.
+ *
+ * Cache policy (CHORE-SUB-CACHE-001):
+ * - `source=purchase` → bypass cache (always fetch fresh)
+ * - `source=app_open` / `source=manual` → 60s TTL + single-flight dedup
  *
  * webhook 의 handleWebhookEvent 와의 차이:
  * - event_id 가 없음 → idempotency key 는 `${userId}:${tier}:sync:${period_end_ms}`
@@ -170,6 +200,52 @@ export interface SyncFromRevenuecatResult {
  * - eventType 분기 없음 → INITIAL_PURCHASE 와 동일하게 처리 (active → active)
  */
 export async function syncFromRevenuecat(
+  deps: SyncFromRevenuecatDeps,
+  params: SyncFromRevenuecatParams,
+): Promise<SyncFromRevenuecatResult> {
+  const { userId, source } = params;
+
+  // Bypass for purchase — never serve stale tier right after IAP success.
+  if (source === 'purchase') {
+    const result = await doSyncFromRevenuecat(deps, params);
+    // Refresh cache so subsequent app_open/manual within TTL get the new state.
+    const { source: _src, ...cacheable } = result;
+    syncCache.set(userId, { result: cacheable, expiresAt: Date.now() + SYNC_CACHE_TTL_MS });
+    return result;
+  }
+
+  // app_open / manual: cache hit?
+  const cached = syncCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    deps.log.debug({ user_id: userId, source }, 'revenuecat.sync.cache-hit');
+    return { ...cached.result, source };
+  }
+
+  // Single-flight: dedupe concurrent fetches for the same userId.
+  const inFlight = inFlightSync.get(userId);
+  if (inFlight) {
+    deps.log.debug({ user_id: userId, source }, 'revenuecat.sync.in-flight-coalesced');
+    const result = await inFlight;
+    return { ...result, source };
+  }
+
+  // Fresh fetch.
+  const promise = (async (): Promise<CachedSyncResult> => {
+    try {
+      const result = await doSyncFromRevenuecat(deps, params);
+      const { source: _src, ...cacheable } = result;
+      syncCache.set(userId, { result: cacheable, expiresAt: Date.now() + SYNC_CACHE_TTL_MS });
+      return cacheable;
+    } finally {
+      inFlightSync.delete(userId);
+    }
+  })();
+  inFlightSync.set(userId, promise);
+  const result = await promise;
+  return { ...result, source };
+}
+
+async function doSyncFromRevenuecat(
   deps: SyncFromRevenuecatDeps,
   params: SyncFromRevenuecatParams,
 ): Promise<SyncFromRevenuecatResult> {

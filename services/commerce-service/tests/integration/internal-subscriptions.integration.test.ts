@@ -33,7 +33,7 @@ const { registerInternalJwtAuth } = await import('../../src/middleware/internal-
 // handleWebhookEvent 는 별도 webhook 통합 테스트가 mock 으로 우회한 함수.
 // SUB-SYNC-001b 가 전체 파일을 함께 import 하면서 backfill 으로 직접 호출
 // 테스트를 추가 — coverage 임계값 충족 + webhook entry-point 회귀 보호.
-const { handleWebhookEvent } = await import('../../src/services/revenuecat-sync.service.js');
+const { handleWebhookEvent, resetSyncCacheForTest } = await import('../../src/services/revenuecat-sync.service.js');
 
 interface CapturedLog {
   msg?: string;
@@ -141,6 +141,9 @@ describe('POST /internal/subscriptions/refresh-from-revenuecat', () => {
   beforeEach(() => {
     mockUpsertRevenuecat.mockReset();
     mockUpsertRevenuecat.mockResolvedValue({});
+    // CHORE-SUB-CACHE-001: clear sync cache + in-flight maps so each test runs
+    // against an empty cache.
+    resetSyncCacheForTest();
   });
 
   it('happy path: active premium entitlement → 200 + tier=premium + upsert + syncTier called', async () => {
@@ -369,6 +372,183 @@ describe('POST /internal/subscriptions/refresh-from-revenuecat', () => {
     expect(body.status).toBe('expired');
     expect(syncTier).toHaveBeenCalledWith(validUserId, 'free', expect.any(Object));
     await app.close();
+  });
+
+  // CHORE-SUB-CACHE-001 — source-aware cache + single-flight
+  describe('cache + single-flight (CHORE-SUB-CACHE-001)', () => {
+    it('source=app_open: 2nd call within 60s hits cache → adapter called once', async () => {
+      const captured: CapturedLog[] = [];
+      const getSubscriber = jest.fn<() => Promise<RevenuecatSubscriberSnapshot>>().mockResolvedValue(activeEntitlementSnapshot);
+      const syncTier = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+      const app = buildApp(captured, { getSubscriber, syncTier });
+      await app.ready();
+      const token1 = await makeInternalToken();
+      const token2 = await makeInternalToken();
+
+      const res1 = await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${token1}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+      const res2 = await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${token2}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+
+      expect(res1.statusCode).toBe(200);
+      expect(res2.statusCode).toBe(200);
+      // adapter called only once — 2nd request served from cache
+      expect(getSubscriber).toHaveBeenCalledTimes(1);
+      // syncTier called only once — cache short-circuits user-service sync too
+      expect(syncTier).toHaveBeenCalledTimes(1);
+      // upsert called only once
+      expect(mockUpsertRevenuecat).toHaveBeenCalledTimes(1);
+      // both responses have same tier
+      expect(JSON.parse(res1.body).tier).toBe('premium');
+      expect(JSON.parse(res2.body).tier).toBe('premium');
+      await app.close();
+    });
+
+    it('source=purchase: bypasses cache → adapter called every time', async () => {
+      const captured: CapturedLog[] = [];
+      const getSubscriber = jest.fn<() => Promise<RevenuecatSubscriberSnapshot>>().mockResolvedValue(activeEntitlementSnapshot);
+      const syncTier = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+      const app = buildApp(captured, { getSubscriber, syncTier });
+      await app.ready();
+      const token1 = await makeInternalToken();
+      const token2 = await makeInternalToken();
+
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${token1}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'purchase' },
+      });
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${token2}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'purchase' },
+      });
+
+      // purchase bypasses cache → adapter called twice
+      expect(getSubscriber).toHaveBeenCalledTimes(2);
+      await app.close();
+    });
+
+    it('purchase result populates cache → subsequent app_open hits cache', async () => {
+      const captured: CapturedLog[] = [];
+      const getSubscriber = jest.fn<() => Promise<RevenuecatSubscriberSnapshot>>().mockResolvedValue(activeEntitlementSnapshot);
+      const syncTier = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+      const app = buildApp(captured, { getSubscriber, syncTier });
+      await app.ready();
+      const t1 = await makeInternalToken();
+      const t2 = await makeInternalToken();
+
+      // 1) purchase fetches fresh + populates cache
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t1}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'purchase' },
+      });
+      // 2) app_open within 60s reuses cache
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t2}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+
+      expect(getSubscriber).toHaveBeenCalledTimes(1);
+      await app.close();
+    });
+
+    it('cache is per-user-id: different user not served stale data', async () => {
+      const captured: CapturedLog[] = [];
+      const userBId = '01900000-0000-7000-8000-000000000002';
+      const getSubscriber = jest.fn<(appUserId: string) => Promise<RevenuecatSubscriberSnapshot>>()
+        .mockResolvedValueOnce(activeEntitlementSnapshot)
+        .mockResolvedValueOnce({ ...activeEntitlementSnapshot, app_user_id: userBId });
+      const syncTier = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+      const app = buildApp(captured, { getSubscriber, syncTier });
+      await app.ready();
+      const t1 = await makeInternalToken();
+      const t2 = await makeInternalToken();
+
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t1}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+      await app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t2}`, 'content-type': 'application/json' },
+        payload: { user_id: userBId, source: 'app_open' },
+      });
+
+      // Two distinct users → two distinct adapter calls
+      expect(getSubscriber).toHaveBeenCalledTimes(2);
+      expect(getSubscriber).toHaveBeenNthCalledWith(1, validUserId);
+      expect(getSubscriber).toHaveBeenNthCalledWith(2, userBId);
+      await app.close();
+    });
+
+    it('single-flight: concurrent same-user calls coalesce → adapter once', async () => {
+      const captured: CapturedLog[] = [];
+      // Slow adapter to simulate concurrent requests overlapping
+      let resolveAdapter: (value: RevenuecatSubscriberSnapshot) => void;
+      const adapterPromise = new Promise<RevenuecatSubscriberSnapshot>((r) => {
+        resolveAdapter = r;
+      });
+      const getSubscriber = jest.fn<() => Promise<RevenuecatSubscriberSnapshot>>()
+        .mockReturnValue(adapterPromise);
+      const syncTier = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+      const app = buildApp(captured, { getSubscriber, syncTier });
+      await app.ready();
+      const t1 = await makeInternalToken();
+      const t2 = await makeInternalToken();
+      const t3 = await makeInternalToken();
+
+      const p1 = app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t1}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+      const p2 = app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t2}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'manual' },
+      });
+      const p3 = app.inject({
+        method: 'POST',
+        url: '/internal/subscriptions/refresh-from-revenuecat',
+        headers: { authorization: `Bearer ${t3}`, 'content-type': 'application/json' },
+        payload: { user_id: validUserId, source: 'app_open' },
+      });
+
+      // Now resolve adapter — all 3 should coalesce
+      resolveAdapter!(activeEntitlementSnapshot);
+      const [r1, r2, r3] = await Promise.all([p1, p2, p3]);
+
+      expect(r1.statusCode).toBe(200);
+      expect(r2.statusCode).toBe(200);
+      expect(r3.statusCode).toBe(200);
+      // Critical: adapter called exactly once across 3 concurrent requests
+      expect(getSubscriber).toHaveBeenCalledTimes(1);
+      // Each response carries its own source dimension
+      expect(JSON.parse(r1.body).source).toBe('app_open');
+      expect(JSON.parse(r2.body).source).toBe('manual');
+      expect(JSON.parse(r3.body).source).toBe('app_open');
+      await app.close();
+    });
   });
 
   // handleWebhookEvent 직접 호출 — webhook 엔트리 포인트의 backfill 회귀 보호
