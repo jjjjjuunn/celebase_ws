@@ -30,6 +30,37 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-AUTH-PUBLIC-PATHS-AUDIT
+commit_sha: ffa78eb
+files_changed:
+  - pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (audit grep 점검 + ws-ticket route source review + spec.md sync)
+---
+### 완료: registerJwtAuth + per-route limiter 정합성 audit — CHORE-AUTH-PUBLIC-PATHS-AUDIT (AUTH-002b-fix1 advisor 권고 close)
+- **트리거**: AUTH-002b-fix1 (PR #51) 의 advisor 권고 — `/auth/logout` 의 limiter ordering bug (root-scope JWT onRequest 가 plugin-scope per-route limiter 보다 먼저 실행 → invalid-token spam 이 limiter bucket 미증가 → DoS 방어 무력화) 가 다른 서비스에서도 재현되는지 전수 점검.
+- **점검 대상**: user-service / commerce-service / content-service / analytics-service / meal-plan-engine 의 `registerJwtAuth.publicPaths` 와 `services/<svc>/src/routes/**/*.ts` 의 `rateLimit:` config 사용 라우트 cross-reference.
+- **Findings**: **bug 0건**. 분류:
+  - **user-service**: auth × 4 (signup/login/refresh/logout) 모두 publicPaths 포함 + handler-inline verify (logout-style). ws-ticket × 1 은 publicPaths 미포함 + `keyGenerator: request.userId` (ws-ticket-style — 의도된 동작, 인증된 사용자만 호출).
+  - **commerce-service**: webhooks/internal-subscriptions 모두 publicPaths 포함. checkout.routes.ts 가 `import rateLimit` 했지만 라우트 미등록 (dead code).
+  - **content-service / analytics-service / meal-plan-engine**: per-route limiter 자체 없음 → ordering bug 발생 불가.
+- **Documentation**:
+  - `pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md` 신규 — 서비스별 publicPaths × limiter cross-reference 표 + 두 패턴 (limiter-first / auth-first) 구분 가이드 + 결정 트리.
+  - `spec.md §9.3` "Per-route limiter ordering — 두 패턴" 신규 sub-section — 신규 limiter 도입 시 PR description / route 주석에서 패턴 명시 의무화. 혼용 금지 (잘못된 패턴 선택 시 DoS 방어 무력화 또는 사용자 분리 손실).
+- **수정 코드 0줄** — bug 없음, audit memo + 향후 재발 방지 가이드만 추가.
+- **L1 tier** (chore, 코드 변경 0, audit + doc only): review 불필요.
+
+### 미완료:
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority, audit 발견 후속): `services/commerce-service/src/routes/checkout.routes.ts` 의 dead `import rateLimit from '@fastify/rate-limit'` 제거 또는 라우트 활성화 결정.
+- **CHORE-SUB-SYNC-RATE-LIMIT-001** (다음 우선순위, SUB-SYNC-002 adversarial T8): `/api/subscriptions/sync` per-user-id 분당 5회 제한.
+- **CHORE-SUB-CACHE-001** (M5 진입 전): single-flight 30s 캐시 + source-aware TTL.
+
+### 연관 파일: pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md, spec.md (§9.3)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-SUB-SYNC-002-fix1
 commit_sha: 3114f0c
 files_changed:
