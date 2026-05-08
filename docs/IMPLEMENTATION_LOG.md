@@ -30,6 +30,44 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-SUB-CACHE-001
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (83/83 commerce-service jest PASS — 신규 cache 5 case + 기존 78 회귀, coverage 87.32% lines, monorepo turbo 19/19)
+---
+### 완료: source-aware cache + single-flight for syncFromRevenuecat — CHORE-SUB-CACHE-001 (M5 진입 전 backlog close)
+- **트리거**: SUB-SYNC-001b 의 deferred 캐시 + Plan v5 §M5 단위 테스트의 "single-flight 30s 캐시" 요구사항. 모든 sync 가 RevenueCat REST API 직조회하면 mobile foreground/app_open burst 시 quota 소진 위험.
+- **구현 위치**: `services/commerce-service/src/services/revenuecat-sync.service.ts` 의 기존 `syncFromRevenuecat` 본체를 `doSyncFromRevenuecat` (private) 로 rename, 새 `syncFromRevenuecat` 가 cache + single-flight wrapper.
+- **Cache 정책 (source-aware)**:
+  - `source=purchase` → bypass cache (방금 IAP 완료 — 항상 fresh). 결과는 cache 에 populate 하여 후속 app_open 활용.
+  - `source=app_open` / `source=manual` → 60s TTL cache hit, miss 시 fresh fetch 후 populate.
+  - cache value 는 `Omit<SyncFromRevenuecatResult, 'source'>` — caller 의 source 는 응답 시 re-stamp (cache 공유 + 응답 dimension 정확).
+- **Single-flight**: `inFlightSync = new Map<string, Promise>` — 동일 userId 동시 요청은 1개만 doSync 호출, 나머지는 같은 Promise await. finally 에서 inFlight 항목 삭제 (성공/실패 둘 다).
+- **resetSyncCacheForTest**: module-level Map 격리용 export. internal-subscriptions test 의 beforeEach 추가.
+- **신규 테스트** (5 case):
+  - "source=app_open 2nd call within 60s hits cache" — adapter 1회만, syncTier 1회만, upsert 1회만
+  - "source=purchase bypasses cache" — 두 번째 호출도 adapter 호출 (확인 totalCount 2)
+  - "purchase result populates cache → subsequent app_open hits cache" — purchase 1회 + app_open 1회 = adapter 1회
+  - "cache is per-user-id" — user A app_open 후 user B app_open → adapter 2회 (다른 user)
+  - "single-flight: concurrent same-user calls coalesce" — slow adapter promise + 3개 동시 호출 → adapter 1회, 각 응답의 source 는 caller 원래값 유지
+- **spec.md sync §4.2**: 기존 "캐시 없음 — backlog" 표현 제거, "CHORE-SUB-CACHE-001 active" sub-section 으로 source-aware TTL + single-flight 동작 명시. multi-instance 운영 시 instance 별 독립 (sticky session / 분산 cache 는 본 chore 범위 외).
+- **검증**: 83/83 commerce-service jest PASS (신규 5 + 기존 78), typecheck/lint PASS, monorepo turbo 19/19 successful, coverage 87.32% lines.
+- **L1 chore** (단일 service file 수정 + 테스트 추가, 보안 결정 변경 0): review 불필요.
+
+### 미완료:
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority, AUDIT 발견 후속): dead `import rateLimit` cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): dead `SessionExpiredError` cleanup.
+
+### 연관 파일: services/commerce-service/src/services/revenuecat-sync.service.ts, services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts, spec.md (§4.2)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-SUB-SYNC-RATE-LIMIT-001
 commit_sha: 417d6a5
 files_changed:

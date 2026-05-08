@@ -1170,7 +1170,11 @@ mobile client → BFF `POST /api/subscriptions/sync` (IMPL-MOBILE-SUB-SYNC-002) 
 
 **Idempotency**: user-service `/internal/users/:id/tier` 호출 시 idempotencyKey = `${userId}:${tier}:sync:${period_end_ms}`. 동일 sync 상태 (RevenueCat 측 변경 없음) 재호출은 user-service 가 409 DUPLICATE_REQUEST 로 응답 → commerce 가 silent skip 후 200 으로 정상 응답.
 
-**캐시 정책**: 현재 캐시 없음 — `source` 는 응답 메타데이터 + 로그 dimension 으로만 사용되고 모든 호출이 RevenueCat REST API 직조회. single-flight + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s / `source=manual` 60s) 및 Plan v5 §M5 단위 테스트의 30s 캐시 요구사항은 backlog **CHORE-SUB-CACHE-001** 범위.
+**캐시 정책 (CHORE-SUB-CACHE-001 active)**: source-aware in-memory cache + single-flight 가 `services/commerce-service/src/services/revenuecat-sync.service.ts` 의 `syncFromRevenuecat` 진입부에 적용.
+- `source=purchase` → cache 우회 (방금 결제 직후 — 항상 RevenueCat REST API fresh fetch). 결과는 cache 에 populate 하여 후속 `app_open` 가 즉시 활용.
+- `source=app_open` / `source=manual` → 60s TTL cache hit, miss 시 fresh fetch 후 populate.
+- **Single-flight**: 동일 user_id 의 동시 in-flight 요청은 1개만 RevenueCat REST API 를 호출하고 나머지는 동일 Promise 결과를 await (Plan v5 §M5 single-flight 요구사항 충족, RevenueCat quota 보호).
+- Cache 는 module-level Map (in-memory, per-process). multi-instance 운영 시 instance 별 독립 — sticky session 또는 분산 cache 는 본 chore 범위 외. response 의 `source` 필드는 caller 의 원래값으로 re-stamp (cache value 는 source 제외).
 
 **구현 history**: PR #41 (SUB-SYNC-001) 이 webhook + adapter + `handleWebhookEvent` + `upsertRevenuecatSubscription` 까지 ship 했고, IMPL-MOBILE-SUB-SYNC-001b (본 항목) 가 internal route 자체 + `syncFromRevenuecat()` helper 추출 + commerce 측 internal JWT middleware 를 backfill.
 
