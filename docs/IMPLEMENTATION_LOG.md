@@ -30,6 +30,37 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-COMMERCE-CHECKOUT-CLEANUP
+commit_sha: f5692a0
+files_changed:
+  - services/commerce-service/src/routes/checkout.routes.ts
+  - services/commerce-service/src/services/subscription.service.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (83/83 commerce-service jest PASS — 회귀 0, monorepo turbo 28/28, lint/typecheck PASS)
+---
+### 완료: dead Stripe checkout 코드 제거 — CHORE-COMMERCE-CHECKOUT-CLEANUP (AUDIT 발견 후속)
+- **트리거**: CHORE-AUTH-PUBLIC-PATHS-AUDIT (PR #54) 가 `services/commerce-service/src/routes/checkout.routes.ts` 의 `import rateLimit from '@fastify/rate-limit'` 가 dead 라고 표시. 본 cleanup 에서 추가 점검 결과 **파일 자체가 dead** — `index.ts` 가 register 안 함 + 테스트 없음 + 호출 endpoint 없음. PIVOT-MOBILE-2026-05 이후 mobile/web 모두 RevenueCat 사용으로 Stripe checkout flow 자체가 unused.
+- **삭제 파일**: `services/commerce-service/src/routes/checkout.routes.ts` 전체 (POST /checkout/session 라우트 포함, 70 lines).
+- **subscription.service.ts cleanup**:
+  - `createCheckoutSession` (line 126-159) 삭제 — checkout.routes 만 사용
+  - `getMySubscription` (line 161-166) 삭제 — caller 0
+  - `cancelSubscription` (line 168-189) 삭제 — caller 0
+  - `withCircuitBreaker` + `CircuitBreakerState` interface + `_breaker` constant + `BREAKER_*` constants 삭제 (lines 20-61) — 위 dead 함수 만 사용
+  - `resolvePriceId` 함수 삭제 — `createCheckoutSession` 만 사용
+  - `NotFoundError`, `ValidationError` import 제거 — 위 dead 함수 만 사용
+- **보존**: `StripeConfig` interface, `mapStripeStatus`, `deriveTierForUsers`, `tierFromPriceId`, `markSubscriptionPastDue`, `handleWebhookEvent` + 4 webhook handlers (`onCheckoutCompleted`, `onSubscriptionChanged`, `onSubscriptionDeleted`, `onPaymentFailed`) — Stripe webhook flow 는 여전히 active (RevenueCat + Stripe dual-provider 패턴).
+- **검증**: 83/83 commerce-service jest PASS (회귀 0), typecheck/lint PASS, monorepo turbo 28/28. 삭제 외 함수/라우트 변경 0.
+- **L1 chore** (dead code 제거, 신규 라우트/기능 0): review 불필요.
+
+### 미완료:
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (다음 cleanup): dead `SessionExpiredError` class + `redirectOnSessionExpired` helper.
+
+### 연관 파일: services/commerce-service/src/{routes/checkout.routes.ts (deleted), services/subscription.service.ts}
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-SUB-CACHE-001
 commit_sha: 9b1b6d0
 files_changed:
