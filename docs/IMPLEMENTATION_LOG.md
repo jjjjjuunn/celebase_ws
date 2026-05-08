@@ -30,6 +30,40 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-07
 agent: claude-opus-4-7
+task_id: CHORE-BFF-SESSION-EXPIRED-CLEANUP
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/_lib/bff-error.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (172/172 web jest PASS — 회귀 0, monorepo turbo 6/6, typecheck/lint PASS)
+---
+### 완료: dead SessionExpiredError class + redirectOnSessionExpired helper 제거 — CHORE-BFF-SESSION-EXPIRED-CLEANUP
+- **트리거**: CHORE-BFF-401-CONTRACT (PR #50) 가 fetchBff 의 401 throw site 를 모두 제거 (`Result<T>.ok=false + upstream code` 반환 으로 대체) → SessionExpiredError throw 0건. createProtectedRoute / createPublicRoute / 모든 BFF route handler 의 catch 도 함께 제거됨. 그 후 `SessionExpiredError` class + `redirectOnSessionExpired` helper 만 보수적으로 export 유지된 상태였음. 본 cleanup 에서 `grep -rn` 으로 throw site 0 + caller 0 재확인 후 삭제.
+- **삭제 (`bff-error.ts`)**: `SessionExpiredError` class (8 lines) 전체. cleanup 사유 paragraph 로 대체.
+- **삭제 (`bff-fetch.ts`)**: 
+  - `import SessionExpiredError` (line 5)
+  - `export { SessionExpiredError } from './bff-error.js'` re-export (line 10)
+  - `redirectOnSessionExpired(err: unknown): never` helper (line 27-33) — `instanceof SessionExpiredError` 분기 + `redirect('/login?returnTo=...')` 호출
+  - `import { redirect } from 'next/navigation'` — helper 만 사용했으므로 함께 제거
+  - 관련 D29 RSC 사용 가이드 주석 (line 14-26)
+- **검증**:
+  - `grep -rn "SessionExpiredError\|redirectOnSessionExpired" apps/web/src/` → src 코드 모든 reference 제거 확인 (테스트 파일의 historical comment 만 남음)
+  - 172/172 web jest PASS (회귀 0)
+  - `pnpm --filter web typecheck` PASS, `lint` PASS (errors 0)
+  - `pnpm turbo build typecheck --filter=web` → 6/6 successful
+- **L1 chore** (dead class + helper 제거, caller 0 확인 후): review 불필요.
+
+### 미완료:
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 인증 흐름 시작 시 결정 (mobile FE 진행 시점).
+- **포스트 cleanup 잔여 backlog**: spec.md 본문 web-first 표현 점진적 absorption (long-horizon, 별도 SPEC-SYNC-* task).
+- **post-MVP BE 기능**: CHORE-MOBILE-002 (refresh TTL 단축), IMPL-MOBILE-PUSH-001, IMPL-MOBILE-UPLOAD-001 (식사 사진) — mobile FE 진행 페이스에 따라 결정.
+
+### 연관 파일: apps/web/src/app/api/_lib/{bff-error.ts,bff-fetch.ts}
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
 task_id: CHORE-SUB-CACHE-001
 commit_sha: 9b1b6d0
 files_changed:
