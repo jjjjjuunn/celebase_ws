@@ -56,7 +56,7 @@
 
 | Task ID | 상태 | spec.md 갱신 의무 섹션 | Sync 트리거 |
 |---------|------|------------------------|-------------|
-| IMPL-MOBILE-WORKSPACE-001 | next (동료) | §11 Project Structure (`apps/mobile/` 트리, Expo / EAS, Metro monorepo) | finalize patch |
+| IMPL-MOBILE-WORKSPACE-001 | 🟡 in-progress (PR pending — minimal scaffold by JUNWON, M0 본격 작업은 동료) | §11 Project Structure (`apps/mobile/` 트리, Expo SDK 54 / RN 0.81 / TS blank scaffold, monorepo metro.config.js, ESLint 가드 활용, .env.example) | finalize patch — 동료 M0 (EAS / Metro resolveRequest / jest 셋업) 진입 시점에 spec 갱신 추가 |
 | M0 Scaffold | (동료) | §11 (`apps/mobile` 추가, Metro `resolveRequest`, ESLint `no-restricted-imports`), §11 EAS 비용 정책 | M0 통합 PR 시 patch |
 | M0.5 Release Readiness | (동료) | §11 (mobile-ci.yml — JUNWON CHORE-MOBILE-001 와 정합), §6 (Apple App Privacy 매핑, Google Play Data Safety) | M0.5 PR |
 | M1 인증 | (동료) | §6 Security (Amplify SRP → id_token → user-service 교환 흐름, SecureStore refresh JWT 저장) | M1 PR |
