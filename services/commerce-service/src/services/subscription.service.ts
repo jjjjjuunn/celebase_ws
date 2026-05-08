@@ -1,6 +1,5 @@
 import type pg from 'pg';
 import type Stripe from 'stripe';
-import { NotFoundError, ValidationError } from '@celebbase/service-core';
 import * as subscriptionRepo from '../repositories/subscription.repository.js';
 import type { UserServiceClient } from './user-service.client.js';
 
@@ -15,49 +14,6 @@ export interface StripeConfig {
   webhookSecret: string;
   successUrl: string;
   cancelUrl: string;
-}
-
-// ---------------------------------------------------------------------------
-// Circuit breaker (lightweight in-process)
-// ---------------------------------------------------------------------------
-
-interface CircuitBreakerState {
-  failures: number;
-  lastFailureTime: number;
-  state: 'closed' | 'open' | 'half_open';
-}
-
-const BREAKER_THRESHOLD = 5;
-const BREAKER_TIMEOUT_MS = 60_000;
-
-const _breaker: CircuitBreakerState = {
-  failures: 0,
-  lastFailureTime: 0,
-  state: 'closed',
-};
-
-async function withCircuitBreaker<T>(fn: () => Promise<T>): Promise<T> {
-  if (_breaker.state === 'open') {
-    if (Date.now() - _breaker.lastFailureTime > BREAKER_TIMEOUT_MS) {
-      _breaker.state = 'half_open';
-    } else {
-      throw new Error('Stripe circuit breaker is open');
-    }
-  }
-
-  try {
-    const result = await fn();
-    _breaker.failures = 0;
-    _breaker.state = 'closed';
-    return result;
-  } catch (err) {
-    _breaker.failures += 1;
-    _breaker.lastFailureTime = Date.now();
-    if (_breaker.failures >= BREAKER_THRESHOLD) {
-      _breaker.state = 'open';
-    }
-    throw err;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -92,13 +48,6 @@ function deriveTierForUsers(
   return subTier;
 }
 
-function resolvePriceId(
-  tier: 'premium' | 'elite',
-  config: StripeConfig,
-): string {
-  return tier === 'premium' ? config.premiumPriceId : config.elitePriceId;
-}
-
 function tierFromPriceId(
   priceId: string,
   config: StripeConfig,
@@ -117,75 +66,6 @@ async function markSubscriptionPastDue(
      WHERE stripe_subscription_id = $1`,
     [stripeSubId],
   );
-}
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-export async function createCheckoutSession(
-  pool: pg.Pool,
-  config: StripeConfig,
-  userId: string,
-  tier: 'premium' | 'elite',
-  idempotencyKey: string,
-): Promise<{ checkout_url: string }> {
-  const existing = await subscriptionRepo.findByUserId(pool, userId);
-  if (existing && (existing.status === 'active' || existing.status === 'past_due')) {
-    throw new ValidationError('Subscription already active', [
-      { field: 'tier', issue: 'You already have an active subscription' },
-    ]);
-  }
-
-  const session = await withCircuitBreaker(() =>
-    config.stripe.checkout.sessions.create(
-      {
-        mode: 'subscription',
-        client_reference_id: userId,
-        line_items: [{ price: resolvePriceId(tier, config), quantity: 1 }],
-        success_url: config.successUrl,
-        cancel_url: config.cancelUrl,
-        metadata: { tier, user_id: userId },
-      },
-      { idempotencyKey },
-    ),
-  );
-
-  if (!session.url) {
-    throw new Error('Stripe Checkout Session did not return a URL');
-  }
-
-  return { checkout_url: session.url };
-}
-
-export async function getMySubscription(
-  pool: pg.Pool,
-  userId: string,
-) {
-  return subscriptionRepo.findByUserId(pool, userId);
-}
-
-export async function cancelSubscription(
-  pool: pg.Pool,
-  config: StripeConfig,
-  userId: string,
-): Promise<{ cancel_requested: true; cancel_at_period_end: true }> {
-  const sub = await subscriptionRepo.findByUserId(pool, userId);
-  if (!sub || sub.status !== 'active') {
-    throw new NotFoundError('No active subscription found');
-  }
-  if (!sub.stripe_subscription_id) {
-    throw new Error('Subscription has no Stripe ID');
-  }
-
-  const stripeSubId = sub.stripe_subscription_id;
-  await withCircuitBreaker(() =>
-    config.stripe.subscriptions.update(stripeSubId, {
-      cancel_at_period_end: true,
-    }),
-  );
-
-  return { cancel_requested: true, cancel_at_period_end: true };
 }
 
 // ---------------------------------------------------------------------------
