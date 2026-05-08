@@ -28,6 +28,754 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-08
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-WORKSPACE-001-followup
+commit_sha: 91c458e
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/metro.config.js
+  - package.json
+  - packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx
+  - services/user-service/src/repositories/bio-profile.repository.ts
+  - services/content-service/src/repositories/recipe.repository.ts
+  - pnpm-lock.yaml
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (28/28 monorepo turbo lint+typecheck PASS, 2026-05-08 사용자 iPhone 실기기 Expo Go 검증 완료)
+---
+### 완료: PR #60 squash 머지 누락 보완 — IMPL-MOBILE-WORKSPACE-001-followup
+- **트리거**: PR #60 (IMPL-MOBILE-WORKSPACE-001 minimal Expo scaffold) 의 squash merge 가 head SHA `0715ca6` (SDK 52 fix 단계) 에서 잘려, 이후 push 한 fix 2개 (`f567e50` SDK54+overrides, `6bcfb42` symlinks+lint cleanup) 가 main 미반영. 결과: main 의 mobile stack 이 **사용자가 iPhone 실기기에서 검증한 상태와 다름** (SDK 52 + 옛 metro.config + pnpm.overrides 없음).
+- **재적용 1 — Expo SDK 54 복원** (`apps/mobile/package.json`):
+  - expo: 52 → `~54.0.33`
+  - expo-status-bar: ~2.0 → `~3.0.9`
+  - react: 18.3.1 → `19.1.0` (iOS Expo Go SDK 54 호환)
+  - react-native: 0.76.5 → `0.81.5`
+  - @types/react: ~18.3.12 → `~19.1.0`
+  - typescript: ~5.3.3 → `~5.9.2`
+  - 사유: iOS Expo Go App Store 정책상 최신 SDK 만 설치 가능 → 실기기 검증 위해 SDK 54 강제.
+- **재적용 2 — `pnpm.overrides`** (`package.json`):
+  - `@types/react`: `~18.3.12` 강제
+  - `@types/react-dom`: `~18.3.1` 강제
+  - 사유: mobile runtime 은 React 19 그대로, types 만 18 강제 → web 의 React 18 stack 보호. pnpm hoist 가 React 19 types 를 root 까지 끌어올려 web typecheck (Next.js 15.1) 가 `ReactPortal.children` 등에서 mismatch 하던 문제 해결.
+- **재적용 3 — Metro resolver 강화** (`apps/mobile/metro.config.js`):
+  - `unstable_enableSymlinks: true` — pnpm `.pnpm/` 의 isolated symlink 를 Metro 가 따라가게
+  - `unstable_enablePackageExports: true` — modern packages 의 `exports` map 사용
+  - `disableHierarchicalLookup: true` 제거 → transitive lookup 허용
+  - 사유: pnpm strict isolation (`shamefully-hoist=false`) + Metro 의 transitive autolinking 비호환으로 `expo-modules-core` RCTFatal "could not be found" 발생. SDK 51+ 에서 Metro 의 unstable_enableSymlinks 가 안정적.
+- **재적용 4 — lint cleanup** (typescript-eslint type narrowing 정밀도 향상으로 발견):
+  - `packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx:63` — `ref as ...` cast 제거
+  - `services/user-service/src/repositories/bio-profile.repository.ts:21` — `{} as Biomarkers` 등 cast 제거
+  - `services/content-service/src/repositories/recipe.repository.ts:124` — cast 제거
+  - 사유: pnpm-lock 재생성 후 typescript-eslint 의 `no-unnecessary-type-assertion` 가 redundant cast 감지. 코드 동작 동일.
+- **검증**:
+  - `pnpm turbo run lint typecheck` → **28/28 successful**
+  - 2026-05-08 사용자 iPhone 실기기 Expo Go (SDK 54) 검증 완료 — default `App.tsx` ("Open up App.tsx to start working on your app!") 화면 정상 렌더링
+- **L1 chore** (PR #60 의 누락된 fix 재적용, 새 기능 추가 0): review 불필요.
+
+### 미완료:
+- **동료 Dohyun M0 본격 작업**: EAS / Metro `resolveRequest` throw / jest / design-tokens RN 익스포트 연동 / App.tsx 첫 화면. 본 PR 머지 후 진입.
+- **Repo branch 정리**: ABSORBED 16개 origin 삭제 완료, local 9개 삭제 완료. archive/* 6개 (14d+) 는 보존 결정.
+- **post-MVP backlog** (동료 진행 페이스 보고 결정):
+  - CHORE-MOBILE-002 (refresh TTL 7-14d)
+  - IMPL-MOBILE-PUSH-001 (FCM/APNs)
+  - CHORE-MOBILE-LOGOUT-BFF (M1 시점)
+  - spec.md 본문 web-first 표현 absorption (long-horizon)
+
+### 연관 파일: apps/mobile/{package.json,metro.config.js}, package.json (root pnpm.overrides), packages/ui-kit/src/components/CategoryTabs/CategoryTabs.tsx, services/{user-service,content-service}/src/repositories/, pnpm-lock.yaml
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-WORKSPACE-001
+commit_sha: ccd9b78
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/App.tsx
+  - apps/mobile/index.ts
+  - apps/mobile/app.json
+  - apps/mobile/tsconfig.json
+  - apps/mobile/.gitignore
+  - apps/mobile/metro.config.js
+  - apps/mobile/.env.example
+  - apps/mobile/README.md
+  - apps/mobile/assets/ (4 PNG icons)
+  - pnpm-lock.yaml
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (mobile typecheck/lint PASS — turbo 2/2, scripts/gate-check.sh spec_sync PASS — 6 lines spec.md diff)
+---
+### 완료: apps/mobile minimal Expo scaffold — IMPL-MOBILE-WORKSPACE-001 (사용자 요청, JUNWON 직접 진행)
+- **트리거**: 사용자가 "expo로 우리 앱 보고 싶다 — 일단 세팅부터" 요청. Plan v5 §M0 의 동료 (Dohyun) 본격 작업 entry point 로 minimal scaffold 만 JUNWON 이 진행. 동료가 위에 EAS / Metro resolveRequest / jest 셋업 추가 가능.
+- **scaffold 명령**: `npx create-expo-app@latest apps/mobile --template blank-typescript --no-install` (Expo SDK 54 default — React 19 + RN 0.81 + TypeScript). 이후 root `pnpm install` 으로 monorepo workspace 등록 (322 packages 추가).
+- **monorepo 통합 — `metro.config.js` 신규**:
+  - `watchFolders: [workspaceRoot]` — packages/* / shared-types 변경이 Metro fast-refresh 에 반영
+  - `resolver.nodeModulesPaths: [project, workspaceRoot]` — pnpm hoist + per-package node_modules 둘 다 검색
+  - `disableHierarchicalLookup: true` — pnpm 모노레포 cross-package import 차단 (정확한 nodeModulesPaths 만 사용)
+  - 2차 방어 `resolver.resolveRequest` throw (service-core/ui-kit 차단) 는 동료 M0 작업으로 위임 — 현재 ESLint `no-restricted-imports` (CHORE-MOBILE-001 / PR #47) 가 동일 가드를 IDE/CI 레벨로 제공.
+- **`package.json` scripts** (mobile-ci.yml CHORE-MOBILE-001 가 호출하는 3개):
+  - `typecheck`: `tsc --noEmit` — Expo tsconfig.base extend, strict mode
+  - `lint`: `eslint "**/*.{ts,tsx}" --max-warnings=0` — root flat config + apps/mobile override 활용. metro.config.js (CommonJS) 는 glob 으로 제외.
+  - `test`: placeholder echo + exit 0 — 동료 M0 에서 jest 셋업 시 갱신
+- **.env.example 신규**: `EXPO_PUBLIC_BFF_BASE_URL` / `EXPO_PUBLIC_USER_SERVICE_URL` (`/auth/refresh` 직접 호출 예외) / `EXPO_PUBLIC_COGNITO_USER_POOL_ID` / `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID` / `EXPO_PUBLIC_AWS_REGION` / `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`. Expo 의 `EXPO_PUBLIC_` 접두사 규칙 준수.
+- **.gitignore 보강**: Expo default 의 `.env*.local` 만 ignore 였는데 `.env` / `.env.local` 명시 추가 (`.env.example` 는 추적 대상).
+- **README.md 신규**: 빠른 실행 가이드 (`pnpm install` → `cp .env.example .env` → `pnpm start` → Expo Go QR / iOS 시뮬레이터 / Android 에뮬레이터 / 웹 브라우저 4가지 실행 방법) + Plan v5 §M0~M5 흐름 + 주의사항 (service-core/ui-kit import 금지 + multi-session.md §1 ownership).
+- **spec.md §11 sync**: PIVOT BANNER 직후 paragraph 3개 신규 — Expo SDK 54 stack 명시, monorepo metro.config 동작, scripts + .env.example, ESLint 가드 활용 + Metro resolveRequest 동료 위임. (gate-check.sh spec_sync ≥3 line 충족 — 6 line diff)
+- **SPEC-PIVOT-PLAN row 58**: "next (동료)" → "🟡 in-progress (PR pending — minimal scaffold by JUNWON, M0 본격 작업은 동료)".
+- **검증**:
+  - `pnpm --filter mobile typecheck` PASS
+  - `pnpm --filter mobile lint` PASS (warnings 0)
+  - `pnpm --filter mobile test` placeholder PASS
+  - `pnpm turbo lint typecheck --filter=mobile` 2/2 successful
+  - `bash scripts/gate-check.sh spec_sync` PASS (6 line diff)
+- **L1 chore + scaffold** (코드 비즈니스 로직 0, default Expo blank): review 불필요. mobile-ci.yml 가 push 시 자동 lint/typecheck/test trigger.
+
+### 미완료:
+- **동료 Dohyun M0 본격 작업**: EAS 셋업, Metro `resolveRequest` throw 추가, jest 셋업, design-tokens RN 익스포트 연동, App.tsx 첫 화면 디자인. 본 PR 머지 후 진입 가능.
+- **동료 M0.5 / M1 ~ M5**: Plan v5 line 60-186 매핑.
+- **다음 BE backlog (필요시)**:
+  - CHORE-MOBILE-002 (refresh TTL 7-14d) — M1 진행 페이스 보고 결정
+  - IMPL-MOBILE-PUSH-001 (FCM/APNs) — post-MVP
+  - IMPL-MOBILE-LOGOUT-BFF — M1 시점 결정
+
+### 연관 파일: apps/mobile/{package.json,App.tsx,index.ts,app.json,tsconfig.json,metro.config.js,.env.example,.gitignore,README.md,assets/}, spec.md (§11), docs/SPEC-PIVOT-PLAN.md (row 58), pnpm-lock.yaml
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-BFF-SESSION-EXPIRED-CLEANUP
+commit_sha: aa1b58b
+files_changed:
+  - apps/web/src/app/api/_lib/bff-error.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (172/172 web jest PASS — 회귀 0, gate-check.sh policy PASS, typecheck/lint PASS)
+---
+### 완료: dead SessionExpiredError class + redirectOnSessionExpired helper 제거 + console sink → process stream — CHORE-BFF-SESSION-EXPIRED-CLEANUP
+- **트리거**: CHORE-BFF-401-CONTRACT (PR #50) 가 fetchBff 의 401 throw site 를 모두 제거 (`Result.ok=false + upstream code` 반환으로 대체) → SessionExpiredError throw 0건. createProtectedRoute / createPublicRoute / 모든 BFF route handler 의 catch 도 함께 제거됨. 그 후 SessionExpiredError class + redirectOnSessionExpired helper 만 보수적으로 export 유지된 상태였음. 본 cleanup 에서 `grep -rn` 으로 throw site 0 + caller 0 재확인 후 삭제.
+- **삭제 (`bff-error.ts`)**: SessionExpiredError class 전체 (8 lines).
+- **삭제 (`bff-fetch.ts`)**: SessionExpiredError import + re-export + redirectOnSessionExpired(err) helper + `import { redirect } from 'next/navigation'` + D29 RSC 가이드 주석 (총 ~25 lines).
+- **추가 fix — bff-error.ts emit() sink 교체**: 본 cleanup 가 같은 파일 수정 → gate-check.sh policy 가 main 의 pre-existing `console.log` (line 66 sink fallback, eslint-disable 처리됨) 를 새로 감지하여 deny pattern fail. emit() 의 sink 를 process.stdout/stderr.write 로 교체:
+  - info → process.stdout
+  - warn / error → process.stderr
+  - JSON logging 동작 동일 유지 (newline 추가)
+- **PR 운영 메모**: 본 작업의 첫 PR (#58, branch `chore/CHORE-BFF-SESSION-EXPIRED-CLEANUP`) 이 GitHub Actions webhook delivery 이슈로 새 commit 의 워크플로우 trigger 못함 (close/reopen / empty commit / base edit 모두 무효). 같은 시간대 다른 PR (#54-#57) 은 정상 trigger 되어 repo 자체 문제 아님. 새 branch (-v2) 에 변경 파일 2 개만 cherry-pick 후 단일 commit 으로 재제출. 첫 PR 은 close.
+- **검증**:
+  - `bash scripts/gate-check.sh policy` PASS
+  - 172/172 web jest PASS (회귀 0)
+  - typecheck/lint PASS
+- **L1 chore**: review 불필요.
+
+### 미완료:
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 인증 흐름 시작 시 결정 (mobile FE 진행 시점).
+- **post-MVP BE**: CHORE-MOBILE-002 (refresh TTL 단축), IMPL-MOBILE-PUSH-001 — mobile FE 진행 페이스에 따라 결정.
+- **식사 사진 업로드 (IMPL-MOBILE-UPLOAD-001)**: MVP 범위 외 — 사용자 결정으로 후속 작업.
+
+### 연관 파일: apps/web/src/app/api/_lib/{bff-error.ts,bff-fetch.ts}
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-COMMERCE-CHECKOUT-CLEANUP
+commit_sha: f5692a0
+files_changed:
+  - services/commerce-service/src/routes/checkout.routes.ts
+  - services/commerce-service/src/services/subscription.service.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (83/83 commerce-service jest PASS — 회귀 0, monorepo turbo 28/28, lint/typecheck PASS)
+---
+### 완료: dead Stripe checkout 코드 제거 — CHORE-COMMERCE-CHECKOUT-CLEANUP (AUDIT 발견 후속)
+- **트리거**: CHORE-AUTH-PUBLIC-PATHS-AUDIT (PR #54) 가 `services/commerce-service/src/routes/checkout.routes.ts` 의 `import rateLimit from '@fastify/rate-limit'` 가 dead 라고 표시. 본 cleanup 에서 추가 점검 결과 **파일 자체가 dead** — `index.ts` 가 register 안 함 + 테스트 없음 + 호출 endpoint 없음. PIVOT-MOBILE-2026-05 이후 mobile/web 모두 RevenueCat 사용으로 Stripe checkout flow 자체가 unused.
+- **삭제 파일**: `services/commerce-service/src/routes/checkout.routes.ts` 전체 (POST /checkout/session 라우트 포함, 70 lines).
+- **subscription.service.ts cleanup**:
+  - `createCheckoutSession` (line 126-159) 삭제 — checkout.routes 만 사용
+  - `getMySubscription` (line 161-166) 삭제 — caller 0
+  - `cancelSubscription` (line 168-189) 삭제 — caller 0
+  - `withCircuitBreaker` + `CircuitBreakerState` interface + `_breaker` constant + `BREAKER_*` constants 삭제 (lines 20-61) — 위 dead 함수 만 사용
+  - `resolvePriceId` 함수 삭제 — `createCheckoutSession` 만 사용
+  - `NotFoundError`, `ValidationError` import 제거 — 위 dead 함수 만 사용
+- **보존**: `StripeConfig` interface, `mapStripeStatus`, `deriveTierForUsers`, `tierFromPriceId`, `markSubscriptionPastDue`, `handleWebhookEvent` + 4 webhook handlers (`onCheckoutCompleted`, `onSubscriptionChanged`, `onSubscriptionDeleted`, `onPaymentFailed`) — Stripe webhook flow 는 여전히 active (RevenueCat + Stripe dual-provider 패턴).
+- **검증**: 83/83 commerce-service jest PASS (회귀 0), typecheck/lint PASS, monorepo turbo 28/28. 삭제 외 함수/라우트 변경 0.
+- **L1 chore** (dead code 제거, 신규 라우트/기능 0): review 불필요.
+
+### 미완료:
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (다음 cleanup): dead `SessionExpiredError` class + `redirectOnSessionExpired` helper.
+
+### 연관 파일: services/commerce-service/src/{routes/checkout.routes.ts (deleted), services/subscription.service.ts}
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-SUB-CACHE-001
+commit_sha: 9b1b6d0
+files_changed:
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (83/83 commerce-service jest PASS — 신규 cache 5 case + 기존 78 회귀, coverage 87.32% lines, monorepo turbo 19/19)
+---
+### 완료: source-aware cache + single-flight for syncFromRevenuecat — CHORE-SUB-CACHE-001 (M5 진입 전 backlog close)
+- **트리거**: SUB-SYNC-001b 의 deferred 캐시 + Plan v5 §M5 단위 테스트의 "single-flight 30s 캐시" 요구사항. 모든 sync 가 RevenueCat REST API 직조회하면 mobile foreground/app_open burst 시 quota 소진 위험.
+- **구현 위치**: `services/commerce-service/src/services/revenuecat-sync.service.ts` 의 기존 `syncFromRevenuecat` 본체를 `doSyncFromRevenuecat` (private) 로 rename, 새 `syncFromRevenuecat` 가 cache + single-flight wrapper.
+- **Cache 정책 (source-aware)**:
+  - `source=purchase` → bypass cache (방금 IAP 완료 — 항상 fresh). 결과는 cache 에 populate 하여 후속 app_open 활용.
+  - `source=app_open` / `source=manual` → 60s TTL cache hit, miss 시 fresh fetch 후 populate.
+  - cache value 는 `Omit<SyncFromRevenuecatResult, 'source'>` — caller 의 source 는 응답 시 re-stamp (cache 공유 + 응답 dimension 정확).
+- **Single-flight**: `inFlightSync = new Map<string, Promise>` — 동일 userId 동시 요청은 1개만 doSync 호출, 나머지는 같은 Promise await. finally 에서 inFlight 항목 삭제 (성공/실패 둘 다).
+- **resetSyncCacheForTest**: module-level Map 격리용 export. internal-subscriptions test 의 beforeEach 추가.
+- **신규 테스트** (5 case):
+  - "source=app_open 2nd call within 60s hits cache" — adapter 1회만, syncTier 1회만, upsert 1회만
+  - "source=purchase bypasses cache" — 두 번째 호출도 adapter 호출 (확인 totalCount 2)
+  - "purchase result populates cache → subsequent app_open hits cache" — purchase 1회 + app_open 1회 = adapter 1회
+  - "cache is per-user-id" — user A app_open 후 user B app_open → adapter 2회 (다른 user)
+  - "single-flight: concurrent same-user calls coalesce" — slow adapter promise + 3개 동시 호출 → adapter 1회, 각 응답의 source 는 caller 원래값 유지
+- **spec.md sync §4.2**: 기존 "캐시 없음 — backlog" 표현 제거, "CHORE-SUB-CACHE-001 active" sub-section 으로 source-aware TTL + single-flight 동작 명시. multi-instance 운영 시 instance 별 독립 (sticky session / 분산 cache 는 본 chore 범위 외).
+- **검증**: 83/83 commerce-service jest PASS (신규 5 + 기존 78), typecheck/lint PASS, monorepo turbo 19/19 successful, coverage 87.32% lines.
+- **L1 chore** (단일 service file 수정 + 테스트 추가, 보안 결정 변경 0): review 불필요.
+
+### 미완료:
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority, AUDIT 발견 후속): dead `import rateLimit` cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): dead `SessionExpiredError` cleanup.
+
+### 연관 파일: services/commerce-service/src/services/revenuecat-sync.service.ts, services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts, spec.md (§4.2)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-SUB-SYNC-RATE-LIMIT-001
+commit_sha: 417d6a5
+files_changed:
+  - apps/web/src/app/api/_lib/route-rate-limit.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (172/172 web jest PASS — 신규 rate-limit case 2 + 기존 170 회귀, route-rate-limit.ts 100% coverage)
+---
+### 완료: BFF /api/subscriptions/sync per-user-id rate limit — CHORE-SUB-SYNC-RATE-LIMIT-001 (SUB-SYNC-002 adversarial T8 close)
+- **트리거**: SUB-SYNC-002 의 Claude self-adversarial T8 발견 — `/api/subscriptions/sync` 가 rate-limit 가드 없음 → abuse 시 commerce → RevenueCat REST API quota 소진 위험.
+- **신규 helper**: `apps/web/src/app/api/_lib/route-rate-limit.ts` — token bucket pattern, 자체 in-memory Map (bff-fetch 의 `rateLimitBuckets` 와 namespace 분리, 향후 다른 BFF 라우트 재사용 가능). `checkRouteRateLimit(key, capacity, requestId)` + `rateLimitErrorToResponse(err)` + `resetRouteRateLimitForTest()`. envelope 에 `Retry-After: 60` 헤더 포함.
+- **sync route 통합**: `apps/web/src/app/api/subscriptions/sync/route.ts` — handler 진입 직후 (body parse 전) `checkRouteRateLimit('sync:${session.user_id}', 5, requestId)` 호출. 한도 초과 시 즉시 429 반환, callInternal 미호출. M5 IAP 정상 흐름 (결제당 1회) 에 5회 헤드룸 + foreground/app_open burst 흡수 + 자동화 abuse 차단.
+- **패턴 분류**: §9.3 + CHORE-AUTH-PUBLIC-PATHS-AUDIT 의 **Pattern B (auth-first)** — key = authenticated `session.user_id`. `createProtectedRoute` 가 unauth 를 401 로 차단하므로 invalid session 은 본 gate 도달 불가.
+- **신규 테스트** (2 case): "429 RATE_LIMITED on 6th call within 1 minute" (5회 200 + 6회 429 + Retry-After:60 + fetchSpy 미증가 검증), "rate-limit bucket is per-user-id" (user A 한도 소진 후 user B 정상 200 검증). `resetRouteRateLimitForTest()` 를 beforeEach 추가.
+- **spec.md sync**: §11 BFF subscription sync paragraph 4번째 항목으로 rate limit 사양 명시.
+- **검증**: 172/172 web jest PASS (신규 2 + 기존 170), typecheck PASS, lint PASS, route-rate-limit.ts 100% coverage.
+- **L1 chore** (단일 BFF 라우트 + helper, 보안 결정 변경 0): review 불필요.
+
+### 미완료:
+- **CHORE-SUB-CACHE-001** (다음 우선순위, M5 진입 전 권장): single-flight 30s 캐시 + source-aware TTL.
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority): dead `import rateLimit` cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: M1 시점 결정.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): dead `SessionExpiredError` cleanup.
+
+### 연관 파일: apps/web/src/app/api/_lib/route-rate-limit.ts, apps/web/src/app/api/subscriptions/sync/{route.ts,__tests__/sync.integration.test.ts}, spec.md (§11)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-PUBLIC-PATHS-AUDIT
+commit_sha: ffa78eb
+files_changed:
+  - pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (audit grep 점검 + ws-ticket route source review + spec.md sync)
+---
+### 완료: registerJwtAuth + per-route limiter 정합성 audit — CHORE-AUTH-PUBLIC-PATHS-AUDIT (AUTH-002b-fix1 advisor 권고 close)
+- **트리거**: AUTH-002b-fix1 (PR #51) 의 advisor 권고 — `/auth/logout` 의 limiter ordering bug (root-scope JWT onRequest 가 plugin-scope per-route limiter 보다 먼저 실행 → invalid-token spam 이 limiter bucket 미증가 → DoS 방어 무력화) 가 다른 서비스에서도 재현되는지 전수 점검.
+- **점검 대상**: user-service / commerce-service / content-service / analytics-service / meal-plan-engine 의 `registerJwtAuth.publicPaths` 와 `services/<svc>/src/routes/**/*.ts` 의 `rateLimit:` config 사용 라우트 cross-reference.
+- **Findings**: **bug 0건**. 분류:
+  - **user-service**: auth × 4 (signup/login/refresh/logout) 모두 publicPaths 포함 + handler-inline verify (logout-style). ws-ticket × 1 은 publicPaths 미포함 + `keyGenerator: request.userId` (ws-ticket-style — 의도된 동작, 인증된 사용자만 호출).
+  - **commerce-service**: webhooks/internal-subscriptions 모두 publicPaths 포함. checkout.routes.ts 가 `import rateLimit` 했지만 라우트 미등록 (dead code).
+  - **content-service / analytics-service / meal-plan-engine**: per-route limiter 자체 없음 → ordering bug 발생 불가.
+- **Documentation**:
+  - `pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md` 신규 — 서비스별 publicPaths × limiter cross-reference 표 + 두 패턴 (limiter-first / auth-first) 구분 가이드 + 결정 트리.
+  - `spec.md §9.3` "Per-route limiter ordering — 두 패턴" 신규 sub-section — 신규 limiter 도입 시 PR description / route 주석에서 패턴 명시 의무화. 혼용 금지 (잘못된 패턴 선택 시 DoS 방어 무력화 또는 사용자 분리 손실).
+- **수정 코드 0줄** — bug 없음, audit memo + 향후 재발 방지 가이드만 추가.
+- **L1 tier** (chore, 코드 변경 0, audit + doc only): review 불필요.
+
+### 미완료:
+- **CHORE-COMMERCE-CHECKOUT-CLEANUP** (lower priority, audit 발견 후속): `services/commerce-service/src/routes/checkout.routes.ts` 의 dead `import rateLimit from '@fastify/rate-limit'` 제거 또는 라우트 활성화 결정.
+- **CHORE-SUB-SYNC-RATE-LIMIT-001** (다음 우선순위, SUB-SYNC-002 adversarial T8): `/api/subscriptions/sync` per-user-id 분당 5회 제한.
+- **CHORE-SUB-CACHE-001** (M5 진입 전): single-flight 30s 캐시 + source-aware TTL.
+
+### 연관 파일: pipeline/runs/CHORE-AUTH-PUBLIC-PATHS-AUDIT/audit-report.md, spec.md (§9.3)
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-002-fix1
+commit_sha: 3114f0c
+files_changed:
+  - apps/web/src/app/api/_lib/internal-client.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (170/170 web jest PASS — 신규 PAYLOAD_TOO_LARGE case 1 + 기존 169 회귀, codex r1 HIGH+MEDIUM 2건 close)
+---
+### 완료: codex r1 finding 대응 — IMPL-MOBILE-SUB-SYNC-002-fix1 (HIGH `nbf` clock skew + MEDIUM 응답 크기 무제한)
+- **HIGH (`internal-client.ts:55-58`)**: BFF 가 mint 한 internal JWT 의 `setNotBefore(now)` claim 이 commerce/user-service `jwtVerify` 의 `clockTolerance` 부재와 결합되어 BFF↔commerce 시계 차이 (수백 ms) 만으로도 401 발생 가능. **fix**: `setNotBefore(now)` 제거 — `setIssuedAt + setExpirationTime(now+60s)` 만으로 충분. 토큰은 mint 직후 동기 사용이라 freshness window 가 명시 불필요.
+- **MEDIUM (`internal-client.ts:142-149`)**: `response.text()` 가 무제한 — 내부 서비스 이상 시 OOM 가능. **fix**: `MAX_RESPONSE_BYTES = 1MB` 가드 신설 (fetchBff 의 동일 패턴 — `bff-fetch.ts:71`). content-length 헤더 사전 차단 + .text() 후 byteLength 재검증 → 413 PAYLOAD_TOO_LARGE.
+- **신규 테스트**: "413 PAYLOAD_TOO_LARGE when upstream response > 1 MB (codex r1 MEDIUM)" — content-length 헤더 2MB 시뮬레이션 → 413 검증.
+- **검증**: 170/170 web jest PASS (신규 1 + 기존 169 회귀), typecheck PASS, lint PASS. internal-client.ts coverage 92.15% lines.
+
+### 미완료:
+- **codex r2 review**: PR push 후 finding 2건 close 검증.
+- **JUNWON Pre-work A/B/C 완료**: 본 fix 통과 후 머지 → Plan v5 Pre-work 모두 main 반영.
+
+### 연관 파일: apps/web/src/app/api/_lib/internal-client.ts, apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts, pipeline/runs/IMPL-MOBILE-SUB-SYNC-002/codex-review-r1.txt
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-002
+commit_sha: 1ec201c
+files_changed:
+  - apps/web/src/app/api/_lib/internal-client.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+  - apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (169/169 web jest PASS — 신규 sync 11 case + 158 기존 회귀, monorepo turbo build/typecheck/lint 7/7)
+---
+### 완료: BFF `POST /api/subscriptions/sync` wrapper — IMPL-MOBILE-SUB-SYNC-002 (JUNWON Pre-work 마지막, M5 IAP 흐름 unblock)
+- **목적**: mobile (M5 IAP 결제 직후) / web 클라이언트가 호출하는 BFF wrapper. `createProtectedRoute` cookie+Bearer hybrid 로 인증 후 commerce-service `/internal/subscriptions/refresh-from-revenuecat` (SUB-SYNC-001b PR #52) 를 internal JWT 로 호출, RevenueCat REST API 직조회 결과를 클라이언트에 forward. 동료 M5 paywall + Inspired plan unblock 의 마지막 의존성.
+- **신규 파일**:
+  - `apps/web/src/app/api/_lib/internal-client.ts` — BFF-side service-to-service helper. `jose.SignJWT` + `crypto.randomUUID` (jti) + INTERNAL_JWT_SECRET 으로 audience-aware internal JWT mint, fetch + 8s timeout + zod schema validate + envelope 정규화. fetchBff (user JWT forward) 와 분리 — `/internal/*` 호출은 internal JWT mint 모델을 강제.
+  - `apps/web/src/app/api/subscriptions/sync/route.ts` — `createProtectedRoute(handle)` 로 mounting. body schema = `{ source: 'purchase'|'app_open'|'manual' }` (`.strict()` 로 unknown key 거부 → user_id 등 client-supplied 거부 = T4 enforce). commerce 호출 시 body = `{ user_id: session.user_id, source }` — **session.user_id 만 사용** (T4 강제, SUB-SYNC-001b adversarial 권고). audience = `commerce-service:internal`.
+  - `apps/web/src/app/api/subscriptions/sync/__tests__/sync.integration.test.ts` — 11 cases: cookie session happy path (Authorization: Bearer fake-internal-jwt 검증, body user_id = session.user_id 검증), bearer session happy path (mobile), **T4 enforce** (body 의 user_id 키는 strict zod 가 400 VALIDATION_ERROR 로 거부 → upstream 호출 X), 401 no session, 400 missing source, 400 invalid source enum, 502 forward REVENUECAT_UNAVAILABLE, 504 fetch timeout, 502 UPSTREAM_UNREACHABLE network error, 502 UPSTREAM_SCHEMA_MISMATCH (zod 응답 검증), 401 envelope code unchanged forward (CHORE-BFF-401-CONTRACT 정합).
+- **수정 파일**:
+  - `spec.md §11 Project Structure` — Mobile auth ingress paragraph 직후 BFF subscription sync route 신규 paragraph 2개 추가: (1) internal client mint 모델 + audience 분리 근거 (user JWT 로 commerce internal endpoint 직접 호출 attack surface 차단), (2) T4 enforce 명시 (body user_id 무시, session user_id 사용, zod strict 400 거부).
+  - `docs/SPEC-PIVOT-PLAN.md` row 49 → "🟡 in-progress" + T4 enforce 명시.
+- **검증**:
+  - `pnpm --filter web test` → 17 suites / **169 tests PASS** (신규 11 + 기존 158 회귀)
+  - `pnpm --filter web typecheck` PASS, lint PASS (warnings only, errors 0)
+  - `pnpm turbo build typecheck lint --filter=web` → 7/7 successful
+  - internal-client.ts coverage: lines 93.33%, statements 89.36%
+- **mobile / commerce 영향**: mobile 은 M5 단계에서 RevenueCat purchasePackage 성공 직후 `POST /api/subscriptions/sync` 호출 (Plan v5 line 186 흐름). web 은 별도 액션 필요 없음 (기존 cookie session 으로 호출 가능). commerce 측 변경 0 — SUB-SYNC-001b 의 endpoint 가 그대로 사용됨.
+- **L2 tier review**: codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정. SUB-SYNC-001b 보다 surface 작음 (3 신규 file, 모두 BFF, 단일 라우트).
+
+### 미완료:
+- **L2 review (본 PR)**: PR push 후 codex r1 + Claude self-adversarial 1회.
+- **JUNWON Pre-work A/B/C 완료**: 본 PR 머지 후 Plan v5 Pre-work 모두 main 반영 — 동료 (Dohyun) M0/M0.5/M1/M2/M3/M4/M5 mobile 작업 시작 가능.
+- **CHORE-SUB-CACHE-001** (backlog, M5 진입 전 권장): single-flight 30s 캐시 (Plan v5 §M5) + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s).
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — 본 PR 머지 시점에 재검토. 현재 mobile 은 user-service `/auth/logout` 직접 호출 (publicPaths) — 동료 M1 인증 흐름 시작 시 결정.
+- **CHORE-AUTH-PUBLIC-PATHS-AUDIT** (AUTH-002b-fix1 권고): `analytics`, `content`, `meal-plan-engine` 의 `registerJwtAuth` + per-route limiter 정합성 점검. commerce 는 SUB-SYNC-001b 에서 audit 통과 (per-route limiter 부재).
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority, CHORE-BFF-401-CONTRACT 후속): dead `SessionExpiredError` class + helper + branch cleanup.
+
+### 연관 파일: apps/web/src/app/api/_lib/internal-client.ts, apps/web/src/app/api/subscriptions/sync/{route.ts,__tests__/sync.integration.test.ts}, spec.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SYNC-001b
+commit_sha: 09acf8c
+files_changed:
+  - services/commerce-service/src/middleware/internal-jwt.ts
+  - services/commerce-service/src/routes/internal-subscriptions.routes.ts
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (78/78 commerce-service jest PASS — 신규 internal route 12 case + 기존 66 회귀, monorepo turbo build/typecheck/lint 28 successful, coverage 87.07% lines)
+---
+### 완료: commerce-service `/internal/subscriptions/refresh-from-revenuecat` backfill — IMPL-MOBILE-SUB-SYNC-001b (PR #41 SUB-SYNC-001 의 internal route 누락분 보완, SUB-SYNC-002 BFF wrapper 의 dependency)
+- **배경**: PR #41 (SUB-SYNC-001) 이 spec.md §4.2 line 1150 + SPEC-SYNC-SUB-001 의 retroactive backfill 에서 `/internal/subscriptions/refresh-from-revenuecat` 를 already-shipped 처럼 기술했으나 실제 코드는 webhook (`POST /webhooks/revenuecat`) + `RevenuecatAdapter` + `handleWebhookEvent` + `upsertRevenuecatSubscription` 까지만 ship. internal pull-sync route 자체는 미구현. SUB-SYNC-002 (BFF wrapper) 가 호출할 endpoint 가 없어 진입 차단됨. Plan v5 line 66 정의는 SUB-SYNC-002 = BFF only 이므로 본 task (001b) 신설로 commerce internal endpoint 만 backfill.
+- **신규 파일**:
+  - `services/commerce-service/src/middleware/internal-jwt.ts` — user-service `internal-jwt.ts` 패턴 복사, audience = `commerce-service:internal` (user-service 와 다른 audience 로 cross-service token 사용 차단). jti replay cache + 60s TTL + `setTimeout(...).unref()` (jest open-handle 방지).
+  - `services/commerce-service/src/routes/internal-subscriptions.routes.ts` — `POST /internal/subscriptions/refresh-from-revenuecat`. body Zod (`user_id: UUID, source: 'purchase'|'app_open'|'manual'`), `RevenuecatUnavailableError` → 502, validation → 400, 그 외 propagate → 500.
+  - `services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts` — 12 케이스: happy path (active premium → upsert + syncTier), no entitlement → free, unknown product → free, expired entitlement → free, RevenuecatUnavailable → 502, validation × 2, JWT 누락 → 401, JWT wrong audience → 401, idempotency (user-service 409 silent skip), non-409 propagation → 500, **handleWebhookEvent backfill × 3** (happy / missing app_user_id / no entitlement) — PR #41 webhook 통합 테스트가 mock 으로 우회한 코드 경로 직접 호출 회귀 보호 + coverage 임계값 (80% lines) 충족.
+- **수정 파일**:
+  - `services/commerce-service/src/services/revenuecat-sync.service.ts` — 신규 export `syncFromRevenuecat()` (pull-sync helper). webhook flow 의 entitlement select → tier derive → upsert → user-service syncTier 패턴을 `payload.id` 의존 없이 단독 호출 가능하게 추출. `handleWebhookEvent` 변경 없음 (PR #41 회귀 0). idempotency key = `${userId}:${tier}:sync:${period_end_ms}` — 동일 sync 상태 재호출은 user-service 가 409 DUPLICATE_REQUEST 로 silent skip (InternalClientError 가 message 에 '409' 포함 → catch 후 debug log).
+  - `services/commerce-service/src/index.ts` — `registerJwtAuth` publicPaths 에 `/internal/*` 추가, `registerInternalJwtAuth(app)` 호출 (root-scope onRequest hook), `revenuecatConfig !== undefined` 분기 안에서 `internalSubscriptionsRoutes` register (RevenueCat disabled 환경에서는 internal route 도 비활성).
+  - `spec.md §4.2 line 1150` — 캐시 정책 paragraph 정정. 기존 "source=purchase 우회 + 8s timeout, app_open/manual 60s 캐시 (PR #41)" → "현재 캐시 없음 — 모든 호출이 RevenueCat REST API 직조회. single-flight + source-aware TTL 은 backlog **CHORE-SUB-CACHE-001** 범위." 추가: request/response shape, error codes, idempotency key 모델, audience 표기.
+  - `docs/SPEC-PIVOT-PLAN.md` row 42 (SUB-SYNC-001) → "**부분 ship**" 명시 + row 43 (신규 SUB-SYNC-001b) 추가.
+- **검증**:
+  - `pnpm --filter commerce-service test` → 10 suites / **78 tests PASS** (신규 12 + 기존 66 회귀)
+  - `pnpm --filter commerce-service typecheck` PASS, lint PASS
+  - `pnpm turbo build typecheck lint --filter='!web'` → 28/28 successful
+  - Coverage: lines 87.07%, statements 85.41%, branches 68.29%, functions 90.47% (이전 main 82.45% → 본 PR 87.07% 향상)
+- **mobile / BFF 영향**: 본 PR 은 commerce-service 내부 route 만 ship — mobile 또는 BFF 변경 0. SUB-SYNC-002 (BFF wrapper) 가 다음 PR 에서 본 endpoint 를 호출.
+- **L2 tier review** (단일 service, 신규 3 + 수정 2 = 5 files, 보안 결정 변경 0): codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정.
+
+### 미완료:
+- **L2 review (본 PR)**: PR push 후 codex r1 + Claude self-adversarial 1회.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여, JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` — 본 PR 머지 후 진입. mobile IAP 결제 직후 호출하는 client-driven sync 진입점. 동료 M5 unblock 의 마지막 의존성.
+- **CHORE-SUB-CACHE-001** (backlog, M5 진입 전 처리 권장): single-flight 30s 캐시 (Plan v5 §M5 단위 테스트 요구사항) + source-aware TTL (`source=purchase` 우회 / `source=app_open` 60s, `source=manual` 60s).
+- **CHORE-AUTH-PUBLIC-PATHS-AUDIT** (AUTH-002b-fix1 권고): `commerce`, `analytics`, `content`, `meal-plan-engine` 의 `registerJwtAuth` 호출 + per-route limiter 정합성 전수 점검. 본 PR 이 commerce-service 의 publicPaths 에 `/internal/*` 추가 — commerce 에 per-route limiter 부재로 limiter 가드 audit 시 별 issue 없을 전망.
+
+### 연관 파일: services/commerce-service/src/{middleware/internal-jwt.ts,routes/internal-subscriptions.routes.ts,services/revenuecat-sync.service.ts,index.ts}, services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b-fix1
+commit_sha: a2376e9
+files_changed:
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (140/140 user-service jest PASS — rate-limit 8 case 신규 + 132 기존 회귀, monorepo turbo build/typecheck 19 successful, lint PASS)
+---
+### 완료: /auth/logout limiter ordering fix — IMPL-MOBILE-AUTH-002b-fix1 (codex r1 HIGH finding 대응, advisor 권고 적용)
+- **codex r1 HIGH 발견 (스펙 §9.3 invariant 위배)**: `registerJwtAuth` 가 `app.addHook('onRequest', ...)` 로 root-scope 등록되고 (`packages/service-core/src/middleware/jwt.ts:100`), 라우트 per-route `rateLimit.config` 는 plugin-scope onRequest 로 등록 → Fastify hook 우선순위에 따라 root-scope JWT verify 가 plugin-scope limiter 보다 먼저 실행. spec §9.3 "logout 라우트의 limiter 는 JWT verify 보다 먼저 실행" 와 정반대. 결과: 잘못된 토큰 spam 이 verify 단계에서 401 로 reject 되며 limiter bucket 에 카운트되지 않아 invalid-token DoS 방어 무력화 + 정상 토큰의 jti DB 정보가 timing 으로 누설될 위험.
+- **fix 핵심 (advisor 권고 일관)**: `/auth/logout` 을 `services/user-service/src/index.ts:28` 의 `publicPaths` 배열에 추가 → root-scope 외부 JWT onRequest hook 이 logout route 를 skip. 라우트 핸들러가 limiter 통과 후 직접 `verifyInternalRefresh(parsed.data.refresh_token)` 호출, `userId = verified.sub` 로 도출 (refresh_token 자체가 인증 — `/auth/refresh` 와 동일 모델, 별도 Bearer access token 불필요).
+- **변경 파일**:
+  - `services/user-service/src/index.ts:28` — `publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/auth/logout', '/internal/*']` (logout 추가)
+  - `services/user-service/src/routes/auth.routes.ts:158-220` — 라우트 핸들러 refactor: middleware-set `request.userId` 의존 제거 (`(request as FastifyRequest & { userId?: string }).userId` cast 삭제) → handler 내부 `verifyInternalRefresh` 가 `{ jti, sub }` 반환, `userId = verified.sub` 로 도출. 주석 갱신: limiter→verify 순서 + publicPaths 매핑 명시.
+  - `services/user-service/tests/integration/rate-limit.test.ts` — `mockVerifyInternalRefresh = jest.fn()` 으로 promotable mock 변환, `beforeEach` 에서 default resolve 설정. 신규 보안 회귀 테스트 추가: "limiter still caps even when verify rejects — invalid-token DoS protection" (mock verify reject + 20 req → 401 × 20 + 21st → 429, fix 전 코드에서는 limiter bucket 미증가로 통과 못함).
+  - `spec.md §9.3` 불변식 행에 구현 메커니즘 paragraph 추가 — publicPaths 매핑 + handler-inline verify + 순서 위반 시 invalid-token DoS 방어 무력화 explicit 명시.
+- **검증**:
+  - `pnpm --filter user-service test` → 13 suites / 140 tests PASS (rate-limit 8 cases 신규 + 132 기존 회귀)
+  - `pnpm --filter user-service typecheck` PASS
+  - `pnpm --filter user-service lint` PASS
+  - `pnpm turbo build typecheck --filter='!web'` → 19/19 successful
+- **mobile / web 회귀 0**: mobile 은 `/auth/logout` 호출 시 refresh_token body 만 전송 (별도 Bearer access token 헤더 불필요) — `/auth/refresh` 와 동일 calling convention 으로 단순화. web 은 BFF `apps/web/src/app/api/auth/logout/route.ts` 가 cookie 에서 refresh_token 추출 후 user-service 직접 호출 — Bearer 헤더 forward 안 함이라 동작 변화 없음.
+- **L2 tier review** (config + 라우트 핸들러 1개 보안 fix + 테스트 1 case 신규): codex r2 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback) 예정.
+
+### 미완료:
+- **codex r2 review**: PR push 후 본 fix 가 finding 1 을 close 하는지 + 신규 회귀 미발생 검증.
+- **다른 service public-path 목록 audit**: `commerce-service`, `analytics-service`, `content-service`, `meal-plan-engine` 의 `registerJwtAuth` 호출과 per-route limiter 가 있는 라우트 전수 점검 — 동일 ordering bug 재발 방지 (advisor 권고). 별도 chore task 로 분리 가능.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토 (현재 mobile 은 user-service `/auth/logout` 직접 호출).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` — 본 PR 머지 후 진입.
+
+### 연관 파일: services/user-service/src/{index.ts,routes/auth.routes.ts}, services/user-service/tests/integration/rate-limit.test.ts, spec.md, pipeline/runs/IMPL-MOBILE-AUTH-002b/codex-review-r1.txt
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002b
+commit_sha: d2eccb0
+files_changed:
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/integration/rate-limit.test.ts
+  - .env.example
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (139/139 user-service jest PASS — rate-limit 7 case 신규 + 132 기존 회귀, monorepo turbo typecheck 16 successful + lint 15 successful)
+---
+### 완료: user-service `/auth/*` rate limit 상향 + `AUTH_RATE_LIMIT_*` env override — IMPL-MOBILE-AUTH-002b (Plan v5 §58, DECISION §3)
+- `services/user-service/src/env.ts` 의 `EnvSchema` 에 `AUTH_RATE_LIMIT_SIGNUP / LOGIN / REFRESH / LOGOUT` 4종 추가. defaults: signup `3/min` (변경 없음) · login `10/min` (5→10) · refresh `30/min` (20→30) · logout `20/min` (신규). `z.coerce.number().int().min(1).max(1000)` 로 운영 입력 검증.
+- `services/user-service/src/routes/auth.routes.ts` 에 `AuthRateLimits` interface 추가 + `options.rateLimits?: Partial<AuthRateLimits>` 옵션. `DEFAULT_RATE_LIMITS` 상수로 fallback 보장 — 기존 호출자 (env override 없는 케이스) 도 새 baseline 한도 받음. signup/login/refresh 라우트의 `max:` 를 `rateLimits.signup` / `rateLimits.login` / `rateLimits.refresh` 로 교체. **logout 라우트에 `rateLimit: { max: rateLimits.logout, ... }` 신규 추가** (DECISION §3.4) — 기존 한도 없음 → 무한 polling 가능 회귀 차단. logout key generator 는 per-IP (JWT verify 가 limiter 후 실행이라 token 정보 키 사용 위험).
+- `services/user-service/src/index.ts` 의 `app.register(authRoutes, ...)` 에 `rateLimits` 객체 주입 — env 4종 값 그대로 전달.
+- `.env.example` 에 4개 변수 + 운영 가이드 주석 추가 — staging/prod 에서 redeploy 없이 retune 가능.
+- `services/user-service/tests/integration/rate-limit.test.ts` 7/7 PASS:
+  - signup 4번째 → 429 (변경 없음, 한도 3 검증)
+  - login 11번째 → 429 (한도 10 갱신 검증)
+  - refresh 31번째 → 429 (한도 30 갱신 + sha256(token)+IP 키 분리 검증)
+  - logout 21번째 → 429 (신규 추가 검증, mock revokeForLogout)
+  - NODE_ENV=test allowList bypass 검증 (회귀 0)
+  - **env override 검증** × 2: `rateLimits: { login: 20 }` 주입 시 login 21번째 → 429 + signup 은 default 3/min 보존 (partial override fallback 동작)
+- `mockRevokeForLogout` + `mockRevokeChainForLogout` 신규 추가 — logout 라우트 통합 테스트 통과를 위해 `refresh-token.repository` 를 unstable_mockModule.
+- spec.md sync (SPEC-PIVOT-PLAN row 35b 의무 충족): §9.3 Security "Rate limiting" 행에 user-service `/auth/*` per-route limits + `AUTH_RATE_LIMIT_*` env override 명시. 기존 "인증 실패 5회/분" 부정확한 표현 제거.
+- DECISION §3 보존된 수치 그대로 적용 — login 5→10 의 mobile SRP 헤드룸 근거, refresh 20→30 의 모바일 background refresh + suspended/resumed app burst 근거, logout 20 의 abuse 차단 근거 모두 유효.
+- L2 tier — Codex × 1 review (config tuning + 신규 라우트 1개 + 테스트, 보안 결정 변경 0 — DECISION 단계에서 이미 검토됨).
+### 미완료:
+- **L2 review**: PR push 후 codex r1 1회 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여 + JUNWON Pre-work 마지막): BFF `POST /api/subscriptions/sync` 라우트 — commerce-service `/internal/subscriptions/refresh-from-revenuecat` (#41) wrapper. 동료 M5 unblock 마지막 의존성.
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority, CHORE-BFF-401-CONTRACT 후속): dead `SessionExpiredError` class + helper + branch 일괄 cleanup.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토.
+- **동료 M1 / M5**: 본 task + 이전 4 PR 머지 후 mobile signup/login/refresh/IAP 흐름 모두 unblock — 단 SUB-SYNC-002 머지 전까지는 IAP↔webhook blackout window 미해결.
+### 연관 파일: services/user-service/src/{env.ts,index.ts}, services/user-service/src/routes/auth.routes.ts, services/user-service/tests/integration/rate-limit.test.ts, .env.example, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-002/DECISION.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-BFF-401-CONTRACT
+commit_sha: 2580c5c
+files_changed:
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/auth/refresh/route.ts
+  - apps/web/src/app/api/auth/logout/route.ts
+  - apps/web/src/app/api/auth/callback/route.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/auth/__tests__/auth-bff.integration.test.ts
+  - apps/web/src/app/api/auth/refresh/__tests__/refresh.integration.test.ts
+  - apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts
+  - apps/web/src/app/api/users/__tests__/users-bff.integration.test.ts
+  - apps/web/src/app/api/subscriptions/__tests__/subscriptions-bff.integration.test.ts
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (158/158 web jest PASS — 16 test suites, monorepo turbo typecheck 16 successful + lint 15 successful, AUTH-002a mobile-auth MALFORMED assertion 복원 후 PASS)
+---
+### 완료: BFF 401 envelope code preservation contract — CHORE-BFF-401-CONTRACT (advisor D-split followup, AUTH-002a 알아낸 회귀)
+- **회귀 발견 (AUTH-002a codex r1 review)**: `apps/web/src/app/api/_lib/bff-fetch.ts:275` 가 upstream 401 을 `throw new SessionExpiredError()` 처리, `createPublicRoute` (`session.ts:368`) 가 catch 해서 envelope `code='TOKEN_EXPIRED'` 로 통일. IMPL-MOBILE-AUTH-003 의 5종 enum (`MALFORMED` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `REFRESH_EXPIRED_OR_MISSING` / `ACCOUNT_DELETED`) 이 mobile route 에서 silent 손실되는 것을 catch.
+- **fix 핵심 (advisor Option D)**: `bff-fetch.ts` 의 401 throw 제거 → 일반 status 처럼 `Result<T>.ok=false + upstream code` 반환. "401 means redirect" semantic 은 `createProtectedRoute` cookie path 의 access-token verify 에서만 의미 — public route + protected handler 내부 fetchBff 401 은 단순 forward.
+- **변경 파일**:
+  - `bff-fetch.ts:273-292` — 401 throw 제거, `pickUpstreamError` 로 일반 status 처럼 처리
+  - `session.ts` — `createProtectedRoute` cookie path / bearer path / `createPublicRoute` 의 `SessionExpiredError` catch 분기 모두 제거 (generic fallback `toBffErrorResponse` 만 유지)
+  - `auth/refresh/route.ts` — `unauthorizedClearCookies` helper 제거, 401 분기에 `X-Token-Expired: true` 헤더 + `clearSessionCookies` + upstream code forward 통합
+  - `auth/logout/route.ts` — `SessionExpiredError` catch 제거 (best-effort 시 401 도 `result.ok=false` 로 자연 fall-through)
+  - `auth/callback/route.ts` — `SessionExpiredError` catch 제거 (OAuth context 에서 모든 user-service rejection 동일 `AUTH_FAILED`)
+- **회귀 보호 / 신규 contract 검증 테스트**:
+  - `_lib/__tests__/session.test.ts` 2개 SessionExpiredError throw 테스트 → 새 contract (handler 가 401 Response 반환 → wrapper forward) 로 갱신, MALFORMED + TOKEN_REUSE_DETECTED envelope code 보존 검증
+  - `auth-bff.integration.test.ts:90-99` — TOKEN_EXPIRED hardcoded → INVALID_CREDENTIALS upstream code 보존 검증
+  - `mobile-auth.integration.test.ts:81-104` — AUTH-002a 에서 deferred 됐던 MALFORMED envelope code assertion 복원
+  - `refresh.integration.test.ts:75-96` — TOKEN_EXPIRED hardcoded → TOKEN_REUSE_DETECTED upstream code 보존 검증 (X-Token-Expired + clearCookies 동작 유지)
+  - `users-bff.integration.test.ts:115-127` + `subscriptions-bff.integration.test.ts:102-114` — TOKEN_EXPIRED hardcoded → upstream code 보존 검증
+- **Web 클라이언트 회귀 분석 (CHORE-BFF-401-CONTRACT spec.md §9.3 명시 근거)**: `apps/web/src/lib/fetcher.ts:89` 가 status 401 받으면 X-Token-Expired 헤더 유무와 무관하게 logout + redirect. 따라서 protected route 가 더 이상 X-Token-Expired 헤더를 자동 추가하지 않아도 web 동작 동일 — **web 회귀 0**.
+- **SessionExpiredError 클래스 dead-but-export**: `bff-error.ts` 의 클래스 + `bff-fetch.ts` 의 re-export + `redirectOnSessionExpired` helper 는 더 이상 throw site 가 없어 dead code. 보수적으로 제거하지 않고 유지 (RSC 호출자가 catch 패턴 사용 시 silent breakage 방지) — 향후 별도 cleanup task 에서 deprecate 가능.
+- **spec.md sync**: §9.3 "Refresh Token Reason Codes" 의 BFF forward paragraph 갱신 — `bff-fetch.ts` 의 동작 변경 + 모든 BFF route (refresh + mobile + protected) 가 envelope code forward 함을 single source 에 명시.
+- **L3 tier** — Codex × 2 + Claude self-adversarial × 1 (gemini CLI 0.39.1 도구 부재 fallback) review 의무. AUTH-002a / AUTH-003 와 동일 운영 케이스. PR push 후 별도 단계.
+### 미완료:
+- **L3 review (본 PR)**: PR push 후 codex r1 + r2 + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback).
+- **CHORE-BFF-SESSION-EXPIRED-CLEANUP** (lower priority): `SessionExpiredError` 클래스 + `redirectOnSessionExpired` helper 의 throw site 가 모두 제거된 후 보수적으로 export 유지 중. 별도 cleanup task 에서 dead code 제거 + RSC 호출자가 사용하던 패턴을 `Result.ok=false + redirect` 패턴으로 마이그레이션.
+- **IMPL-MOBILE-AUTH-002b** (Session B 잔여): user-service `/auth/*` rate limit 상향 (signup 3/min, login 5→10/min, refresh 20→30/min, logout 신규 20/min) + `AUTH_RATE_LIMIT_*` env override.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트.
+- **동료 M2 unblock**: 본 PR 머지 후 mobile state machine 의 5종 enum 분기가 실제 동작 — `REFRESH_EXPIRED_OR_MISSING` → Cognito silent re-issue / `TOKEN_REUSE_DETECTED` 또는 `REFRESH_REVOKED` → SecureStore clear + signOut / `MALFORMED` → 강제 logout / `ACCOUNT_DELETED` → 영구 logout.
+### 연관 파일: apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/_lib/session.ts, apps/web/src/app/api/auth/{refresh,logout,callback}/route.ts, apps/web/src/app/api/auth/{refresh,mobile}/__tests__/, apps/web/src/app/api/_lib/__tests__/session.test.ts, apps/web/src/app/api/{users,subscriptions}/__tests__/, spec.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-002a
+commit_sha: 8d6d0dc
+files_changed:
+  - apps/web/src/app/api/auth/mobile/signup/route.ts
+  - apps/web/src/app/api/auth/mobile/login/route.ts
+  - apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (158/158 web jest PASS — mobile-auth 6 신규 + 152 기존 회귀, monorepo turbo typecheck 16 successful, web lint warnings only — pre-existing 본 PR 스코프 외)
+---
+### 완료: BFF mobile signup/login 라우트 신설 — IMPL-MOBILE-AUTH-002a (Plan v5 §58, DECISION §9 Option B)
+- `apps/web/src/app/api/auth/mobile/signup/route.ts` + `.../login/route.ts` 신규. 기존 web `apps/web/src/app/api/auth/{signup,login}/route.ts` 의 mobile 변형: ① **Set-Cookie 절대 미발급** (mobile 은 `expo-secure-store` 사용 — web cookie jar pollution 방지) ② **`{user, access_token, refresh_token}` JSON body 직반환** (cookie 대신). user-service `/auth/{signup,login}` 으로 fetchBff proxy. forwardedFor 헤더 propagation. shared-types `Signup/LoginResponseSchema` (이미 `AuthTokensSchema.extend({ user })` 형태) 그대로 사용 — schema 변경 0.
+- `apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts` 신규 — 6 case PASS: ① mobile login 200 + JSON 토큰 + `expect(res.headers.getSetCookie()).toHaveLength(0)` ② mobile login 400 VALIDATION_ERROR + Set-Cookie 0 ③ upstream 401 forward (envelope code 보존, 예: AUTH-003 의 `MALFORMED` enum) + Set-Cookie 0 ④ 502 UPSTREAM_UNREACHABLE + Set-Cookie 0 ⑤ mobile signup 201 + JSON 토큰 + Set-Cookie 0 ⑥ mobile signup 400 VALIDATION_ERROR + Set-Cookie 0. test-helpers (`makeRequest`, `upstreamResponse`) + `resetRateLimitBucketsForTest` 기존 인프라 재사용.
+- BFF rate limit: 기존 `/auth/*` path 의 20/min BFF rate-limit (`auth-bff.integration.test.ts:101-115` 참조) 가 자동 적용 — `/api/auth/mobile/*` 도 동일 path prefix 매칭. user-service Fastify `@fastify/rate-limit` (signup 3/min, login 5/min) 가 1차 layer, BFF 가 2차 layer (DECISION §9.3 의도된 아키텍처).
+- spec.md sync (SPEC-PIVOT-PLAN row 35a 의무 충족): §4.2 Auth & User 표의 `/auth/signup` `/auth/login` 행에 "Mobile 진입점: BFF `POST /api/auth/mobile/{signup,login}` (Set-Cookie 미발급)" 명시. §11 Project Structure 의 BFF active gateway banner 직후에 "Mobile auth ingress 결정 (Option B)" paragraph 추가 — `/auth/refresh` BFF 미경유 예외 + `/auth/logout` 현재 user-service 직호출 + SUB-SYNC-002 시점 재검토 메모 포함. SPEC-PIVOT-PLAN row 002a 갱신 (002b 신규 row 분리).
+- DECISION §9 Option B 채택 근거: PIVOT 갱신 후 BFF 가 mobile gateway active (CLAUDE.md §1.1), IMPL-MOBILE-BFF-001 (#46) Bearer fallback 과 일관성, infra 변경 0 (Kong/WAF 신규 작성 불필요), 새 ingress origin 미추가 — 운영 표면 감소. Option A (직노출+WAF) 의 latency 50-150ms 절약 이점은 인증 흐름 사용자 체감 빈도 낮아 무의미.
+- L2 tier — Codex × 1 review (Plan v5 §58 "L2~L3" 중 L2 채택, AUTH-001 audience array 가 BE 에서 이미 처리되어 본 task 는 단순 proxy 라 신규 보안 결정 0).
+### 미완료:
+- **CHORE-BFF-401-CONTRACT** ⚠️ **(blocking dependency for mobile state machine)**: codex r1 review 가 catch — `apps/web/src/app/api/_lib/bff-fetch.ts:275` 가 upstream 401 을 `throw new SessionExpiredError()` 처리, `createPublicRoute` (`session.ts:368`) 가 catch 해서 envelope `code='TOKEN_EXPIRED'` 로 통일. 이 collapse 가 IMPL-MOBILE-AUTH-003 의 5종 enum (`MALFORMED` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `REFRESH_EXPIRED_OR_MISSING` / `ACCOUNT_DELETED`) 을 mobile route 에서 silent 손실시킴. **fix scope**: ① bff-fetch.ts 의 401 throw 제거 → `Result<T>.ok=false + upstream code` 그대로 반환 ② 401 → silent refresh 시도 의미는 `createProtectedRoute` (cookie path) 로 이동 — public route / mobile 은 단순 forward ③ 기존 `auth-bff.integration.test.ts:90-99` "maps upstream 401 via SessionExpiredError" 테스트 갱신 (TOKEN_EXPIRED hardcoded → upstream code 보존 검증). **L3 tier** (cross-cutting public route 모두 영향). 본 PR (AUTH-002a) 은 mobile route plumbing 만 land, envelope code 보존 assertion 은 followup 에서 추가 — advisor D-split 권고 따름. Mobile state machine 은 본 followup 머지 후에 5종 enum 분기 가능.
+- **L2 review (본 PR)**: codex r1 PASS-with-1-MEDIUM (envelope code preservation, CHORE-BFF-401-CONTRACT 로 deferred) + Claude self-adversarial 1회 (gemini CLI 0.39.1 도구 부재 fallback, IMPL-MOBILE-BFF-001 / AUTH-003 와 동일 운영 케이스).
+- **IMPL-MOBILE-AUTH-002b** (Session B 잔여): user-service `/auth/*` rate limit 상향 (signup 3/min, login 5→10/min, refresh 20→30/min, logout 신규 20/min) + `AUTH_RATE_LIMIT_*` env override. DECISION §3 보존된 수치 그대로.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트.
+- **CHORE-MOBILE-LOGOUT-BFF**: mobile logout BFF 라우트 신설 여부 — SUB-SYNC-002 시점 재검토 (현재 user-service 직호출).
+- **동료 M1**: 본 task + AUTH-003 머지 후 mobile signup/login 흐름 unblock — Amplify SRP signIn → id_token → BFF `POST /api/auth/mobile/{signup,login}` → SecureStore 저장.
+### 연관 파일: apps/web/src/app/api/auth/mobile/signup/route.ts, apps/web/src/app/api/auth/mobile/login/route.ts, apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-002/DECISION.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-AUTH-003
+commit_sha: 92d2052
+files_changed:
+  - packages/service-core/src/errors.ts
+  - packages/service-core/src/index.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (16/16 jest direct PASS — 기존 7 회귀 + 신규 9 envelope code 검증, monorepo turbo typecheck 16 successful + lint 15 successful, PRECHECK §7 회귀 grep 3/3 PASS) + advisor sanity check
+---
+### 완료: `/auth/refresh` 401 envelope reason codes 5종 — IMPL-MOBILE-AUTH-003 (Plan v5 §59, P0)
+- `packages/service-core/src/errors.ts` 에 5개 AppError 서브클래스 추가 (`RefreshExpiredOrMissingError` / `TokenReuseDetectedError` / `RefreshRevokedError` / `MalformedRefreshError` / `AccountDeletedError`). 모두 statusCode 401 + specific machine-readable code 만 차이. `packages/service-core/src/index.ts` barrel re-export. PRECHECK §6 Option A 결정 반영 — Plan §52 wording ("응답 body 의 `code` 필드 5종") 직접 매핑, shared-types 변경 0.
+- `services/user-service/src/services/auth.service.ts` `performRotation` 함수 리팩토링: ① jose `JWTExpired` instanceof 분기로 `REFRESH_EXPIRED_OR_MISSING` 와 `MALFORMED` 분리 (signature 위조·format 오류·issuer mismatch 모두 MALFORMED 통합) ② token_use mismatch / userId·jti 누락 → `MalformedRefreshError` ③ 트랜잭션 첫 액션으로 `findByIdInTx` + `user.deleted_at !== null` 게이트 신규 추가 (READ COMMITTED snapshot 일관성, 별도 lock 없음 — soft-delete + 30d grace 정책 정합) ④ DB rotation 실패 분기에서 meta null/expired → `RefreshExpiredOrMissingError` / rotated/reuse_detected → `TokenReuseDetectedError` (revokeAllByUser emit-before-throw 보존) / logout → `RefreshRevokedError`.
+- `services/user-service/src/repositories/user.repository.ts` 에 `findByIdInTx(client: pg.PoolClient, id)` 헬퍼 추가 — caller 트랜잭션 참여. 기존 `findById(pool)` 와 동일 SQL.
+- `services/user-service/tests/integration/refresh-rotation.test.ts` 16/16 PASS: 기존 7건 (rotation/race/reuse/expired/logout/ttl/invalid) + 신규 9건 (`MALFORMED` × 3 [signature 위조 / token_use 불일치 / user row 부재] + `REFRESH_EXPIRED_OR_MISSING` × 2 [jose JWTExpired / DB meta 부재] + `TOKEN_REUSE_DETECTED` × 1 [revokeAllByUser 호출 검증] + `REFRESH_REVOKED` × 1 [logout 분기] + `ACCOUNT_DELETED` × 1 [deleted_at 세팅] + envelope `requestId` × 1). `defaultClientQueryImpl` 기반 `mockClientQuery` SQL prefix 분기로 ACCOUNT_DELETED 게이트 추가에 따른 기존 mock 회귀 0. `buildApp` 에 service-core `setErrorHandler` 미러링 추가 — envelope assertions 가 production 핸들러와 동일 형식 (`{error: {code, message, details, requestId}}`) 사용.
+- spec.md sync (SPEC-PIVOT-PLAN row 36 의무 충족): §4.2 endpoint catalog `/auth/refresh` 행에 enum 5종 reference 추가 + §9.3 Security 신규 서브섹션 "Refresh Token Reason Codes" — 5종 표 (발생 조건 + 클라이언트 권장 행동) + 불변식 5건 (HTTP 401, internal HTTP error 분리, jose JWTExpired 분기 정책, revokeAllByUser fail-closed, ACCOUNT_DELETED 게이트 위치). diff 39 lines vs origin/main → spec_sync gate threshold 충족.
+- BFF cookie path forward 영향 분석 (PRECHECK §10): `apps/web/src/app/api/auth/refresh/route.ts:93` 가 user-service envelope `error.code` 그대로 forward — web production code grep `UNAUTHORIZED` 0 matches, 기존 통합 테스트는 status 401 만 assert (envelope code 직접 검증 없음) → 회귀 0. 모바일·웹이 동일 5종 enum 상태머신 공유는 의도된 설계.
+- L3 review 의무는 PR push 후 별도 단계: `pipeline.sh review` (Codex × 2) + Claude self-adversarial × 1 (gemini CLI 0.39.1 도구 부재 fallback, IMPL-MOBILE-BFF-001 와 동일 운영 케이스).
+### 미완료:
+- **L3 review**: PR push 후 Codex r1 + r2 + Claude self-adversarial (10 threats) 1회 실행. fix-request 발생 시 별도 chore commit.
+- **CHORE-AUTH-INTERNAL-ERR-MAPPING** (backlog): `services/user-service/src/services/auth.service.ts` 의 잔존 `throw new UnauthorizedError('Internal error: new jti missing')` (PRECHECK §3.2). server-side bug signal — 본질적으로 5xx 응답이 옳으나 본 task scope 외. 별도 ticket 으로 추적.
+- **IMPL-MOBILE-AUTH-002a/002b** (Session B 잔여): BFF mobile signup/login 라우트 신설 (DECISION §9 Option B 채택) + user-service rate limit 상향 (signup 3/min·login 5→10/min·refresh 20→30/min·logout 신규 20/min — DECISION §3 보존).
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C 잔여): BFF `POST /api/subscriptions/sync` 라우트 — commerce-service `/internal/subscriptions/refresh-from-revenuecat` (#41) wrapper. 동료 M5 unblock.
+- **동료 M2 client 상태머신**: 본 task 의 5종 enum 을 source of truth 로 사용 — `REFRESH_EXPIRED_OR_MISSING` → Cognito `Auth.currentSession()` silent re-issue / `TOKEN_REUSE_DETECTED` 또는 `REFRESH_REVOKED` → SecureStore clear + Amplify signOut 즉시 / `MALFORMED` → 강제 logout + 디버그 로그 / `ACCOUNT_DELETED` → 영구 logout + 사용자 안내. Plan v5 §183 + spec.md §9.3 의 표 그대로 적용.
+### 연관 파일: packages/service-core/src/errors.ts, packages/service-core/src/index.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/repositories/user.repository.ts, services/user-service/tests/integration/refresh-rotation.test.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-AUTH-003/PRECHECK.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: CHORE-MOBILE-001
+commit_sha: f4d9a3a
+files_changed:
+  - eslint.config.mjs
+  - .github/workflows/mobile-ci.yml
+  - spec.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (eslint --print-config 스코프 검증 + pnpm turbo lint/typecheck 회귀 PASS + python yaml.safe_load OK)
+---
+### 완료: Mobile 도메인 사전 가드 (ESLint + CI workflow) — CHORE-MOBILE-001
+- `eslint.config.mjs` 루트 config 에 `files: ['apps/mobile/**/*.{ts,tsx}']` overrides 블록 추가. `no-restricted-imports` 로 `@celebbase/service-core` (Fastify/pg/jose Node.js-only) 와 `@celebbase/ui-kit` (react-dom + CSS Modules + DOM API) 의 import 를 lint error 로 차단. `paths` + `patterns` 동시 사용으로 root + subpath import 모두 커버. 메시지에는 한국어로 거부 사유 + 대안 명시 (RN primitive 새 구현 안내).
+- `eslint --print-config apps/mobile/src/test.ts` → `no-restricted-imports: [2, {paths, patterns}]` 적용 확인. `apps/web/src/middleware.ts` 에는 rule null → scope 누수 없음 검증.
+- `.github/workflows/mobile-ci.yml` 신규 — `apps/mobile/**` · `packages/shared-types/**` · `packages/design-tokens/**` · `eslint.config.mjs` · `pnpm-lock.yaml` · `mobile-ci.yml` 변경 PR/push 시에만 실행 (paths filter). `apps/mobile/package.json` 부재 시 (동료 M0 시작 전 현 시점) 모든 후속 step 을 `if: steps.detect.outputs.exists == 'true'` 로 skip — 안전 사전 배치.
+- workflow 단계: pnpm/action-setup@v4 + setup-node@v4 (node 22, cache pnpm) → `pnpm install --frozen-lockfile` → `pnpm --filter shared-types --filter design-tokens build` (mobile 빌드 의존성 prebuild) → `pnpm --filter mobile lint/typecheck/test` 직렬. 기존 `ci.yml` 패턴과 동일한 setup, mobile filter 만 다름.
+- spec.md §11 직후 §11.2 "Mobile CI / ESLint Guard" 신규. 두 가드 표 + 2차 방어선 (Metro `resolveRequest`) 가 동료 M0 도메인 (`apps/mobile/metro.config.js`) 임을 명시 — multi-session.md §1 도메인 침범 없이 root config 만 사전 배치하여 동료 첫날 unblock 효과 확보. design-tokens RN 익스포트 (`tokens.native.ts`) 정합성도 sub-section 에 명시.
+- 회귀 검증: `pnpm turbo run lint` (15 successful, mobile package 부재로 자동 skip) + `pnpm turbo run typecheck` (16 successful) PASS. `python3 -c "import yaml; yaml.safe_load(...)"` mobile-ci.yml YAML 문법 검증 PASS.
+- Plan v5 §Pre-work Session C, SPEC-PIVOT-PLAN.md row 49 (`§11 CI/build (mobile-ci.yml + ESLint overrides)`) 의무 충족. v5 슬림화 결정 따라 `pnpm-workspace.yaml` / `turbo.json` 편집 불필요 — 이미 `apps/*` glob + 글로벌 lint/typecheck/test pipeline 정의 (사전 확인 완료).
+- L1 chore — Codex review 0회, CI auto 만 (CHORE-MOBILE-001 pipeline.md "Adaptive Review Intensity Policy" L1 chore 매핑).
+### 미완료:
+- **IMPL-MOBILE-AUTH-003** (Session B P0): `/auth/refresh` 응답 enum 5종 (`REFRESH_EXPIRED_OR_MISSING` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `MALFORMED` / `ACCOUNT_DELETED`) — 동료 M2 client 상태머신의 source of truth. 사전 PRECHECK.md 의무.
+- **IMPL-MOBILE-AUTH-002** (Session B): mobile ingress 결정 (옵션 A 직노출+WAF / 옵션 B BFF mobile 라우트) + rate limit 명시화.
+- **IMPL-MOBILE-SUB-SYNC-002** (Session C): BFF `POST /api/subscriptions/sync` route — commerce-service internal endpoint wrapper. 동료 M5 unblock.
+- **2차 방어선 Metro `resolveRequest` throw** (`apps/mobile/metro.config.js`): 동료 M0 작업 — multi-session.md §1 `apps/mobile/**` 도메인 = 동료 단독.
+### 연관 파일: eslint.config.mjs, .github/workflows/mobile-ci.yml, spec.md, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-BFF-001
+commit_sha: 6948e9c
+files_changed:
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - apps/web/src/app/api/_lib/__tests__/test-helpers.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - .gitignore
+verified_by: claude-opus-4-7 (gate-implement/qa Claude verdict + 32/32 jest direct PASS) + codex-gpt-5 r1+r2 PASS + Claude self-adversarial L3 (10 threats)
+---
+### 완료: Hybrid BFF auth — cookie path A + Authorization Bearer fallback (mobile gateway) — IMPL-MOBILE-BFF-001
+- `createProtectedRoute` 가 cookie 와 `Authorization: Bearer` 둘 다 인식 (Plan v5 §IMPL-MOBILE-BFF-001). cookie path A 강제 — `cb_access` 쿠키 존재 시 검증 실패해도 bearer 분기로 fallthrough 하지 않음 (D1 path-confusion downgrade 방어).
+- `Session.authSource: 'cookie' | 'bearer'` required 필드 추가. `verifyAccessToken: Promise<Omit<Session, 'authSource'>>` 시그니처로 caller 가 spread 시 명시 강제 (`as Session` cast 차단). 핸들러/observability 가 web vs. mobile 클라이언트 구분.
+- bearer 경로: silent refresh 미수행 (모바일은 `JWTExpired` → 401 + `X-Token-Expired:1` 후 user-service `/auth/refresh` 직접 호출), `Set-Cookie` 절대 미발급 (web/mobile cookie jar 혼선 차단), RFC 6750 case-sensitive `^Bearer (.+)$` (lowercase scheme 거부) + `match[1].trim()`.
+- 모든 401 분기 `padToMinLatency(handlerStart)` 100ms 앵커링 — JWTExpired vs forged vs missing 사이의 timing oracle 제거. 5ms slack (≥95ms) 으로 jest 회귀 테스트 안정화.
+- `/auth/refresh` 는 BFF 가 cookie-shaped (JSON 토큰 미반환) 이라 mobile 이 user-service `/auth/refresh` 직접 호출 — multi-session.md §1 BFF 표 + spec.md §9.3 에 명시.
+- 32/32 jest tests PASS (직접 실행): cookie 17개 (기존) + bearer path 5개 (case-mismatch / empty / valid / expired / forged) + cookie+bearer D1 confusion 4개 (forged-cookie+valid-bearer fallthrough 금지 + timing) + bearer timing regression 4개 + 기타 expanded.
+- L3 review: codex r1 (0 CRITICAL/HIGH, 1 MEDIUM `DEFAULT_DEV_SECRET` — origin/main line 31 에 pre-existing → out_of_scope, 3 LOW deferral-eligible) + r2 (0 CRITICAL/HIGH/MEDIUM, 2 LOW: MIN_LATENCY_MS 상수화, regex `[^\s]+` 가독성). Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback 1회 추가 (10 threats inspected: T1 path confusion / T2 empty cookie / T3 scheme case / T4 CRLF / T5 timing oracle / T6 authSource omission / T7 Set-Cookie cross-pollination / T8 /auth/refresh 예외 / T9 JWT rotation race / T10 DEFAULT_DEV_SECRET — all PASS).
+- spec.md sync: §9.3 BFF Authentication subsection 6 numbered rules + §11 BFF active gateway banner. SPEC-PIVOT-PLAN.md row 상태 `🟡 in-progress` + §6 → §9.3 정정.
+- gate-implement/qa: 14/15 PASS, 1 FAIL `meal-plan-engine#test` (ModuleNotFoundError pythonjsonlogger) → out_of_scope (origin/main 에도 pre-existing, services/meal-plan-engine/** affected paths 외, services/meal-plan-engine/.venv/bin/pytest 직접 호출 시 124/2-skipped PASS).
+- fix-request: 0 회 (단일 feat commit + 1 chore .gitignore 정리).
+- chore commit `d0fb633`: `.gitignore` 에 `.venv-python` 추가 — `step_qa_exec` 가 만드는 venv binary 심볼릭 링크가 `step_finalize` 의 `git add -A` 에 흡수되는 함정 차단.
+### 미완료: IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits — §11 / §6), IMPL-MOBILE-AUTH-003 (5-code refresh enum — §6 + AUTH-003 짝), IMPL-MOBILE-SUB-SYNC-002 (BFF route `POST /api/subscriptions/sync` — §11 / §6.5), CHORE-MOBILE-001 (mobile-ci.yml + ESLint overrides), CHORE-MOBILE-002 (mobile refresh TTL 7-14d + device_tracking), CHORE-WORKTREE-ENV-001 (worktree-aware `.env.local` propagation — gate-implement web#build out_of_scope 사유와 동일), CHORE-MEAL-PLAN-VENV-PATH (`pnpm test` 가 `.venv/bin/pytest` 가 아닌 PATH `pytest` 호출 — gate-implement/qa 의 `meal-plan-engine#test` 영구 fail). 동료 트랙: M2 API client + refresh 상태머신 (§6 — refresh code enum 클라이언트 분기), M3 Claim feed (§7 / §3.5).
+### 연관 파일: apps/web/src/app/api/_lib/session.ts, apps/web/src/app/api/_lib/__tests__/session.test.ts, apps/web/src/app/api/_lib/__tests__/test-helpers.ts, spec.md, docs/SPEC-PIVOT-PLAN.md, pipeline/runs/IMPL-MOBILE-BFF-001/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-PAY-001b
+commit_sha: 14921a6
+files_changed:
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/src/repositories/processed-events.repository.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/src/env.ts
+  - services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+  - .env.example
+verified_by: claude-opus-4-7 (39/39 jest PASS, lint/typecheck PASS) + Plan v5 §57·§225-§240·§243 trace
+---
+### 완료: RevenueCat webhook handler + provider-aware idempotency — IMPL-MOBILE-PAY-001b
+- `POST /webhooks/revenuecat` (`webhooks.routes.ts`): Bearer 토큰 timing-safe 비교 → Zod (`RevenuecatEventSchema`: `event.id`/`event.type` 필수) → JSON.parse → `markProcessed` 기반 idempotency 분기.
+- 응답 매트릭스: 첫 발생 200 + `revenuecat.webhook.received` / 중복 200 + `revenuecat.webhook.replay_skipped` / 저장 실패 500 + `revenuecat.webhook.dedup_failed` / `commerceWebhookEnabled=false` 또는 `revenuecatConfig` 미주입 503 / 토큰 mismatch·malformed·missing 401 / Zod·JSON.parse 실패 400 (`VALIDATION_ERROR`).
+- `markProcessed` 가 provider 별 ON CONFLICT 분기 — Stripe 는 legacy `(stripe_event_id)` 컬럼, RevenueCat 은 composite `(provider, event_id)` UNIQUE (1a-2 의 partial index `uq_processed_events_provider_event_id`) 사용. Plan v5 §225-§240 의 expand 머지 후에야 활성화되는 RC 코드 경로.
+- **Fastify content-type parser priority bug fix**: `scope.removeAllContentTypeParsers()` 를 wildcard `addContentTypeParser('*', { parseAs: 'buffer' }, ...)` 앞에 선행 호출. 그렇지 않으면 built-in `application/json` parser 가 RC 페이로드를 object 로 pre-parse → `(request.body as Buffer).toString()` 이 `'[object Object]'` 반환 → 5/11 RC 테스트 fail. Stripe (raw Buffer signature 검증) + RevenueCat (handler JSON.parse) 모두 동일 raw Buffer 패스로 통일.
+- 토큰 비로그 보장 — `disableRequestLogging: true` 환경에서 captured logs 가 Bearer 텍스트 부재 회귀 테스트 1건 추가 (Rule #8: "로그에 비밀번호, 토큰 남기지 않는다").
+- 통합 테스트 11/11 PASS (`tests/integration/revenuecat-webhook.integration.test.ts`, 300 lines): auth & validation 7건, dedup & happy path 3건, 토큰 비로그 회귀 1건. ESM mock singleton + Fastify `app.inject()` 패턴, `jest.unstable_mockModule('processed-events.repository')` 로 markProcessed 격리.
+- 회귀 검증: commerce-service 전체 6 suites / 39 tests PASS, Stripe webhook integration 영향 없음. lint/typecheck PASS.
+- 본 task 3 commits: `da55596` (wiring + RC env scaffolding) → `d0cf95b` (provider-aware ON CONFLICT in markProcessed) → `6df7ce7` (webhook handler + 11 integration tests). 대표 SHA 는 6df7ce7. (rebase onto main 9d8acd4 — 1a-2 squash 흡수)
+### 미완료: IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat upstream call → user-service tier sync), IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits), IMPL-MOBILE-AUTH-003 (5-code refresh enum), Plan §57 contract phase (`stripe_event_id` UNIQUE drop + 컬럼 NOT NULL backfill 후 제거), CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP, CHORE-WORKTREE-ENV-001, CHORE-COMMERCE-COVERAGE (commerce-service `coveragePathIgnorePatterns` 가 IMPL-016-b2 era Stripe 부채 — `subscription.service.ts` 343 lines @ 3.19% + `subscription.repository.ts` 94 lines @ 0% — 를 임시로 ignore. PR #39 webhook integration test 추가가 importer chain 으로 처음 노출시켰음. unit test 추가 후 ignore 제거 필요. webhooks.routes.ts uncovered 48-140 = stripe POST handler 본체도 동일 대상).
+### 연관 파일: services/commerce-service/src/routes/webhooks.routes.ts, services/commerce-service/src/repositories/processed-events.repository.ts, services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts, services/commerce-service/src/env.ts, services/commerce-service/src/index.ts, .env.example
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-PAY-001a-2
+commit_sha: ea9f3ff
+files_changed:
+  - db/migrations/0017_processed_events_partial_unique.sql
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 + Claude self-adversarial L3
+---
+### 완료: processed_events backfill + partial UNIQUE — IMPL-MOBILE-PAY-001a-2
+- `db/migrations/0017_processed_events_partial_unique.sql` 신규 (Plan v5 §225-§240, expand 마무리, +35 lines)
+  1. `UPDATE … WHERE provider IS NULL OR event_id IS NULL` 백필 (1a-1 dual-write 활성화 후 잔존 NULL row)
+  2. `ALTER TABLE … ADD CONSTRAINT processed_events_provider_check CHECK (provider IS NULL OR provider IN ('stripe','revenuecat'))` (NULL-tolerant)
+  3. `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_processed_events_provider_event_id ON processed_events (provider, event_id) WHERE provider IS NOT NULL` (autocommit, transaction-free)
+- Stacked PR #38 base = `pipeline/IMPL-MOBILE-PAY-001a-1` (PR #37). PR body callout `⚠️ DO NOT MERGE before IMPL-MOBILE-PAY-001b` 명시
+- L3 review: codex r1 (2 MEDIUM 3 LOW) + r2 (1 CRITICAL 1 HIGH 2 MEDIUM 3 LOW) — 모든 finding `out_of_scope` (1a-1 stack docs/services), `plan_decided` (markProcessed ON CONFLICT mismatch → 1b mitigation), `deferred_backlog` (TEXT VARCHAR(50) cap → CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP), `accept` 분류
+- Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback (9 attack 시나리오 PASS — Stripe/RC duplicate, NULL bypass, lock DoS, CIC race, migration order)
+- gate-qa: 정적 SQL grep 16/16 expected count, services/ diff vs base = 0 lines, 0016 비손상, migration_freshness PASS, S11 psql apply optional skip (staging migration runner PR 위임)
+- fix-request: 0 회 (단일 commit, 단일 파일)
+### 미완료: IMPL-MOBILE-PAY-001b (RC webhook + ON CONFLICT (provider, event_id) 전환), Plan §57 contract phase (`stripe_event_id` drop), CHORE-MOBILE-PROCESSED-EVENTS-LENGTH-CAP, CHORE-WORKTREE-ENV-001 (worktree node_modules 부재)
+### 연관 파일: db/migrations/0017_processed_events_partial_unique.sql, pipeline/runs/IMPL-MOBILE-PAY-001a-2/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-AUTH-001
+commit_sha: 8f95ef8
+files_changed:
+  - services/user-service/src/services/cognito-auth.provider.ts
+  - services/user-service/src/env.ts
+  - services/user-service/tests/unit/cognito-auth.provider.test.ts
+  - .env.example
+  - .claude/rules/pipeline.md
+verified_by: claude-opus-4-7 (gate-qa Claude 재검증 16/16 PASS, 95.23% coverage on cognito-auth.provider.ts) + codex-gpt-5 review r1+r2+r3 PASS + Claude self-adversarial L3
+---
+### 완료: Cognito audience array (web BFF + mobile native client) — IMPL-MOBILE-AUTH-001
+- `CognitoAuthProvider.verifyIdToken` 의 `audience` 옵션을 단일 string → array (`[clientId, mobileClientId]`) 로 확장. `jose.jwtVerify` 의 audience array ANY-match 시맨틱으로 web/mobile 두 토큰 모두 PASS
+- `mobileClientId` 는 옵션 — 미지정 시 web-only 동작 유지 (단독 PR 머지 안전성)
+- env empty-string guard: `COGNITO_MOBILE_CLIENT_ID=""` 일 때 undefined 로 처리해 빈 문자열이 audience 에 들어가지 않도록 방어
+- 테스트 (16/16 PASS): 4개 describe 블록 × 4개 케이스 (web-only 토큰 PASS / mobile 토큰 PASS / 잘못된 aud REJECT / mobile 토큰을 web-only provider 가 REJECT 회귀 보호)
+- INFRA-MOBILE-001 의 `plan_decided` audience-confusion finding 종결 — Plan v5 §52, §92, §182, §203, §225
+- L3 review: codex r1/r2/r3 PASS (LOW only), Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback 적용
+- gate-qa 판정: build=FAIL (out_of_scope, worktree `.env.local` 미존재로 web#build 의 collect-page-data 가 `Missing required env var: USER_SERVICE_URL`), test=FAIL (false_failure, Codex sandbox 의 `server.listen(0, '127.0.0.1', ...)` EPERM 차단 → Claude 직접 재실행 시 16/16 PASS 1.234s)
+- rules 병합: `.claude/rules/pipeline.md` 에 2 항목 추가 — qa-exec 후 in-process server `listen EPERM` false-failure 인식 + gate-qa 의 `web#build` fail 진단 우선순위
+### 미완료: IMPL-MOBILE-PAY-001a-1/a-2/b (RevenueCat webhook + processed_events DDL/backfill), IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat), IMPL-MOBILE-AUTH-002 (mobile ingress + rate limits), IMPL-MOBILE-AUTH-003 (5-code refresh enum), CHORE-MOBILE-002 (mobile refresh TTL 7-14d + device_tracking), CHORE-INFRA-007 (gate-implement 에 worktree-aware terraform validate), CHORE-WORKTREE-ENV-001 (worktree `.env.local` propagation)
+### 연관 파일: services/user-service/src/services/cognito-auth.provider.ts, services/user-service/tests/unit/cognito-auth.provider.test.ts, infra/cognito/main.tf (참조), pipeline/runs/IMPL-MOBILE-AUTH-001/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
+task_id: IMPL-MOBILE-PAY-001a-1
+commit_sha: 95cd47c
+files_changed:
+  - db/migrations/0016_processed_events_expand_ddl.sql
+  - services/commerce-service/src/repositories/processed-events.repository.ts
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/tests/integration/webhook.integration.test.ts
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex review r1+r2 plan-decided + Claude self-adversarial L3 + qa-exec 26/26 PASS
+---
+### 완료: processed_events expand phase 1a — IMPL-MOBILE-PAY-001a-1
+- DDL: `provider VARCHAR(20) NULL`, `event_id VARCHAR(255) NULL` 컬럼 추가 (migration `0016_processed_events_expand_ddl.sql`). 기존 row에는 영향 없도록 nullable + default NULL.
+- Repository: `recordProcessedEvent` 가 7컬럼 (`stripe_event_id, event_type, payload_hash, result, error_message, provider, event_id`) INSERT 로 확장. legacy `ON CONFLICT (stripe_event_id) DO NOTHING` 그대로 유지 — composite UNIQUE 는 phase 1a-2 에서 추가.
+- `findProcessedEvent` 가 `provider` / `event_id` 까지 dual-read. 기존 호출자는 추가 필드를 무시하므로 호환.
+- Routes: stripe webhook handler 가 새 컬럼에 `provider='stripe'` + Stripe `event.id` 를 채워 dual-write.
+- Plan v5 expand+contract phase 1a 의 단독 머지 안전성: RC 코드 경로 미존재 + ON CONFLICT 가 여전히 `stripe_event_id` 단일 컬럼 → idempotency 회귀 zero. 1a-2 가 backfill + composite UNIQUE 머지 후에야 1b (RevenueCat webhook) 활성화.
+- L3 review: codex r1+r2 모두 plan-decided 판정 (HIGH 1: composite UNIQUE 부재, MEDIUM 2: backfill 부재 / ON CONFLICT 단일 컬럼) — 3-condition test 통과 (코드 레벨 안전 + 후속 task 명시 + Plan 머지 순서 강제). Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial 1회 추가, 5 perspective 모두 plan_decided.
+- QA: codex qa-exec 에서 26/26 jest tests PASS, ESLint 0, tsc 0, anti-pattern grep 모두 PASS. Codex 가 sandbox 적응을 위해 주입한 `tests/jest.setup.cjs` (PactV3.executeTest 영구 mock) 와 `package.json` setupFiles 항목, `.venv-python` 은 commit 전 revert. Sandbox 외부에서 `pnpm --filter commerce-service test` 재실행 시 동일 26/26 PASS 재현 (native pact library 사용).
+- Gate fails (out_of_scope): `web#build` (USER_SERVICE_URL env 미주입 — affected paths 외, gate-implement 와 동일 처리), `meal-plan-engine#test` (pythonjsonlogger 미설치 — 동일).
+### 미완료: IMPL-MOBILE-PAY-001a-2 (backfill `provider='stripe'` + composite UNIQUE `(provider, event_id)` + drop legacy `stripe_event_id` UNIQUE), IMPL-MOBILE-PAY-001b (RevenueCat webhook handler), IMPL-MOBILE-SUB-SYNC-001 (refresh-from-revenuecat), IMPL-MOBILE-AUTH-002/003, CHORE-WORKTREE-ENV-001 (worktree-aware `.env.local` + Python venv).
+### 연관 파일: db/migrations/0016_processed_events_expand_ddl.sql, services/commerce-service/src/repositories/processed-events.repository.ts, services/commerce-service/src/routes/webhooks.routes.ts, services/commerce-service/tests/integration/webhook.integration.test.ts, pipeline/runs/IMPL-MOBILE-PAY-001a-1/
+
+---
+date: 2026-05-06
+agent: claude-opus-4-7 + codex-gpt-5
+task_id: INFRA-MOBILE-001
+commit_sha: 46c35be
+files_changed:
+  - infra/cognito/main.tf
+  - infra/cognito/outputs.tf
+  - .claude/rules/pipeline.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (gate-implement/review/qa) + codex-gpt-5 r1+r2 PASS + Claude self-adversarial L3
+---
+### 완료: Cognito mobile public app client (Terraform-only) — INFRA-MOBILE-001
+- `aws_cognito_user_pool_client.mobile` 추가: `generate_secret = false`, `ALLOW_USER_SRP_AUTH` + `ALLOW_REFRESH_TOKEN_AUTH`, `prevent_user_existence_errors=ENABLED`, `enable_token_revocation=true`, access/id 60min + refresh 30d
+- `output "cognito_mobile_client_id"` 추가 (Plan v5 §86 hand-off contract — `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID` placeholder)
+- 단독 머지 안전성 검증: user-service `cognito-auth.provider.ts:46` 단일 audience + 회귀 보호 테스트(line 53)로 mobile id_token 401 보장 — IMPL-MOBILE-AUTH-001 머지 전까지 mobile 트래픽 활성화 ≠
+- L3 review: codex r1+r2 PASS (LOW only), Gemini CLI 0.39.1 도구 부재로 Claude self-adversarial fallback (5 findings: 1 PLAN-DECIDED → IMPL-MOBILE-AUTH-001, 1 DEFERRED → CHORE-MOBILE-002, 3 ACCEPT)
+- fix-request-1: `aws_cognito_user_pool_client` `tags` 미지원 (provider 5.x) → Claude direct fix → terraform validate PASS
+- QA: `terraform fmt -check` + `terraform validate` + 6 grep 체크 모두 PASS (qa-output.txt)
+- rules 병합: `.claude/rules/pipeline.md` 에 4 항목 추가 (tags 미지원, plan-decided verdict 4분리, Terraform-only QA 패턴, Gemini fallback 누적 케이스)
+### 미완료: IMPL-MOBILE-AUTH-001 (Session B P0 — audience 배열 + client_id claim 검증), IMPL-MOBILE-AUTH-002 (refresh enum), CHORE-MOBILE-002 (refresh 7-14d + device_tracking), CHORE-INFRA-007 (gate-implement 에 worktree-aware terraform validate)
+### 연관 파일: infra/cognito/main.tf, infra/cognito/outputs.tf, services/user-service/src/services/cognito-auth.provider.ts (참조), pipeline/runs/INFRA-MOBILE-001/
+
+---
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: IMPL-UI-031-a
@@ -3928,6 +4676,44 @@ verified_by: claude-opus-4-7 (codex review-r2 PASS F4-bis security; codex review
 ### 연관 파일: services/content-service/src/middleware/admin-auth.ts, services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts, services/content-service/package.json, pipeline/runs/IMPL-021/fix-request-1.md, pipeline/runs/IMPL-021/fix-request-2.md, pipeline/runs/IMPL-021/fix-request-3.md, pipeline/runs/IMPL-021/review-r1/, pipeline/runs/IMPL-021/review-r2/, pipeline/runs/IMPL-021/review-r3/
 
 ---
+date: "2026-05-06"
+agent: claude-sonnet-4-6
+task_id: IMPL-MOBILE-SUB-SYNC-001
+commit_sha: 32c1c01
+files_changed:
+  - services/commerce-service/src/adapters/revenuecat.adapter.ts
+  - services/commerce-service/src/services/revenuecat-sync.service.ts
+  - services/commerce-service/src/repositories/subscription.repository.ts
+  - services/commerce-service/src/routes/webhooks.routes.ts
+  - services/commerce-service/src/env.ts
+  - services/commerce-service/src/index.ts
+  - services/commerce-service/tests/integration/revenuecat-sync.integration.test.ts
+  - services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+  - db/migrations/0018_subscriptions_revenuecat_columns.sql
+  - packages/shared-types/src/entities.ts
+verified_by: codex-review
+---
+
+### 완료
+- RevenueCat webhook integration (adapter, sync service, repository)
+- `RevenuecatAdapter` — `getSubscriber()` + `CircuitBreaker` + `RevenuecatUnavailableError`
+- `handleWebhookEvent()` — entitlement 우선순위 결정, `deriveStatusFromEntitlement`, `deriveUserTier`, `upsertRevenuecatSubscription`
+- `markProcessed()` — processed_events idempotency dedup (fail-closed: dedup 먼저, sync 나중)
+- DB migration — subscriptions `provider` discriminator + `revenuecat_subscription_id`, `revenuecat_app_user_id` 컬럼
+- `POST /webhooks/revenuecat` route — full RevenuecatSyncConfig + revenuecatAdapter 시그니처, 503 guard, 401 auth, Zod validation, dedup, sync, 로그
+- Integration tests — `revenuecat-sync.integration.test.ts` (4 cases: happy/generic-error/upstream-error/idempotency) + `revenuecat-webhook.integration.test.ts` 호환성 수정
+
+### 미완료
+- 없음
+
+### 연관 파일
+- services/commerce-service/src/adapters/revenuecat.adapter.ts
+- services/commerce-service/src/services/revenuecat-sync.service.ts
+- services/commerce-service/tests/integration/revenuecat-sync.integration.test.ts
+- services/commerce-service/tests/integration/revenuecat-webhook.integration.test.ts
+- db/migrations/0018_subscriptions_revenuecat_columns.sql
+
+---
 date: 2026-05-05
 agent: claude-opus-4-7
 task_id: CHORE-CI-RESTORE-2026-05-05
@@ -4018,3 +4804,43 @@ verified_by: human-junwon (genre-agnostic 정책 + IMPL-019 close 결정 confirm
 - **셀럽 카테고리 다양화 시 allowlist 확장 PR**: athletes 깊이 확보 위해 ESPN/Sports Illustrated/Men's Health 등 추가 검토 — IMPL-019-extend 진입 시 함께 결정.
 
 ### 연관 파일: .claude/rules/domain/content.md, spec.md, .claude/tasks.yaml, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-07
+agent: claude-opus-4-7
+task_id: DOCS-PIVOT-MOBILE-2026-05
+commit_sha: 24f6e38
+files_changed:
+  - CLAUDE.md
+  - spec.md
+  - apps/web/README.md
+  - docs/MOBILE-ROADMAP.md
+  - docs/FE-ROADMAP.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - .claude/rules/multi-session.md
+  - .claude/rules/spec-dod.md
+  - scripts/gate-check.sh
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (gate-check.sh spec_sync smoke + Plan v5 §Decisions reconciliation)
+---
+### 완료: PIVOT-MOBILE-2026-05 governance + BFF framing 정정 + spec sync registry — DOCS-PIVOT-MOBILE-2026-05
+- **PIVOT 결정 기록**: `apps/mobile` (Expo / RN, iOS+Android 단일 코드베이스) 를 active client 로 전환. `apps/web` 의 SSR pages/components/route groups 는 frozen 처리하되, **BFF (`apps/web/src/app/api/**`) + server lib (`apps/web/src/lib/server/**`) 은 mobile 의 active gateway 로 보존** — 이 framing 이 본 PR 의 핵심 정정 포인트 (이전 문서의 "web 전체 frozen" 표현 시정).
+- **CLAUDE.md §1 + §1.1 갱신**: Active client = `apps/mobile`, partially frozen = `apps/web` (SSR only). hybrid BFF 설명 추가 — `createProtectedRoute` 가 cookie 와 `Authorization: Bearer` 둘 다 인식, `/auth/refresh` 만 cookie-shaped 예외로 mobile 이 user-service 직접 호출. ownership 표 갱신: BFF 라인이 BE owner (JUNWON) 의 active gateway 로 명시.
+- **spec.md PIVOT BANNER 추가**: 본문 web-first 표현이 그대로 남아 있으므로 상단 banner 가 우선함을 명시 + "MOBILE PIVOT spec sync 의무" 섹션을 `.claude/rules/spec-dod.md` 에 신설 — `IMPL-MOBILE-*` / `INFRA-MOBILE-*` / `CHORE-MOBILE-*` / `SPEC-SYNC-*` task 모두 자기 영역의 spec.md 섹션을 함께 patch 하거나 `pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md` 마커 작성 의무.
+- **SPEC-PIVOT-PLAN.md 신규 (registry)**: 모든 mobile-pivot task ID ↔ spec.md 갱신 의무 섹션 매핑 트리거 레지스트리. §3 에 retroactive backfill 행 (INFRA-MOBILE-001 / IMPL-MOBILE-AUTH-001 / IMPL-MOBILE-PAY-001a-1·a-2·b / IMPL-MOBILE-SUB-SYNC-001) 등록 — 본 PR 후속 PR #43, #44 에서 stacked 로 처리.
+- **scripts/gate-check.sh `spec_sync` 추가**: PR 머지 전 mobile-pivot task ID 매칭 시 (1) `git diff origin/main...HEAD -- spec.md` 가 ≥3 line 변경이거나 (2) `pipeline/runs/<TASK-ID>/SPEC-SYNC-DEFER.md` 존재 — 둘 다 부재 시 gate FAIL. 자동 enforcement 로 spec drift 방지.
+- **multi-session.md §1 + §6 갱신**: hybrid BFF 운영 — BFF 가 mobile 의 active gateway 가 되면서 "BFF 마지막 진입" 운영 가이드는 web 활성 시점 한정으로 표시 변경. mobile 시점에는 BE 서비스 mobile-facing endpoint 안정화 직후 BFF route 가 따라가는 패턴 우세.
+- **docs/MOBILE-ROADMAP.md 갱신 + docs/FE-ROADMAP.md archived**: 신규 north-star 가 MOBILE-ROADMAP. FE-ROADMAP 은 PIVOT 이전 시점 기록으로 archive marker 추가.
+- **stacked PR chain 로 분리**: 본 entry 는 PR #42 (BFF framing 정정 + governance + registry) 만 커버. PR #43 = 3 retroactive backfills (INFRA-MOBILE-001 / IMPL-MOBILE-PAY-001b / IMPL-MOBILE-SUB-SYNC-001 의 spec sync), PR #44 = 3 follow-ups (IMPL-MOBILE-AUTH-001 + IMPL-MOBILE-PAY-001a-1 + a-2). 머지 순서 #42 → #43 → #44 에서 base 자동 cascade.
+- **검증**:
+  - `scripts/gate-check.sh spec_sync` (DOCS task 자체는 mobile-pivot task ID 패턴 미일치 → skip 동작 PASS) → PASS.
+  - `python3 scripts/validate_impl_log.py` (pre-commit hook) → PASS 예상.
+  - Plan v5 §Decisions (§52, §92, §182, §203, §225) 와 본 PR governance 정합성 reconciliation 완료.
+
+### 미완료:
+- **PR #42 → #43 → #44 stacked 머지**: 본 entry 가 들어간 PR #42 머지 후 #43, #44 의 base 가 자동 main 으로 cascade. CI 통과 후 사용자 머지.
+- **spec.md 본문 web-first 표현 점진적 absorption**: BANNER 가 우선하지만 본문 자체를 mobile-aware 로 재구성하는 작업은 별도 SPEC-SYNC-* task 로 후속.
+- **mobile FE 본격 개발 진입 전 BE/BFF blocker**: P0 = IMPL-MOBILE-BFF-001 (Bearer fallback 활성화) + IMPL-MOBILE-AUTH-003 (refresh rotation jti) + WORKSPACE-001 (apps/mobile 워크스페이스 부트스트랩). 이 셋이 끝나야 동료 (Dohyun) 가 RN smoke 시작 가능.
+- **gemini-cli `run_shell_command` 부재 미해결**: L3 adversarial pass 가 현재 항상 Claude self-adversarial 로 fallback. gemini-cli 갱신 시까지 유지.
+
+### 연관 파일: CLAUDE.md, spec.md, apps/web/README.md, docs/MOBILE-ROADMAP.md, docs/FE-ROADMAP.md, docs/SPEC-PIVOT-PLAN.md, .claude/rules/multi-session.md, .claude/rules/spec-dod.md, scripts/gate-check.sh, docs/IMPLEMENTATION_LOG.md

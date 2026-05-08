@@ -49,10 +49,10 @@ resource "aws_cognito_user_pool" "this" {
 
   # email is required, immutable (username change would break cognito_sub linkage)
   schema {
-    name                     = "email"
-    attribute_data_type      = "String"
-    required                 = true
-    mutable                  = false
+    name                = "email"
+    attribute_data_type = "String"
+    required            = true
+    mutable             = false
     string_attribute_constraints {
       min_length = 0
       max_length = 2048
@@ -104,9 +104,9 @@ resource "aws_cognito_user_pool_client" "bff" {
   # Hides user existence from error messages (prevent user enumeration)
   prevent_user_existence_errors = "ENABLED"
 
-  access_token_validity  = 60   # minutes
-  id_token_validity      = 60   # minutes
-  refresh_token_validity = 30   # days
+  access_token_validity  = 60 # minutes
+  id_token_validity      = 60 # minutes
+  refresh_token_validity = 30 # days
 
   token_validity_units {
     access_token  = "minutes"
@@ -139,5 +139,36 @@ resource "aws_cognito_user_pool_client" "smoke" {
       condition     = var.environment != "prod"
       error_message = "enable_smoke_client must not be true in production; set enable_smoke_client=false."
     }
+  }
+}
+
+# ── Mobile Public Client (React Native SRP) ──────────────────────────────────
+
+resource "aws_cognito_user_pool_client" "mobile" {
+  name         = "celebbase-mobile-${var.environment}"
+  user_pool_id = aws_cognito_user_pool.this.id
+
+  # Mobile app stores cannot safely keep client secret
+  generate_secret = false
+
+  # SRP + refresh token only (no USER_PASSWORD_AUTH, no CUSTOM_AUTH)
+  explicit_auth_flows = [
+    "ALLOW_USER_SRP_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH",
+  ]
+
+  prevent_user_existence_errors = "ENABLED"
+  enable_token_revocation       = true
+
+  supported_identity_providers = ["COGNITO"]
+
+  access_token_validity  = 60 # minutes
+  id_token_validity      = 60 # minutes
+  refresh_token_validity = 30 # days
+
+  token_validity_units {
+    access_token  = "minutes"
+    id_token      = "minutes"
+    refresh_token = "days"
   }
 }

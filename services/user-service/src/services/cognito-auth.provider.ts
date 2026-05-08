@@ -14,6 +14,7 @@ type DbClient = pg.Pool | pg.PoolClient;
 export interface CognitoConfig {
   userPoolId: string;
   clientId: string;
+  mobileClientId?: string;
   region: string;
   jwksUri: string;
   issuer: string;
@@ -29,21 +30,26 @@ export interface CognitoConfig {
 export class CognitoAuthProvider implements AuthProvider {
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
   private readonly clientId: string;
+  private readonly mobileClientId: string | undefined;
   private readonly issuer: string;
   private readonly log: { warn: (obj: unknown, msg: string) => void } | undefined;
 
   constructor(config: CognitoConfig) {
     this.clientId = config.clientId;
+    this.mobileClientId = config.mobileClientId;
     this.issuer = config.issuer;
     this.jwks = createRemoteJWKSet(new URL(config.jwksUri));
     this.log = config.log;
   }
 
   async verifyIdToken(idToken: string): Promise<IdTokenPayload> {
+    const audience: string | string[] = this.mobileClientId
+      ? [this.clientId, this.mobileClientId]
+      : this.clientId;
     try {
       const { payload } = await jwtVerify(idToken, this.jwks, {
         issuer: this.issuer,
-        audience: this.clientId,
+        audience,
         algorithms: ['RS256'],
         clockTolerance: 60,
       });

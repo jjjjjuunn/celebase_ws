@@ -1,17 +1,23 @@
 # CelebBase Wellness — Frontend Roadmap
 
+> **⚠ ARCHIVED 2026-05-07 — superseded by `docs/MOBILE-ROADMAP.md`**  
+> 본 문서는 PIVOT-MOBILE-2026-05 이전 web-first 시점의 north star. 본문은 historical record 로 보존하되 **새로운 결정/계획의 근거로 인용 X**.  
+> Frozen 범위: `apps/web/src/app/(app|auth|marketing|slice)/**` (SSR pages) + `apps/web/src/components/**` + `packages/ui-kit/**`. **BFF (`apps/web/src/app/api/**`) 와 server lib (`apps/web/src/lib/server/**`) 은 모바일의 active gateway 로 살아 있다** (Plan v5 hybrid BFF — IMPL-MOBILE-BFF-001 / SUB-SYNC-002).  
+> 모바일 트랙 north-star: `docs/MOBILE-ROADMAP.md`. 운영 sprint 분해는 Plan v5.
+
 > North-star planning document. Complements `spec.md` and per-sprint `IMPL-APP-*` plans.
 > Updated after Codex + Gemini blind-spot reviews (2026-04-19).
 
 | Version | Date | Author | Change |
 |---|---|---|---|
 | v0.1 | 2026-04-19 | JUNWON | Initial draft post Sprint-B 002-0c merge |
+| v0.2 | 2026-05-05 | JUNWON | 002-0d merge 반영 (chunk 4/22 → 5/22), Sprint B 다음 차단점 002-0e |
 
 ---
 
 ## 1. Context
 
-Sprint A (foundation) has shipped. Sprint B (IMPL-APP-002) is mid-flight — 4 of 22 chunks merged (`002-0a-1`, `002-0a-2`, `002-0b`, `002-0c`). The product is **not yet walkable**: `(app)` / `(auth)` / `(marketing)` route groups have layouts only, no `page.tsx`. Only `/slice/*` preview pages render.
+Sprint A (foundation) has shipped. Sprint B (IMPL-APP-002) is mid-flight — 5 of 22 chunks merged (`002-0a-1`, `002-0a-2`, `002-0b`, `002-0c`, `002-0d`). The product is **not yet walkable**: `(app)` / `(auth)` / `(marketing)` route groups have layouts only, no `page.tsx`. Only `/slice/*` preview pages render.
 
 This document is the long-range north star for:
 - Sprint B remaining 18 chunks
@@ -46,8 +52,8 @@ This document is the long-range north star for:
 12 Storybook stories. CSS-modules via `scripts/copy-css.mjs`.
 
 ### Shared-types schemas
-`_utils`, `auth`, `users`, `bio-profiles`, `celebrities`, `recipes`, `meal-plans`, `daily-logs`  
-**Next**: `subscriptions` (002-0d, barrel-serial after 002-0c)
+`_utils`, `auth`, `users`, `bio-profiles`, `celebrities`, `recipes`, `meal-plans`, `daily-logs`, `subscriptions`  
+**Next**: Stripe webhook payload schema (002-0e), then auth callback contract (002-0f-1)
 
 ### Design tokens gap
 `packages/design-tokens/tokens.css` (151 lines) is missing vs DESIGN.md:
@@ -120,8 +126,8 @@ Recommended execution order within Sprint B:
 
 | ID | Title | Priority | Dependency |
 |---|---|---|---|
-| 002-0d | subscriptions BFF + schema | next | serial after 002-0c barrel |
-| 002-0e | Stripe webhook + cancel + personalized recipes | queued | 002-0d |
+| 002-0d | subscriptions BFF + schema | ✅ done (`4c966af`) | serial after 002-0c barrel |
+| 002-0e | Stripe webhook + cancel + personalized recipes | next | 002-0d ✅ |
 | **002-0f-1** | **authorize-url + callback routes** | **critical path** | 002-0e |
 | **002-0f-2** | **useAuth hook + jest polyfills** | **critical path** | 002-0f-1 |
 | 002-1a-1 | AuthCard composite | queued | 002-0f-2 |
@@ -248,7 +254,7 @@ Components required by spec but not yet assigned a chunk. These must be assigned
 ### Pivot-2026-05 additions (LifestyleClaim feed)
 | Composite | Task ID | Hook? | Anchor | Status |
 |---|---|---|---|---|
-| ClaimCard (ui-kit primitive) | IMPL-UI-031-a | yes (`'use client';`, expand state) | `docs/design/claim-card-feed/A-card-catalog.html`, spec.md §7.2 | HANDOFF drafted; Codex implement pending |
+| ClaimCard (ui-kit primitive) | IMPL-UI-031-a | yes (`'use client';`, expand state) | `docs/design/claim-card-feed/A-card-catalog.html`, spec.md §7.2 | **Merged** (PR #32, 1f78239) |
 | ClaimCard slice preview + Storybook story | IMPL-UI-031-b | n/a | `apps/web/src/app/slice/claim-card/page.tsx` | Queued (after `-a` merges) |
 | Wellness Claims Feed page (`/feed`) | IMPL-UI-032 | yes | spec.md §7.2 Tab 1 | Not started; depends on ClaimCard primitive |
 

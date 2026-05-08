@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createLogger } from '../../_lib/bff-error.js';
 import { createPublicRoute } from '../../_lib/session.js';
 import { clearSessionCookies } from '../../_lib/cookies.js';
-import { fetchBff, SessionExpiredError } from '../../_lib/bff-fetch.js';
+import { fetchBff } from '../../_lib/bff-fetch.js';
 
 const LOGOUT_FORWARD_TIMEOUT_MS = 2_000;
 
@@ -30,6 +30,8 @@ async function forwardLogout(
       body: JSON.stringify({ refresh_token: refreshToken }),
       timeoutMs: LOGOUT_FORWARD_TIMEOUT_MS,
     });
+    // Upstream 401 (token already invalid) is now reflected in
+    // result.ok=false instead of throwing — same best-effort no-op behavior.
     if (!result.ok) {
       log.warn(
         { status: result.error.status, code: result.error.code },
@@ -37,10 +39,6 @@ async function forwardLogout(
       );
     }
   } catch (err: unknown) {
-    if (err instanceof SessionExpiredError) {
-      // Upstream 401: token already invalid — no-op.
-      return;
-    }
     log.warn({ err }, 'logout forward failed (best-effort)');
   }
 }

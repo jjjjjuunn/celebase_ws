@@ -1,36 +1,17 @@
 import type { ZodType } from 'zod';
-import { redirect } from 'next/navigation';
 import {
   createLogger,
-  SessionExpiredError,
   type BffError,
 } from './bff-error.js';
 import { readEnv } from './env.js';
 
-export { SessionExpiredError } from './bff-error.js';
+// CHORE-BFF-SESSION-EXPIRED-CLEANUP (2026-05-07): SessionExpiredError class
+// + redirectOnSessionExpired helper removed. CHORE-BFF-401-CONTRACT (PR #50)
+// 머지 후 fetchBff 가 401 을 throw 하지 않고 Result.ok=false + upstream code
+// 로 반환 — RSC/handler 모두 envelope 분기 사용. 'next/navigation' redirect
+// 도 더 이상 본 모듈에서 호출하지 않음.
 
 export type BffTarget = 'user' | 'content' | 'meal-plan' | 'analytics' | 'commerce';
-
-// D29: Use this helper ONLY in Server Components after awaiting fetchBff.
-// RSCs MUST pattern-match the error specifically — NEVER a bare `catch`
-// that could swallow Next.js's internal NEXT_REDIRECT throw.
-//
-//   try { await fetchBff(...) } catch (err) {
-//     if (err instanceof SessionExpiredError) redirectOnSessionExpired(err);
-//     throw err;
-//   }
-//
-// API route handlers wrapped in createProtectedRoute must NOT call this;
-// createProtectedRoute catches SessionExpiredError and returns 401 JSON.
-// redirect() inside an API route throws NEXT_REDIRECT which Next.js converts
-// to a 307 with Location — wrong for JSON APIs.
-export function redirectOnSessionExpired(err: unknown): never {
-  if (err instanceof SessionExpiredError) {
-    const returnTo = err.returnTo ?? '/dashboard';
-    redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`);
-  }
-  throw err;
-}
 
 export type Result<T> =
   | { ok: true; data: T }
@@ -271,9 +252,15 @@ export async function fetchBff<T>(
   }
 
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new SessionExpiredError();
-    }
+    // CHORE-BFF-401-CONTRACT: 401 used to throw SessionExpiredError, which
+    // collapsed every upstream 401 into envelope code='TOKEN_EXPIRED' (web's
+    // cookie-redirect semantic). That broke IMPL-MOBILE-AUTH-003's 5-code
+    // refresh enum forward (MALFORMED / TOKEN_REUSE_DETECTED / etc.) for
+    // mobile clients. Now 401 returns Result.ok=false with the upstream code,
+    // like every other status. The "401 means redirect" semantic moves up
+    // into createProtectedRoute (cookie path), which is the only caller that
+    // can attempt a silent refresh — public routes (mobile, signup, login)
+    // and the refresh route just forward the envelope.
     const picked = pickUpstreamError(parsedBody);
     return {
       ok: false,

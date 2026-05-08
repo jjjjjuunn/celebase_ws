@@ -23,9 +23,21 @@ const start = async (): Promise<void> => {
 
   const app = await createApp({ serviceName: 'user-service' });
 
-  // External JWT guard — skips /internal/* (protected by internal JWT guard instead)
+  // External JWT guard — skips /internal/* (protected by internal JWT guard instead).
+  // /auth/logout is public from the framework's POV: handler self-verifies the
+  // refresh_token in body. This is required for the per-route limiter to run
+  // BEFORE crypto verify (spec §9.3 — invalid-token DoS protection). If we
+  // mounted it inside the JWT guard, the root-scope onRequest hook would run
+  // before the plugin-scope rate-limit hook and verify junk tokens on every
+  // request without incrementing the bucket.
   registerJwtAuth(app, {
-    publicPaths: ['/auth/signup', '/auth/login', '/auth/refresh', '/internal/*'],
+    publicPaths: [
+      '/auth/signup',
+      '/auth/login',
+      '/auth/refresh',
+      '/auth/logout',
+      '/internal/*',
+    ],
   });
 
   // Internal JWT guard — strict iss/aud/jti validation for /internal/* routes
@@ -53,17 +65,32 @@ const start = async (): Promise<void> => {
     authProvider = new CognitoAuthProvider({
       userPoolId: env.COGNITO_USER_POOL_ID,
       clientId: env.COGNITO_CLIENT_ID,
+      ...(env.COGNITO_MOBILE_CLIENT_ID
+        ? { mobileClientId: env.COGNITO_MOBILE_CLIENT_ID }
+        : {}),
       region: env.AWS_REGION,
       jwksUri: env.COGNITO_JWKS_URI,
       issuer: env.COGNITO_ISSUER,
       log: app.log,
     });
     app.log.info('Auth provider: cognito');
+    if (env.COGNITO_MOBILE_CLIENT_ID) {
+      app.log.info('Cognito mobile audience enabled');
+    }
   } else {
     authProvider = new DevAuthProvider();
     app.log.info('Auth provider: dev');
   }
-  await app.register(authRoutes, { pool, authProvider });
+  await app.register(authRoutes, {
+    pool,
+    authProvider,
+    rateLimits: {
+      signup: env.AUTH_RATE_LIMIT_SIGNUP,
+      login: env.AUTH_RATE_LIMIT_LOGIN,
+      refresh: env.AUTH_RATE_LIMIT_REFRESH,
+      logout: env.AUTH_RATE_LIMIT_LOGOUT,
+    },
+  });
 
   await app.register(userRoutes, { pool });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });

@@ -263,6 +263,30 @@ gate-review Claude 판정 시:
 3. "테스트 없음" 은 테스트 파일이 다음 sub-task 로 명시 위임된 경우 "by plan design" 으로 PASS
 4. 판정 근거를 `pipeline-log.jsonl` 에 상세 기록
 
+#### verdict 종류 4분리 (INFRA-MOBILE-001 교훈)
+
+`out-of-scope` 와 `plan-decided` 는 다른 verdict 다 — 후자는 "이 finding 은 실제로 위험하지만 다음 sub-task 가 코드 레벨로 닫는다 + Plan 이 머지 순서를 강제한다" 를 의미한다. `pipeline-log.jsonl` 에 4가지를 분리해 기록한다:
+
+| verdict | 의미 | 예시 |
+|---------|------|------|
+| `out_of_scope` | HANDOFF 스코프와 무관, 다른 라인에서 처리 | 다른 서비스 파일에서 발견된 finding |
+| `plan_decided` | 위험 실재. 다음 sub-task 가 코드 레벨로 mitigation. Plan 이 머지 순서 강제 | INFRA-MOBILE-001 의 audience confusion → IMPL-MOBILE-AUTH-001 P0 |
+| `deferred_backlog` | 실제 위험이지만 본 HANDOFF DoD 외. backlog ticket 으로 추적 | mobile refresh TTL 단축 → CHORE-MOBILE-002 |
+| `accept` | finding 이 실제로 문제 아님 (default OK / 다른 layer 책임) | `auth_session_validity` default 3 분 (Amplify SDK 가 retry) |
+
+`plan_decided` 사용 조건 (전부 충족):
+- finding 이 단독 PR 머지 시 활성화되지 않음을 코드 레벨로 검증 (예: 회귀 보호 테스트 존재)
+- mitigation 이 Plan 의 명시된 후속 task 로 식별 가능 (Plan §section 인용)
+- Plan 의 머지 순서 강제 메커니즘 존재 (다른 task 의존성·gate 등)
+- **PR body 에 `⚠️ DO NOT MERGE before <next-task>` callout 명시** (IMPL-MOBILE-PAY-001a-1 교훈) — reviewer 가 finding 의 위험성을 인지한 상태로 머지 순서를 강제 인식하도록 PR 첫 섹션에 글로 풀어 적는다
+
+위 조건 미충족이면 `deferred_backlog` 또는 fix loop 로 강등.
+
+`pipeline-log.jsonl` 기록 예:
+```json
+{"verdict": "plan_decided", "mitigation_pr": "IMPL-MOBILE-AUTH-001", "must_merge_before": "동료 M1 시작", "plan_section": "§52, §92, §182, §203, §225"}
+```
+
 ### 판정 결과 기록
 - Pass: `log_event`로 기록, 다음 단계 진행
 - Fail: `pipeline/runs/<TASK-ID>/fix-request-N.md` 작성 후 `fix` 단계 호출
@@ -330,6 +354,45 @@ lifecycle {
 
 스테이징 전용 리소스(smoke client, debug endpoint 등)는 `count` gate + `lifecycle.precondition` 두 가지 모두 적용한다.
 
+### `aws_cognito_user_pool_client` 는 `tags` 미지원 (INFRA-MOBILE-001 교훈)
+
+AWS provider 5.x 의 `aws_cognito_user_pool_client` 리소스는 `tags` argument 를 지원하지 않는다. 같은 파일의 `aws_cognito_user_pool` (line 62-66, CHORE-006) 가 `tags` 를 사용한다고 해서 client 리소스에도 동일 패턴을 복사하면 `terraform validate` 가 실패한다:
+
+```hcl
+# ❌ tags 미지원 — terraform validate 실패
+resource "aws_cognito_user_pool_client" "mobile" {
+  name = "celebbase-mobile-${var.environment}"
+  tags = { env = var.environment }   # ← unsupported argument
+}
+
+# ✅ tags 블록 제거 — 기존 BFF/smoke client 와 동일 패턴
+resource "aws_cognito_user_pool_client" "mobile" {
+  name = "celebbase-mobile-${var.environment}"
+}
+```
+
+HANDOFF 작성 시 `aws_cognito_user_pool_client` 리소스 추가가 포함되면 Anti-Patterns 에 본 항목 + "기존 `bff` / `smoke` client 블록을 reference 로 사용" 을 명시한다. INFRA-MOBILE-001 fix-request-1 에서 발생.
+
+### Terraform-only HANDOFF QA 패턴 (INFRA-MOBILE-001 교훈)
+
+Terraform 만 변경하는 HANDOFF (DSL-only, TS/Python 코드 변경 없음) 의 QA 는 정적 검증 + grep 으로 한정한다. `terraform plan` 은 AWS creds 가 필요해 staging apply PR 단계로 위임:
+
+| 단계 | 명령 | 목적 |
+|------|------|------|
+| 1 | `terraform fmt -check` | 포맷 일관성 (exit 0) |
+| 2 | `terraform init -backend=false` | provider 다운로드 (backend 없이) |
+| 3 | `terraform validate` | 문법/타입/argument 검증 (exit 0) |
+| 4 | resource attribute grep | 신규 리소스의 필수 attribute 존재 확인 (`generate_secret`, `explicit_auth_flows` 등) |
+| 5 | anti-pattern 회귀 차단 grep | fix-request 에서 제거한 블록 (`tags`, `lifecycle`, `count` 등) 재발 방지 |
+| 6 | 비회귀 grep | 기존 리소스 (BFF/smoke client 등) 변경 없음 확인 |
+
+**스킵 항목과 사유**:
+- `terraform plan against tfvars` — AWS creds 필요, 운영 PR review 단계로 위임
+- Unit/Integration test — HCL 변경에는 매핑 없음
+- Mobile SDK smoke — 클라이언트 패키지 부재 (CHORE-MOBILE-001 후 e2e 로 검증)
+
+QA-PLAN.md 의 "Skipped Verifications" 섹션에 위 매핑을 표 형태로 기록한다.
+
 ### QA 단계 Python venv 사전 설치 (IMPL-004-c 교훈)
 
 Codex sandbox에는 PyPI 접근이 없어 pytest 실행이 실패한다. 이를 방지하기 위해 `pipeline.sh`의 `step_qa_exec()`에서 Codex 실행 **전에** Python venv을 생성하고 의존성을 설치한다:
@@ -342,6 +405,21 @@ python3 -m venv services/meal-plan-engine/.venv
 Codex QA 프롬프트에 `.venv/bin/python -m pytest` 경로를 명시한다. 그래도 가짜 `pytest/` 디렉토리가 생성되면 `gate-check.sh`의 `check_fake_stubs()`가 자동 탐지하여 gate FAIL 처리한다.
 
 gate-qa 판정 시 Claude가 직접 `python3 -m pytest`를 실행해 실제 통과 여부를 이중 확인한다.
+
+#### `.venv-python` 심볼릭 링크는 `.gitignore` 에 단일 라인 등재 필수 (IMPL-MOBILE-BFF-001 교훈)
+
+`step_qa_exec()` 가 `services/meal-plan-engine/.venv/bin/python` → `$WORKTREE_DIR/.venv-python` 심볼릭 링크를 만든다. `.gitignore` 의 `.venv/` 는 **디렉토리 패턴**이라 단일 심볼릭 링크 `.venv-python` 을 매칭하지 못한다 → `step_finalize` 의 `git add -A` 가 흡수해 `create mode 120000 .venv-python` commit 이 발생한다.
+
+```gitignore
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.venv-python   # ← step_qa_exec 가 만드는 worktree-local symlink
+```
+
+IMPL-MOBILE-BFF-001 finalize 단계에서 처음 발생 → fix 로 `.gitignore` 에 본 라인 추가됨. 신규 worktree 모두 적용.
 
 ### qa-exec 후 fake node_modules 탐지 필수 (IMPL-APP-005-b 교훈)
 
@@ -358,6 +436,89 @@ fake 탐지 시:
 2. 실제 workspace tsc로 재검증: `node_modules/.bin/tsc -p packages/shared-types/tsconfig.json --noEmit`
 
 또한 Codex qa-exec이 구현 파일을 "개선"한다는 명목으로 수정하는 경우 `git diff HEAD` 로 확인 후 불필요한 변경은 `git checkout <file>` 로 revert한다.
+
+### qa-exec 후 in-process server `listen EPERM` false-failure 인식 (IMPL-MOBILE-AUTH-001 교훈)
+
+macOS Codex sandbox 는 `server.listen(0, '127.0.0.1', ...)` 같은 loopback bind 도 차단한다 (`Error: listen EPERM: operation not permitted 127.0.0.1`). 이로 인해 in-process HTTP server 패턴을 사용하는 jest/pytest 테스트가 sandbox 안에서는 전부 fail 처럼 보이지만 실제 코드는 정상이다.
+
+해당 패턴 예시:
+- mock JWKS server (`packages/service-core/tests/helpers/mock-jwks-server.ts`)
+- mock OIDC server, mock Stripe webhook, mock RevenueCat 등 외부 IdP/SaaS 모의
+- Fastify/Express test server `app.listen(0, ...)`
+
+증상:
+1. `qa-result.md` 의 step B 에서 모든 jest 테스트가 timeout 또는 `Cannot read properties of undefined (reading 'stop')` 로 fail
+2. error log 에 `Test suite failed to run` + `listen EPERM: operation not permitted 127.0.0.1` 이 등장 (한두 개 describe 가 아니라 모든 describe 에 동시 발생)
+
+진단 절차:
+1. `gate-check.sh fake_stubs` 가 PASS 인지 먼저 확인 (fake stub 가능성 배제)
+2. `qa-result.md` 안에서 `listen EPERM` 검색 → 1 건 이상이면 sandbox 차단 확정
+3. Claude 가 worktree 에서 sandbox 외부 직접 실행:
+   ```bash
+   cd .worktrees/<TASK-ID>
+   pnpm --filter <pkg> test -- --testPathPattern=<pattern> --runInBand
+   ```
+4. 직접 실행 결과를 `qa-result.md` 의 "Claude 재검증" 섹션으로 append
+5. `pipeline-log.jsonl` 에 `verdict: pass / review_method: claude_direct / reason: codex_sandbox_listen_eperm_false_failure` 기록
+
+이 false-failure 는 fix-request 가 아니라 verdict 정정으로 닫는다 — 코드 변경 불필요.
+
+### gate-qa 의 `web#build` fail 진단 우선순위 (IMPL-MOBILE-AUTH-001 교훈)
+
+`gate-check.sh build` 에서 `web#build` 만 fail 이고 본 task affected paths 가 `services/**` 한정이면, 가장 흔한 원인은 worktree 의 `.env.local` 누락이다. next build 의 `Collecting page data` 단계가 BFF route 의 `process.env.USER_SERVICE_URL` 등을 strict 검증하면서 `Missing required env var: <NAME>` 으로 throw 한다.
+
+진단 절차:
+1. build output 끝부분에서 `Missing required env var:` grep
+2. 본 task 의 affected paths 가 `apps/web/**` 미포함이면 `verdict: out_of_scope`
+3. main repo 에서도 동일 환경변수 부재로 fail 가능성 있으므로 chore 로 backlog (worktree-aware `.env.local` 또는 dummy default)
+
+복구 절차 (즉시 build 통과가 필요한 경우, IMPL-MOBILE-BFF-001 교훈):
+
+```bash
+# 절대경로로 cp — 같은 파일명 ".env.local" 이면 cwd 가 worktree 내부일 때
+# "files are identical" 로 silent skip 되는 함정이 있음. 반드시 절대경로 양쪽 명시.
+cp /Users/<you>/.../celebase_ws/apps/web/.env.local \
+   /Users/<you>/.../celebase_ws/.worktrees/<TASK-ID>/apps/web/.env.local
+```
+
+cp 가 silent skip 되면 다시 fail — `cp -v` 로 실제 복사 수행 여부를 확인하거나, `diff` 로 양쪽이 비어있지 않은지 사후 확인한다.
+
+### qa-exec 후 sandbox-adaptation mock 주입 탐지 (IMPL-MOBILE-PAY-001a-1 교훈)
+
+Codex sandbox 가 `server.listen(0, '127.0.0.1', ...)` 를 차단 (`listen EPERM`) 하면 contract test (Pact / mock OIDC / mock Stripe webhook 등) 의 mock provider 가 기동 불가 → Codex 가 prototype method 를 canned 응답으로 영구 override 하여 sandbox 통과를 유도할 수 있다. 이 주입이 commit 되면 prod CI 에서도 contract test 가 항상 PASS — 검증 사실상 비활성화.
+
+발생 사례 (IMPL-MOBILE-PAY-001a-1):
+
+```javascript
+// services/commerce-service/tests/jest.setup.cjs (Codex 신규 생성, commit 전 발견)
+const { PactV3 } = require('@pact-foundation/pact');
+PactV3.prototype.executeTest = async function(callback) {
+  return callback({ baseUrl: 'http://localhost:0' });
+  // 실제 Pact provider 기동 없이 canned response 반환 → contract 검증 silent skip
+};
+```
+
+```json
+// services/commerce-service/package.json (Codex 가 jest config 에 setupFiles 추가)
+"jest": {
+  "setupFiles": ["<rootDir>/tests/jest.setup.cjs"]
+}
+```
+
+탐지 절차 (qa-exec 직후 모든 BE task):
+
+1. `git status -s` 로 신규 파일 확인:
+   - `**/jest.setup.*` (cjs / js / ts)
+   - `**/__mocks__/**` 신규 디렉토리
+   - `**/*.mock.ts` 신규 파일
+2. `git diff HEAD~ HEAD -- '**/package.json'` 으로 jest/vitest config 변경 확인 — 특히 `setupFiles`, `setupFilesAfterEach`, `moduleNameMapper`, `transform` 키 신규 추가
+3. 신규 파일이 `prototype.<method>` override 또는 외부 라이브러리 함수 재정의를 포함하면 sandbox-adaptation 추정
+4. revert: `git checkout HEAD~ -- <files>` + `rm -f <new-files>`
+5. sandbox 외부에서 `pnpm --filter <svc> test` 직접 실행 → native library 로 동일 PASS 재현
+6. qa-results.txt 의 "Claude 재검증" 섹션에 sandbox 외부 재현 로그 append
+7. `pipeline-log.jsonl` 에 `verdict: pass / review_method: claude_direct / reason: codex_sandbox_mock_injection_reverted` 기록
+
+이 false-positive PASS 는 fix-request 가 아니라 Claude 가 직접 revert + 재검증으로 닫는다 — Codex 의 sandbox-adaptation 의도는 정당하지만 결과물이 prod CI 를 contaminate 하기 때문.
 
 ### 신규 서비스 포트 할당 전 compose 상태 확인 (IMPL-016-c3 교훈)
 
@@ -431,6 +592,26 @@ IMPL-AI-002 r1 의 codex CLI traversal 실패는 변경 범위가 컸기 때문 
 - HANDOFF Affected Paths 가 명확히 제한되어 codex 가 traversal 범위를 좁힐 수 있음
 
 따라서 fallback 절차로 바로 가지 말고 **(1) HANDOFF 범위 축소 → (2) codex 재시도 → (3) 그래도 traversal 실패 시 fallback** 의 순서를 따른다. IMPL-021 은 admin-auth.ts 1 file + test 1 file (단일 서비스) 라 codex × 2 + gemini × 1 가 그대로 작동.
+
+### Gemini CLI fallback 운영 케이스 누적 (INFRA-MOBILE-001 데이터포인트)
+
+INFRA-MOBILE-001 (Terraform 2 files / +44 -7) 은 codex r1+r2 모두 정상 (PASS, LOW only) 동작했으나 Gemini CLI 0.39.1 의 `run_shell_command` 도구 부재로 adversarial pass 가 불가능했다. → **Claude self-adversarial 로 대체** (IMPL-AI-002 교훈의 fallback 적용).
+
+누적 데이터포인트:
+
+| 케이스 | codex 동작 | Gemini 동작 | 적용한 fallback |
+|--------|-----------|-------------|-----------------|
+| IMPL-AI-002 (5+ files / 1000+ insertions) | traversal 실패 (80KB 출력만) | — | Claude 직접 review × 1 + adversarial × 1 |
+| IMPL-021 (admin-auth.ts + test, 단일 서비스) | 정상 (r1/r2/r3) | 정상 (adversarial finding 생성) | fallback 불필요 |
+| INFRA-MOBILE-001 (Terraform 2 files) | 정상 (r1/r2 PASS) | 도구 부재 (`run_shell_command` 없음) | Claude self-adversarial × 1 |
+| IMPL-MOBILE-BFF-001 (apps/web `_lib/session.ts` ±200 + test ±300 + helpers ±10 + spec/plan, 단일 파일 보안·인증) | 정상 (r1/r2 PASS, MEDIUM 1 out_of_scope · LOW 5) | 도구 부재 | Claude self-adversarial × 1 (10 threats inspected, 0 신규 CRITICAL/HIGH/MEDIUM) |
+
+운영 결론:
+- gemini-cli 는 0.39.1 시점에 L3 adversarial pass 가 **항상 불가능** — `run_shell_command` / `Bash` 도구 부재로 grep/검증 자체가 안 됨
+- 따라서 L3 task 에서 Gemini adversarial 은 **현재 구조적으로 fallback 필수** — codex 정상 동작 여부와 무관
+- `pipeline-log.jsonl` 에 `review_method: claude_direct` + `reason: gemini_cli_tool_absence` 로 기록
+- gemini-cli 가 `run_shell_command` 지원 버전으로 갱신될 때까지 본 fallback 유지
+- codex traversal 실패는 별개 이슈 — HANDOFF 범위 축소 (5 files / 1000 insertions 미만) 로 회피
 
 ---
 

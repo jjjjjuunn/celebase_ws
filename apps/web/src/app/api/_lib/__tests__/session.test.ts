@@ -22,7 +22,6 @@ jest.mock('jose', () => {
 
 import { jwtVerify, errors as joseErrors } from 'jose';
 import { createProtectedRoute, createPublicRoute } from '../session';
-import { SessionExpiredError } from '../bff-error';
 import { makeRequest, VALID_SESSION_PAYLOAD as VALID_PAYLOAD } from './test-helpers';
 
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
@@ -92,10 +91,11 @@ describe('createProtectedRoute', () => {
     await wrapped(makeRequest({ cookie: 'valid-token' }));
 
     expect(handler).toHaveBeenCalledTimes(1);
-    const [, session] = handler.mock.calls[0] as [unknown, { user_id: string; email: string; cognito_sub: string }];
+    const [, session] = handler.mock.calls[0] as [unknown, { user_id: string; email: string; cognito_sub: string; authSource: string }];
     expect(session.user_id).toBe('user-abc-123');
     expect(session.cognito_sub).toBe('cognito-sub-xyz');
     expect(session.email).toBe('test@example.com');
+    expect(session.authSource).toBe('cookie');
   });
 
   it('propagates x-request-id from incoming request to response', async () => {
@@ -135,24 +135,27 @@ describe('createProtectedRoute', () => {
     expect(body.error.code).toBe('INTERNAL_ERROR');
   });
 
-  // D29 / R14: fetchBff inside an API route throws SessionExpiredError on
-  // BE 401. The wrapper must return 401 JSON with X-Token-Expired — NOT a
-  // 307 redirect. redirect() inside an API route would cascade NEXT_REDIRECT
-  // which the client's fetch-based useQuery cannot follow.
-  it('returns 401 JSON with X-Token-Expired when handler throws SessionExpiredError', async () => {
+  // CHORE-BFF-401-CONTRACT: handler returning a 401 Response (e.g., from
+  // Result.ok=false on upstream 401) is forwarded verbatim. The wrapper no
+  // longer rewrites the envelope code into 'TOKEN_EXPIRED' — required for
+  // mobile state machine to branch on AUTH-003's 5-code refresh enum.
+  it('forwards 401 envelope from handler unchanged (no TOKEN_EXPIRED collapse)', async () => {
     mockJwtVerify.mockResolvedValueOnce(
       { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
     );
-    const handler = jest.fn().mockImplementation(() => {
-      throw new SessionExpiredError('/users/me');
-    });
+    const handler = jest.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { code: 'MALFORMED', message: 'Malformed token' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
     const wrapped = createProtectedRoute(handler);
     const res = await wrapped(makeRequest({ cookie: 'valid-token' }));
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('X-Token-Expired')).toBe('true');
-    const body = await res.json() as { error: { code: string } };
-    expect(body.error.code).toBe('TOKEN_EXPIRED');
+    const body = await res.json() as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('MALFORMED');
+    expect(body.error.message).toBe('Malformed token');
   });
 });
 
@@ -195,6 +198,10 @@ describe('createProtectedRoute silent refresh', () => {
 
     expect(res.status).toBe(200);
     expect(handler).toHaveBeenCalledTimes(1);
+    // Refreshed session is still cookie-sourced — silent refresh never
+    // upgrades a cookie path to bearer.
+    const [, refreshedSession] = handler.mock.calls[0] as [unknown, { authSource: string }];
+    expect(refreshedSession.authSource).toBe('cookie');
     const setCookies = res.headers.getSetCookie();
     expect(setCookies).toHaveLength(2);
     expect(setCookies[0]).toContain('cb_access=fresh-access');
@@ -270,7 +277,15 @@ describe('createProtectedRoute silent refresh', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('clears refreshed cookies and returns 401 when handler throws SessionExpiredError after refresh', async () => {
+  // CHORE-BFF-401-CONTRACT: previously, a SessionExpiredError thrown by the
+  // handler after a successful refresh triggered cookie clearing in the
+  // wrapper. With fetchBff no longer throwing on 401, the handler returns a
+  // 401 Response directly and the wrapper forwards it. Stale-cookie cleanup
+  // happens on the next request's access-token verify (which fails →
+  // silent refresh attempt → if that also fails, cookie clear at line
+  // 196-208 of session.ts). Infinite-loop guard is preserved by the verify
+  // path itself: there's only ever one silent refresh per request.
+  it('forwards handler 401 envelope after silent refresh (next request handles cookie cleanup)', async () => {
     mockJwtVerify
       .mockRejectedValueOnce(
         new (joseErrors.JWTExpired as unknown as new () => Error)(),
@@ -287,27 +302,28 @@ describe('createProtectedRoute silent refresh', () => {
         { status: 200 },
       ),
     );
-    const handler = jest.fn().mockImplementation(() => {
-      throw new SessionExpiredError('/users/me');
-    });
+    // Handler simulates upstream 401 → returns the envelope as a 401 Response.
+    const handler = jest.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { code: 'TOKEN_REUSE_DETECTED' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
     const wrapped = createProtectedRoute(handler);
     const res = await wrapped(
       makeRequest({ cookie: 'expired-access', refreshCookie: 'valid-refresh' }),
     );
 
     expect(res.status).toBe(401);
-    expect(res.headers.get('X-Token-Expired')).toBe('true');
-    // Infinite-loop guard: handler is retried exactly once (from the refresh
-    // path). SessionExpiredError in the handler → 401 + cleared cookies,
-    // NOT another refresh attempt.
     expect(handler).toHaveBeenCalledTimes(1);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+    // Envelope code preserved (mobile state machine source of truth).
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('TOKEN_REUSE_DETECTED');
+    // Refreshed Set-Cookie still appended (the refresh succeeded). Stale
+    // cookies are cleaned up by the next request's verify path, not here.
     const setCookies = res.headers.getSetCookie();
-    expect(setCookies).toHaveLength(2);
-    expect(setCookies[0]).toContain('cb_access=');
-    expect(setCookies[0]).toContain('Max-Age=0');
-    expect(setCookies[1]).toContain('cb_refresh=');
-    expect(setCookies[1]).toContain('Max-Age=0');
+    expect(setCookies.some((c) => c.includes('cb_access=fresh-access'))).toBe(true);
   });
 
   it('pads response to at least 100ms even on no-cookie fast path', async () => {
@@ -359,6 +375,256 @@ describe('dual-key rotation overlap', () => {
     expect(res.headers.get('X-Token-Expired')).toBe('true');
     expect(mockJwtVerify).toHaveBeenCalledTimes(1);
     expect(handler).not.toHaveBeenCalled();
+  });
+});
+
+// IMPL-MOBILE-BFF-001: hybrid BFF auth — Authorization: Bearer path for the
+// mobile (Expo / RN) client. Cookie path A is enforced — bearer is only
+// evaluated when cb_access is absent. No silent refresh, no Set-Cookie.
+describe('createProtectedRoute bearer path', () => {
+  it('returns 401 with X-Token-Expired when bearer token is JWTExpired', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ authorization: 'Bearer expired-token' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('TOKEN_EXPIRED');
+    expect(handler).not.toHaveBeenCalled();
+    // Bearer path must never touch the cookie jar.
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('returns 401 UNAUTHORIZED when bearer token is forged', async () => {
+    mockJwtVerify.mockRejectedValueOnce(new Error('Invalid signature'));
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({ authorization: 'Bearer forged-token' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBeNull();
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('UNAUTHORIZED');
+    expect(handler).not.toHaveBeenCalled();
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it("injects session.authSource='bearer' from valid bearer token", async () => {
+    mockJwtVerify.mockResolvedValueOnce(
+      { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+    );
+    const handler = jest.fn().mockResolvedValue(new Response('ok', { status: 200 }));
+    const wrapped = createProtectedRoute(handler);
+    await wrapped(makeRequest({ authorization: 'Bearer valid-token' }));
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    const [, session] = handler.mock.calls[0] as [unknown, { user_id: string; authSource: string }];
+    expect(session.user_id).toBe('user-abc-123');
+    expect(session.authSource).toBe('bearer');
+  });
+
+  it('does not emit Set-Cookie on bearer success', async () => {
+    mockJwtVerify.mockResolvedValueOnce(
+      { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+    );
+    const handler = jest.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
+    );
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(makeRequest({ authorization: 'Bearer valid-token' }));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('does not emit Set-Cookie on bearer 401 envelope (no clearSessionCookies leak to web jar)', async () => {
+    // CHORE-BFF-401-CONTRACT: handler returns 401 Response (e.g., from
+    // upstream Result.ok=false). Bearer path must NEVER emit Set-Cookie —
+    // mobile holds refresh in expo-secure-store, and a stray Set-Cookie
+    // would leak into a co-resident browser sharing the network stack.
+    mockJwtVerify.mockResolvedValueOnce(
+      { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+    );
+    const handler = jest.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { code: 'MALFORMED' } }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(makeRequest({ authorization: 'Bearer valid-token' }));
+
+    expect(res.status).toBe(401);
+    // Envelope code preserved on bearer path too (CHORE-BFF-401-CONTRACT).
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('MALFORMED');
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it("rejects 'bearer ' (lowercase scheme) per RFC 6750 — falls through to 401 missing-cookie", async () => {
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(makeRequest({ authorization: 'bearer some-token' }));
+
+    expect(res.status).toBe(401);
+    const body = await res.json() as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('UNAUTHORIZED');
+    expect(body.error.message).toBe('Missing session cookie');
+    expect(handler).not.toHaveBeenCalled();
+    // jwtVerify must not be invoked when the scheme didn't match — otherwise
+    // the bearer fallback would be partially active.
+    expect(mockJwtVerify).not.toHaveBeenCalled();
+  });
+});
+
+// Path-confusion regression — D1 enforce. The cookie path is evaluated
+// alone whenever cb_access is present; a stolen-cookie-induced 401 must
+// never let a different user's bearer token take over.
+describe('createProtectedRoute cookie+bearer path confusion (D1)', () => {
+  it('cookie forged + bearer valid → cookie path UNAUTHORIZED, bearer ignored', async () => {
+    mockJwtVerify.mockRejectedValueOnce(new Error('Invalid signature'));
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({
+        cookie: 'forged-cookie',
+        authorization: 'Bearer valid-bearer',
+      }),
+    );
+
+    expect(res.status).toBe(401);
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('UNAUTHORIZED');
+    expect(handler).not.toHaveBeenCalled();
+    // Only the cookie was verified — bearer was never even examined.
+    expect(mockJwtVerify).toHaveBeenCalledTimes(1);
+  });
+
+  it('cookie expired + no refresh + bearer valid → 401 TOKEN_EXPIRED, bearer ignored', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({
+        cookie: 'expired-cookie',
+        authorization: 'Bearer valid-bearer',
+      }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    expect(handler).not.toHaveBeenCalled();
+    expect(mockJwtVerify).toHaveBeenCalledTimes(1);
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('cookie expired + refresh fail + bearer valid → 401 + clearSessionCookies, bearer ignored', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'INVALID_REFRESH_TOKEN' } }), {
+        status: 401,
+      }),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const res = await wrapped(
+      makeRequest({
+        cookie: 'expired-cookie',
+        refreshCookie: 'revoked-refresh',
+        authorization: 'Bearer valid-bearer',
+      }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get('X-Token-Expired')).toBe('true');
+    expect(handler).not.toHaveBeenCalled();
+    // Cookie path emits clear-cookie even though bearer is ignored.
+    const setCookies = res.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(setCookies[0]).toContain('Max-Age=0');
+    expect(setCookies[1]).toContain('Max-Age=0');
+    // Bearer was never verified — only the cookie was attempted.
+    expect(mockJwtVerify).toHaveBeenCalledTimes(1);
+    fetchSpy.mockRestore();
+  });
+});
+
+// Timing regression — every new branch must run padToMinLatency so the outer
+// response timing can't distinguish bearer-success / bearer-expired /
+// bearer-forged / cookie+bearer (path A) flows.
+describe('createProtectedRoute bearer timing regression', () => {
+  it('pads bearer expired branch to ≥100ms', async () => {
+    mockJwtVerify.mockRejectedValueOnce(
+      new (joseErrors.JWTExpired as unknown as new () => Error)(),
+    );
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const start = performance.now();
+    const res = await wrapped(
+      makeRequest({ authorization: 'Bearer expired-token' }),
+    );
+    const elapsed = performance.now() - start;
+
+    expect(res.status).toBe(401);
+    expect(elapsed).toBeGreaterThanOrEqual(95);
+  });
+
+  it('pads bearer forged branch to ≥100ms', async () => {
+    mockJwtVerify.mockRejectedValueOnce(new Error('Invalid signature'));
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const start = performance.now();
+    const res = await wrapped(
+      makeRequest({ authorization: 'Bearer forged-token' }),
+    );
+    const elapsed = performance.now() - start;
+
+    expect(res.status).toBe(401);
+    expect(elapsed).toBeGreaterThanOrEqual(95);
+  });
+
+  it('pads bearer success branch to ≥100ms (after handler completes)', async () => {
+    mockJwtVerify.mockResolvedValueOnce(
+      { payload: VALID_PAYLOAD, protectedHeader: { alg: 'HS256' } } as unknown as Awaited<ReturnType<typeof jwtVerify>>,
+    );
+    // Fast handler — pad must still bring total to ≥100ms.
+    const handler = jest.fn().mockResolvedValue(new Response('ok', { status: 200 }));
+    const wrapped = createProtectedRoute(handler);
+    const start = performance.now();
+    const res = await wrapped(makeRequest({ authorization: 'Bearer valid-token' }));
+    const elapsed = performance.now() - start;
+
+    expect(res.status).toBe(200);
+    expect(elapsed).toBeGreaterThanOrEqual(95);
+  });
+
+  it('pads cookie+bearer (path A) branch to ≥100ms', async () => {
+    mockJwtVerify.mockRejectedValueOnce(new Error('Invalid signature'));
+    const handler = jest.fn();
+    const wrapped = createProtectedRoute(handler);
+    const start = performance.now();
+    const res = await wrapped(
+      makeRequest({
+        cookie: 'forged-cookie',
+        authorization: 'Bearer valid-bearer',
+      }),
+    );
+    const elapsed = performance.now() - start;
+
+    expect(res.status).toBe(401);
+    expect(elapsed).toBeGreaterThanOrEqual(95);
   });
 });
 

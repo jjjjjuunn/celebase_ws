@@ -1,0 +1,78 @@
+name: Mobile CI
+
+# CHORE-MOBILE-001: apps/mobile (Expo / React Native) lint / typecheck / test 게이트.
+# `apps/mobile` 패키지 또는 mobile 가드 설정 (eslint.config.mjs / 본 workflow) 가
+# 변경될 때만 실행. apps/mobile/package.json 부재 시 (동료 M0 시작 전) 안전 스킵.
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared-types/**'
+      - 'packages/design-tokens/**'
+      - 'eslint.config.mjs'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared-types/**'
+      - 'packages/design-tokens/**'
+      - 'eslint.config.mjs'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mobile-ci.yml'
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-lint-typecheck-test:
+    name: "📱 Mobile Lint / Typecheck / Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect apps/mobile presence
+        id: detect
+        run: |
+          if [ -f apps/mobile/package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "✅ apps/mobile/package.json found"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ apps/mobile/package.json not present yet (pre-M0). Skipping lint/typecheck/test."
+          fi
+
+      - name: Setup pnpm
+        if: steps.detect.outputs.exists == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.detect.outputs.exists == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace dependencies (shared-types, design-tokens)
+        if: steps.detect.outputs.exists == 'true'
+        run: pnpm --filter shared-types --filter design-tokens build
+
+      - name: Lint (apps/mobile)
+        if: steps.detect.outputs.exists == 'true'
+        run: pnpm --filter mobile lint
+
+      - name: Typecheck (apps/mobile)
+        if: steps.detect.outputs.exists == 'true'
+        run: pnpm --filter mobile typecheck
+
+      - name: Test (apps/mobile)
+        if: steps.detect.outputs.exists == 'true'
+        run: pnpm --filter mobile test

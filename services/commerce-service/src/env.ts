@@ -12,6 +12,13 @@ export const EnvSchema = z
     // Feature gates
     STRIPE_ENABLED: z.enum(['true', 'false']).default('false'),
     COMMERCE_WEBHOOK_ENABLED: z.enum(['true', 'false']).default('false'),
+    REVENUECAT_ENABLED: z.enum(['true', 'false']).default('false'),
+
+    // RevenueCat — required only when REVENUECAT_ENABLED=true
+    REVENUECAT_WEBHOOK_AUTH_TOKEN: z.string().optional(),
+    REVENUECAT_API_KEY: z.string().optional(),
+    REVENUECAT_API_BASE_URL: z.string().url().default('https://api.revenuecat.com'),
+    REVENUECAT_PRODUCT_TIER_MAP_JSON: z.string().optional(),
 
     // Stripe — required only when STRIPE_ENABLED=true
     STRIPE_SECRET_KEY: z.string().optional(),
@@ -76,6 +83,54 @@ export const EnvSchema = z
             code: z.ZodIssueCode.custom,
             message: `${field} is required when STRIPE_ENABLED=true`,
             path: [field],
+          });
+        }
+      }
+    }
+
+    if (env.REVENUECAT_ENABLED === 'true') {
+      if (!env.REVENUECAT_WEBHOOK_AUTH_TOKEN) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'REVENUECAT_WEBHOOK_AUTH_TOKEN is required when REVENUECAT_ENABLED=true',
+          path: ['REVENUECAT_WEBHOOK_AUTH_TOKEN'],
+        });
+      }
+      if (!env.REVENUECAT_API_KEY) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'REVENUECAT_API_KEY is required when REVENUECAT_ENABLED=true',
+          path: ['REVENUECAT_API_KEY'],
+        });
+      }
+      if (!env.REVENUECAT_PRODUCT_TIER_MAP_JSON) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'REVENUECAT_PRODUCT_TIER_MAP_JSON is required when REVENUECAT_ENABLED=true',
+          path: ['REVENUECAT_PRODUCT_TIER_MAP_JSON'],
+        });
+      } else {
+        try {
+          const parsed: unknown = JSON.parse(env.REVENUECAT_PRODUCT_TIER_MAP_JSON);
+          if (
+            parsed === null ||
+            typeof parsed !== 'object' ||
+            Array.isArray(parsed)
+          ) {
+            throw new Error('not a plain object');
+          }
+          for (const value of Object.values(parsed as Record<string, unknown>)) {
+            if (value !== 'premium' && value !== 'elite') {
+              throw new Error(`invalid tier value: ${String(value)}`);
+            }
+          }
+        } catch (err) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `REVENUECAT_PRODUCT_TIER_MAP_JSON must be a JSON object mapping product_id to "premium"|"elite": ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+            path: ['REVENUECAT_PRODUCT_TIER_MAP_JSON'],
           });
         }
       }

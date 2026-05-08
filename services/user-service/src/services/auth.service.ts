@@ -1,9 +1,17 @@
 import type pg from 'pg';
 import type { User } from '@celebbase/shared-types';
-import { SignJWT, jwtVerify, decodeJwt } from 'jose';
+import { SignJWT, jwtVerify, decodeJwt, errors as joseErrors } from 'jose';
 import { randomUUID } from 'node:crypto';
 import { uuidv7 } from 'uuidv7';
-import { UnauthorizedError, ValidationError } from '@celebbase/service-core';
+import {
+  UnauthorizedError,
+  ValidationError,
+  AccountDeletedError,
+  MalformedRefreshError,
+  RefreshExpiredOrMissingError,
+  RefreshRevokedError,
+  TokenReuseDetectedError,
+} from '@celebbase/service-core';
 import * as userRepo from '../repositories/user.repository.js';
 import * as refreshTokenRepo from '../repositories/refresh-token.repository.js';
 import { emitAuthLog, hashId, type AuthLogger } from '../lib/auth-log.js';
@@ -272,7 +280,10 @@ export async function performRotation(
   log: AuthLogger,
   requestId: string,
 ): Promise<AuthTokens> {
-  // 1. Verify signature + expiry first (timing-safe: no DB before this)
+  // 1. Verify signature + expiry first (timing-safe: no DB before this).
+  //    Plan v5 §59: distinguish JWT-expired (REFRESH_EXPIRED_OR_MISSING) from
+  //    every other verify failure (MALFORMED) so the mobile state machine can
+  //    branch — Cognito silent re-issue vs forced logout.
   let jwtPayload: Awaited<ReturnType<typeof jwtVerify>>['payload'];
   try {
     const result = await jwtVerify(refreshJwt, INTERNAL_SECRET, {
@@ -281,13 +292,16 @@ export async function performRotation(
       clockTolerance: 2,
     });
     jwtPayload = result.payload;
-  } catch {
-    throw new UnauthorizedError('Invalid or expired refresh token');
+  } catch (err) {
+    if (err instanceof joseErrors.JWTExpired) {
+      throw new RefreshExpiredOrMissingError('Refresh token expired');
+    }
+    throw new MalformedRefreshError('Invalid refresh token');
   }
 
-  // 2. Extract and validate required claims
+  // 2. Extract and validate required claims (all → MALFORMED)
   if (jwtPayload['token_use'] !== 'refresh') {
-    throw new UnauthorizedError('Expected refresh token');
+    throw new MalformedRefreshError('Expected refresh token');
   }
   const userId = typeof jwtPayload.sub === 'string' ? jwtPayload.sub : null;
   const jti = typeof jwtPayload['jti'] === 'string' ? jwtPayload['jti'] : null;
@@ -296,29 +310,47 @@ export async function performRotation(
     typeof jwtPayload['cognito_sub'] === 'string' ? jwtPayload['cognito_sub'] : '';
 
   if (!userId || !jti) {
-    throw new UnauthorizedError('Invalid refresh token claims');
+    throw new MalformedRefreshError('Invalid refresh token claims');
   }
 
   const subject: AuthTokenSubject = { sub: userId, email, cognito_sub: cognitoSub };
 
-  // 3. Single transaction: INSERT new jti, atomic UPDATE old jti
+  // 3. Single transaction: ACCOUNT_DELETED gate, INSERT new jti, atomic UPDATE old jti
   const client = await pool.connect();
   let newTokens: AuthTokens;
   try {
     await client.query('BEGIN');
 
-    // a. Issue new tokens — inserts new jti into DB inside this tx
+    // a. ACCOUNT_DELETED gate — runs inside the transaction so visibility is
+    //    consistent with committed deletions (READ COMMITTED snapshot). A
+    //    `DELETE /users/me` commits in its own short tx, so any subsequent
+    //    refresh sees deleted_at set and is blocked here. We do not take a
+    //    row lock — soft-delete + 30-day grace makes strict SERIALIZABLE
+    //    overkill. User row missing is treated as MALFORMED (token sub
+    //    references a non-existent user — should never happen in practice).
+    const user = await userRepo.findByIdInTx(client, userId);
+    if (!user) {
+      await client.query('ROLLBACK');
+      throw new MalformedRefreshError('Refresh token user not found');
+    }
+    if (user.deleted_at !== null) {
+      await client.query('ROLLBACK');
+      throw new AccountDeletedError();
+    }
+
+    // b. Issue new tokens — inserts new jti into DB inside this tx
     newTokens = await issueInternalTokens(client, subject);
 
-    // b. Decode new jti from the issued refresh token
+    // c. Decode new jti from the issued refresh token
     const newPayload = decodeJwt(newTokens.refresh_token);
     const newJti = typeof newPayload['jti'] === 'string' ? newPayload['jti'] : null;
     if (!newJti) {
       await client.query('ROLLBACK');
+      // Server-side bug — out of scope for IMPL-MOBILE-AUTH-003 enum mapping.
       throw new UnauthorizedError('Internal error: new jti missing');
     }
 
-    // c. Atomic rotate: consume old jti (WHERE revoked_at IS NULL AND expires_at > now())
+    // d. Atomic rotate: consume old jti (WHERE revoked_at IS NULL AND expires_at > now())
     const consumed = await refreshTokenRepo.revokeForRotation(client, {
       oldJti: jti,
       newJti,
@@ -331,7 +363,7 @@ export async function performRotation(
       // ROLLBACK first — new jti must not persist in DB if rotation failed
       await client.query('ROLLBACK');
 
-      // d. 401 branch: classify why the token could not be consumed
+      // e. 401 branch: classify why the token could not be consumed
       const meta = await refreshTokenRepo.findMetadata(pool, { jti, userId });
 
       if (!meta || meta.expiresAt <= new Date()) {
@@ -340,7 +372,7 @@ export async function performRotation(
           'auth.refresh.expired_or_missing',
           { user_id_hash: hashId(userId), requestId },
         );
-        throw new UnauthorizedError('Refresh token expired or not found');
+        throw new RefreshExpiredOrMissingError();
       }
 
       if (meta.revokedReason === 'rotated' || meta.revokedReason === 'reuse_detected') {
@@ -357,11 +389,11 @@ export async function performRotation(
           'warn',
         );
         await refreshTokenRepo.revokeAllByUser(pool, { userId, reason: 'reuse_detected' });
-        throw new UnauthorizedError('Token reuse detected');
+        throw new TokenReuseDetectedError();
       }
 
       // revokedReason === 'logout'
-      throw new UnauthorizedError('Refresh token has been revoked');
+      throw new RefreshRevokedError();
     }
   } finally {
     client.release();

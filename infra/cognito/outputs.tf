@@ -46,3 +46,9 @@ output "token_endpoint" {
   description = "OAuth token endpoint (COGNITO_TOKEN_ENDPOINT)"
   value       = "https://${aws_cognito_user_pool_domain.this.domain}.auth.${var.aws_region}.amazoncognito.com/oauth2/token"
 }
+
+# Mobile public client
+output "cognito_mobile_client_id" {
+  description = "Mobile public app client ID (EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID)"
+  value       = aws_cognito_user_pool_client.mobile.id
+}

@@ -157,6 +157,8 @@ services:
       STRIPE_ELITE_PRICE_ID: price_dummy_elite
       STRIPE_SUCCESS_URL: http://localhost:3000/checkout/success
       STRIPE_CANCEL_URL: http://localhost:3000/checkout/cancel
+      REVENUECAT_ENABLED: "false"
+      REVENUECAT_WEBHOOK_AUTH_TOKEN: dev-revenuecat-bearer-not-for-prod
       INSTACART_API_KEY: instacart_dummy_key
       INTERNAL_JWT_SECRET: dev-secret-not-for-prod
       USER_SERVICE_URL: http://user-service:3001

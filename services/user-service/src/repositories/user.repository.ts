@@ -9,6 +9,20 @@ export async function findById(pool: pg.Pool, id: string): Promise<User | null> 
   return rows[0] ?? null;
 }
 
+// Same query as findById, but accepts a PoolClient so it participates in the
+// caller's transaction (used by performRotation's ACCOUNT_DELETED gate to
+// serialize against a concurrent DELETE /users/me).
+export async function findByIdInTx(
+  client: pg.PoolClient,
+  id: string,
+): Promise<User | null> {
+  const { rows } = await client.query<User>(
+    'SELECT * FROM users WHERE id = $1 LIMIT 1',
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
 export async function findByEmail(pool: pg.Pool, email: string): Promise<User | null> {
   const { rows } = await pool.query<User>(
     'SELECT * FROM users WHERE email = $1 LIMIT 1',
