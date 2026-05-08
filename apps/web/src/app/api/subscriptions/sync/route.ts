@@ -16,6 +16,16 @@ import { NextRequest } from 'next/server';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
 import { baseUrlFor } from '../../_lib/bff-fetch.js';
 import { callInternal, internalErrorToResponse } from '../../_lib/internal-client.js';
+import { checkRouteRateLimit, rateLimitErrorToResponse } from '../../_lib/route-rate-limit.js';
+
+// Per-user-id cap. M5 IAP normal flow = 1 call per purchase, so 5/min has
+// significant headroom for legitimate retry burst (foreground/app_open
+// re-checks) while blocking abusive automation that could exhaust commerce →
+// RevenueCat REST API quota. CHORE-SUB-SYNC-RATE-LIMIT-001 (SUB-SYNC-002
+// adversarial T8). Pattern B (auth-first) per spec.md §9.3 — key is the
+// authenticated session user_id, so unauth requests are 401'd by
+// createProtectedRoute before reaching this gate.
+const SYNC_RATE_LIMIT_PER_MIN = 5;
 
 // Body shape: source only. user_id intentionally NOT accepted from client —
 // derived from authenticated session (T4 enforce).
@@ -40,6 +50,16 @@ async function handle(req: NextRequest, session: Session): Promise<Response> {
   // ensureRequestId wrapping. Mirror the convention used by other protected
   // routes (apps/web/src/app/api/users/me/route.ts:10).
   const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID();
+
+  // Rate-limit check FIRST — before body parse, before any expensive work.
+  // Key prefix `sync:` namespaces this from other routes that may share the
+  // route-rate-limit Map.
+  const rateErr = checkRouteRateLimit(
+    `sync:${session.user_id}`,
+    SYNC_RATE_LIMIT_PER_MIN,
+    requestId,
+  );
+  if (rateErr !== null) return rateLimitErrorToResponse(rateErr);
 
   let bodyJson: unknown;
   try {
