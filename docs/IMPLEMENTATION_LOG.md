@@ -4977,3 +4977,228 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 11/11, pnpm --filte
 - spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책). M0 머지 후 SPEC-SYNC-MOBILE-M0-001 으로 §11 한 번에 backfill 예정.
 ### 미완료: M0 통합 PR (#63) push + CI 통과 대기 + 머지. M0.5 Release Readiness 4 항목 (App Store Connect / Google Play Console 등록, Apple App Privacy / Google Play Data Safety 매핑, mobile-ci.yml 통과 검증). M1 인증 (Amplify SRP → BFF /api/auth/mobile/{signup,login} → SecureStore). EAS 빌드 비용 정책 JUNWON 협의. Expo project ownership transfer (개인 ryuben → celebbase 조직).
 ### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/lib/tokens.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/lib/tokens.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (1M context, direct implementation — codex CLI unavailable)
+task_id: IMPL-MOBILE-M1-AMPLIFY-001
+commit_sha: 113fd63
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/lib/cognito.test.ts
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/jest.setup.js
+  - pnpm-lock.yaml
+  - pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md
+  - pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/SPEC-SYNC-DEFER.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS 0 errors, pnpm --filter mobile lint --max-warnings=0 PASS, pnpm --filter mobile test PASS 4 suites / 15 tests)
+---
+### 완료: M1 인증 #1 — AWS Amplify v6 SDK 셋업 + Cognito User Pool configure — IMPL-MOBILE-M1-AMPLIFY-001 (M1 1/5 서브태스크)
+- **의존성 4개 추가** (`apps/mobile/package.json`): `aws-amplify@^6.6.0` (umbrella v6), `@aws-amplify/react-native@^1.1.0` (RN 플러그인), `@react-native-async-storage/async-storage@2.1.0` (Expo SDK 54 호환 핀, caret 금지), `react-native-get-random-values@~1.11.0` (Amplify SRP 의 crypto.getRandomValues polyfill).
+- **`apps/mobile/src/lib/cognito.ts` 신규** — idempotent `configureCognito()` 헬퍼:
+  - `react-native-get-random-values` polyfill 을 파일 최상단에 import (Amplify import 보다 먼저) — SRP 첫 호출 시점에 `crypto.getRandomValues` 미존재 RN 환경 차단.
+  - Amplify v6 API 형식 (`Amplify.configure({ Auth: { Cognito: { userPoolId, userPoolClientId } } })`) — v5 의 `Auth.configure(...)` 와 비호환 명시.
+  - `requireEnv(name)` 헬퍼: `process.env[name]` 의 `any` 타입 오염을 `typeof raw !== 'string'` narrowing 으로 우회 → ESLint `no-unsafe-assignment` 통과.
+  - module-level `configured` flag → 2회+ 호출 시 Amplify.configure 는 1회만 실행 (idempotent).
+  - `__resetCognitoForTest()` 테스트 전용 export — `__` prefix 로 production 사용 차단 시그널.
+  - 환경 변수 (`EXPO_PUBLIC_COGNITO_USER_POOL_ID`, `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID`, `EXPO_PUBLIC_AWS_REGION`) 중 1개라도 누락 시 명확한 Error throw — silent fail 차단.
+- **`App.tsx` 갱신** — module load 시점에 `configureCognito()` 1회 호출. App component 본체는 미변경 (welcome 화면 유지). signIn / signUp 호출 이전 시점에 반드시 configure 되어 있어야 한다는 spec.md §4.2 Auth 흐름 의도와 정합.
+- **테스트 4 케이스 추가** (`__tests__/lib/cognito.test.ts`, 4 tests):
+  - Amplify.configure 가 정확한 Cognito 객체 shape 으로 1회 호출되는지 검증
+  - 2회 호출해도 Amplify.configure 는 1회만 (idempotent)
+  - USER_POOL_ID 누락 시 throw + configureSpy 미호출
+  - CLIENT_ID 누락 시 throw
+- **`apps/mobile/jest.setup.js` 신규** — `setupFiles` 등재 → 각 test file import 보다 먼저 baseline env 셋업. App.tsx 의 module-load configure 가 cognito 모듈 import 시점에 env 를 요구하기 때문에 ES import hoisting 보다 앞 시점이 필요했음.
+- **`__tests__/App.test.tsx` 갱신** — `jest.mock('aws-amplify', ...)` 추가 (RN export 가 `.ts` source 라 jest transform 범위 밖 → 모듈 자체 차단).
+- **검증** (모두 worktree 환경):
+  - `pnpm --filter mobile typecheck` PASS (0 errors, exactOptionalPropertyTypes + noUncheckedIndexedAccess 통과)
+  - `pnpm --filter mobile lint --max-warnings=0` PASS
+  - `pnpm --filter mobile test` PASS — 4 suites / 15 tests (기존 11 + 신규 4)
+- **HANDOFF 작성됨** (codex 부재 → Claude 직접 implement 모드): `pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md` — Amplify v6 API 강제, polyfill 위치, `__resetCognitoForTest` 패턴 등 anti-pattern 6+ 항목 사전 명시. 향후 codex CLI 설치 시 동일 패턴 재사용 가능.
+- **spec.md sync**: SPEC-SYNC-DEFER.md 적용 — M1 전체 (signup/login + SecureStore + refresh state machine + UI) 완료 후 `SPEC-SYNC-MOBILE-M1-001` 단일 task 로 §4.2 mobile auth 시퀀스 + §11 디렉토리 트리 한 번에 backfill 예정.
+### 미완료: M1-B (SecureStore wrapper — access/refresh token 저장소), M1-C (Amplify SRP signUp/signIn → BFF /api/auth/mobile/{signup,login} 호출 + 응답 SecureStore 저장), M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI — RHF + Zod resolver), 그리고 M0.5 잔여 1건 (Apple App Privacy / Play Data Safety 매핑 — M4 onboarding/bio-profile 시작 시 trigger 예정).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/cognito.ts, apps/mobile/App.tsx, apps/mobile/__tests__/lib/cognito.test.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/jest.setup.js, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/SPEC-SYNC-DEFER.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SECURE-STORE-002
+commit_sha: 8ae8b97
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/secure-store.ts
+  - apps/mobile/__tests__/lib/secure-store.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 5 suites / 23 tests)
+---
+### 완료: M1 인증 #2 — SecureStore wrapper (iOS Keychain / Android Keystore) — IMPL-MOBILE-M1-SECURE-STORE-002 (M1 2/5)
+- **`expo-secure-store` 의존성 추가** — Expo SDK 가 iOS Keychain / Android Keystore 를 추상화하는 native module. AsyncStorage (평문) 가 아닌 KMS-grade 저장소 — spec.md §6 보안 정책 정합.
+- **`apps/mobile/src/lib/secure-store.ts` 신규** — 함수 6개:
+  - `getAccessToken()`, `getRefreshToken()`: 미저장 시 null 반환
+  - `setAccessToken(token)`, `setRefreshToken(token)`: 빈 문자열 거부 (silent corrupt 차단)
+  - `setTokens({ access_token, refresh_token })`: 로그인/갱신 시 묶어서 저장
+  - `clearTokens()`: 로그아웃/계정삭제 시 일괄 제거
+- **키 네이밍**: `celebbase.auth.access_token`, `celebbase.auth.refresh_token` — 네임스페이스 prefix 로 다른 앱과 키 충돌 방지.
+- **테스트 8 케이스** (`__tests__/lib/secure-store.test.ts`): `jest.mock('expo-secure-store')` 로 인메모리 Map 시뮬레이션. get/set/clear 순환, rotation 덮어쓰기, 빈 문자열 reject, 키 네임스페이스 검증.
+- **검증**: pnpm --filter mobile typecheck PASS (0 errors), lint PASS (0 warnings), test PASS — 5 suites / 23 tests (M1-A 의 15 + 신규 8).
+### 미완료: M1-C (Amplify SRP signup/login + BFF 호출), M1-D (refresh state machine 5종 enum), M1-E (로그인 UI).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/secure-store.ts, apps/mobile/__tests__/lib/secure-store.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-AUTH-CLIENT-003
+commit_sha: a196c11
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/api-client.ts
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/__tests__/services/auth.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 6 suites / 29 tests)
+---
+### 완료: M1 인증 #3 — Amplify SRP signIn / signOut + BFF /api/auth/mobile/login + SecureStore 통합 — IMPL-MOBILE-M1-AUTH-CLIENT-003 (M1 3/5)
+- **`apps/mobile/src/lib/api-client.ts` 신규** — BFF / user-service 호출용 fetch wrapper:
+  - `postJson<TResponse>(path, body, options)` — JSON body 직렬화 + JSON 응답 파싱
+  - `ApiError` 클래스: `status`, `code`, `payload` 노출 — M1-D refresh state machine 5종 enum 분기 키로 사용
+  - envelope 두 가지 shape 지원: flat `{ code, message }` + nested `{ error: { code, message } }`
+  - `baseUrlOverride` 옵션: user-service `/auth/refresh` 직접 호출 (cookie-shaped BFF route 미사용 예외, spec.md §4.2) 위한 hook
+- **`apps/mobile/src/services/auth.ts` 신규** — auth flow (`signIn`, `signOut`):
+  - `signIn`: Cognito SRP (Amplify v6 `signIn`) → `fetchAuthSession()` 으로 id_token 추출 → BFF `POST /api/auth/mobile/login { email, id_token }` → 응답 `{ access_token, refresh_token }` 을 SecureStore 저장
+  - `signOut`: SecureStore `clearTokens()` 먼저 (best-effort 보안 — Amplify 실패해도 로컬 토큰 확실 폐기) → Amplify `signOut()` (실패 시 dev console.warn 만, throw 안 함)
+  - `isSignedIn === false` (MFA / NEW_PASSWORD_REQUIRED 추가 단계) 분기 — UI 단계에서 처리하도록 throw + signInStep 메시지에 포함
+  - 빈 토큰 응답 거부 (서버 측 계약 위반 시 silent corrupt 차단)
+- **`apps/mobile/__tests__/services/auth.test.ts` 신규** — 6 케이스:
+  - signIn 성공 경로 (Cognito → BFF body 검증 → SecureStore 저장)
+  - Cognito 추가 단계 (MFA 등) → throw, BFF 미호출
+  - BFF 401 (e.g. INVALID_CREDENTIALS) → ApiError throw, SecureStore 미저장
+  - idToken 미존재 시 throw
+  - signOut: SecureStore 비움 + Amplify 호출
+  - Amplify signOut 실패해도 SecureStore 비움 유지
+- **shared-types 의존성 추가**: `apps/mobile/package.json` 에 `@celebbase/shared-types@workspace:^` — `schemas.LoginRequest`, `schemas.AuthTokens` 타입 그대로 사용 (multi-session.md §2 계약 일치).
+- **검증**: typecheck PASS, lint PASS, 6 suites / 29 tests PASS (M1-B 의 23 + 신규 6).
+### 미완료: M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI), Cognito confirmation 흐름 (signUp + confirmSignUp — M1-E UI 진입 시 추가).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/api-client.ts, apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-REFRESH-STATE-004
+commit_sha: f6a5433
+files_changed:
+  - apps/mobile/src/services/auth-refresh.ts
+  - apps/mobile/__tests__/services/auth-refresh.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 7 suites / 39 tests)
+---
+### 완료: M1 인증 #4 — refresh state machine (5종 enum + 안전 default + clearTokens 정책) — IMPL-MOBILE-M1-REFRESH-STATE-004 (M1 4/5)
+- **`apps/mobile/src/services/auth-refresh.ts` 신규** — spec.md §9.3 "Refresh Token Reason Codes" 5종 enum 분기:
+  - `REFRESH_EXPIRED_OR_MISSING`: 일반 만료 — 로컬 자동 폐기 X (UI 가 /login 으로 라우팅하며 그때 비움)
+  - `TOKEN_REUSE_DETECTED`: 보안 사고 — BE 가 이미 user-wide revoke. 로컬 즉시 폐기
+  - `REFRESH_REVOKED`: 명시적 revoke (예: 다른 디바이스 logout) — 로컬 폐기
+  - `MALFORMED`: refresh_token corruption — 로컬 폐기 (defensive)
+  - `ACCOUNT_DELETED`: 계정 삭제 — 로컬 폐기 + UI 안내
+  - default (미지정 code): 안전 fallback (`expired_or_missing`) + 로컬 폐기 — 새 enum 추가 시 silent fail 방지
+- **`refreshTokens()` 반환 = `RefreshResult` discriminated union**: status 분기로 fetch wrapper / UI 가 적절히 처리. `success` 시 `tokens` 동봉.
+- **user-service 직접 호출** (spec.md §4.2 예외) — BFF route 가 cookie-shaped 이라 mobile 은 user-service `POST /auth/refresh` 우회 호출. `EXPO_PUBLIC_USER_SERVICE_URL` env 로 base URL 명시 (사용자 입력에서 URL 받는 패턴 차단, Absolute Rule #7).
+- **방어 케이스**:
+  - 200 응답에 빈 토큰 포함 → `malformed` (BE 계약 위반 silent corrupt 차단)
+  - 네트워크 / 5xx → throw 호출자 위임 (일시 장애 가능성, 자동 폐기 X — 재시도 정책은 fetch wrapper 책임)
+- **테스트 10 케이스** (`__tests__/services/auth-refresh.test.ts`): refresh_token 부재, success rotation, 5종 enum 각각의 분기 + clearTokens 호출 여부, unknown code default, 5xx throw, 빈 토큰 malformed.
+- **검증**: typecheck/lint PASS, 7 suites / 39 tests PASS (M1-C 의 29 + 신규 10).
+### 미완료: M1-E (로그인/회원가입 UI — RHF + Zod resolver + signUp/confirmSignUp 추가). fetch wrapper auto-retry 통합 (401 → refresh → retry 패턴) — fetch wrapper 미존재, 본 함수는 호출자가 명시적으로 호출.
+### 연관 파일: apps/mobile/src/services/auth-refresh.ts, apps/mobile/__tests__/services/auth-refresh.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-LOGIN-UI-005
+commit_sha: b308af3
+files_changed:
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/__tests__/screens/LoginScreen.test.tsx
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 8 suites / 43 tests)
+---
+### 완료: M1 인증 #5 — LoginScreen UI + App 진입점 분기 — IMPL-MOBILE-M1-LOGIN-UI-005 (M1 5/5, M1 종료)
+- **`apps/mobile/src/screens/LoginScreen.tsx` 신규** — 로그인 화면:
+  - email + password TextInput + 로그인 TouchableOpacity
+  - Zod inline validate (RHF 의존성 추가 회피 — 2 필드에 oversized)
+  - `signIn` 호출 후 성공 시 `onSuccess` 콜백 (호출자 화면 전환 처리)
+  - ApiError code 별 사용자 친화 메시지 매핑 (`INVALID_CREDENTIALS`, `ACCOUNT_DELETED`, `RATE_LIMITED`)
+  - ActivityIndicator + disabled 상태 — submitting 중 중복 제출 차단
+  - design-tokens 사용 (`--cb-color-brand`, `--cb-color-error` 등) — raw hex 0건
+  - accessibility: `accessibilityLabel`, `accessibilityRole="button"`, `accessibilityRole="alert"` (에러)
+- **`apps/mobile/App.tsx` 갱신** — 진입점 분기:
+  - `useState<boolean>` 으로 authenticated 상태
+  - 미인증 → `<LoginScreen onSuccess={...} />`
+  - 인증 → 기존 welcome view (M2 에서 실제 home/feed 로 진화)
+  - 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) 은 M2 영역으로 분리
+- **테스트 5 케이스** (총 8 suites / 43 tests):
+  - LoginScreen smoke 3건 (렌더, 빈 폼 validation, invalid email validation)
+  - App entry 2건 (로그인 화면 진입 확인, 입력 필드 존재)
+- **사용자 가시 변화**: 앱 켜면 로그인 화면. email + password 입력 후 로그인 → BFF 응답에 따라 home view 또는 에러 표시.
+- **검증**: typecheck PASS (0 errors), lint PASS (0 warnings), test PASS (43 tests).
+### 미완료: signUp / confirmSignUp 흐름 (회원가입 UI + Cognito email 코드 검증) — M1-F backlog 또는 M2 합쳐서 진행. fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 함수는 있으나 fetch wrapper 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 — M4 trigger.
+### 연관 파일: apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SIGNUP-WIRE-006
+commit_sha: de51aa0
+files_changed:
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/__tests__/services/auth.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 8 suites / 49 tests)
+---
+### 완료: M1 인증 #6 — signUp + confirmSignUpAndLogin wire (Cognito 가입 + 이메일 코드 검증 + BFF /signup) — IMPL-MOBILE-M1-SIGNUP-WIRE-006 (M1 6/7)
+- **`auth.signUp({ email, password, display_name })` 신규** — Cognito User Pool 등록:
+  - Amplify `signUp({ username, password, options.userAttributes: { email, name } })` 호출
+  - `nextStep`: `CONFIRM_SIGN_UP` (이메일 코드 발송 후 UI 가 코드 입력 화면 전환 필요) 또는 `DONE` (User Pool 설정에 따라 자동 가입)
+  - 본 함수는 Cognito 만 호출 — BFF `/api/auth/mobile/signup` 호출은 confirmation 후로 미룸 (id_token 확보 가능 시점)
+- **`auth.confirmSignUpAndLogin({ email, code, password, display_name })` 신규** — 4-step 흐름 통합:
+  1. `confirmSignUp(email, code)` — Cognito 코드 검증
+  2. `signIn(email, password)` — id_token 획득 (Cognito 가 코드 검증 후 즉시 signIn 허용)
+  3. `POST /api/auth/mobile/signup { email, display_name, id_token }` — BE 가 우리 DB users 테이블에 record 생성 + internal JWT 발급
+  4. `setTokens(response)` — SecureStore 저장
+  - 빈 토큰 응답 거부 (서버 계약 위반 시 silent corrupt 차단)
+- **테스트 6 케이스 추가** (`__tests__/services/auth.test.ts`):
+  - signUp: CONFIRM_SIGN_UP 단계, DONE 단계, Cognito throw 전파 (UsernameExistsException)
+  - confirmSignUpAndLogin: 성공 경로 (4-step body 검증), confirmSignUp 실패 → throw + BFF 미호출, BFF 409 EMAIL_ALREADY_EXISTS → ApiError
+- **검증**: typecheck/lint PASS, 8 suites / 49 tests PASS (M1-E 의 43 + 신규 6).
+### 미완료: M1-G (SignupScreen UI + LoginScreen "계정 만들기" 링크 + App.tsx 화면 state). fetch wrapper 의 401 → refresh → retry 자동화 (M2). 앱 재시작 시 자동 로그인 (M2). M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger).
+### 연관 파일: apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SIGNUP-UI-007
+commit_sha: 62934fc
+files_changed:
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/screens/SignupScreen.test.tsx
+  - apps/mobile/__tests__/screens/LoginScreen.test.tsx
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 9 suites / 53 tests)
+---
+### 완료: M1 인증 #7 — SignupScreen UI (two-step) + LoginScreen 링크 + App screen state — IMPL-MOBILE-M1-SIGNUP-UI-007 (M1 7/7, M1 완전 종료)
+- **`apps/mobile/src/screens/SignupScreen.tsx` 신규** — two-step state ('form' → 'confirm'):
+  - step 'form': email + password (8자+) + display_name 입력 → signUp 호출 → Cognito 이메일 코드 발송 → step='confirm'
+  - step 'confirm': 6자리 코드 입력 → confirmSignUpAndLogin 호출 → BFF /signup → SecureStore → onSuccess
+  - Cognito 자동 가입 케이스 (`nextStep='DONE'`) — confirmation 단계 skip 하고 즉시 confirmSignUpAndLogin 호출
+  - password 는 step 1 에서 state 에 보관 후 step 2 에서 signIn 에 재사용 (Cognito 흐름상 필수)
+  - 에러 분기 (Cognito + BFF):
+    - `UsernameExistsException` / `EMAIL_ALREADY_EXISTS` → "이미 가입된 이메일입니다."
+    - `InvalidPasswordException` → "비밀번호는 대문자/소문자/숫자/특수문자를 포함해야 합니다."
+    - `CodeMismatchException` / `ExpiredCodeException` → 한국어 메시지
+- **`LoginScreen` 갱신** — `onSignupRequest` prop 추가 + "계정이 없으신가요? 가입하기" TouchableOpacity (accessibilityRole="link").
+- **`App.tsx` 갱신** — screen state `'login' | 'signup' | 'authenticated'` 로 확장. 회원가입 → SignupScreen, 완료 → home, "로그인으로 돌아가기" → LoginScreen.
+- **`SignupScreen.test.tsx` 신규 (4 tests)**: form 렌더, 빈 폼 validation, 비밀번호 8자 미만 validation, "로그인으로 돌아가기" 콜백.
+- **검증**: typecheck PASS, lint PASS, 9 suites / 53 tests PASS (M1-F 의 49 + 신규 4).
+- **사용자 가시 변화**: 앱 켜면 LoginScreen → "가입하기" 탭 → SignupScreen (email/이름/비밀번호 입력) → 이메일 코드 입력 → 가입 완료 + 자동 로그인 + home 화면.
+### 미완료: fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 존재하나 fetch 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger). M1 전체 sub-task 통합 머지 후 `SPEC-SYNC-MOBILE-M1-001` 로 spec.md §4.2/§9.3/§11 한 번에 patch.
+### 연관 파일: apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/screens/SignupScreen.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx
