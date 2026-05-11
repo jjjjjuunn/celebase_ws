@@ -4924,7 +4924,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 1/1, pnpm --filter 
 date: 2026-05-10
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M0-TOKENS-004
-commit_sha: PENDING
+commit_sha: 724efd9
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/__tests__/design-tokens.test.ts
