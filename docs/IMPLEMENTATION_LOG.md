@@ -5081,3 +5081,31 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck PASS, lint PASS, 6 suites / 29 tests PASS (M1-B 의 23 + 신규 6).
 ### 미완료: M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI), Cognito confirmation 흐름 (signUp + confirmSignUp — M1-E UI 진입 시 추가).
 ### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/api-client.ts, apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-REFRESH-STATE-004
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/services/auth-refresh.ts
+  - apps/mobile/__tests__/services/auth-refresh.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 7 suites / 39 tests)
+---
+### 완료: M1 인증 #4 — refresh state machine (5종 enum + 안전 default + clearTokens 정책) — IMPL-MOBILE-M1-REFRESH-STATE-004 (M1 4/5)
+- **`apps/mobile/src/services/auth-refresh.ts` 신규** — spec.md §9.3 "Refresh Token Reason Codes" 5종 enum 분기:
+  - `REFRESH_EXPIRED_OR_MISSING`: 일반 만료 — 로컬 자동 폐기 X (UI 가 /login 으로 라우팅하며 그때 비움)
+  - `TOKEN_REUSE_DETECTED`: 보안 사고 — BE 가 이미 user-wide revoke. 로컬 즉시 폐기
+  - `REFRESH_REVOKED`: 명시적 revoke (예: 다른 디바이스 logout) — 로컬 폐기
+  - `MALFORMED`: refresh_token corruption — 로컬 폐기 (defensive)
+  - `ACCOUNT_DELETED`: 계정 삭제 — 로컬 폐기 + UI 안내
+  - default (미지정 code): 안전 fallback (`expired_or_missing`) + 로컬 폐기 — 새 enum 추가 시 silent fail 방지
+- **`refreshTokens()` 반환 = `RefreshResult` discriminated union**: status 분기로 fetch wrapper / UI 가 적절히 처리. `success` 시 `tokens` 동봉.
+- **user-service 직접 호출** (spec.md §4.2 예외) — BFF route 가 cookie-shaped 이라 mobile 은 user-service `POST /auth/refresh` 우회 호출. `EXPO_PUBLIC_USER_SERVICE_URL` env 로 base URL 명시 (사용자 입력에서 URL 받는 패턴 차단, Absolute Rule #7).
+- **방어 케이스**:
+  - 200 응답에 빈 토큰 포함 → `malformed` (BE 계약 위반 silent corrupt 차단)
+  - 네트워크 / 5xx → throw 호출자 위임 (일시 장애 가능성, 자동 폐기 X — 재시도 정책은 fetch wrapper 책임)
+- **테스트 10 케이스** (`__tests__/services/auth-refresh.test.ts`): refresh_token 부재, success rotation, 5종 enum 각각의 분기 + clearTokens 호출 여부, unknown code default, 5xx throw, 빈 토큰 malformed.
+- **검증**: typecheck/lint PASS, 7 suites / 39 tests PASS (M1-C 의 29 + 신규 10).
+### 미완료: M1-E (로그인/회원가입 UI — RHF + Zod resolver + signUp/confirmSignUp 추가). fetch wrapper auto-retry 통합 (401 → refresh → retry 패턴) — fetch wrapper 미존재, 본 함수는 호출자가 명시적으로 호출.
+### 연관 파일: apps/mobile/src/services/auth-refresh.ts, apps/mobile/__tests__/services/auth-refresh.test.ts
