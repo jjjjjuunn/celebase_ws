@@ -4877,7 +4877,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter
 date: 2026-05-10
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M0-METRO-002
-commit_sha: PENDING
+commit_sha: 0ee1e1e
 files_changed:
   - apps/mobile/metro.config.js
 verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
