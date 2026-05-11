@@ -5050,7 +5050,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-10
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M1-AUTH-CLIENT-003
-commit_sha: PENDING
+commit_sha: a196c11
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/src/lib/api-client.ts
