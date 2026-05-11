@@ -24,9 +24,11 @@ const LoginFormSchema = z.object({
 interface LoginScreenProps {
   /** 로그인 성공 시 호출 — 호출자가 화면 전환 처리. */
   onSuccess: () => void;
+  /** "계정 만들기" 링크 탭 시 호출 — 호출자가 SignupScreen 으로 전환. */
+  onSignupRequest: () => void;
 }
 
-export function LoginScreen({ onSuccess }: LoginScreenProps): React.JSX.Element {
+export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +111,16 @@ export function LoginScreen({ onSuccess }: LoginScreenProps): React.JSX.Element 
           <Text style={styles.buttonText}>로그인</Text>
         )}
       </TouchableOpacity>
+
+      <TouchableOpacity
+        accessibilityLabel="계정 만들기"
+        accessibilityRole="link"
+        disabled={submitting}
+        onPress={onSignupRequest}
+        style={styles.linkButton}
+      >
+        <Text style={styles.linkText}>계정이 없으신가요? 가입하기</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -184,5 +196,13 @@ const styles = StyleSheet.create({
     color: resolveToken('light', '--cb-color-bg'),
     fontSize: px(tokens.light['--cb-body-md']),
     fontWeight: '600',
+  },
+  linkButton: {
+    marginTop: px(tokens.light['--cb-space-3']),
+    alignItems: 'center',
+  },
+  linkText: {
+    color: resolveToken('light', '--cb-color-brand'),
+    fontSize: px(tokens.light['--cb-body-sm']),
   },
 });

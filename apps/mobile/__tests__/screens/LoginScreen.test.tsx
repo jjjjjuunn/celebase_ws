@@ -21,7 +21,8 @@ import { LoginScreen } from '../../src/screens/LoginScreen';
 describe('LoginScreen', () => {
   it('타이틀 / 입력 필드 / 로그인 버튼을 렌더한다', () => {
     const onSuccess = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} />);
+    const onSignupRequest = jest.fn();
+    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
     expect(screen.getByText('CelebBase 계정으로 계속')).toBeTruthy();
     expect(screen.getByLabelText('이메일')).toBeTruthy();
@@ -31,7 +32,8 @@ describe('LoginScreen', () => {
 
   it('빈 이메일로 제출 시 validation 에러 메시지가 표시되고 onSuccess 는 호출되지 않는다', () => {
     const onSuccess = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} />);
+    const onSignupRequest = jest.fn();
+    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
     fireEvent.press(screen.getByLabelText('로그인'));
 
@@ -42,7 +44,8 @@ describe('LoginScreen', () => {
 
   it('invalid email 입력 시 validation 에러를 표시한다', () => {
     const onSuccess = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} />);
+    const onSignupRequest = jest.fn();
+    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
     fireEvent.changeText(screen.getByLabelText('이메일'), 'not-an-email');
     fireEvent.changeText(screen.getByLabelText('비밀번호'), 'pw');

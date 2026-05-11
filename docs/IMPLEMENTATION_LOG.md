@@ -5171,3 +5171,34 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck/lint PASS, 8 suites / 49 tests PASS (M1-E 의 43 + 신규 6).
 ### 미완료: M1-G (SignupScreen UI + LoginScreen "계정 만들기" 링크 + App.tsx 화면 state). fetch wrapper 의 401 → refresh → retry 자동화 (M2). 앱 재시작 시 자동 로그인 (M2). M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger).
 ### 연관 파일: apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SIGNUP-UI-007
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/screens/SignupScreen.test.tsx
+  - apps/mobile/__tests__/screens/LoginScreen.test.tsx
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 9 suites / 53 tests)
+---
+### 완료: M1 인증 #7 — SignupScreen UI (two-step) + LoginScreen 링크 + App screen state — IMPL-MOBILE-M1-SIGNUP-UI-007 (M1 7/7, M1 완전 종료)
+- **`apps/mobile/src/screens/SignupScreen.tsx` 신규** — two-step state ('form' → 'confirm'):
+  - step 'form': email + password (8자+) + display_name 입력 → signUp 호출 → Cognito 이메일 코드 발송 → step='confirm'
+  - step 'confirm': 6자리 코드 입력 → confirmSignUpAndLogin 호출 → BFF /signup → SecureStore → onSuccess
+  - Cognito 자동 가입 케이스 (`nextStep='DONE'`) — confirmation 단계 skip 하고 즉시 confirmSignUpAndLogin 호출
+  - password 는 step 1 에서 state 에 보관 후 step 2 에서 signIn 에 재사용 (Cognito 흐름상 필수)
+  - 에러 분기 (Cognito + BFF):
+    - `UsernameExistsException` / `EMAIL_ALREADY_EXISTS` → "이미 가입된 이메일입니다."
+    - `InvalidPasswordException` → "비밀번호는 대문자/소문자/숫자/특수문자를 포함해야 합니다."
+    - `CodeMismatchException` / `ExpiredCodeException` → 한국어 메시지
+- **`LoginScreen` 갱신** — `onSignupRequest` prop 추가 + "계정이 없으신가요? 가입하기" TouchableOpacity (accessibilityRole="link").
+- **`App.tsx` 갱신** — screen state `'login' | 'signup' | 'authenticated'` 로 확장. 회원가입 → SignupScreen, 완료 → home, "로그인으로 돌아가기" → LoginScreen.
+- **`SignupScreen.test.tsx` 신규 (4 tests)**: form 렌더, 빈 폼 validation, 비밀번호 8자 미만 validation, "로그인으로 돌아가기" 콜백.
+- **검증**: typecheck PASS, lint PASS, 9 suites / 53 tests PASS (M1-F 의 49 + 신규 4).
+- **사용자 가시 변화**: 앱 켜면 LoginScreen → "가입하기" 탭 → SignupScreen (email/이름/비밀번호 입력) → 이메일 코드 입력 → 가입 완료 + 자동 로그인 + home 화면.
+### 미완료: fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 존재하나 fetch 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger). M1 전체 sub-task 통합 머지 후 `SPEC-SYNC-MOBILE-M1-001` 로 spec.md §4.2/§9.3/§11 한 번에 patch.
+### 연관 파일: apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/screens/SignupScreen.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx

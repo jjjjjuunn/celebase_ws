@@ -6,23 +6,45 @@ import { tokens } from '@celebbase/design-tokens';
 
 import { configureCognito } from './src/lib/cognito';
 import { LoginScreen } from './src/screens/LoginScreen';
+import { SignupScreen } from './src/screens/SignupScreen';
 import { px, resolveToken } from './src/lib/tokens';
 
 // Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
 configureCognito();
 
-export default function App(): React.JSX.Element {
-  // 초기 진입 시 LoginScreen. 로그인 성공 → authenticated=true 로 home view.
-  // 앱 재시작 시 SecureStore 토큰 검증으로 자동 진입은 M2 영역 (auto-login).
-  const [authenticated, setAuthenticated] = useState(false);
+type Screen = 'login' | 'signup' | 'authenticated';
 
-  if (!authenticated) {
+export default function App(): React.JSX.Element {
+  // 초기 진입 시 LoginScreen. signUp 흐름은 '계정 만들기' 링크로 진입.
+  // 앱 재시작 시 SecureStore 토큰 검증으로 자동 진입은 M2 영역 (auto-login).
+  const [screen, setScreen] = useState<Screen>('login');
+
+  if (screen === 'login') {
     return (
       <>
         <LoginScreen
           onSuccess={() => {
-            setAuthenticated(true);
+            setScreen('authenticated');
+          }}
+          onSignupRequest={() => {
+            setScreen('signup');
+          }}
+        />
+        <StatusBar style="auto" />
+      </>
+    );
+  }
+
+  if (screen === 'signup') {
+    return (
+      <>
+        <SignupScreen
+          onSuccess={() => {
+            setScreen('authenticated');
+          }}
+          onBackToLogin={() => {
+            setScreen('login');
           }}
         />
         <StatusBar style="auto" />
