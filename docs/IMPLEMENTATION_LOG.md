@@ -4872,3 +4872,22 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter
 - **spec.md sync deferral**: SPEC-PIVOT-PLAN §2 "M0 Scaffold" 행이 "M0 통합 PR 시 patch" 명시 → `pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md` 마커로 후속 task `SPEC-SYNC-MOBILE-M0-001` 등록 예정.
 ### 미완료: M0 나머지 4 개 서브태스크 (Metro `resolveRequest` throw 가드, jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). EAS 빌드 비용 정책 (Free tier 월 30 빌드 vs Production $19/월) JUNWON 협의 — 첫 `eas build` 명령 실행 전 결정 필요. Expo project ownership transfer — 현재 개인 계정 `ryuben` 소유, 출시 전 celebbase 조직 owner 로 이전 필요 (SPEC-SYNC-MOBILE-M0-001 에서 함께 기록).
 ### 연관 파일: apps/mobile/package.json, apps/mobile/app.json, apps/mobile/eas.json, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-METRO-002
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/metro.config.js
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: Metro resolveRequest throw 가드 — IMPL-MOBILE-M0-METRO-002 (M0 2/5 서브태스크)
+- `apps/mobile/metro.config.js` 에 section 5 추가 — `config.resolver.resolveRequest` 커스텀 핸들러 등록.
+- **차단 대상**: `@celebbase/service-core` (Node 전용 — Fastify, pg) + `@celebbase/ui-kit` (react-dom + CSS Modules, RN 비호환). 정확 매칭 + sub-path 매칭 (`@celebbase/service-core/foo` 등) 둘 다 차단.
+- **에러 메시지**: import 한 모듈명 + 대안 안내 (`packages/design-tokens` RN 익스포트, `apps/mobile/src/components/` 에 RN primitive 직접 구현) 명시.
+- **방어 계층**: ESLint flat config (PR #47 CHORE-MOBILE-001) 가 1차 (IDE/CI), Metro resolver 가 2차 (`--no-eslint` 우회 빌드도 차단). 핸드오프 §3 의 권장 패턴.
+- **구현 상의 미세 차이 vs 핸드오프 스니펫**: 핸드오프는 `||` 4 조건 인라인, 본 구현은 `BLOCKED_PACKAGES` 배열 + `for...of` 루프 — 향후 차단 대상 추가 시 한 곳만 수정하면 되도록 확장성 확보.
+- spec.md sync: 본 sub-task 도 IMPL-MOBILE-M0-EAS-001 의 deferral marker (M0 통합 PR 시 patch 정책) 가 그대로 적용. 별도 marker 불필요 — gate-check.sh `check_spec_sync` 가 commit message 의 어떤 task ID 든 매칭되는 marker 1 개 발견 시 PASS.
+### 미완료: M0 나머지 3 개 서브태스크 (jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). 가드 동작의 런타임 검증 (실제 service-core import 시도 → throw 확인) — Metro dev server 인터랙티브 부팅 필요해 본 PR 범위 외.
+### 연관 파일: apps/mobile/metro.config.js
