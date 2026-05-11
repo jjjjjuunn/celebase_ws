@@ -5086,7 +5086,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-10
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M1-REFRESH-STATE-004
-commit_sha: PENDING
+commit_sha: f6a5433
 files_changed:
   - apps/mobile/src/services/auth-refresh.ts
   - apps/mobile/__tests__/services/auth-refresh.test.ts
