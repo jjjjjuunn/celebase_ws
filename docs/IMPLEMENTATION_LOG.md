@@ -4951,7 +4951,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 5/5, pnpm --filter 
 date: 2026-05-10
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M0-WELCOME-005
-commit_sha: PENDING
+commit_sha: 207cfe8
 files_changed:
   - apps/mobile/App.tsx
   - apps/mobile/src/lib/tokens.ts
