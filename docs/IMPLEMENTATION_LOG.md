@@ -5109,3 +5109,37 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck/lint PASS, 7 suites / 39 tests PASS (M1-C 의 29 + 신규 10).
 ### 미완료: M1-E (로그인/회원가입 UI — RHF + Zod resolver + signUp/confirmSignUp 추가). fetch wrapper auto-retry 통합 (401 → refresh → retry 패턴) — fetch wrapper 미존재, 본 함수는 호출자가 명시적으로 호출.
 ### 연관 파일: apps/mobile/src/services/auth-refresh.ts, apps/mobile/__tests__/services/auth-refresh.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-LOGIN-UI-005
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/__tests__/screens/LoginScreen.test.tsx
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 8 suites / 43 tests)
+---
+### 완료: M1 인증 #5 — LoginScreen UI + App 진입점 분기 — IMPL-MOBILE-M1-LOGIN-UI-005 (M1 5/5, M1 종료)
+- **`apps/mobile/src/screens/LoginScreen.tsx` 신규** — 로그인 화면:
+  - email + password TextInput + 로그인 TouchableOpacity
+  - Zod inline validate (RHF 의존성 추가 회피 — 2 필드에 oversized)
+  - `signIn` 호출 후 성공 시 `onSuccess` 콜백 (호출자 화면 전환 처리)
+  - ApiError code 별 사용자 친화 메시지 매핑 (`INVALID_CREDENTIALS`, `ACCOUNT_DELETED`, `RATE_LIMITED`)
+  - ActivityIndicator + disabled 상태 — submitting 중 중복 제출 차단
+  - design-tokens 사용 (`--cb-color-brand`, `--cb-color-error` 등) — raw hex 0건
+  - accessibility: `accessibilityLabel`, `accessibilityRole="button"`, `accessibilityRole="alert"` (에러)
+- **`apps/mobile/App.tsx` 갱신** — 진입점 분기:
+  - `useState<boolean>` 으로 authenticated 상태
+  - 미인증 → `<LoginScreen onSuccess={...} />`
+  - 인증 → 기존 welcome view (M2 에서 실제 home/feed 로 진화)
+  - 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) 은 M2 영역으로 분리
+- **테스트 5 케이스** (총 8 suites / 43 tests):
+  - LoginScreen smoke 3건 (렌더, 빈 폼 validation, invalid email validation)
+  - App entry 2건 (로그인 화면 진입 확인, 입력 필드 존재)
+- **사용자 가시 변화**: 앱 켜면 로그인 화면. email + password 입력 후 로그인 → BFF 응답에 따라 home view 또는 에러 표시.
+- **검증**: typecheck PASS (0 errors), lint PASS (0 warnings), test PASS (43 tests).
+### 미완료: signUp / confirmSignUp 흐름 (회원가입 UI + Cognito email 코드 검증) — M1-F backlog 또는 M2 합쳐서 진행. fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 함수는 있으나 fetch wrapper 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 — M4 trigger.
+### 연관 파일: apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx
