@@ -2201,6 +2201,32 @@ celebbase-wellness/
 
 design-tokens 의 RN 익스포트 (`tokens.native.ts`) 는 web/mobile token drift 방지를 위해 두 클라이언트가 동일 source 를 import 한다.
 
+### 11.3 Mobile fetch wrapper + auto-login *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-M2-FETCH-001)*
+
+`apps/mobile` 의 protected BFF 호출은 `src/lib/fetch-with-refresh.ts` 의 `authedFetch<T>(path, options?)` 만 사용한다 — M1 의 `postJson()` (단발성 unauthenticated POST 용) 과 분리. 라운드트립 단계:
+
+| 단계 | 동작 | 실패 시 |
+|------|------|--------|
+| 1 | `getAccessToken()` 으로 SecureStore 에서 access_token 읽어 `Authorization: Bearer` 부착 후 BFF 호출 | (1차) 200 OK 면 JSON 응답 반환 종료 |
+| 2 | 401 응답 시 `refreshTokens()` 호출 (module-level `pendingRefresh` promise 공유 — 동시 다발 401 에도 refresh 1회만 트리거, single-flight) | `RefreshResult.status !== 'success'` 면 `signalLogout(reason)` 발사 + `ApiError(401, ...)` throw |
+| 3 | refresh success 시 새 access_token 으로 원 요청 1회 재시도 | 재시도도 401 이면 `ApiError` throw — refresh 2회 트리거 금지 (무한 루프 방지) |
+
+**Cold start 진입 분기** (`src/services/auth-bootstrap.ts` + `App.tsx`):
+- `App.tsx` 초기 screen state = `'loading'` (디자인 토큰 brand 컬러 ActivityIndicator).
+- `useEffect` 첫 실행에서 `bootstrapSession()` 호출 → SecureStore 의 `access_token` + `refresh_token` 둘 다 존재 확인 시 `'authenticated'`, 하나라도 부재 시 `'login'`. 검증 fetch 호출은 안 한다 (낙관적 — 첫 protected API 가 401 이면 위 라운드트립이 알아서 처리).
+- 한 토큰만 존재하는 비정상 상태 (`clearTokens` non-atomic edge case) 는 `'login'` 으로 안전 분기.
+
+**Logout 신호 채널** (`src/lib/auth-events.ts`):
+- module-level Set<Handler> singleton — React Context 보다 가볍게, fetch wrapper 가 어느 hook 밖에서도 호출 가능.
+- `signalLogout(reason: LogoutReason)` — `RefreshResult['status']` 에서 `'success'` 를 제외한 5종 union. §9.3 Refresh Token Reason Codes 와 1:1 대응 (`expired_or_missing` / `reuse_detected` / `revoked` / `malformed` / `account_deleted`).
+- `onLogoutSignal(handler): unsubscribe` — `App.tsx` 의 `useEffect` 가 mount 시 1회 구독. handler 가 throw 해도 다른 구독자 격리 (try/catch).
+- 수신 시 `App.tsx` 동작: `reuse_detected` / `account_deleted` 는 RN `Alert.alert()` 로 사용자에게 사유 안내 (보안 경고 / 계정 삭제 안내), 그 외 3종 (`expired_or_missing` / `revoked` / `malformed`) 은 silent. 모든 경우 screen state `'login'` 으로 전환.
+
+**불변식**:
+- `authedFetch` 는 BFF 경로만 호출 — `/auth/refresh` 자체는 본 wrapper 가 호출하지 않는다 (refresh state machine 이 user-service 직접 호출, §11 Mobile auth ingress 의 예외 규칙 정합).
+- refresh single-flight 의 `pendingRefresh` 는 `.finally(() => { pendingRefresh = null })` 로 항상 클리어 — 실패한 refresh 도 다음 401 에서 새로 트리거 가능해야 한다 (idempotent retry).
+- `signalLogout` 은 sync 발사 — handler 가 React state update (setState) 를 호출하므로 fetch wrapper 의 throw 와 UI 전환이 같은 microtask 안에서 일어나 race 없음.
+
 ---
 
 ## 12. Seed Data Requirements

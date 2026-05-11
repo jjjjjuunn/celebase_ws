@@ -23,15 +23,16 @@ import { render, screen } from '@testing-library/react-native';
 import App from '../App';
 
 describe('App entry', () => {
-  it('초기 진입 시 LoginScreen 을 렌더한다 (인증 전)', () => {
+  // M2: bootstrapSession() 비동기 완료 후 'loading' → 'login' 으로 전환되므로
+  // findBy* (Promise) 로 기다린다. SecureStore mock 이 항상 null → 'login' 분기.
+  it('초기 진입 시 LoginScreen 을 렌더한다 (인증 전)', async () => {
     render(<App />);
-    // "로그인" 텍스트는 타이틀 + 버튼 둘 다 — subtitle 로 unique 검증.
-    expect(screen.getByText('CelebBase 계정으로 계속')).toBeTruthy();
+    expect(await screen.findByText('CelebBase 계정으로 계속')).toBeTruthy();
   });
 
-  it('LoginScreen 에 email / password 입력 필드가 있다', () => {
+  it('LoginScreen 에 email / password 입력 필드가 있다', async () => {
     render(<App />);
-    expect(screen.getByLabelText('이메일')).toBeTruthy();
+    expect(await screen.findByLabelText('이메일')).toBeTruthy();
     expect(screen.getByLabelText('비밀번호')).toBeTruthy();
   });
 });

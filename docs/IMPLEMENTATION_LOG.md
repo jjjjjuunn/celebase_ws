@@ -5202,3 +5202,37 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **사용자 가시 변화**: 앱 켜면 LoginScreen → "가입하기" 탭 → SignupScreen (email/이름/비밀번호 입력) → 이메일 코드 입력 → 가입 완료 + 자동 로그인 + home 화면.
 ### 미완료: fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 존재하나 fetch 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger). M1 전체 sub-task 통합 머지 후 `SPEC-SYNC-MOBILE-M1-001` 로 spec.md §4.2/§9.3/§11 한 번에 patch.
 ### 연관 파일: apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/screens/SignupScreen.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx
+
+---
+date: 2026-05-11
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M2-FETCH-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/fetch-with-refresh.ts
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/services/auth-bootstrap.ts
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/lib/fetch-with-refresh.test.ts
+  - apps/mobile/__tests__/services/auth-bootstrap.test.ts
+  - apps/mobile/__tests__/App.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 11 suites / 66 tests)
+---
+### 완료: M2 — 인증된 fetch wrapper + cold start auto-login + 5-enum logout 라우팅 — IMPL-MOBILE-M2-FETCH-001
+- **`src/lib/fetch-with-refresh.ts` 신규** — `authedFetch<T>(path, options?)` BFF 보호 라우트 호출 wrapper.
+  - `getAccessToken()` → `Authorization: Bearer` 자동 부착 + BFF base URL + GET/POST/PATCH/PUT/DELETE 일반화.
+  - 401 응답 시 `refreshTokens()` (M1) 호출 → `RefreshResult.status === 'success'` 면 새 access_token 으로 원 요청 1회 재시도, 나머지 5종은 `signalLogout(reason)` + `ApiError(401, ...)` throw.
+  - **Single-flight**: module-level `pendingRefresh: Promise<RefreshResult> | null` 공유. 동시 다발 401 에도 refresh 1회만 트리거 (보안상 중복 rotation 방지). `.finally` 로 항상 클리어.
+  - 무한 루프 방지: refresh success 후 재시도가 또 401 이면 그대로 throw (refresh 2회 금지).
+- **`src/lib/auth-events.ts` 신규** — module-level `Set<Handler>` pub/sub (React Context 보다 가볍게, fetch wrapper 가 어느 hook 밖에서도 호출 가능).
+  - `LogoutReason` = `Exclude<RefreshResult['status'], 'success'>` — §9.3 Refresh Token Reason Codes 5종과 1:1.
+  - `onLogoutSignal(handler): unsubscribe` + `signalLogout(reason)` (handler 격리: try/catch).
+- **`src/services/auth-bootstrap.ts` 신규** — `bootstrapSession(): Promise<'authenticated' | 'login'>`. SecureStore 의 access + refresh 두 토큰 동시 존재 시 `'authenticated'`, 한 토큰만 있는 비정상 상태는 안전하게 `'login'`. 검증 fetch 호출은 안 함 (낙관적 — 첫 protected API 가 401 이면 wrapper 가 자동 처리).
+- **`App.tsx` 수정** — `Screen` union 에 `'loading'` 추가 + 초기 state `'loading'`. `useEffect` 첫 실행에서 `bootstrapSession()` + `onLogoutSignal()` 구독. cleanup 에서 cancellation flag + unsubscribe. `reuse_detected` / `account_deleted` 는 `Alert.alert()` 안내 후 `'login'`, 나머지 3종은 silent. 'loading' 화면 = brand 컬러 ActivityIndicator.
+- **테스트 13 cases 추가** (`__tests__/lib/fetch-with-refresh.test.ts` 8 + `__tests__/services/auth-bootstrap.test.ts` 5): 200 OK Bearer 부착, POST body 직렬화, 401 refresh success 재시도, REFRESH_EXPIRED_OR_MISSING signal, TOKEN_REUSE_DETECTED signal, single-flight (동시 2 요청 → refresh 1회), 무한 루프 차단, non-401 4xx 직통; bootstrap 5분기.
+- **`App.test.tsx` 갱신**: bootstrap 비동기 분기 반영 — `getByText` → `findByText` (loading → login 전환 대기).
+- **spec.md §11.3 추가**: "Mobile fetch wrapper + auto-login" — 라운드트립 표 / cold start 분기 / logout signal 채널 / 불변식 3종 (single-flight pendingRefresh clear, sync signal microtask race-free, /auth/refresh 본 wrapper 미경유).
+- **검증**: typecheck/lint PASS, 11 suites / 66 tests PASS (M1-G 의 53 + 신규 13). 실기기 (Expo Go) cold start spinner → LoginScreen 전환은 회사 Wi-Fi client isolation 으로 본 세션 미확인 — fast-follow.
+### 미완료: M3 (Claim feed) 진입 시 `authedFetch` 첫 실호출 — content-service `/api/claims` GET. CHORE-MOBILE-002 refresh TTL 단축 (advisor backlog). Expo Go 실기기 cold start 시각 검증 (네트워크 환경 정상 시).
+### 연관 파일: apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/auth-bootstrap.ts, apps/mobile/App.tsx, apps/mobile/__tests__/lib/fetch-with-refresh.test.ts, apps/mobile/__tests__/services/auth-bootstrap.test.ts, apps/mobile/__tests__/App.test.tsx, spec.md
