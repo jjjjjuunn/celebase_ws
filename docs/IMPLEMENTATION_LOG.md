@@ -4844,3 +4844,136 @@ verified_by: claude-opus-4-7 (gate-check.sh spec_sync smoke + Plan v5 §Decision
 - **gemini-cli `run_shell_command` 부재 미해결**: L3 adversarial pass 가 현재 항상 Claude self-adversarial 로 fallback. gemini-cli 갱신 시까지 유지.
 
 ### 연관 파일: CLAUDE.md, spec.md, apps/web/README.md, docs/MOBILE-ROADMAP.md, docs/FE-ROADMAP.md, docs/SPEC-PIVOT-PLAN.md, .claude/rules/multi-session.md, .claude/rules/spec-dod.md, scripts/gate-check.sh, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-EAS-001
+commit_sha: bb2f83b
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/app.json
+  - apps/mobile/eas.json
+  - pnpm-lock.yaml
+  - pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS, eas init 성공 + projectId 등록 확인)
+---
+### 완료: EAS 셋업 — IMPL-MOBILE-M0-EAS-001 (M0 1/5 서브태스크)
+- **eas-cli 18.11.0** 을 `apps/mobile/devDependencies` 로 추가 (글로벌 설치 대신 workspace pin 으로 팀원 / CI 환경 통일).
+- **bundle identifier 결정**: iOS `bundleIdentifier` + Android `package` 모두 `com.celebbase.mobile` 로 통일. 한 번 출시하면 변경 불가능한 영구 식별자.
+- **app.json 메타 정리**: `name: mobile` → `CelebBase` (홈스크린 표시명), `slug: mobile` → `celebbase-mobile` (Expo URL 식별자).
+- **Expo 프로젝트 등록**: `pnpm exec eas init --non-interactive --force` 로 `@ryuben/celebbase-mobile` 생성 (project ID `eef29d46-8b31-4fa6-a612-86afcb9736e0`). app.json 에 `extra.eas.projectId` + `owner: "ryuben"` 자동 주입됨.
+- **eas.json 3 프로파일 정의**:
+  - `development`: `developmentClient: true` + `distribution: internal` — Expo Go 가 아닌 native dev 빌드, QR 로 폰 직접 설치
+  - `preview`: `distribution: internal` — release 빌드 + 내부 배포 (스테이크홀더 리뷰용)
+  - `production`: `autoIncrement: true` — 스토어 배포 + 빌드 번호 자동 증가
+- **cli.version pin**: `>=18.11.0 <19.0.0` 로 major version 고정 — eas-cli major 차이로 인한 CI/팀 불일치 방지.
+- **appVersionSource: "remote"**: EAS 가 buildNumber/versionCode 자동 관리 (수동 동기화 부담 제거, 권장 패턴).
+- **spec.md sync deferral**: SPEC-PIVOT-PLAN §2 "M0 Scaffold" 행이 "M0 통합 PR 시 patch" 명시 → `pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md` 마커로 후속 task `SPEC-SYNC-MOBILE-M0-001` 등록 예정.
+### 미완료: M0 나머지 4 개 서브태스크 (Metro `resolveRequest` throw 가드, jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). EAS 빌드 비용 정책 (Free tier 월 30 빌드 vs Production $19/월) JUNWON 협의 — 첫 `eas build` 명령 실행 전 결정 필요. Expo project ownership transfer — 현재 개인 계정 `ryuben` 소유, 출시 전 celebbase 조직 owner 로 이전 필요 (SPEC-SYNC-MOBILE-M0-001 에서 함께 기록).
+### 연관 파일: apps/mobile/package.json, apps/mobile/app.json, apps/mobile/eas.json, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-METRO-002
+commit_sha: 0ee1e1e
+files_changed:
+  - apps/mobile/metro.config.js
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: Metro resolveRequest throw 가드 — IMPL-MOBILE-M0-METRO-002 (M0 2/5 서브태스크)
+- `apps/mobile/metro.config.js` 에 section 5 추가 — `config.resolver.resolveRequest` 커스텀 핸들러 등록.
+- **차단 대상**: `@celebbase/service-core` (Node 전용 — Fastify, pg) + `@celebbase/ui-kit` (react-dom + CSS Modules, RN 비호환). 정확 매칭 + sub-path 매칭 (`@celebbase/service-core/foo` 등) 둘 다 차단.
+- **에러 메시지**: import 한 모듈명 + 대안 안내 (`packages/design-tokens` RN 익스포트, `apps/mobile/src/components/` 에 RN primitive 직접 구현) 명시.
+- **방어 계층**: ESLint flat config (PR #47 CHORE-MOBILE-001) 가 1차 (IDE/CI), Metro resolver 가 2차 (`--no-eslint` 우회 빌드도 차단). 핸드오프 §3 의 권장 패턴.
+- **구현 상의 미세 차이 vs 핸드오프 스니펫**: 핸드오프는 `||` 4 조건 인라인, 본 구현은 `BLOCKED_PACKAGES` 배열 + `for...of` 루프 — 향후 차단 대상 추가 시 한 곳만 수정하면 되도록 확장성 확보.
+- spec.md sync: 본 sub-task 도 IMPL-MOBILE-M0-EAS-001 의 deferral marker (M0 통합 PR 시 patch 정책) 가 그대로 적용. 별도 marker 불필요 — gate-check.sh `check_spec_sync` 가 commit message 의 어떤 task ID 든 매칭되는 marker 1 개 발견 시 PASS.
+### 미완료: M0 나머지 3 개 서브태스크 (jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). 가드 동작의 런타임 검증 (실제 service-core import 시도 → throw 확인) — Metro dev server 인터랙티브 부팅 필요해 본 PR 범위 외.
+### 연관 파일: apps/mobile/metro.config.js
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-JEST-003
+commit_sha: c70fced
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/__tests__/App.test.tsx
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 1/1, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: jest + jest-expo + react-native-testing-library 셋업 — IMPL-MOBILE-M0-JEST-003 (M0 3/5 서브태스크)
+- **devDependencies** 추가:
+  - `jest@^29` — Expo SDK 54 + jest-expo 54.x 와 호환되는 LTS 라인 (jest 30 은 jest-expo 54 의 jest-watch-typeahead transitive peer 와 미호환)
+  - `jest-expo@~54.0.17` — Expo SDK 54 매칭 preset (`jest-expo` 가 babel transform / globals / mock 을 RN+Expo 환경에 맞게 자동 셋업)
+  - `@testing-library/react-native@^13.3.3` — RN 컴포넌트 렌더 / query API
+  - `react-test-renderer@19.1.0` — react 19.1.0 과 정확 매칭 (peer warning 회피)
+  - `@types/jest@^29.5.14` — TypeScript 타입
+- **package.json `jest` 설정**:
+  - `preset: "jest-expo"` — Expo 권장 preset
+  - `transformIgnorePatterns` — pnpm `.pnpm/<pkg>@<ver>/node_modules/...` 중첩 경로 인식하도록 정규식 확장 (`(\\.pnpm/[^/]+/node_modules/)?` 옵셔널 prefix). npm flat layout 만 가정한 표준 패턴은 pnpm 에서 RN 자체 transform 실패 → `SyntaxError: Cannot use import statement outside a module` 발생.
+  - 본 패턴은 `react-native`, `@react-native(-community)`, `expo`, `@expo`, `@react-navigation`, `react-navigation`, `@unimodules`, `unimodules`, `sentry-expo`, `native-base`, `react-native-svg`, `@testing-library/react-native` 모두 transform 대상으로 포함.
+- **`test` script**: `echo "(M0 placeholder)"` → `jest` 로 교체.
+- **첫 unit test** — `__tests__/App.test.tsx`: `App` 컴포넌트 렌더 후 placeholder 텍스트 ("Open up App.tsx to start working on your app!") 존재 확인. 1 test PASS in 2.25s. App.tsx 가 M0 5번 (welcome 화면) 에서 변경되면 본 테스트도 함께 갱신 예정.
+- **mobile-ci.yml 와 자동 연동** — CHORE-MOBILE-001 에서 이미 `pnpm --filter mobile test` 를 호출하도록 셋업되어 있어 본 PR 머지 시 CI 가 자동으로 jest 실행.
+### 미완료: M0 나머지 2 개 서브태스크 (design-tokens RN 익스포트 (`tokens.native.ts`) 연동 — IMPL-MOBILE-M0-TOKENS-004, App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). App.tsx 변경 시 본 테스트의 텍스트 assertion 도 함께 갱신.
+### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/App.test.tsx, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-TOKENS-004
+commit_sha: 724efd9
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/__tests__/design-tokens.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 5/5, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: design-tokens RN 익스포트 연동 — IMPL-MOBILE-M0-TOKENS-004 (M0 4/5 서브태스크)
+- **`@celebbase/design-tokens` workspace 의존성 추가** (`workspace:^`). 기존 `packages/design-tokens/dist/tokens.native.ts` 가 CHORE-MOBILE-001 시점에 빌드됨 — pnpm symlink 로 즉시 사용 가능.
+- **jest 설정 보완** (jest 가 design-tokens 패키지의 `exports` 필드 + ESM 못 풀던 문제 해결):
+  - `moduleNameMapper`: `^@celebbase/design-tokens$` → `<rootDir>/../../packages/design-tokens/dist/index.js` 직접 매핑. 서브패스 (`/tokens.css` 등) 도 매핑.
+  - `transformIgnorePatterns` 에 `@celebbase/` 추가 — jest-expo 의 babel transform 이 ESM `dist/index.js` 처리하도록.
+- **smoke test** — `__tests__/design-tokens.test.ts` (4 tests):
+  1. `tokens.light` / `tokens.dark` 객체 export 확인
+  2. 직접 색상값 (`'#D4654A'` 등 raw hex) 토큰은 RN 에서 즉시 사용 가능
+  3. spacing 토큰은 px 문자열 (`'8px'`, `'16px'`)
+  4. `getToken('light', '--cb-...')` 헬퍼 동작
+- **RN 사용 시 제약 발견 (M0 5번 / 후속 작업에서 해결)**: 일부 토큰 값이 CSS `var(--cb-brand-500)` 형태의 참조를 그대로 가지고 있음 (web 컴포넌트는 CSS 컨텍스트에서 해결되지만 RN 은 var() 못 풂). M0 5번 (App.tsx 첫 화면) 에서 raw hex 값만 추출하는 헬퍼 또는 var() 해결 함수가 필요할 수 있음.
+- 테스트 통계: jest 전체 2 suites / 5 tests PASS in 2.09s.
+- spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책).
+### 미완료: M0 5 번 (App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). 본 PR 의 마지막 sub-task. CSS `var()` 참조 토큰의 RN 변환 전략 결정 필요 (raw hex 만 사용 vs var() 해결 헬퍼 작성).
+### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/design-tokens.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-WELCOME-005
+commit_sha: 207cfe8
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/src/lib/tokens.ts
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/__tests__/lib/tokens.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 11/11, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: App.tsx 첫 화면 (welcome) + design-tokens RN resolver — IMPL-MOBILE-M0-WELCOME-005 (M0 5/5 서브태스크, 마지막)
+- **`src/lib/tokens.ts` 신규** — RN-friendly design-tokens accessor:
+  - `resolveToken(theme, name)`: var() 참조를 재귀적으로 풀어 raw 값 반환. 최대 8 depth (cycle 보호) + 미존재 키 throw. design-tokens 의 native export 가 web CSS variable 시스템 보존을 위해 'var(--cb-X)' 형태 참조를 가지는데, RN 은 CSS var() 못 풀어서 본 헬퍼가 필수. 구현 시 `as TokenName` 캐스트로는 TS 가 always-defined 추론 → ESLint `no-unnecessary-condition` 위반. 해결: `tokens[theme] as Record<string, string | undefined>` 로 indexer 타입 명시.
+  - `px(value)`: '16px' / '8px' 같은 문자열 토큰을 number 로 변환 (RN StyleSheet 가 number 받음). 파싱 불가 시 throw — var() 미해결 값을 직접 px() 에 넣는 실수 차단.
+- **`App.tsx` 갱신** — Expo blank scaffold 의 placeholder 텍스트 제거. CelebBase 브랜드 화면:
+  - background: `--cb-color-bg` (light: `#FAFAF8` cream)
+  - title "CelebBase" 48px, fontWeight '700', color `--cb-color-brand` (light: `#6B5420` brand-700)
+  - subtitle "건강한 일상을 위한 웰니스 플랫폼" 16px (`--cb-body-md`), color `--cb-color-text` (light: `#1A1917` neutral-900)
+  - container paddingHorizontal `--cb-space-4` (16px)
+  - View flexbox 중앙 정렬, StatusBar auto
+  - 본 화면은 entry/branding 용. 실제 login flow 는 M1 (IMPL-MOBILE-AUTH-002a/b 의 BFF 라우트와 연동) 에서 구현.
+- **테스트 갱신/추가** (총 11 tests):
+  - `__tests__/App.test.tsx` (갱신): placeholder 텍스트 → "CelebBase" + 한국어 서브타이틀 검증.
+  - `__tests__/lib/tokens.test.ts` (신규, 7 tests): `resolveToken` 직접 값/var() 재귀/light·dark 차이 + `px` parse/throw.
+- **M0 통합 PR 마감** — 본 sub-task 완료로 PR #63 (현재 8 commits) 가 10 commits 으로 확장. M0 5/5 모두 한 PR 에 통합. 다음 push 시 CI 가 모든 sub-task 변경 일괄 재검증.
+- spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책). M0 머지 후 SPEC-SYNC-MOBILE-M0-001 으로 §11 한 번에 backfill 예정.
+### 미완료: M0 통합 PR (#63) push + CI 통과 대기 + 머지. M0.5 Release Readiness 4 항목 (App Store Connect / Google Play Console 등록, Apple App Privacy / Google Play Data Safety 매핑, mobile-ci.yml 통과 검증). M1 인증 (Amplify SRP → BFF /api/auth/mobile/{signup,login} → SecureStore). EAS 빌드 비용 정책 JUNWON 협의. Expo project ownership transfer (개인 ryuben → celebbase 조직).
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/lib/tokens.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/lib/tokens.test.ts
