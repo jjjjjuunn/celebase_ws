@@ -4982,7 +4982,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 11/11, pnpm --filte
 date: 2026-05-10
 agent: claude-opus-4-7 (1M context, direct implementation — codex CLI unavailable)
 task_id: IMPL-MOBILE-M1-AMPLIFY-001
-commit_sha: PENDING
+commit_sha: 113fd63
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/src/lib/cognito.ts
