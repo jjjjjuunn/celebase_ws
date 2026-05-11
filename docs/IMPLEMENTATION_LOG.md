@@ -4891,3 +4891,31 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter
 - spec.md sync: 본 sub-task 도 IMPL-MOBILE-M0-EAS-001 의 deferral marker (M0 통합 PR 시 patch 정책) 가 그대로 적용. 별도 marker 불필요 — gate-check.sh `check_spec_sync` 가 commit message 의 어떤 task ID 든 매칭되는 marker 1 개 발견 시 PASS.
 ### 미완료: M0 나머지 3 개 서브태스크 (jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). 가드 동작의 런타임 검증 (실제 service-core import 시도 → throw 확인) — Metro dev server 인터랙티브 부팅 필요해 본 PR 범위 외.
 ### 연관 파일: apps/mobile/metro.config.js
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-JEST-003
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/__tests__/App.test.tsx
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 1/1, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: jest + jest-expo + react-native-testing-library 셋업 — IMPL-MOBILE-M0-JEST-003 (M0 3/5 서브태스크)
+- **devDependencies** 추가:
+  - `jest@^29` — Expo SDK 54 + jest-expo 54.x 와 호환되는 LTS 라인 (jest 30 은 jest-expo 54 의 jest-watch-typeahead transitive peer 와 미호환)
+  - `jest-expo@~54.0.17` — Expo SDK 54 매칭 preset (`jest-expo` 가 babel transform / globals / mock 을 RN+Expo 환경에 맞게 자동 셋업)
+  - `@testing-library/react-native@^13.3.3` — RN 컴포넌트 렌더 / query API
+  - `react-test-renderer@19.1.0` — react 19.1.0 과 정확 매칭 (peer warning 회피)
+  - `@types/jest@^29.5.14` — TypeScript 타입
+- **package.json `jest` 설정**:
+  - `preset: "jest-expo"` — Expo 권장 preset
+  - `transformIgnorePatterns` — pnpm `.pnpm/<pkg>@<ver>/node_modules/...` 중첩 경로 인식하도록 정규식 확장 (`(\\.pnpm/[^/]+/node_modules/)?` 옵셔널 prefix). npm flat layout 만 가정한 표준 패턴은 pnpm 에서 RN 자체 transform 실패 → `SyntaxError: Cannot use import statement outside a module` 발생.
+  - 본 패턴은 `react-native`, `@react-native(-community)`, `expo`, `@expo`, `@react-navigation`, `react-navigation`, `@unimodules`, `unimodules`, `sentry-expo`, `native-base`, `react-native-svg`, `@testing-library/react-native` 모두 transform 대상으로 포함.
+- **`test` script**: `echo "(M0 placeholder)"` → `jest` 로 교체.
+- **첫 unit test** — `__tests__/App.test.tsx`: `App` 컴포넌트 렌더 후 placeholder 텍스트 ("Open up App.tsx to start working on your app!") 존재 확인. 1 test PASS in 2.25s. App.tsx 가 M0 5번 (welcome 화면) 에서 변경되면 본 테스트도 함께 갱신 예정.
+- **mobile-ci.yml 와 자동 연동** — CHORE-MOBILE-001 에서 이미 `pnpm --filter mobile test` 를 호출하도록 셋업되어 있어 본 PR 머지 시 CI 가 자동으로 jest 실행.
+### 미완료: M0 나머지 2 개 서브태스크 (design-tokens RN 익스포트 (`tokens.native.ts`) 연동 — IMPL-MOBILE-M0-TOKENS-004, App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). App.tsx 변경 시 본 테스트의 텍스트 assertion 도 함께 갱신.
+### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/App.test.tsx, pnpm-lock.yaml
