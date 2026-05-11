@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@celebbase/design-tokens';
 
@@ -8,17 +8,67 @@ import { configureCognito } from './src/lib/cognito';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { px, resolveToken } from './src/lib/tokens';
+import { bootstrapSession } from './src/services/auth-bootstrap';
+import { onLogoutSignal, type LogoutReason } from './src/lib/auth-events';
 
 // Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
 configureCognito();
 
-type Screen = 'login' | 'signup' | 'authenticated';
+type Screen = 'loading' | 'login' | 'signup' | 'authenticated';
+
+// 5종 reason 중 사용자에게 사유를 알려야 하는 두 케이스는 Alert. 나머지는 silent.
+function describeLogout(reason: LogoutReason): { title: string; message: string } | null {
+  if (reason === 'reuse_detected') {
+    return {
+      title: '보안 알림',
+      message:
+        '다른 위치에서 동일한 계정이 사용된 정황이 감지되어 모든 디바이스에서 로그아웃했습니다. 다시 로그인해 주세요.',
+    };
+  }
+  if (reason === 'account_deleted') {
+    return {
+      title: '계정 안내',
+      message: '계정이 삭제되었습니다. 복구가 필요하면 고객센터로 문의해 주세요.',
+    };
+  }
+  return null;
+}
 
 export default function App(): React.JSX.Element {
-  // 초기 진입 시 LoginScreen. signUp 흐름은 '계정 만들기' 링크로 진입.
-  // 앱 재시작 시 SecureStore 토큰 검증으로 자동 진입은 M2 영역 (auto-login).
-  const [screen, setScreen] = useState<Screen>('login');
+  // cold start 동안 SecureStore 토큰 확인 — 결과 오기 전엔 'loading'.
+  const [screen, setScreen] = useState<Screen>('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void bootstrapSession().then((result) => {
+      if (cancelled) return;
+      setScreen(result);
+    });
+
+    const off = onLogoutSignal((reason) => {
+      const message = describeLogout(reason);
+      if (message !== null) {
+        Alert.alert(message.title, message.message);
+      }
+      setScreen('login');
+    });
+
+    return (): void => {
+      cancelled = true;
+      off();
+    };
+  }, []);
+
+  if (screen === 'loading') {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
+        <StatusBar style="auto" />
+      </View>
+    );
+  }
 
   if (screen === 'login') {
     return (
@@ -68,6 +118,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: resolveToken('light', '--cb-color-bg'),
     paddingHorizontal: px(tokens.light['--cb-space-4']),
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: resolveToken('light', '--cb-color-bg'),
   },
   title: {
     fontSize: 48,
