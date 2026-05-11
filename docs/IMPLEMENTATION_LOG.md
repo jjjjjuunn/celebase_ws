@@ -5241,7 +5241,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-11
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M3-CLAIMS-001
-commit_sha: PENDING
+commit_sha: b8b0ef4
 files_changed:
   - apps/mobile/src/services/claims.ts
   - apps/mobile/src/lib/url-allowlist.ts
