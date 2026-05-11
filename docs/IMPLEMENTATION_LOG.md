@@ -4849,7 +4849,7 @@ verified_by: claude-opus-4-7 (gate-check.sh spec_sync smoke + Plan v5 §Decision
 date: 2026-05-10
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M0-EAS-001
-commit_sha: PENDING
+commit_sha: bb2f83b
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/app.json
