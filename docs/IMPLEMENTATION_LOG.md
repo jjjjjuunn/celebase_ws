@@ -5236,3 +5236,43 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck/lint PASS, 11 suites / 66 tests PASS (M1-G 의 53 + 신규 13). 실기기 (Expo Go) cold start spinner → LoginScreen 전환은 회사 Wi-Fi client isolation 으로 본 세션 미확인 — fast-follow.
 ### 미완료: M3 (Claim feed) 진입 시 `authedFetch` 첫 실호출 — content-service `/api/claims` GET. CHORE-MOBILE-002 refresh TTL 단축 (advisor backlog). Expo Go 실기기 cold start 시각 검증 (네트워크 환경 정상 시).
 ### 연관 파일: apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/auth-bootstrap.ts, apps/mobile/App.tsx, apps/mobile/__tests__/lib/fetch-with-refresh.test.ts, apps/mobile/__tests__/services/auth-bootstrap.test.ts, apps/mobile/__tests__/App.test.tsx, spec.md
+
+---
+date: 2026-05-11
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M3-CLAIMS-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/services/claims.ts
+  - apps/mobile/src/lib/url-allowlist.ts
+  - apps/mobile/src/components/TrustGradeBadge.tsx
+  - apps/mobile/src/components/CategoryTabs.tsx
+  - apps/mobile/src/components/ClaimCard.tsx
+  - apps/mobile/src/screens/ClaimsFeedScreen.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/package.json
+  - apps/mobile/__tests__/services/claims.test.ts
+  - apps/mobile/__tests__/lib/url-allowlist.test.ts
+  - apps/mobile/__tests__/screens/ClaimsFeedScreen.test.tsx
+  - apps/mobile/__tests__/screens/ClaimDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 15 suites / 93 tests)
+---
+### 완료: M3 — Wellness Claims Feed + Claim Detail screen (mobile 첫 콘텐츠 화면) — IMPL-MOBILE-M3-CLAIMS-001
+- **`src/services/claims.ts` 신규** — `listClaims({ claimType?, cursor?, limit? })` + `getClaim(id)`. BFF `/api/claims/feed`, `/api/claims/:id` 경유 (M2 `authedFetch` 재사용 — public route 라 토큰 없이도 동작). Zod parse 로 응답 검증.
+- **`src/lib/url-allowlist.ts` 신규** — `isAllowedSourceUrl(url)` source URL 도메인 화이트리스트 검증. spec.md §9.3 #2 (URL allowlist/SSRF 차단) 준수. `scripts/validate-claim-seeds.py` 의 `ALLOWED_DOMAINS` 13개와 정합. http/https + 정확 일치 또는 서브도메인만 통과. spoofing 방어 (`.allowed.com` 패턴 확인).
+- **컴포넌트 3개 신규** (`src/components/`):
+  - `TrustGradeBadge.tsx` — A/B/C/D/E 색상 칩 (design-tokens 부재로 내부 4색 상수, 후속 chore 에서 토큰화).
+  - `CategoryTabs.tsx` — 'all' + ClaimType 7종 = 8 탭 가로 스크롤 chip group. 한국어 라벨.
+  - `ClaimCard.tsx` — feed list / detail header 공통. `onPress` 유무로 TouchableOpacity / View 분기.
+- **화면 2개 신규** (`src/screens/`):
+  - `ClaimsFeedScreen.tsx` — cursor pagination + 카테고리 필터 + FlatList. 4 phase (loading/loaded/empty/error).
+  - `ClaimDetailScreen.tsx` — `getClaim(id)` → ClaimCard + body + sources (TouchableOpacity `Linking.openURL`, allowlist 외 차단) + disclaimer (trust D / is_health_claim) + "이 셀럽처럼 먹어보기" CTA (`base_diet_id != null` 시 회색 비활성).
+- **`App.tsx` 수정** — `Screen` union 에 `'claim_detail'` 추가 + `selectedClaimId: string | null` state. `'authenticated'` = ClaimsFeedScreen, 카드 탭 → `'claim_detail'`. logout signal 시 selectedClaimId reset.
+- **`package.json` 수정** — jest `moduleNameMapper` 에 `@celebbase/shared-types` 매핑 (claims.ts value import).
+- **테스트 27 cases 추가** (4 suites): claims service (8) + url-allowlist (6) + ClaimsFeedScreen (5) + ClaimDetailScreen (8). spoofing 방어, allowlist 외 source, disclaimer 분기, CTA 노출 조건 모두 검증.
+- **spec.md §7.2 patch** — "Mobile claims feed read path" 하위 절 (화면 흐름, 구현 위치, BFF 통로, navigation, fast-follow).
+- **검증**: typecheck/lint PASS, 15 suites / 93 tests PASS (M2 11/66 + 신규 4/27). 실기기 검증은 iOS 시뮬레이터 셋업 후 (회사 Wi-Fi client isolation 우회).
+### 미완료: 카드 셀럽 이름 + thumbnail (BFF `/api/celebrities/by-id/:id` 신규 후 IMPL-MOBILE-M3-CELEB-002). 검색바 (IMPL-MOBILE-M3-SEARCH-002, search backend 확인 선행). "이 셀럽처럼 먹어보기" 활성화 (M5 IAP 후). TrustGradeBadge 색상 토큰화 (CHORE-DESIGN-TRUST-GRADE-001). iOS 시뮬레이터 셋업 후 실기기 시각 검증.
+### 연관 파일: apps/mobile/src/services/claims.ts, apps/mobile/src/lib/url-allowlist.ts, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/components/CategoryTabs.tsx, apps/mobile/src/components/ClaimCard.tsx, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/src/screens/ClaimDetailScreen.tsx, apps/mobile/App.tsx, apps/mobile/package.json, apps/mobile/__tests__/services/claims.test.ts, apps/mobile/__tests__/lib/url-allowlist.test.ts, apps/mobile/__tests__/screens/ClaimsFeedScreen.test.tsx, apps/mobile/__tests__/screens/ClaimDetailScreen.test.tsx, spec.md
