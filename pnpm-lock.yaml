@@ -49,6 +49,9 @@ importers:
       '@celebbase/design-tokens':
         specifier: workspace:^
         version: link:../../packages/design-tokens
+      '@celebbase/shared-types':
+        specifier: workspace:^
+        version: link:../../packages/shared-types
       '@react-native-async-storage/async-storage':
         specifier: 2.1.0
         version: 2.1.0(react-native@0.81.5(@babel/core@7.29.0)(@types/react@18.3.28)(react@19.1.0))

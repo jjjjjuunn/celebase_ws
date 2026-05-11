@@ -27,6 +27,7 @@
   "dependencies": {
     "@aws-amplify/react-native": "^1.1.0",
     "@celebbase/design-tokens": "workspace:^",
+    "@celebbase/shared-types": "workspace:^",
     "@react-native-async-storage/async-storage": "2.1.0",
     "aws-amplify": "^6.6.0",
     "expo": "~54.0.33",

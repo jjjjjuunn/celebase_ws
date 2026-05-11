@@ -5045,3 +5045,39 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: pnpm --filter mobile typecheck PASS (0 errors), lint PASS (0 warnings), test PASS — 5 suites / 23 tests (M1-A 의 15 + 신규 8).
 ### 미완료: M1-C (Amplify SRP signup/login + BFF 호출), M1-D (refresh state machine 5종 enum), M1-E (로그인 UI).
 ### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/secure-store.ts, apps/mobile/__tests__/lib/secure-store.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-AUTH-CLIENT-003
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/api-client.ts
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/__tests__/services/auth.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 6 suites / 29 tests)
+---
+### 완료: M1 인증 #3 — Amplify SRP signIn / signOut + BFF /api/auth/mobile/login + SecureStore 통합 — IMPL-MOBILE-M1-AUTH-CLIENT-003 (M1 3/5)
+- **`apps/mobile/src/lib/api-client.ts` 신규** — BFF / user-service 호출용 fetch wrapper:
+  - `postJson<TResponse>(path, body, options)` — JSON body 직렬화 + JSON 응답 파싱
+  - `ApiError` 클래스: `status`, `code`, `payload` 노출 — M1-D refresh state machine 5종 enum 분기 키로 사용
+  - envelope 두 가지 shape 지원: flat `{ code, message }` + nested `{ error: { code, message } }`
+  - `baseUrlOverride` 옵션: user-service `/auth/refresh` 직접 호출 (cookie-shaped BFF route 미사용 예외, spec.md §4.2) 위한 hook
+- **`apps/mobile/src/services/auth.ts` 신규** — auth flow (`signIn`, `signOut`):
+  - `signIn`: Cognito SRP (Amplify v6 `signIn`) → `fetchAuthSession()` 으로 id_token 추출 → BFF `POST /api/auth/mobile/login { email, id_token }` → 응답 `{ access_token, refresh_token }` 을 SecureStore 저장
+  - `signOut`: SecureStore `clearTokens()` 먼저 (best-effort 보안 — Amplify 실패해도 로컬 토큰 확실 폐기) → Amplify `signOut()` (실패 시 dev console.warn 만, throw 안 함)
+  - `isSignedIn === false` (MFA / NEW_PASSWORD_REQUIRED 추가 단계) 분기 — UI 단계에서 처리하도록 throw + signInStep 메시지에 포함
+  - 빈 토큰 응답 거부 (서버 측 계약 위반 시 silent corrupt 차단)
+- **`apps/mobile/__tests__/services/auth.test.ts` 신규** — 6 케이스:
+  - signIn 성공 경로 (Cognito → BFF body 검증 → SecureStore 저장)
+  - Cognito 추가 단계 (MFA 등) → throw, BFF 미호출
+  - BFF 401 (e.g. INVALID_CREDENTIALS) → ApiError throw, SecureStore 미저장
+  - idToken 미존재 시 throw
+  - signOut: SecureStore 비움 + Amplify 호출
+  - Amplify signOut 실패해도 SecureStore 비움 유지
+- **shared-types 의존성 추가**: `apps/mobile/package.json` 에 `@celebbase/shared-types@workspace:^` — `schemas.LoginRequest`, `schemas.AuthTokens` 타입 그대로 사용 (multi-session.md §2 계약 일치).
+- **검증**: typecheck PASS, lint PASS, 6 suites / 29 tests PASS (M1-B 의 23 + 신규 6).
+### 미완료: M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI), Cognito confirmation 흐름 (signUp + confirmSignUp — M1-E UI 진입 시 추가).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/api-client.ts, apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts, pnpm-lock.yaml
