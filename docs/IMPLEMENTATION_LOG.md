@@ -5143,3 +5143,31 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck PASS (0 errors), lint PASS (0 warnings), test PASS (43 tests).
 ### 미완료: signUp / confirmSignUp 흐름 (회원가입 UI + Cognito email 코드 검증) — M1-F backlog 또는 M2 합쳐서 진행. fetch wrapper 의 401 → refresh → retry 자동화 (`refreshTokens()` 함수는 있으나 fetch wrapper 와 통합 안 됨) — M2 영역. 앱 재시작 시 자동 로그인 (SecureStore 토큰 검증) — M2. M0.5 Apple Privacy / Play Data Safety 매핑 — M4 trigger.
 ### 연관 파일: apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/screens/LoginScreen.test.tsx
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SIGNUP-WIRE-006
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/__tests__/services/auth.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 8 suites / 49 tests)
+---
+### 완료: M1 인증 #6 — signUp + confirmSignUpAndLogin wire (Cognito 가입 + 이메일 코드 검증 + BFF /signup) — IMPL-MOBILE-M1-SIGNUP-WIRE-006 (M1 6/7)
+- **`auth.signUp({ email, password, display_name })` 신규** — Cognito User Pool 등록:
+  - Amplify `signUp({ username, password, options.userAttributes: { email, name } })` 호출
+  - `nextStep`: `CONFIRM_SIGN_UP` (이메일 코드 발송 후 UI 가 코드 입력 화면 전환 필요) 또는 `DONE` (User Pool 설정에 따라 자동 가입)
+  - 본 함수는 Cognito 만 호출 — BFF `/api/auth/mobile/signup` 호출은 confirmation 후로 미룸 (id_token 확보 가능 시점)
+- **`auth.confirmSignUpAndLogin({ email, code, password, display_name })` 신규** — 4-step 흐름 통합:
+  1. `confirmSignUp(email, code)` — Cognito 코드 검증
+  2. `signIn(email, password)` — id_token 획득 (Cognito 가 코드 검증 후 즉시 signIn 허용)
+  3. `POST /api/auth/mobile/signup { email, display_name, id_token }` — BE 가 우리 DB users 테이블에 record 생성 + internal JWT 발급
+  4. `setTokens(response)` — SecureStore 저장
+  - 빈 토큰 응답 거부 (서버 계약 위반 시 silent corrupt 차단)
+- **테스트 6 케이스 추가** (`__tests__/services/auth.test.ts`):
+  - signUp: CONFIRM_SIGN_UP 단계, DONE 단계, Cognito throw 전파 (UsernameExistsException)
+  - confirmSignUpAndLogin: 성공 경로 (4-step body 검증), confirmSignUp 실패 → throw + BFF 미호출, BFF 409 EMAIL_ALREADY_EXISTS → ApiError
+- **검증**: typecheck/lint PASS, 8 suites / 49 tests PASS (M1-E 의 43 + 신규 6).
+### 미완료: M1-G (SignupScreen UI + LoginScreen "계정 만들기" 링크 + App.tsx 화면 state). fetch wrapper 의 401 → refresh → retry 자동화 (M2). 앱 재시작 시 자동 로그인 (M2). M0.5 Apple Privacy / Play Data Safety 매핑 (M4 trigger).
+### 연관 파일: apps/mobile/src/services/auth.ts, apps/mobile/__tests__/services/auth.test.ts

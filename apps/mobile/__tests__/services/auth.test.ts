@@ -5,6 +5,8 @@
 jest.mock('aws-amplify/auth', () => ({
   signIn: jest.fn(),
   signOut: jest.fn(),
+  signUp: jest.fn(),
+  confirmSignUp: jest.fn(),
   fetchAuthSession: jest.fn(),
 }));
 
@@ -27,18 +29,22 @@ jest.mock('expo-secure-store', () => {
 });
 
 import {
+  confirmSignUp as amplifyConfirmSignUp,
   fetchAuthSession,
   signIn as amplifySignIn,
   signOut as amplifySignOut,
+  signUp as amplifySignUp,
 } from 'aws-amplify/auth';
 import * as SecureStore from 'expo-secure-store';
 
 import { ApiError } from '../../src/lib/api-client';
 import { getAccessToken, getRefreshToken } from '../../src/lib/secure-store';
-import { signIn, signOut } from '../../src/services/auth';
+import { confirmSignUpAndLogin, signIn, signOut, signUp } from '../../src/services/auth';
 
 const amplifySignInMock = amplifySignIn as jest.MockedFunction<typeof amplifySignIn>;
 const amplifySignOutMock = amplifySignOut as jest.MockedFunction<typeof amplifySignOut>;
+const amplifySignUpMock = amplifySignUp as jest.MockedFunction<typeof amplifySignUp>;
+const amplifyConfirmSignUpMock = amplifyConfirmSignUp as jest.MockedFunction<typeof amplifyConfirmSignUp>;
 const fetchAuthSessionMock = fetchAuthSession as jest.MockedFunction<typeof fetchAuthSession>;
 const resetSecureStoreMemory = (SecureStore as unknown as { __resetMemory: () => void }).__resetMemory;
 
@@ -169,6 +175,143 @@ describe('auth.signOut()', () => {
 
     // signOut 자체는 throw 하지 않음 (catch 처리)
     await expect(signOut()).resolves.toBeUndefined();
+    expect(await getAccessToken()).toBeNull();
+  });
+});
+
+describe('auth.signUp()', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('Cognito signUp 호출 + 코드 발송 단계면 CONFIRM_SIGN_UP 반환', async () => {
+    amplifySignUpMock.mockResolvedValue({
+      isSignUpComplete: false,
+      nextStep: { signUpStep: 'CONFIRM_SIGN_UP' },
+    } as Awaited<ReturnType<typeof amplifySignUp>>);
+
+    const result = await signUp({ email: 'a@b.co', password: 'Pass123!', display_name: 'Alice' });
+
+    expect(result.nextStep).toBe('CONFIRM_SIGN_UP');
+    expect(amplifySignUpMock).toHaveBeenCalledWith({
+      username: 'a@b.co',
+      password: 'Pass123!',
+      options: {
+        userAttributes: { email: 'a@b.co', name: 'Alice' },
+      },
+    });
+  });
+
+  it('Cognito 가 자동 가입 완료 (DONE) — confirmation 불필요', async () => {
+    amplifySignUpMock.mockResolvedValue({
+      isSignUpComplete: true,
+      nextStep: { signUpStep: 'DONE' },
+    } as Awaited<ReturnType<typeof amplifySignUp>>);
+
+    const result = await signUp({ email: 'a@b.co', password: 'P', display_name: 'A' });
+    expect(result.nextStep).toBe('DONE');
+  });
+
+  it('Cognito 가 throw 하면 그대로 전파 (예: UsernameExistsException)', async () => {
+    amplifySignUpMock.mockRejectedValue(
+      Object.assign(new Error('email exists'), { name: 'UsernameExistsException' }),
+    );
+
+    await expect(
+      signUp({ email: 'a@b.co', password: 'p', display_name: 'A' }),
+    ).rejects.toThrow(/email exists/);
+  });
+});
+
+describe('auth.confirmSignUpAndLogin()', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSecureStoreMemory();
+    process.env['EXPO_PUBLIC_BFF_BASE_URL'] = 'http://localhost:3000';
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  function mockCognitoSignInSuccess(idToken: string): void {
+    amplifySignInMock.mockResolvedValue({
+      isSignedIn: true,
+      nextStep: { signInStep: 'DONE' },
+    } as Awaited<ReturnType<typeof amplifySignIn>>);
+    fetchAuthSessionMock.mockResolvedValue({
+      tokens: { idToken: { toString: (): string => idToken } },
+    } as unknown as Awaited<ReturnType<typeof fetchAuthSession>>);
+  }
+
+  it('성공 경로: confirmSignUp → signIn → BFF /signup → SecureStore', async () => {
+    amplifyConfirmSignUpMock.mockResolvedValue({
+      isSignUpComplete: true,
+      nextStep: { signUpStep: 'DONE' },
+    } as Awaited<ReturnType<typeof amplifyConfirmSignUp>>);
+    mockCognitoSignInSuccess('id-token-X');
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: 'access-X', refresh_token: 'refresh-X' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const tokens = await confirmSignUpAndLogin({
+      email: 'a@b.co',
+      code: '123456',
+      password: 'pw',
+      display_name: 'Alice',
+    });
+
+    expect(tokens.access_token).toBe('access-X');
+    expect(amplifyConfirmSignUpMock).toHaveBeenCalledWith({
+      username: 'a@b.co',
+      confirmationCode: '123456',
+    });
+    expect(amplifySignInMock).toHaveBeenCalledWith({ username: 'a@b.co', password: 'pw' });
+
+    // BFF /signup 호출 — body 에 email, display_name, id_token
+    const [calledUrl, calledInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(calledUrl).toBe('http://localhost:3000/api/auth/mobile/signup');
+    const sentBody: unknown = JSON.parse(calledInit.body as string);
+    expect(sentBody).toEqual({ email: 'a@b.co', display_name: 'Alice', id_token: 'id-token-X' });
+
+    expect(await getAccessToken()).toBe('access-X');
+    expect(await getRefreshToken()).toBe('refresh-X');
+  });
+
+  it('confirmSignUp 실패 (코드 불일치) → throw, BFF 미호출, SecureStore 미저장', async () => {
+    amplifyConfirmSignUpMock.mockRejectedValue(
+      Object.assign(new Error('Invalid verification code'), { name: 'CodeMismatchException' }),
+    );
+
+    await expect(
+      confirmSignUpAndLogin({ email: 'a@b.co', code: 'wrong', password: 'pw', display_name: 'A' }),
+    ).rejects.toThrow(/Invalid verification code/);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(await getAccessToken()).toBeNull();
+  });
+
+  it('BFF /signup 4xx (EMAIL_ALREADY_EXISTS) → ApiError, SecureStore 미저장', async () => {
+    amplifyConfirmSignUpMock.mockResolvedValue({
+      isSignUpComplete: true,
+      nextStep: { signUpStep: 'DONE' },
+    } as Awaited<ReturnType<typeof amplifyConfirmSignUp>>);
+    mockCognitoSignInSuccess('id-token-Y');
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { code: 'EMAIL_ALREADY_EXISTS', message: 'dup' } }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    await expect(
+      confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw', display_name: 'A' }),
+    ).rejects.toBeInstanceOf(ApiError);
     expect(await getAccessToken()).toBeNull();
   });
 });
