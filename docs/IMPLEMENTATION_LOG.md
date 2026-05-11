@@ -4919,3 +4919,30 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 1/1, pnpm --filter 
 - **mobile-ci.yml 와 자동 연동** — CHORE-MOBILE-001 에서 이미 `pnpm --filter mobile test` 를 호출하도록 셋업되어 있어 본 PR 머지 시 CI 가 자동으로 jest 실행.
 ### 미완료: M0 나머지 2 개 서브태스크 (design-tokens RN 익스포트 (`tokens.native.ts`) 연동 — IMPL-MOBILE-M0-TOKENS-004, App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). App.tsx 변경 시 본 테스트의 텍스트 assertion 도 함께 갱신.
 ### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/App.test.tsx, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-TOKENS-004
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/__tests__/design-tokens.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 5/5, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: design-tokens RN 익스포트 연동 — IMPL-MOBILE-M0-TOKENS-004 (M0 4/5 서브태스크)
+- **`@celebbase/design-tokens` workspace 의존성 추가** (`workspace:^`). 기존 `packages/design-tokens/dist/tokens.native.ts` 가 CHORE-MOBILE-001 시점에 빌드됨 — pnpm symlink 로 즉시 사용 가능.
+- **jest 설정 보완** (jest 가 design-tokens 패키지의 `exports` 필드 + ESM 못 풀던 문제 해결):
+  - `moduleNameMapper`: `^@celebbase/design-tokens$` → `<rootDir>/../../packages/design-tokens/dist/index.js` 직접 매핑. 서브패스 (`/tokens.css` 등) 도 매핑.
+  - `transformIgnorePatterns` 에 `@celebbase/` 추가 — jest-expo 의 babel transform 이 ESM `dist/index.js` 처리하도록.
+- **smoke test** — `__tests__/design-tokens.test.ts` (4 tests):
+  1. `tokens.light` / `tokens.dark` 객체 export 확인
+  2. 직접 색상값 (`'#D4654A'` 등 raw hex) 토큰은 RN 에서 즉시 사용 가능
+  3. spacing 토큰은 px 문자열 (`'8px'`, `'16px'`)
+  4. `getToken('light', '--cb-...')` 헬퍼 동작
+- **RN 사용 시 제약 발견 (M0 5번 / 후속 작업에서 해결)**: 일부 토큰 값이 CSS `var(--cb-brand-500)` 형태의 참조를 그대로 가지고 있음 (web 컴포넌트는 CSS 컨텍스트에서 해결되지만 RN 은 var() 못 풂). M0 5번 (App.tsx 첫 화면) 에서 raw hex 값만 추출하는 헬퍼 또는 var() 해결 함수가 필요할 수 있음.
+- 테스트 통계: jest 전체 2 suites / 5 tests PASS in 2.09s.
+- spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책).
+### 미완료: M0 5 번 (App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). 본 PR 의 마지막 sub-task. CSS `var()` 참조 토큰의 RN 변환 전략 결정 필요 (raw hex 만 사용 vs var() 해결 헬퍼 작성).
+### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/design-tokens.test.ts, pnpm-lock.yaml
