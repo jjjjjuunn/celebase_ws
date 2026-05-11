@@ -4844,3 +4844,31 @@ verified_by: claude-opus-4-7 (gate-check.sh spec_sync smoke + Plan v5 §Decision
 - **gemini-cli `run_shell_command` 부재 미해결**: L3 adversarial pass 가 현재 항상 Claude self-adversarial 로 fallback. gemini-cli 갱신 시까지 유지.
 
 ### 연관 파일: CLAUDE.md, spec.md, apps/web/README.md, docs/MOBILE-ROADMAP.md, docs/FE-ROADMAP.md, docs/SPEC-PIVOT-PLAN.md, .claude/rules/multi-session.md, .claude/rules/spec-dod.md, scripts/gate-check.sh, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-EAS-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/app.json
+  - apps/mobile/eas.json
+  - pnpm-lock.yaml
+  - pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS, eas init 성공 + projectId 등록 확인)
+---
+### 완료: EAS 셋업 — IMPL-MOBILE-M0-EAS-001 (M0 1/5 서브태스크)
+- **eas-cli 18.11.0** 을 `apps/mobile/devDependencies` 로 추가 (글로벌 설치 대신 workspace pin 으로 팀원 / CI 환경 통일).
+- **bundle identifier 결정**: iOS `bundleIdentifier` + Android `package` 모두 `com.celebbase.mobile` 로 통일. 한 번 출시하면 변경 불가능한 영구 식별자.
+- **app.json 메타 정리**: `name: mobile` → `CelebBase` (홈스크린 표시명), `slug: mobile` → `celebbase-mobile` (Expo URL 식별자).
+- **Expo 프로젝트 등록**: `pnpm exec eas init --non-interactive --force` 로 `@ryuben/celebbase-mobile` 생성 (project ID `eef29d46-8b31-4fa6-a612-86afcb9736e0`). app.json 에 `extra.eas.projectId` + `owner: "ryuben"` 자동 주입됨.
+- **eas.json 3 프로파일 정의**:
+  - `development`: `developmentClient: true` + `distribution: internal` — Expo Go 가 아닌 native dev 빌드, QR 로 폰 직접 설치
+  - `preview`: `distribution: internal` — release 빌드 + 내부 배포 (스테이크홀더 리뷰용)
+  - `production`: `autoIncrement: true` — 스토어 배포 + 빌드 번호 자동 증가
+- **cli.version pin**: `>=18.11.0 <19.0.0` 로 major version 고정 — eas-cli major 차이로 인한 CI/팀 불일치 방지.
+- **appVersionSource: "remote"**: EAS 가 buildNumber/versionCode 자동 관리 (수동 동기화 부담 제거, 권장 패턴).
+- **spec.md sync deferral**: SPEC-PIVOT-PLAN §2 "M0 Scaffold" 행이 "M0 통합 PR 시 patch" 명시 → `pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md` 마커로 후속 task `SPEC-SYNC-MOBILE-M0-001` 등록 예정.
+### 미완료: M0 나머지 4 개 서브태스크 (Metro `resolveRequest` throw 가드, jest + jest-expo + react-native-testing-library 셋업, design-tokens RN 익스포트 (`tokens.native.ts`) 연동, App.tsx 첫 화면 — welcome 또는 login entry). EAS 빌드 비용 정책 (Free tier 월 30 빌드 vs Production $19/월) JUNWON 협의 — 첫 `eas build` 명령 실행 전 결정 필요. Expo project ownership transfer — 현재 개인 계정 `ryuben` 소유, 출시 전 celebbase 조직 owner 로 이전 필요 (SPEC-SYNC-MOBILE-M0-001 에서 함께 기록).
+### 연관 파일: apps/mobile/package.json, apps/mobile/app.json, apps/mobile/eas.json, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M0-EAS-001/SPEC-SYNC-DEFER.md
