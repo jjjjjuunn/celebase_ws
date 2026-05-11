@@ -5020,3 +5020,28 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS 0 errors, pnpm
 - **spec.md sync**: SPEC-SYNC-DEFER.md 적용 — M1 전체 (signup/login + SecureStore + refresh state machine + UI) 완료 후 `SPEC-SYNC-MOBILE-M1-001` 단일 task 로 §4.2 mobile auth 시퀀스 + §11 디렉토리 트리 한 번에 backfill 예정.
 ### 미완료: M1-B (SecureStore wrapper — access/refresh token 저장소), M1-C (Amplify SRP signUp/signIn → BFF /api/auth/mobile/{signup,login} 호출 + 응답 SecureStore 저장), M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI — RHF + Zod resolver), 그리고 M0.5 잔여 1건 (Apple App Privacy / Play Data Safety 매핑 — M4 onboarding/bio-profile 시작 시 trigger 예정).
 ### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/cognito.ts, apps/mobile/App.tsx, apps/mobile/__tests__/lib/cognito.test.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/jest.setup.js, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/SPEC-SYNC-DEFER.md
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M1-SECURE-STORE-002
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/secure-store.ts
+  - apps/mobile/__tests__/lib/secure-store.test.ts
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 5 suites / 23 tests)
+---
+### 완료: M1 인증 #2 — SecureStore wrapper (iOS Keychain / Android Keystore) — IMPL-MOBILE-M1-SECURE-STORE-002 (M1 2/5)
+- **`expo-secure-store` 의존성 추가** — Expo SDK 가 iOS Keychain / Android Keystore 를 추상화하는 native module. AsyncStorage (평문) 가 아닌 KMS-grade 저장소 — spec.md §6 보안 정책 정합.
+- **`apps/mobile/src/lib/secure-store.ts` 신규** — 함수 6개:
+  - `getAccessToken()`, `getRefreshToken()`: 미저장 시 null 반환
+  - `setAccessToken(token)`, `setRefreshToken(token)`: 빈 문자열 거부 (silent corrupt 차단)
+  - `setTokens({ access_token, refresh_token })`: 로그인/갱신 시 묶어서 저장
+  - `clearTokens()`: 로그아웃/계정삭제 시 일괄 제거
+- **키 네이밍**: `celebbase.auth.access_token`, `celebbase.auth.refresh_token` — 네임스페이스 prefix 로 다른 앱과 키 충돌 방지.
+- **테스트 8 케이스** (`__tests__/lib/secure-store.test.ts`): `jest.mock('expo-secure-store')` 로 인메모리 Map 시뮬레이션. get/set/clear 순환, rotation 덮어쓰기, 빈 문자열 reject, 키 네임스페이스 검증.
+- **검증**: pnpm --filter mobile typecheck PASS (0 errors), lint PASS (0 warnings), test PASS — 5 suites / 23 tests (M1-A 의 15 + 신규 8).
+### 미완료: M1-C (Amplify SRP signup/login + BFF 호출), M1-D (refresh state machine 5종 enum), M1-E (로그인 UI).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/secure-store.ts, apps/mobile/__tests__/lib/secure-store.test.ts, pnpm-lock.yaml
