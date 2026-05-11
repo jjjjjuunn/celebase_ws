@@ -4977,3 +4977,46 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 11/11, pnpm --filte
 - spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책). M0 머지 후 SPEC-SYNC-MOBILE-M0-001 으로 §11 한 번에 backfill 예정.
 ### 미완료: M0 통합 PR (#63) push + CI 통과 대기 + 머지. M0.5 Release Readiness 4 항목 (App Store Connect / Google Play Console 등록, Apple App Privacy / Google Play Data Safety 매핑, mobile-ci.yml 통과 검증). M1 인증 (Amplify SRP → BFF /api/auth/mobile/{signup,login} → SecureStore). EAS 빌드 비용 정책 JUNWON 협의. Expo project ownership transfer (개인 ryuben → celebbase 조직).
 ### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/lib/tokens.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/lib/tokens.test.ts
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7 (1M context, direct implementation — codex CLI unavailable)
+task_id: IMPL-MOBILE-M1-AMPLIFY-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/lib/cognito.test.ts
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/jest.setup.js
+  - pnpm-lock.yaml
+  - pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md
+  - pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/SPEC-SYNC-DEFER.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS 0 errors, pnpm --filter mobile lint --max-warnings=0 PASS, pnpm --filter mobile test PASS 4 suites / 15 tests)
+---
+### 완료: M1 인증 #1 — AWS Amplify v6 SDK 셋업 + Cognito User Pool configure — IMPL-MOBILE-M1-AMPLIFY-001 (M1 1/5 서브태스크)
+- **의존성 4개 추가** (`apps/mobile/package.json`): `aws-amplify@^6.6.0` (umbrella v6), `@aws-amplify/react-native@^1.1.0` (RN 플러그인), `@react-native-async-storage/async-storage@2.1.0` (Expo SDK 54 호환 핀, caret 금지), `react-native-get-random-values@~1.11.0` (Amplify SRP 의 crypto.getRandomValues polyfill).
+- **`apps/mobile/src/lib/cognito.ts` 신규** — idempotent `configureCognito()` 헬퍼:
+  - `react-native-get-random-values` polyfill 을 파일 최상단에 import (Amplify import 보다 먼저) — SRP 첫 호출 시점에 `crypto.getRandomValues` 미존재 RN 환경 차단.
+  - Amplify v6 API 형식 (`Amplify.configure({ Auth: { Cognito: { userPoolId, userPoolClientId } } })`) — v5 의 `Auth.configure(...)` 와 비호환 명시.
+  - `requireEnv(name)` 헬퍼: `process.env[name]` 의 `any` 타입 오염을 `typeof raw !== 'string'` narrowing 으로 우회 → ESLint `no-unsafe-assignment` 통과.
+  - module-level `configured` flag → 2회+ 호출 시 Amplify.configure 는 1회만 실행 (idempotent).
+  - `__resetCognitoForTest()` 테스트 전용 export — `__` prefix 로 production 사용 차단 시그널.
+  - 환경 변수 (`EXPO_PUBLIC_COGNITO_USER_POOL_ID`, `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID`, `EXPO_PUBLIC_AWS_REGION`) 중 1개라도 누락 시 명확한 Error throw — silent fail 차단.
+- **`App.tsx` 갱신** — module load 시점에 `configureCognito()` 1회 호출. App component 본체는 미변경 (welcome 화면 유지). signIn / signUp 호출 이전 시점에 반드시 configure 되어 있어야 한다는 spec.md §4.2 Auth 흐름 의도와 정합.
+- **테스트 4 케이스 추가** (`__tests__/lib/cognito.test.ts`, 4 tests):
+  - Amplify.configure 가 정확한 Cognito 객체 shape 으로 1회 호출되는지 검증
+  - 2회 호출해도 Amplify.configure 는 1회만 (idempotent)
+  - USER_POOL_ID 누락 시 throw + configureSpy 미호출
+  - CLIENT_ID 누락 시 throw
+- **`apps/mobile/jest.setup.js` 신규** — `setupFiles` 등재 → 각 test file import 보다 먼저 baseline env 셋업. App.tsx 의 module-load configure 가 cognito 모듈 import 시점에 env 를 요구하기 때문에 ES import hoisting 보다 앞 시점이 필요했음.
+- **`__tests__/App.test.tsx` 갱신** — `jest.mock('aws-amplify', ...)` 추가 (RN export 가 `.ts` source 라 jest transform 범위 밖 → 모듈 자체 차단).
+- **검증** (모두 worktree 환경):
+  - `pnpm --filter mobile typecheck` PASS (0 errors, exactOptionalPropertyTypes + noUncheckedIndexedAccess 통과)
+  - `pnpm --filter mobile lint --max-warnings=0` PASS
+  - `pnpm --filter mobile test` PASS — 4 suites / 15 tests (기존 11 + 신규 4)
+- **HANDOFF 작성됨** (codex 부재 → Claude 직접 implement 모드): `pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md` — Amplify v6 API 강제, polyfill 위치, `__resetCognitoForTest` 패턴 등 anti-pattern 6+ 항목 사전 명시. 향후 codex CLI 설치 시 동일 패턴 재사용 가능.
+- **spec.md sync**: SPEC-SYNC-DEFER.md 적용 — M1 전체 (signup/login + SecureStore + refresh state machine + UI) 완료 후 `SPEC-SYNC-MOBILE-M1-001` 단일 task 로 §4.2 mobile auth 시퀀스 + §11 디렉토리 트리 한 번에 backfill 예정.
+### 미완료: M1-B (SecureStore wrapper — access/refresh token 저장소), M1-C (Amplify SRP signUp/signIn → BFF /api/auth/mobile/{signup,login} 호출 + 응답 SecureStore 저장), M1-D (refresh state machine — REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED 5종 enum 분기), M1-E (로그인/회원가입 UI — RHF + Zod resolver), 그리고 M0.5 잔여 1건 (Apple App Privacy / Play Data Safety 매핑 — M4 onboarding/bio-profile 시작 시 trigger 예정).
+### 연관 파일: apps/mobile/package.json, apps/mobile/src/lib/cognito.ts, apps/mobile/App.tsx, apps/mobile/__tests__/lib/cognito.test.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/jest.setup.js, pnpm-lock.yaml, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/CODEX-HANDOFF.md, pipeline/runs/IMPL-MOBILE-M1-AMPLIFY-001/SPEC-SYNC-DEFER.md

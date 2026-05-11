@@ -3,7 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@celebbase/design-tokens';
 
+import { configureCognito } from './src/lib/cognito';
 import { px, resolveToken } from './src/lib/tokens';
+
+// Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
+// signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
+configureCognito();
 
 export default function App() {
   return (
