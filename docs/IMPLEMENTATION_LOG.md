@@ -5176,7 +5176,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-10
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M1-SIGNUP-UI-007
-commit_sha: PENDING
+commit_sha: 62934fc
 files_changed:
   - apps/mobile/src/screens/SignupScreen.tsx
   - apps/mobile/src/screens/LoginScreen.tsx
