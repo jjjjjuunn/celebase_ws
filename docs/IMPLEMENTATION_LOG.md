@@ -5025,7 +5025,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck PASS 0 errors, pnpm
 date: 2026-05-10
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M1-SECURE-STORE-002
-commit_sha: PENDING
+commit_sha: 8ae8b97
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/src/lib/secure-store.ts
