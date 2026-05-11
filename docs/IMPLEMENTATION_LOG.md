@@ -4946,3 +4946,34 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 5/5, pnpm --filter 
 - spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책).
 ### 미완료: M0 5 번 (App.tsx 첫 화면 — IMPL-MOBILE-M0-WELCOME-005). 본 PR 의 마지막 sub-task. CSS `var()` 참조 토큰의 RN 변환 전략 결정 필요 (raw hex 만 사용 vs var() 해결 헬퍼 작성).
 ### 연관 파일: apps/mobile/package.json, apps/mobile/__tests__/design-tokens.test.ts, pnpm-lock.yaml
+
+---
+date: 2026-05-10
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M0-WELCOME-005
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/src/lib/tokens.ts
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/__tests__/lib/tokens.test.ts
+verified_by: claude-opus-4-7 (pnpm --filter mobile test PASS 11/11, pnpm --filter mobile typecheck PASS, pnpm --filter mobile lint --max-warnings=0 PASS)
+---
+### 완료: App.tsx 첫 화면 (welcome) + design-tokens RN resolver — IMPL-MOBILE-M0-WELCOME-005 (M0 5/5 서브태스크, 마지막)
+- **`src/lib/tokens.ts` 신규** — RN-friendly design-tokens accessor:
+  - `resolveToken(theme, name)`: var() 참조를 재귀적으로 풀어 raw 값 반환. 최대 8 depth (cycle 보호) + 미존재 키 throw. design-tokens 의 native export 가 web CSS variable 시스템 보존을 위해 'var(--cb-X)' 형태 참조를 가지는데, RN 은 CSS var() 못 풀어서 본 헬퍼가 필수. 구현 시 `as TokenName` 캐스트로는 TS 가 always-defined 추론 → ESLint `no-unnecessary-condition` 위반. 해결: `tokens[theme] as Record<string, string | undefined>` 로 indexer 타입 명시.
+  - `px(value)`: '16px' / '8px' 같은 문자열 토큰을 number 로 변환 (RN StyleSheet 가 number 받음). 파싱 불가 시 throw — var() 미해결 값을 직접 px() 에 넣는 실수 차단.
+- **`App.tsx` 갱신** — Expo blank scaffold 의 placeholder 텍스트 제거. CelebBase 브랜드 화면:
+  - background: `--cb-color-bg` (light: `#FAFAF8` cream)
+  - title "CelebBase" 48px, fontWeight '700', color `--cb-color-brand` (light: `#6B5420` brand-700)
+  - subtitle "건강한 일상을 위한 웰니스 플랫폼" 16px (`--cb-body-md`), color `--cb-color-text` (light: `#1A1917` neutral-900)
+  - container paddingHorizontal `--cb-space-4` (16px)
+  - View flexbox 중앙 정렬, StatusBar auto
+  - 본 화면은 entry/branding 용. 실제 login flow 는 M1 (IMPL-MOBILE-AUTH-002a/b 의 BFF 라우트와 연동) 에서 구현.
+- **테스트 갱신/추가** (총 11 tests):
+  - `__tests__/App.test.tsx` (갱신): placeholder 텍스트 → "CelebBase" + 한국어 서브타이틀 검증.
+  - `__tests__/lib/tokens.test.ts` (신규, 7 tests): `resolveToken` 직접 값/var() 재귀/light·dark 차이 + `px` parse/throw.
+- **M0 통합 PR 마감** — 본 sub-task 완료로 PR #63 (현재 8 commits) 가 10 commits 으로 확장. M0 5/5 모두 한 PR 에 통합. 다음 push 시 CI 가 모든 sub-task 변경 일괄 재검증.
+- spec.md sync: EAS-001 deferral marker 그대로 적용 (M0 통합 PR 시 patch 정책). M0 머지 후 SPEC-SYNC-MOBILE-M0-001 으로 §11 한 번에 backfill 예정.
+### 미완료: M0 통합 PR (#63) push + CI 통과 대기 + 머지. M0.5 Release Readiness 4 항목 (App Store Connect / Google Play Console 등록, Apple App Privacy / Google Play Data Safety 매핑, mobile-ci.yml 통과 검증). M1 인증 (Amplify SRP → BFF /api/auth/mobile/{signup,login} → SecureStore). EAS 빌드 비용 정책 JUNWON 협의. Expo project ownership transfer (개인 ryuben → celebbase 조직).
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/lib/tokens.ts, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/lib/tokens.test.ts
