@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-12
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M4-PHI-002
-commit_sha: PENDING
+commit_sha: 54164bb
 files_changed:
   - apps/mobile/src/onboarding/types.ts
   - apps/mobile/src/onboarding/ActivityHealthStep.tsx
