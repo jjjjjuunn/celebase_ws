@@ -8,7 +8,7 @@
 //
 // PHI 안전 의무:
 //  - state 는 in-memory only (AsyncStorage 등 평문 영속화 금지).
-//  - console.log 등 PHI 값 출력 금지.
+//  - structured logger 포함 어떤 출력으로도 PHI 값을 흘리지 않는다.
 //  - Health Disclaimer 반드시 노출 (role="note" 접근성 보장).
 
 import { useState } from 'react';

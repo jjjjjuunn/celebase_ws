@@ -53,8 +53,8 @@ import type { ActivityLevel, PrimaryGoal, DietType } from '@celebbase/shared-typ
  * allergies / intolerances 는 비-PHI 로 분류되지만 사용자 입력 정보라 동일 화면.
  *
  * **PHI 안전 의무** (호출자 책임):
- * 1. console.log 등 일반 로그에 본 type 의 medical_conditions / medications
- *    값 절대 출력 금지.
+ * 1. 일반 로그 / stdout 어느 채널로도 medical_conditions / medications
+ *    값을 출력하지 않는다.
  * 2. AsyncStorage 등 평문 영속화 금지 — SecureStore 필수 또는 in-memory only.
  * 3. POST 외 endpoint 에 절대 전송 금지 (특히 persona-match 류, spec.md §7.1).
  */
