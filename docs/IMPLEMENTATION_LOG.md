@@ -28,6 +28,60 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-12
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-M4-PHI-002
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/onboarding/types.ts
+  - apps/mobile/src/onboarding/ActivityHealthStep.tsx
+  - apps/mobile/src/onboarding/GoalsStep.tsx
+  - apps/mobile/src/onboarding/RevealStep.tsx
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+  - apps/mobile/src/services/bio-profile.ts
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (mobile typecheck/lint/test 17 suites 106 tests PASS)
+---
+### 완료: 온보딩 S5–S7 (PHI 입력 + 단일 fail-closed POST) — IMPL-MOBILE-M4-PHI-002
+- **타입 확장** (`src/onboarding/types.ts`):
+  - `ActivityHealthDraft` — `activity_level` (`ActivityLevel`), `allergies: string[]` (비-PHI), `medical_conditions: string[]` / `medications: string[]` (⚠ PHI)
+  - `GoalsDraft` — `primary_goal` (`PrimaryGoal`), `secondary_goals: string[]`, `diet_type: DietType | null`
+  - `OnboardingDraftComplete = OnboardingDraftS2S4 & { activityHealth; goals }` — S7 단일 POST 의 source-of-truth
+- **S5 ActivityHealthStep** (`src/onboarding/ActivityHealthStep.tsx`):
+  - 상단 Health Disclaimer (`accessibilityRole='alert'`) — `.claude/rules/domain/content.md` Health Disclaimer 요구사항 충족
+  - activity_level 라디오 (5종 enum), COMMON_ALLERGIES chip 다중, medical_conditions / medications free-text (comma-separated)
+- **S6 GoalsStep** (`src/onboarding/GoalsStep.tsx`):
+  - primary_goal 단일 chip (8종), secondary_goals 다중 chip, diet_type 단일 chip (6종, 옵셔널)
+- **S7 RevealStep** (`src/onboarding/RevealStep.tsx`):
+  - 진입 즉시 `POST /api/users/me/bio-profile` (M2 `authedFetch` 경유) — `phase: saving | success | error`
+  - 실패 시 PHI-safe 메시지만 노출 (`err.status` 만, draft 값 절대 포함 X) + "다시 시도" / "이전 단계로"
+  - 성공 시 "홈으로" CTA → `onDone` → ClaimsFeedScreen 복귀
+- **bio-profile service** (`src/services/bio-profile.ts`):
+  - `draftToBioProfileBody(draft)` — 6 step draft → `BioProfileCreateRequest` 변환 (shared-types Zod schema 호환)
+  - `saveBioProfile(body)` — `authedFetch` 단일 POST, Bearer 자동 부착
+- **OnboardingFlow 확장** (`src/onboarding/OnboardingFlow.tsx`):
+  - 6 step union (`persona | basic | metrics | health | goals | reveal`) + 각 step state in-memory only (PHI **AsyncStorage/SecureStore 미사용 — 의도된 trade-off**)
+  - 기존 `onComplete` prop → `onDone` 으로 리네이밍 (S7 의 단일 시멘틱)
+- **App.tsx 정리**:
+  - `onboarding_complete_placeholder` 안내 화면 제거 — S7 의 `onDone` 이 직접 `authenticated` (ClaimsFeedScreen) 복귀
+- **테스트 10 cases** (`__tests__/onboarding/OnboardingFlow.test.tsx`):
+  - happy path (6 step 전부 통과 + POST body 검증) — `mockImplementation` 으로 celebrities GET vs bio-profile POST URL 패턴 분기
+  - PHI 안전: 에러 메시지에 medical_conditions / medications 값 절대 미포함 검증
+  - fail-closed: `AUDIT_LOG_FAILURE` 5xx → silent fallback X, 사용자 에러 + retry 노출 검증
+  - 닫기 (✕) 어느 단계든 onClose 호출, 이전 단계로 돌아가도 draft 보존 등
+- **spec.md patch**: `#### 7.1 Mobile onboarding S5–S7 (PHI + 최종 POST)` 서브섹션 추가 — PHI in-memory 정책, 단일 POST 정책, PHI-safe 에러 메시지 정책, Health Disclaimer 위치 명시
+- **검증**: `pnpm --filter mobile typecheck && lint && test` → 17 suites / 106 tests PASS, 0 lint warnings, 0 type errors
+
+### 미완료:
+- **commit_sha 기록**: 본 feat 커밋 머지 후 `scripts/record-log-sha.sh IMPL-MOBILE-M4-PHI-002` 로 SHA fill-in
+- **bio-profile 존재 여부 자동 분기**: 현재 진입은 ClaimsFeedScreen 우상단 "📋 프로필 입력하기" 수동 — M4 종료 후 `GET /api/users/me/bio-profile` 응답 분기로 cold-start 자동 진입 (별도 sub-task)
+- **client-side error logging (Sentry 등)**: PHI dump 금지 정책은 코드 레벨로 강제되지만, 로깅 도입 시 본 sub-task 의 PHI-safe 메시지 원칙을 redact filter 로 재확인 필요
+
+### 연관 파일: apps/mobile/src/onboarding/{ActivityHealthStep,GoalsStep,RevealStep,OnboardingFlow,types}.{ts,tsx}, apps/mobile/src/services/bio-profile.ts, apps/mobile/App.tsx, apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx, spec.md (§7.1 S5–S7 sub-section)
+
+---
 date: 2026-05-08
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-WORKSPACE-001-followup
