@@ -5281,7 +5281,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-11
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M4-ONBOARD-001
-commit_sha: PENDING
+commit_sha: b96fcca
 files_changed:
   - apps/mobile/src/services/celebrities.ts
   - apps/mobile/src/onboarding/types.ts
