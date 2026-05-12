@@ -7,6 +7,7 @@ jest.mock('expo-secure-store', () => ({
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { OnboardingFlow } from '../../src/onboarding/OnboardingFlow';
+import type { OnboardingDraftS2S4 } from '../../src/onboarding/types';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
 
 const CELEB = {
@@ -82,7 +83,7 @@ describe('<OnboardingFlow /> S2~S4', () => {
     fireEvent.press(screen.getByLabelText('입력 완료'));
 
     expect(onComplete).toHaveBeenCalledTimes(1);
-    const draft = onComplete.mock.calls[0][0];
+    const draft = (onComplete.mock.calls[0] as [OnboardingDraftS2S4])[0];
     expect(draft).toEqual({
       persona: { preferred_celebrity_slug: 'beyonce' },
       basicInfo: { display_name: '도현', birth_year: 1995, sex: 'male' },
@@ -160,7 +161,10 @@ describe('<OnboardingFlow /> S2~S4', () => {
     fireEvent.press(screen.getByLabelText('이전 단계'));
 
     // 다시 S2, fetch 끝난 후 카드의 selected 유지 (initial prop 으로 복원)
-    const card = await screen.findByLabelText('Beyoncé 선택');
-    expect(card.props.accessibilityState.selected).toBe(true);
+    await screen.findByLabelText('Beyoncé 선택');
+    const card = screen.getByLabelText('Beyoncé 선택') as unknown as {
+      props: { accessibilityState?: { selected?: boolean } };
+    };
+    expect(card.props.accessibilityState?.selected).toBe(true);
   });
 });
