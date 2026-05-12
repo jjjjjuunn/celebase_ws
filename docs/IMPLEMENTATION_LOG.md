@@ -5276,3 +5276,38 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck/lint PASS, 15 suites / 93 tests PASS (M2 11/66 + 신규 4/27). 실기기 검증은 iOS 시뮬레이터 셋업 후 (회사 Wi-Fi client isolation 우회).
 ### 미완료: 카드 셀럽 이름 + thumbnail (BFF `/api/celebrities/by-id/:id` 신규 후 IMPL-MOBILE-M3-CELEB-002). 검색바 (IMPL-MOBILE-M3-SEARCH-002, search backend 확인 선행). "이 셀럽처럼 먹어보기" 활성화 (M5 IAP 후). TrustGradeBadge 색상 토큰화 (CHORE-DESIGN-TRUST-GRADE-001). iOS 시뮬레이터 셋업 후 실기기 시각 검증.
 ### 연관 파일: apps/mobile/src/services/claims.ts, apps/mobile/src/lib/url-allowlist.ts, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/components/CategoryTabs.tsx, apps/mobile/src/components/ClaimCard.tsx, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/src/screens/ClaimDetailScreen.tsx, apps/mobile/App.tsx, apps/mobile/package.json, apps/mobile/__tests__/services/claims.test.ts, apps/mobile/__tests__/lib/url-allowlist.test.ts, apps/mobile/__tests__/screens/ClaimsFeedScreen.test.tsx, apps/mobile/__tests__/screens/ClaimDetailScreen.test.tsx, spec.md
+
+---
+date: 2026-05-11
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M4-ONBOARD-001
+commit_sha: b96fcca
+files_changed:
+  - apps/mobile/src/services/celebrities.ts
+  - apps/mobile/src/onboarding/types.ts
+  - apps/mobile/src/onboarding/PersonaSelectStep.tsx
+  - apps/mobile/src/onboarding/BasicInfoStep.tsx
+  - apps/mobile/src/onboarding/BodyMetricsStep.tsx
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+  - apps/mobile/src/screens/ClaimsFeedScreen.tsx
+  - apps/mobile/App.tsx
+  - apps/mobile/__tests__/services/celebrities.test.ts
+  - apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 17 suites / 102 tests)
+---
+### 완료: M4 sub-task 1 — Onboarding S2-S4 (Persona + Basic Info + Body Metrics, PHI 전) — IMPL-MOBILE-M4-ONBOARD-001
+- **`src/services/celebrities.ts` 신규** — `listCelebrities` BFF `/api/celebrities` public route (M3 `authedFetch` 재사용). Zod parse.
+- **`src/onboarding/types.ts` 신규** — 비-PHI draft type (`PersonaDraft`/`BasicInfoDraft`/`BodyMetricsDraft`/`OnboardingDraftS2S4`). PHI 필드는 본 type 에 명시적 부재 — 후속 S5 sub-task 에서 별도 type 으로 PHI 경계 명확화.
+- **3 step 컴포넌트 신규** (`src/onboarding/`):
+  - `PersonaSelectStep.tsx` (S2): 셀럽 2-column grid, 단일 선택, slug 보관. avatar 는 첫 글자 placeholder.
+  - `BasicInfoStep.tsx` (S3): display_name + birth_year (1920~CURRENT-13) + sex (Sex enum 4종 chip). 비-PHI.
+  - `BodyMetricsStep.tsx` (S4): height/weight/waist 입력 (metric only, imperial 토글 후속).
+- **`OnboardingFlow.tsx` 신규** — 3 step wizard container, in-memory state, step navigation (next/back/close), 완료 시 `onComplete(draft)`.
+- **`ClaimsFeedScreen.tsx` 수정** — optional `onOnboardingPress` prop + 우상단 "📋 프로필 입력하기" 링크 (수동 진입). 자동 진입 분기 (bio-profile GET) 는 후속.
+- **`App.tsx` 수정** — Screen union 에 `'onboarding'` + `'onboarding_complete_placeholder'` 추가. S4 완료 → placeholder 화면 → 홈 복귀.
+- **테스트 9 cases 추가** (2 suites): celebrities service (3) + OnboardingFlow integration (6 — 행복 경로 draft 검증, validation, 뒤로 가기 선택 유지).
+- **spec.md §7.1 patch** — "Mobile onboarding S2–S4 (비-PHI)" 하위 절 (단계 도식 + state 관리 + BE 호출 정책 + 진입 메커니즘 + S5+ 안전장치).
+- **검증**: typecheck/lint PASS, 17 suites / 102 tests PASS (M3 15/93 + 신규 2/9).
+### 미완료: **PHI 영역 후속 sub-task (IMPL-MOBILE-M4-PHI-002 가칭)** — S5 Activity & Health (allergies + medical_conditions + medications + GLP-1 자동 감지), S6 Goals, S7 Reveal + 최종 `POST /api/users/me/bio-profile` + `PATCH /api/users/me`. Health Disclaimer 노출 의무. **Apple App Privacy / Google Play Data Safety mapping** (M0.5 deferred, M5 출시 전 필수). bio-profile GET 으로 자동 진입 분기. 셀럽 avatar 이미지 실제 fetch.
+### 연관 파일: apps/mobile/src/services/celebrities.ts, apps/mobile/src/onboarding/types.ts, apps/mobile/src/onboarding/PersonaSelectStep.tsx, apps/mobile/src/onboarding/BasicInfoStep.tsx, apps/mobile/src/onboarding/BodyMetricsStep.tsx, apps/mobile/src/onboarding/OnboardingFlow.tsx, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/services/celebrities.test.ts, apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx, spec.md
