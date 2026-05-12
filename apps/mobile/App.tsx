@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
 import { configureCognito } from './src/lib/cognito';
 import { LoginScreen } from './src/screens/LoginScreen';
@@ -15,8 +8,7 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { ClaimsFeedScreen } from './src/screens/ClaimsFeedScreen';
 import { ClaimDetailScreen } from './src/screens/ClaimDetailScreen';
 import { OnboardingFlow } from './src/onboarding/OnboardingFlow';
-import { resolveToken, px } from './src/lib/tokens';
-import { tokens } from '@celebbase/design-tokens';
+import { resolveToken } from './src/lib/tokens';
 import { bootstrapSession } from './src/services/auth-bootstrap';
 import { onLogoutSignal, type LogoutReason } from './src/lib/auth-events';
 
@@ -30,8 +22,7 @@ type Screen =
   | 'signup'
   | 'authenticated'
   | 'claim_detail'
-  | 'onboarding'
-  | 'onboarding_complete_placeholder';
+  | 'onboarding';
 
 // 5종 reason 중 사용자에게 사유를 알려야 하는 두 케이스는 Alert. 나머지는 silent.
 function describeLogout(reason: LogoutReason): { title: string; message: string } | null {
@@ -138,9 +129,9 @@ export default function App(): React.JSX.Element {
     return (
       <>
         <OnboardingFlow
-          onComplete={() => {
-            // S2-S4 완료. S5-S7 (PHI + Reveal + 최종 POST) 는 후속 sub-task.
-            setScreen('onboarding_complete_placeholder');
+          onDone={() => {
+            // S7 reveal 의 "홈으로". 본 sub-task 부터 bio-profile POST 완료 시점.
+            setScreen('authenticated');
           }}
           onClose={() => {
             setScreen('authenticated');
@@ -148,27 +139,6 @@ export default function App(): React.JSX.Element {
         />
         <StatusBar style="auto" />
       </>
-    );
-  }
-
-  if (screen === 'onboarding_complete_placeholder') {
-    return (
-      <View style={styles.placeholderContainer}>
-        <Text style={styles.placeholderTitle}>입력 완료 🎉</Text>
-        <Text style={styles.placeholderBody}>
-          기본 정보가 저장되었습니다. 다음 단계 (활동량 · 알러지 · 목표 · 최종 결과)는 곧 추가됩니다.
-        </Text>
-        <TouchableOpacity
-          onPress={() => {
-            setScreen('authenticated');
-          }}
-          accessibilityRole="button"
-          style={styles.placeholderButton}
-        >
-          <Text style={styles.placeholderButtonText}>홈으로</Text>
-        </TouchableOpacity>
-        <StatusBar style="auto" />
-      </View>
     );
   }
 
@@ -194,37 +164,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  placeholderContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    padding: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  placeholderTitle: {
-    fontSize: px(tokens.light['--cb-display-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    textAlign: 'center',
-  },
-  placeholderBody: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-    lineHeight: px(tokens.light['--cb-body-md']) + 6,
-  },
-  placeholderButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    marginTop: px(tokens.light['--cb-space-3']),
-  },
-  placeholderButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-on-brand'),
   },
 });

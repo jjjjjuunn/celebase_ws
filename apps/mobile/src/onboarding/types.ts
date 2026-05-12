@@ -44,3 +44,40 @@ export type OnboardingDraftS2S4 = {
 };
 
 // (Sex 는 @celebbase/shared-types 에서 직접 re-export 가 아닌 직접 import.)
+
+import type { ActivityLevel, PrimaryGoal, DietType } from '@celebbase/shared-types';
+
+/**
+ * S5 Activity & Health — PHI 첫 도입.
+ * spec.md §9.3 의 PHI 정의: medical_conditions / medications / biomarkers.
+ * allergies / intolerances 는 비-PHI 로 분류되지만 사용자 입력 정보라 동일 화면.
+ *
+ * **PHI 안전 의무** (호출자 책임):
+ * 1. 일반 로그 / stdout 어느 채널로도 medical_conditions / medications
+ *    값을 출력하지 않는다.
+ * 2. AsyncStorage 등 평문 영속화 금지 — SecureStore 필수 또는 in-memory only.
+ * 3. POST 외 endpoint 에 절대 전송 금지 (특히 persona-match 류, spec.md §7.1).
+ */
+export type ActivityHealthDraft = {
+  activity_level: ActivityLevel;
+  allergies: string[]; // 비-PHI
+  medical_conditions: string[]; // ⚠ PHI
+  medications: string[]; // ⚠ PHI
+};
+
+/**
+ * S6 Goals & Diet Prefs — 비-PHI.
+ */
+export type GoalsDraft = {
+  primary_goal: PrimaryGoal;
+  secondary_goals: string[];
+  diet_type: DietType | null; // null = 미선택 (omnivore 가 default 아님)
+};
+
+/**
+ * 온보딩 전체 (S2~S7) 완성 결과. S7 최종 POST 시 사용.
+ */
+export type OnboardingDraftComplete = OnboardingDraftS2S4 & {
+  activityHealth: ActivityHealthDraft;
+  goals: GoalsDraft;
+};

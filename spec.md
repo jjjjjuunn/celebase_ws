@@ -1740,6 +1740,59 @@ S4 Body Metrics  — 로컬 입력만
 - medical_conditions / medications / biomarkers 입력 컴포넌트 + SecureStore 임시 보관 (영속화 시)
 - `POST /api/users/me/bio-profile` fail-closed 에러 처리 + 감사 로그 fail 시 5xx 그대로 반영
 
+#### 7.1 Mobile onboarding S5–S7 (PHI + 최종 POST) *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-M4-PHI-002)*
+
+`apps/mobile` 의 온보딩 마법사 후반 3 단계 — Activity & Health / Goals & Diet / Reveal. **PHI 입력 + 단일 fail-closed POST**.
+
+```
+S4 Body Metrics (이전 sub-task 종료점)
+        ↓
+S5 Activity & Health  — ⚠ PHI 입력
+  - 헤더 상단 Health Disclaimer (accessibilityRole='alert')
+  - activity_level (ActivityLevel 5종 radio)
+  - allergies (비-PHI, COMMON_ALLERGIES chip 다중 + free-text)
+  - medical_conditions (⚠ PHI, free-text — comma-separated)
+  - medications (⚠ PHI, free-text — comma-separated)
+        ↓
+S6 Goals & Diet  — 비-PHI
+  - primary_goal (PrimaryGoal 8종 chip 단일)
+  - secondary_goals (다중 chip, 선택)
+  - diet_type (DietType 6종 chip 단일, 선택)
+        ↓
+S7 Reveal & Single POST  — 단일 fail-closed
+  - 진입 즉시 `POST /api/users/me/bio-profile` 1회 호출 (saving phase)
+  - 성공 → "설정 완료!" + "홈으로" CTA (onDone)
+  - 실패 → 에러 메시지 + "다시 시도" / "이전 단계로"
+```
+
+**state 정책 (PHI 안전)**:
+- 모든 step 의 draft 는 `OnboardingFlow` 컴포넌트의 **in-memory state 만** 사용. **AsyncStorage / SecureStore 절대 사용 X** — PHI (medical_conditions / medications) 가 디바이스 영속 저장소에 닿으면 분실/탈취 위험 + AES-256 적용 위치가 다층화되어 PHI 최소화 원칙 위반.
+- 앱 닫기 / 백그라운드 / 다른 화면 전환 시 draft 유실은 의도된 trade-off — 재입력이 영속화보다 안전.
+
+**BE 호출 정책**:
+- S5 / S6 입력 시 **BE 호출 0회**. 모든 PHI 는 S7 진입 시점의 **단일 POST 로만 전송** (PHI 감사 로그도 단 1회 발생).
+- 엔드포인트: BFF `POST /api/users/me/bio-profile` (M2 `authedFetch` 경유 — Bearer 토큰 자동 부착).
+- body: `draftToBioProfileBody(draft)` 로 6 step 의 draft 를 `BioProfileCreateRequest` 형식으로 변환 (비-PHI + PHI + base 셀럽 slug).
+- 5xx 또는 `AUDIT_LOG_FAILURE` 응답 시 **silent fallback 절대 X** — 사용자에게 에러 메시지 노출 + 재시도 버튼만 제공 (`.claude/rules/security.md` Fail-Closed 원칙 + spec §9.3 정합).
+
+**PHI-Safe 에러 메시지 정책**:
+- `RevealStep` 의 에러 상태에서 노출되는 메시지에 **사용자 입력값 (특히 PHI 필드) 절대 포함 X**.
+- `ApiError instanceof` 분기 시 `err.status` 만 노출 (예: "저장에 실패했습니다 (500).").
+- 네트워크 에러는 일반 문구 ("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.") 로만 안내.
+- 로깅 (Sentry 등) 시점에도 draft 전체 dump 금지 — 본 sub-task 는 client 측 로깅 미구현이지만 후속 도입 시 동일 정책 적용 의무.
+
+**Health Disclaimer**:
+- S5 헤더 상단에 `accessibilityRole='alert'` 로 노출 (`.claude/rules/domain/content.md` Health Disclaimer 요구사항 충족).
+- 문구: spec §10.4 Health Disclaimer 인용 ("본 입력값은 의료 자문이 아닙니다 ...").
+- S6 / S7 에는 재노출하지 않음 — S5 진입 시점 1회로 충분.
+
+**구현 위치**:
+- `apps/mobile/src/onboarding/{ActivityHealthStep,GoalsStep,RevealStep,OnboardingFlow}.tsx`
+- types: `apps/mobile/src/onboarding/types.ts` (`ActivityHealthDraft`, `GoalsDraft`, `OnboardingDraftComplete`)
+- service: `apps/mobile/src/services/bio-profile.ts` (`draftToBioProfileBody`, `saveBioProfile`)
+
+**진입 변경**: `App.tsx` 의 `onboarding_complete_placeholder` 안내 화면 제거 — S7 의 `onDone` 이 직접 `authenticated` 화면 (ClaimsFeedScreen) 으로 복귀시킨다.
+
 ### 7.2 Main App Flow
 
 > **PIVOT-2026-05**: Tab 1 의 첫 화면은 "Wellness Claims Feed"다. 출처와 신뢰등급(trust_grade)이 표시된 셀럽 lifestyle claim 카드가 메인이고, 식단 처방(meal plan)은 claim → "Inspired Meal Plan" CTA 로 진입하는 보조 경로다.
