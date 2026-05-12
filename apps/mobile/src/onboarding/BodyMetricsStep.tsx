@@ -1,6 +1,6 @@
-// S4 — Body Metrics. 키 / 몸무게 / 허리둘레 (optional).
+// S4 — Body Metrics. Height / weight / waist (optional).
 // 비-PHI (spec.md §9.3 PHI 정의는 biomarkers / medical_conditions / medications).
-// 단위: metric 만 (kg / cm). imperial 토글은 후속 chore.
+// 단위: 입력은 imperial (ft+in, lb, in) — US 시장 default. BE 전송 전 metric (cm/kg) 변환.
 
 import { useState } from 'react';
 import {
@@ -10,10 +10,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 
 import { px, resolveToken } from '../lib/tokens';
+import {
+  cmToFeetInches,
+  cmToInches,
+  feetInchesToCm,
+  inchesToCm,
+  kgToLb,
+  lbToKg,
+} from '../lib/units';
 import type { BodyMetricsDraft } from './types';
 
 interface BodyMetricsStepProps {
@@ -23,99 +32,140 @@ interface BodyMetricsStepProps {
   onClose: () => void;
 }
 
+// Imperial 검증 범위 (인간 한계 안에서 넉넉히):
+//   height: 3'0"~8'2" (36~98 inches) — metric 100~250 cm 와 대응
+//   weight: 66~660 lb — metric 30~300 kg 와 대응
+//   waist:  16~79 in — metric 40~200 cm 와 대응
+
 export function BodyMetricsStep({
   initial,
   onComplete,
   onBack,
   onClose,
 }: BodyMetricsStepProps): React.JSX.Element {
-  const [heightText, setHeightText] = useState(
-    initial?.height_cm !== undefined ? String(initial.height_cm) : '',
+  const initialFeetInches =
+    initial?.height_cm !== undefined ? cmToFeetInches(initial.height_cm) : null;
+
+  const [feetText, setFeetText] = useState(
+    initialFeetInches !== null ? String(initialFeetInches.feet) : '',
+  );
+  const [inchesText, setInchesText] = useState(
+    initialFeetInches !== null ? String(initialFeetInches.inches) : '',
   );
   const [weightText, setWeightText] = useState(
-    initial?.weight_kg !== undefined ? String(initial.weight_kg) : '',
+    initial?.weight_kg !== undefined ? String(kgToLb(initial.weight_kg)) : '',
   );
   const [waistText, setWaistText] = useState(
-    initial?.waist_cm !== undefined ? String(initial.waist_cm) : '',
+    initial?.waist_cm !== undefined ? String(cmToInches(initial.waist_cm)) : '',
   );
   const [error, setError] = useState<string | null>(null);
 
   function validateAndComplete(): void {
-    const height = Number.parseFloat(heightText);
-    if (Number.isNaN(height) || height < 100 || height > 250) {
-      setError('키는 100–250cm 사이여야 합니다.');
+    const ft = Number.parseFloat(feetText);
+    const inches = inchesText.trim() === '' ? 0 : Number.parseFloat(inchesText);
+    if (Number.isNaN(ft) || ft < 3 || ft > 8) {
+      setError('Height must be between 3 and 8 feet.');
       return;
     }
-    const weight = Number.parseFloat(weightText);
-    if (Number.isNaN(weight) || weight < 30 || weight > 300) {
-      setError('몸무게는 30–300kg 사이여야 합니다.');
+    if (Number.isNaN(inches) || inches < 0 || inches >= 12) {
+      setError('Inches must be between 0 and 11.');
       return;
     }
-    let waistValue: number | undefined;
+    const heightCm = feetInchesToCm(ft, inches);
+    if (heightCm < 100 || heightCm > 250) {
+      setError('Height seems out of range. Please double-check.');
+      return;
+    }
+
+    const lb = Number.parseFloat(weightText);
+    if (Number.isNaN(lb) || lb < 66 || lb > 660) {
+      setError('Weight must be between 66 and 660 lb.');
+      return;
+    }
+    const weightKg = lbToKg(lb);
+
+    let waistCm: number | undefined;
     if (waistText.trim() !== '') {
-      const waist = Number.parseFloat(waistText);
-      if (Number.isNaN(waist) || waist < 40 || waist > 200) {
-        setError('허리둘레는 40–200cm 사이여야 합니다.');
+      const waistIn = Number.parseFloat(waistText);
+      if (Number.isNaN(waistIn) || waistIn < 16 || waistIn > 79) {
+        setError('Waist must be between 16 and 79 inches.');
         return;
       }
-      waistValue = waist;
+      waistCm = inchesToCm(waistIn);
     }
+
     setError(null);
-    const draft: BodyMetricsDraft = { height_cm: height, weight_kg: weight };
-    if (waistValue !== undefined) draft.waist_cm = waistValue;
+    const draft: BodyMetricsDraft = { height_cm: heightCm, weight_kg: weightKg };
+    if (waistCm !== undefined) draft.waist_cm = waistCm;
     onComplete(draft);
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="이전 단계">
+        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.stepLabel}>3 / 3</Text>
-        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="닫기">
+        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.closeButton}>✕</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.title}>신체 정보를 알려주세요</Text>
+        <Text style={styles.title}>Your body metrics</Text>
         <Text style={styles.subtitle}>
-          BMR / TDEE 계산에 사용됩니다. 의료 정보는 다음 단계에서 별도로 묻습니다.
+          Used to calculate BMR / TDEE. We'll ask about medical info separately in the next step.
         </Text>
 
         <View style={styles.field}>
-          <Text style={styles.label}>키 (cm)</Text>
-          <TextInput
-            value={heightText}
-            onChangeText={setHeightText}
-            placeholder="예: 170"
-            keyboardType="decimal-pad"
-            accessibilityLabel="키"
-            style={styles.input}
-          />
+          <Text style={styles.label}>Height</Text>
+          <View style={styles.heightRow}>
+            <View style={styles.heightField}>
+              <TextInput
+                value={feetText}
+                onChangeText={setFeetText}
+                placeholder="5"
+                keyboardType="number-pad"
+                accessibilityLabel="Height in feet"
+                style={styles.input}
+              />
+              <Text style={styles.unitSuffix}>ft</Text>
+            </View>
+            <View style={styles.heightField}>
+              <TextInput
+                value={inchesText}
+                onChangeText={setInchesText}
+                placeholder="10"
+                keyboardType="number-pad"
+                accessibilityLabel="Height in inches"
+                style={styles.input}
+              />
+              <Text style={styles.unitSuffix}>in</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>몸무게 (kg)</Text>
+          <Text style={styles.label}>Weight (lb)</Text>
           <TextInput
             value={weightText}
             onChangeText={setWeightText}
-            placeholder="예: 65"
-            keyboardType="decimal-pad"
-            accessibilityLabel="몸무게"
+            placeholder="e.g. 150"
+            keyboardType="number-pad"
+            accessibilityLabel="Weight in pounds"
             style={styles.input}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>허리둘레 (cm) <Text style={styles.optional}>· 선택</Text></Text>
+          <Text style={styles.label}>Waist (in) <Text style={styles.optional}>· Optional</Text></Text>
           <TextInput
             value={waistText}
             onChangeText={setWaistText}
-            placeholder="예: 80"
-            keyboardType="decimal-pad"
-            accessibilityLabel="허리둘레"
+            placeholder="e.g. 32"
+            keyboardType="number-pad"
+            accessibilityLabel="Waist in inches"
             style={styles.input}
           />
         </View>
@@ -127,13 +177,13 @@ export function BodyMetricsStep({
         <TouchableOpacity
           onPress={validateAndComplete}
           accessibilityRole="button"
-          accessibilityLabel="입력 완료"
+          accessibilityLabel="Continue"
           style={styles.nextButton}
         >
-          <Text style={styles.nextButtonText}>완료</Text>
+          <Text style={styles.nextButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -199,6 +249,23 @@ const styles = StyleSheet.create({
     fontSize: px(tokens.light['--cb-body-md']),
     color: resolveToken('light', '--cb-color-text'),
     backgroundColor: resolveToken('light', '--cb-color-surface'),
+    flex: 1,
+  },
+  heightRow: {
+    flexDirection: 'row',
+    gap: px(tokens.light['--cb-space-3']),
+  },
+  heightField: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: px(tokens.light['--cb-space-2']),
+  },
+  unitSuffix: {
+    fontSize: px(tokens.light['--cb-body-md']),
+    fontWeight: '600',
+    color: resolveToken('light', '--cb-color-text-muted'),
+    minWidth: 24,
   },
   errorText: {
     fontSize: px(tokens.light['--cb-body-sm']),

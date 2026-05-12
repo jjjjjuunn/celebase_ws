@@ -15,16 +15,16 @@ interface CategoryTabsProps {
   onSelect: (next: CategoryFilter) => void;
 }
 
-// spec.md §3.4 Enum Glossary 의 한국어 라벨.
+// en-US labels — target market: US 20-30s (Apple App Store).
 const TABS: ReadonlyArray<{ key: CategoryFilter; label: string }> = [
-  { key: 'all', label: '전체' },
-  { key: 'food', label: '음식' },
-  { key: 'workout', label: '운동' },
-  { key: 'sleep', label: '수면' },
-  { key: 'beauty', label: '뷰티' },
-  { key: 'brand', label: '브랜드' },
-  { key: 'philosophy', label: '철학' },
-  { key: 'supplement', label: '보충제' },
+  { key: 'all', label: 'All' },
+  { key: 'food', label: 'Food' },
+  { key: 'workout', label: 'Fitness' },
+  { key: 'sleep', label: 'Sleep' },
+  { key: 'beauty', label: 'Beauty' },
+  { key: 'brand', label: 'Brands' },
+  { key: 'philosophy', label: 'Mindset' },
+  { key: 'supplement', label: 'Supplements' },
 ];
 
 export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.JSX.Element {
@@ -32,6 +32,7 @@ export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.J
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       contentContainerStyle={styles.container}
     >
       {TABS.map((tab) => {
@@ -57,15 +58,21 @@ export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.J
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   container: {
     paddingHorizontal: px(tokens.light['--cb-space-4']),
     paddingVertical: px(tokens.light['--cb-space-2']),
     gap: px(tokens.light['--cb-space-2']),
+    alignItems: 'center',
   },
   chip: {
     paddingHorizontal: px(tokens.light['--cb-space-4']),
     paddingVertical: px(tokens.light['--cb-space-2']),
     borderRadius: 20,
+    alignSelf: 'center',
   },
   chipActive: {
     backgroundColor: resolveToken('light', '--cb-color-brand-bg'),

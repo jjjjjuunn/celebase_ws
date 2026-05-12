@@ -7,7 +7,8 @@
 // error 표면화: signIn 의 ApiError.code (BFF envelope code) 와 일반 Error 모두 처리.
 
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { tokens } from '@celebbase/design-tokens';
@@ -17,8 +18,8 @@ import { signIn } from '../services/auth';
 import { px, resolveToken } from '../lib/tokens';
 
 const LoginFormSchema = z.object({
-  email: z.string().email('올바른 이메일 주소를 입력하세요.').max(255),
-  password: z.string().min(1, '비밀번호를 입력하세요.'),
+  email: z.string().email('Please enter a valid email address.').max(255),
+  password: z.string().min(1, 'Please enter your password.'),
 });
 
 interface LoginScreenProps {
@@ -39,7 +40,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
 
     const parsed = LoginFormSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? '입력값을 확인하세요.');
+      setError(parsed.error.issues[0]?.message ?? 'Please check your input.');
       return;
     }
 
@@ -55,19 +56,19 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>로그인</Text>
-      <Text style={styles.subtitle}>CelebBase 계정으로 계속</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Welcome back</Text>
+      <Text style={styles.subtitle}>Sign in to continue to CelebBase</Text>
 
       <TextInput
-        accessibilityLabel="이메일"
+        accessibilityLabel="Email"
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
         editable={!submitting}
         keyboardType="email-address"
         onChangeText={setEmail}
-        placeholder="이메일"
+        placeholder="Email"
         placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
         style={styles.input}
         textContentType="emailAddress"
@@ -75,13 +76,13 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
       />
 
       <TextInput
-        accessibilityLabel="비밀번호"
+        accessibilityLabel="Password"
         autoCapitalize="none"
         autoComplete="password"
         autoCorrect={false}
         editable={!submitting}
         onChangeText={setPassword}
-        placeholder="비밀번호"
+        placeholder="Password"
         placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
         secureTextEntry
         style={styles.input}
@@ -96,7 +97,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
       )}
 
       <TouchableOpacity
-        accessibilityLabel="로그인"
+        accessibilityLabel="Sign in"
         accessibilityRole="button"
         accessibilityState={{ disabled: submitting }}
         disabled={submitting}
@@ -108,20 +109,20 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
         {submitting ? (
           <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
         ) : (
-          <Text style={styles.buttonText}>로그인</Text>
+          <Text style={styles.buttonText}>Sign in</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
-        accessibilityLabel="계정 만들기"
+        accessibilityLabel="Create account"
         accessibilityRole="link"
         disabled={submitting}
         onPress={onSignupRequest}
         style={styles.linkButton}
       >
-        <Text style={styles.linkText}>계정이 없으신가요? 가입하기</Text>
+        <Text style={styles.linkText}>Don't have an account? Sign up</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -130,11 +131,11 @@ function mapErrorToMessage(err: unknown): string {
     // BFF envelope code 별 사용자 친화 메시지. 5종 enum 외 케이스는 일반 메시지.
     switch (err.code) {
       case 'INVALID_CREDENTIALS':
-        return '이메일 또는 비밀번호가 올바르지 않습니다.';
+        return 'Incorrect email or password.';
       case 'ACCOUNT_DELETED':
-        return '삭제된 계정입니다.';
+        return 'This account has been deleted.';
       case 'RATE_LIMITED':
-        return '요청이 너무 많습니다. 잠시 후 다시 시도하세요.';
+        return 'Too many attempts. Please try again later.';
       default:
         return err.message;
     }
@@ -142,7 +143,7 @@ function mapErrorToMessage(err: unknown): string {
   if (err instanceof Error) {
     return err.message;
   }
-  return '알 수 없는 오류가 발생했습니다.';
+  return 'Something went wrong. Please try again.';
 }
 
 const styles = StyleSheet.create({

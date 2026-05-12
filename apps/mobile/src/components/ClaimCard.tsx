@@ -12,15 +12,15 @@ import type { schemas } from '@celebbase/shared-types';
 import { px, resolveToken } from '../lib/tokens';
 import { TrustGradeBadge } from './TrustGradeBadge';
 
-// ClaimType → 한국어 라벨 (CategoryTabs 와 동일 매핑).
+// ClaimType → en-US 라벨 (CategoryTabs 와 동일 매핑).
 const CLAIM_TYPE_LABEL: Record<string, string> = {
-  food: '음식',
-  workout: '운동',
-  sleep: '수면',
-  beauty: '뷰티',
-  brand: '브랜드',
-  philosophy: '철학',
-  supplement: '보충제',
+  food: 'Food',
+  workout: 'Fitness',
+  sleep: 'Sleep',
+  beauty: 'Beauty',
+  brand: 'Brands',
+  philosophy: 'Mindset',
+  supplement: 'Supplements',
 };
 
 interface ClaimCardProps {
@@ -29,9 +29,16 @@ interface ClaimCardProps {
   primarySource?: schemas.ClaimSourceWire;
   /** list variant 에서만 TouchableOpacity. detail-header variant 는 plain View. */
   onPress?: (id: string) => void;
+  /** Premium 잠금 상태. true 면 lock overlay + Premium 라벨 표시. tap 시 paywall trigger. */
+  locked?: boolean;
 }
 
-export function ClaimCard({ claim, primarySource, onPress }: ClaimCardProps): React.JSX.Element {
+export function ClaimCard({
+  claim,
+  primarySource,
+  onPress,
+  locked = false,
+}: ClaimCardProps): React.JSX.Element {
   const body = (
     <>
       <View style={styles.headerRow}>
@@ -40,12 +47,23 @@ export function ClaimCard({ claim, primarySource, onPress }: ClaimCardProps): Re
         </View>
         <TrustGradeBadge grade={claim.trust_grade} />
       </View>
-      <Text style={styles.headline} numberOfLines={3}>{claim.headline}</Text>
+      <Text
+        style={[styles.headline, locked ? styles.headlineLocked : null]}
+        numberOfLines={3}
+      >
+        {claim.headline}
+      </Text>
       {primarySource !== undefined ? (
         <Text style={styles.sourceMeta} numberOfLines={1}>
           {primarySource.outlet}
           {primarySource.published_date !== null ? ` · ${primarySource.published_date.slice(0, 4)}` : ''}
         </Text>
+      ) : null}
+      {locked ? (
+        <View style={styles.lockOverlay}>
+          <Text style={styles.lockIcon}>🔒</Text>
+          <Text style={styles.lockLabel}>Premium · Tap to unlock</Text>
+        </View>
       ) : null}
     </>
   );
@@ -57,11 +75,15 @@ export function ClaimCard({ claim, primarySource, onPress }: ClaimCardProps): Re
   return (
     <TouchableOpacity
       accessibilityRole="button"
-      accessibilityLabel={`claim ${claim.headline}`}
+      accessibilityLabel={
+        locked
+          ? `Locked premium claim ${claim.headline}. Tap to upgrade.`
+          : `claim ${claim.headline}`
+      }
       onPress={() => {
         onPress(claim.id);
       }}
-      style={styles.card}
+      style={[styles.card, locked ? styles.cardLocked : null]}
     >
       {body}
     </TouchableOpacity>
@@ -99,8 +121,32 @@ const styles = StyleSheet.create({
     color: resolveToken('light', '--cb-color-text'),
     lineHeight: px(tokens.light['--cb-body-md']) + 6,
   },
+  headlineLocked: {
+    color: resolveToken('light', '--cb-color-text-muted'),
+  },
   sourceMeta: {
     fontSize: px(tokens.light['--cb-caption']),
     color: resolveToken('light', '--cb-color-text-muted'),
+  },
+  cardLocked: {
+    opacity: 0.85,
+  },
+  lockOverlay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: px(tokens.light['--cb-space-2']),
+    marginTop: px(tokens.light['--cb-space-2']),
+    paddingTop: px(tokens.light['--cb-space-2']),
+    borderTopWidth: 1,
+    borderTopColor: resolveToken('light', '--cb-color-border'),
+  },
+  lockIcon: {
+    fontSize: px(tokens.light['--cb-body-md']),
+  },
+  lockLabel: {
+    fontSize: px(tokens.light['--cb-body-sm']),
+    fontWeight: '700',
+    color: resolveToken('light', '--cb-color-brand'),
+    letterSpacing: 0.3,
   },
 });

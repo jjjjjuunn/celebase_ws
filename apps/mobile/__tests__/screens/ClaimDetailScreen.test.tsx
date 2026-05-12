@@ -88,7 +88,7 @@ describe('<ClaimDetailScreen />', () => {
     await screen.findByText('celery juice ritual');
 
     expect(
-      screen.getByText(/본 정보는 교육 목적으로 제공되며/),
+      screen.getByText(/educational purposes only/i),
     ).toBeTruthy();
   });
 
@@ -104,7 +104,7 @@ describe('<ClaimDetailScreen />', () => {
     await screen.findByText('celery juice ritual');
 
     expect(
-      screen.getByText(/본 정보는 교육 목적으로 제공되며/),
+      screen.getByText(/educational purposes only/i),
     ).toBeTruthy();
   });
 
@@ -116,7 +116,7 @@ describe('<ClaimDetailScreen />', () => {
     render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.queryByText(/본 정보는 교육 목적으로 제공되며/)).toBeNull();
+    expect(screen.queryByText(/educational purposes only/i)).toBeNull();
   });
 
   it('"이 셀럽처럼 먹어보기" 버튼: base_diet_id 있을 때만 노출 (회색 비활성)', async () => {
@@ -130,11 +130,11 @@ describe('<ClaimDetailScreen />', () => {
     render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.getByText('이 셀럽처럼 먹어보기')).toBeTruthy();
-    expect(screen.getByText('곧 제공됩니다')).toBeTruthy();
+    expect(screen.getByText('Eat like this celebrity')).toBeTruthy();
+    expect(screen.getByText('Coming soon')).toBeTruthy();
   });
 
-  it('base_diet_id null → "이 셀럽처럼 먹어보기" 미노출', async () => {
+  it('base_diet_id null → "Eat like this celebrity" 미노출', async () => {
     fetchSpy.mockResolvedValueOnce(
       makeResponse(200, { claim: CLAIM_BASE, sources: [] }),
     );
@@ -142,10 +142,10 @@ describe('<ClaimDetailScreen />', () => {
     render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.queryByText('이 셀럽처럼 먹어보기')).toBeNull();
+    expect(screen.queryByText('Eat like this celebrity')).toBeNull();
   });
 
-  it('source.url 이 allowlist 외 → "출처 링크 검증 실패" 표기 + Link role 미부착', async () => {
+  it('source.url 이 allowlist 외 → "Source link unavailable" 표기 + Link role 미부착', async () => {
     fetchSpy.mockResolvedValueOnce(
       makeResponse(200, {
         claim: CLAIM_BASE,
@@ -156,12 +156,12 @@ describe('<ClaimDetailScreen />', () => {
     render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.getByText('출처 링크 검증 실패')).toBeTruthy();
+    expect(screen.getByText('Source link unavailable')).toBeTruthy();
     // 외부 링크 열기 가능한 TouchableOpacity 없어야 한다.
-    expect(screen.queryByLabelText('Vogue 외부 링크 열기')).toBeNull();
+    expect(screen.queryByLabelText('Open Vogue link')).toBeNull();
   });
 
-  it('← 뒤로 버튼 → onBack 콜백', async () => {
+  it('← Back 버튼 → onBack 콜백', async () => {
     fetchSpy.mockResolvedValueOnce(
       makeResponse(200, { claim: CLAIM_BASE, sources: [] }),
     );
@@ -170,7 +170,7 @@ describe('<ClaimDetailScreen />', () => {
     render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={onBack} />);
     await screen.findByText('celery juice ritual');
 
-    fireEvent.press(screen.getByLabelText('뒤로'));
+    fireEvent.press(screen.getByLabelText('Back'));
 
     expect(onBack).toHaveBeenCalledTimes(1);
   });

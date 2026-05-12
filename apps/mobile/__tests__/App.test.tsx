@@ -27,12 +27,12 @@ describe('App entry', () => {
   // findBy* (Promise) 로 기다린다. SecureStore mock 이 항상 null → 'login' 분기.
   it('초기 진입 시 LoginScreen 을 렌더한다 (인증 전)', async () => {
     render(<App />);
-    expect(await screen.findByText('CelebBase 계정으로 계속')).toBeTruthy();
+    expect(await screen.findByText('Sign in to continue to CelebBase')).toBeTruthy();
   });
 
   it('LoginScreen 에 email / password 입력 필드가 있다', async () => {
     render(<App />);
-    expect(await screen.findByLabelText('이메일')).toBeTruthy();
-    expect(screen.getByLabelText('비밀번호')).toBeTruthy();
+    expect(await screen.findByLabelText('Email')).toBeTruthy();
+    expect(screen.getByLabelText('Password')).toBeTruthy();
   });
 });

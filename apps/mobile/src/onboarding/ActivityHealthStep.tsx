@@ -20,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { ActivityLevel } from '@celebbase/shared-types';
@@ -35,18 +36,18 @@ interface ActivityHealthStepProps {
 }
 
 const HEALTH_DISCLAIMER =
-  '이 정보는 교육 목적으로 제공되며 의료 조언을 대체하지 않습니다. 의료 결정은 반드시 의사와 상의해주세요.';
+  'This information is for educational purposes only and is not intended as medical advice. Always consult a physician for medical decisions.';
 
 const ACTIVITY_OPTIONS: ReadonlyArray<{ value: ActivityLevel; label: string; desc: string }> = [
-  { value: 'sedentary', label: '거의 안 함', desc: '주로 앉아서 생활' },
-  { value: 'light', label: '가벼움', desc: '주 1~3회 가벼운 운동' },
-  { value: 'moderate', label: '보통', desc: '주 3~5회 적당한 운동' },
-  { value: 'active', label: '활발', desc: '주 6~7회 활발한 운동' },
-  { value: 'very_active', label: '매우 활발', desc: '매일 강한 운동 또는 육체 노동' },
+  { value: 'sedentary', label: 'Sedentary', desc: 'Mostly sitting, little to no exercise' },
+  { value: 'light', label: 'Light', desc: 'Light exercise 1–3 days/week' },
+  { value: 'moderate', label: 'Moderate', desc: 'Moderate exercise 3–5 days/week' },
+  { value: 'active', label: 'Active', desc: 'Hard exercise 6–7 days/week' },
+  { value: 'very_active', label: 'Very active', desc: 'Intense daily training or physical labor' },
 ];
 
 const COMMON_ALLERGIES: ReadonlyArray<string> = [
-  '땅콩', '견과류', '우유', '계란', '밀(글루텐)', '대두', '갑각류', '생선',
+  'Peanuts', 'Tree nuts', 'Milk', 'Eggs', 'Wheat (gluten)', 'Soy', 'Shellfish', 'Fish',
 ];
 
 export function ActivityHealthStep({
@@ -82,7 +83,7 @@ export function ActivityHealthStep({
 
   function validateAndNext(): void {
     if (activityLevel === undefined) {
-      setError('활동량을 선택해주세요.');
+      setError('Please select your activity level.');
       return;
     }
     setError(null);
@@ -95,29 +96,29 @@ export function ActivityHealthStep({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="이전 단계">
+        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.stepLabel}>4 / 6</Text>
-        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="닫기">
+        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.closeButton}>✕</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>활동량과 건강 정보</Text>
+        <Text style={styles.title}>Activity & health</Text>
         <View
           accessibilityRole="alert"
-          accessibilityLabel="건강 정보 면책 안내"
+          accessibilityLabel="Health disclaimer"
           style={styles.disclaimer}
         >
           <Text style={styles.disclaimerText}>⚠ {HEALTH_DISCLAIMER}</Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>일상 활동량</Text>
+          <Text style={styles.label}>Daily activity level</Text>
           <View style={styles.activityList}>
             {ACTIVITY_OPTIONS.map((opt) => {
               const active = activityLevel === opt.value;
@@ -145,7 +146,7 @@ export function ActivityHealthStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>알러지 <Text style={styles.optional}>· 해당하는 것 모두</Text></Text>
+          <Text style={styles.label}>Allergies <Text style={styles.optional}>· Select all that apply</Text></Text>
           <View style={styles.chipRow}>
             {COMMON_ALLERGIES.map((allergy) => {
               const active = allergies.includes(allergy);
@@ -170,24 +171,24 @@ export function ActivityHealthStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>의료 조건 <Text style={styles.optional}>· 콤마로 구분, 없으면 비워두세요</Text></Text>
+          <Text style={styles.label}>Medical conditions <Text style={styles.optional}>· Comma-separated, leave blank if none</Text></Text>
           <TextInput
             value={conditionsText}
             onChangeText={setConditionsText}
-            placeholder="예: 고혈압, 당뇨"
-            accessibilityLabel="의료 조건"
+            placeholder="e.g. hypertension, diabetes"
+            accessibilityLabel="Medical conditions"
             multiline
             style={styles.input}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>복용 중인 약 <Text style={styles.optional}>· 콤마로 구분, 없으면 비워두세요</Text></Text>
+          <Text style={styles.label}>Medications <Text style={styles.optional}>· Comma-separated, leave blank if none</Text></Text>
           <TextInput
             value={medicationsText}
             onChangeText={setMedicationsText}
-            placeholder="예: 메트포민, 아스피린"
-            accessibilityLabel="복용 중인 약"
+            placeholder="e.g. metformin, aspirin"
+            accessibilityLabel="Medications"
             multiline
             style={styles.input}
           />
@@ -200,13 +201,13 @@ export function ActivityHealthStep({
         <TouchableOpacity
           onPress={validateAndNext}
           accessibilityRole="button"
-          accessibilityLabel="다음 단계로"
+          accessibilityLabel="Continue"
           style={styles.nextButton}
         >
-          <Text style={styles.nextButtonText}>다음</Text>
+          <Text style={styles.nextButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -9,7 +9,8 @@
 // confirmation 후 별도 로그인 필요).
 
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { tokens } from '@celebbase/design-tokens';
@@ -19,13 +20,13 @@ import { confirmSignUpAndLogin, signUp } from '../services/auth';
 import { px, resolveToken } from '../lib/tokens';
 
 const SignupFormSchema = z.object({
-  email: z.string().email('올바른 이메일 주소를 입력하세요.').max(255),
-  password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다.'),
-  display_name: z.string().min(1, '이름을 입력하세요.').max(100),
+  email: z.string().email('Please enter a valid email address.').max(255),
+  password: z.string().min(8, 'Password must be at least 8 characters.'),
+  display_name: z.string().min(1, 'Please enter your name.').max(100),
 });
 
 const ConfirmFormSchema = z.object({
-  code: z.string().min(6, '6자리 코드를 입력하세요.').max(6),
+  code: z.string().min(6, 'Please enter the 6-digit code.').max(6),
 });
 
 interface SignupScreenProps {
@@ -55,7 +56,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
     setError(null);
     const parsed = SignupFormSchema.safeParse({ email, password, display_name: displayName });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? '입력값을 확인하세요.');
+      setError(parsed.error.issues[0]?.message ?? 'Please check your input.');
       return;
     }
     setSubmitting(true);
@@ -93,7 +94,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
     setError(null);
     const parsed = ConfirmFormSchema.safeParse({ code });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? '코드를 확인하세요.');
+      setError(parsed.error.issues[0]?.message ?? 'Please check the code.');
       return;
     }
     setSubmitting(true);
@@ -108,43 +109,43 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
   if (step === 'form') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>회원가입</Text>
-        <Text style={styles.subtitle}>CelebBase 시작하기</Text>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Create account</Text>
+        <Text style={styles.subtitle}>Get started with CelebBase</Text>
 
         <TextInput
-          accessibilityLabel="이메일"
+          accessibilityLabel="Email"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}
           editable={!submitting}
           keyboardType="email-address"
           onChangeText={setEmail}
-          placeholder="이메일"
+          placeholder="Email"
           placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
           style={styles.input}
           textContentType="emailAddress"
           value={email}
         />
         <TextInput
-          accessibilityLabel="이름"
+          accessibilityLabel="Name"
           autoCapitalize="words"
           editable={!submitting}
           onChangeText={setDisplayName}
-          placeholder="이름"
+          placeholder="Your name"
           placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
           style={styles.input}
           textContentType="name"
           value={displayName}
         />
         <TextInput
-          accessibilityLabel="비밀번호"
+          accessibilityLabel="Password"
           autoCapitalize="none"
           autoComplete="password-new"
           autoCorrect={false}
           editable={!submitting}
           onChangeText={setPassword}
-          placeholder="비밀번호 (8자 이상)"
+          placeholder="Password (at least 8 characters)"
           placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
           secureTextEntry
           style={styles.input}
@@ -159,7 +160,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
         )}
 
         <TouchableOpacity
-          accessibilityLabel="가입하기"
+          accessibilityLabel="Sign up"
           accessibilityRole="button"
           accessibilityState={{ disabled: submitting }}
           disabled={submitting}
@@ -171,33 +172,33 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
           {submitting ? (
             <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
           ) : (
-            <Text style={styles.buttonText}>가입하기</Text>
+            <Text style={styles.buttonText}>Sign up</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
-          accessibilityLabel="로그인으로 돌아가기"
+          accessibilityLabel="Back to sign in"
           accessibilityRole="link"
           disabled={submitting}
           onPress={onBackToLogin}
           style={styles.linkButton}
         >
-          <Text style={styles.linkText}>이미 계정이 있으신가요? 로그인</Text>
+          <Text style={styles.linkText}>Already have an account? Sign in</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // step === 'confirm'
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>이메일 확인</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Verify your email</Text>
       <Text style={styles.subtitle}>
-        {email} 으로 발송된 6자리 코드를 입력하세요.
+        Enter the 6-digit code sent to {email}.
       </Text>
 
       <TextInput
-        accessibilityLabel="인증 코드"
+        accessibilityLabel="Verification code"
         autoCapitalize="none"
         editable={!submitting}
         keyboardType="number-pad"
@@ -217,7 +218,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
       )}
 
       <TouchableOpacity
-        accessibilityLabel="코드 확인"
+        accessibilityLabel="Verify code"
         accessibilityRole="button"
         accessibilityState={{ disabled: submitting }}
         disabled={submitting}
@@ -229,10 +230,10 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
         {submitting ? (
           <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
         ) : (
-          <Text style={styles.buttonText}>확인</Text>
+          <Text style={styles.buttonText}>Verify</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -240,24 +241,24 @@ function mapErrorToMessage(err: unknown): string {
   if (err instanceof ApiError) {
     switch (err.code) {
       case 'EMAIL_ALREADY_EXISTS':
-        return '이미 가입된 이메일입니다.';
+        return 'This email is already registered.';
       case 'INVALID_CREDENTIALS':
-        return '입력값이 올바르지 않습니다.';
+        return 'The information you entered is invalid.';
       default:
         return err.message;
     }
   }
   if (err instanceof Error) {
     // Cognito 표준 에러 — `err.name` 으로 분기
-    if (err.name === 'UsernameExistsException') return '이미 가입된 이메일입니다.';
+    if (err.name === 'UsernameExistsException') return 'This email is already registered.';
     if (err.name === 'InvalidPasswordException') {
-      return '비밀번호는 대문자/소문자/숫자/특수문자를 포함해야 합니다.';
+      return 'Password must include uppercase, lowercase, number, and special character.';
     }
-    if (err.name === 'CodeMismatchException') return '코드가 일치하지 않습니다.';
-    if (err.name === 'ExpiredCodeException') return '코드가 만료되었습니다. 다시 가입해주세요.';
+    if (err.name === 'CodeMismatchException') return 'The code is incorrect.';
+    if (err.name === 'ExpiredCodeException') return 'The code has expired. Please sign up again.';
     return err.message;
   }
-  return '알 수 없는 오류가 발생했습니다.';
+  return 'Something went wrong. Please try again.';
 }
 
 const styles = StyleSheet.create({

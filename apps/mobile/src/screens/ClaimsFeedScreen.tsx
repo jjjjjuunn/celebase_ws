@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { ClaimType, schemas } from '@celebbase/shared-types';
@@ -18,11 +19,14 @@ import { ClaimCard } from '../components/ClaimCard';
 import { CategoryTabs, type CategoryFilter } from '../components/CategoryTabs';
 import { px, resolveToken } from '../lib/tokens';
 import { listClaims } from '../services/claims';
+import { isClaimLocked, useCurrentTier } from '../lib/use-current-tier';
 
 interface ClaimsFeedScreenProps {
   onClaimPress: (id: string) => void;
   /** 우상단 "프로필 입력" 진입 — bio-profile 미입력 사용자용. */
   onOnboardingPress?: () => void;
+  /** 우상단 "Upgrade" 진입 — M5 paywall. tier-gated content lock 시 진입점. */
+  onUpgradePress?: () => void;
 }
 
 type FeedState = {
@@ -46,9 +50,11 @@ const INITIAL_STATE: FeedState = {
 export function ClaimsFeedScreen({
   onClaimPress,
   onOnboardingPress,
+  onUpgradePress,
 }: ClaimsFeedScreenProps): React.JSX.Element {
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [state, setState] = useState<FeedState>(INITIAL_STATE);
+  const { tier } = useCurrentTier();
 
   // 카테고리 변경 / 첫 mount 시 list reset + 첫 페이지 fetch.
   useEffect(() => {
@@ -132,17 +138,29 @@ export function ClaimsFeedScreen({
   }, [filter]);
 
   return (
-    <View style={styles.container}>
-      {onOnboardingPress !== undefined ? (
+    <SafeAreaView style={styles.container}>
+      {onOnboardingPress !== undefined || onUpgradePress !== undefined ? (
         <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={onOnboardingPress}
-            accessibilityRole="button"
-            accessibilityLabel="프로필 입력"
-            style={styles.onboardingLink}
-          >
-            <Text style={styles.onboardingLinkText}>📋 프로필 입력하기</Text>
-          </TouchableOpacity>
+          {onOnboardingPress !== undefined ? (
+            <TouchableOpacity
+              onPress={onOnboardingPress}
+              accessibilityRole="button"
+              accessibilityLabel="Set up profile"
+              style={styles.onboardingLink}
+            >
+              <Text style={styles.onboardingLinkText}>📋 Set up your profile</Text>
+            </TouchableOpacity>
+          ) : null}
+          {onUpgradePress !== undefined ? (
+            <TouchableOpacity
+              onPress={onUpgradePress}
+              accessibilityRole="button"
+              accessibilityLabel="Upgrade"
+              style={styles.upgradeLink}
+            >
+              <Text style={styles.upgradeLinkText}>⭐ Upgrade</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
       <CategoryTabs selected={filter} onSelect={setFilter} />
@@ -152,20 +170,35 @@ export function ClaimsFeedScreen({
         </View>
       ) : state.error !== null ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>불러오기에 실패했습니다.</Text>
+          <Text style={styles.errorText}>Couldn't load claims.</Text>
           <TouchableOpacity onPress={retry} style={styles.retryButton} accessibilityRole="button">
-            <Text style={styles.retryButtonText}>다시 시도</Text>
+            <Text style={styles.retryButtonText}>Try again</Text>
           </TouchableOpacity>
         </View>
       ) : state.claims.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>아직 등록된 claim 이 없습니다.</Text>
+          <Text style={styles.emptyText}>No claims yet.</Text>
         </View>
       ) : (
         <FlatList
           data={state.claims}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ClaimCard claim={item} onPress={onClaimPress} />}
+          renderItem={({ item }) => {
+            const locked = isClaimLocked(item.trust_grade, tier);
+            return (
+              <ClaimCard
+                claim={item}
+                locked={locked}
+                onPress={(id) => {
+                  if (locked && onUpgradePress !== undefined) {
+                    onUpgradePress();
+                    return;
+                  }
+                  onClaimPress(id);
+                }}
+              />
+            );
+          }}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           ListFooterComponent={
@@ -177,7 +210,7 @@ export function ClaimsFeedScreen({
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -188,7 +221,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     paddingHorizontal: px(tokens.light['--cb-space-4']),
     paddingTop: px(tokens.light['--cb-space-2']),
   },
@@ -200,6 +233,15 @@ const styles = StyleSheet.create({
     fontSize: px(tokens.light['--cb-body-sm']),
     color: resolveToken('light', '--cb-color-brand'),
     fontWeight: '600',
+  },
+  upgradeLink: {
+    paddingVertical: px(tokens.light['--cb-space-2']),
+    paddingHorizontal: px(tokens.light['--cb-space-3']),
+  },
+  upgradeLinkText: {
+    fontSize: px(tokens.light['--cb-body-sm']),
+    color: resolveToken('light', '--cb-color-brand'),
+    fontWeight: '700',
   },
   centered: {
     flex: 1,

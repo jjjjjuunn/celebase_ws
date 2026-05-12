@@ -24,10 +24,10 @@ describe('LoginScreen', () => {
     const onSignupRequest = jest.fn();
     render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
-    expect(screen.getByText('CelebBase 계정으로 계속')).toBeTruthy();
-    expect(screen.getByLabelText('이메일')).toBeTruthy();
-    expect(screen.getByLabelText('비밀번호')).toBeTruthy();
-    expect(screen.getByLabelText('로그인')).toBeTruthy();
+    expect(screen.getByText('Sign in to continue to CelebBase')).toBeTruthy();
+    expect(screen.getByLabelText('Email')).toBeTruthy();
+    expect(screen.getByLabelText('Password')).toBeTruthy();
+    expect(screen.getByLabelText('Sign in')).toBeTruthy();
   });
 
   it('빈 이메일로 제출 시 validation 에러 메시지가 표시되고 onSuccess 는 호출되지 않는다', () => {
@@ -35,10 +35,10 @@ describe('LoginScreen', () => {
     const onSignupRequest = jest.fn();
     render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
-    fireEvent.press(screen.getByLabelText('로그인'));
+    fireEvent.press(screen.getByLabelText('Sign in'));
 
     // Zod 가 첫 에러 (email invalid) 메시지를 노출
-    expect(screen.getByText(/이메일/)).toBeTruthy();
+    expect(screen.getByText(/email/i)).toBeTruthy();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
@@ -47,11 +47,11 @@ describe('LoginScreen', () => {
     const onSignupRequest = jest.fn();
     render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
-    fireEvent.changeText(screen.getByLabelText('이메일'), 'not-an-email');
-    fireEvent.changeText(screen.getByLabelText('비밀번호'), 'pw');
-    fireEvent.press(screen.getByLabelText('로그인'));
+    fireEvent.changeText(screen.getByLabelText('Email'), 'not-an-email');
+    fireEvent.changeText(screen.getByLabelText('Password'), 'pw');
+    fireEvent.press(screen.getByLabelText('Sign in'));
 
-    expect(screen.getByText(/올바른 이메일/)).toBeTruthy();
+    expect(screen.getByText(/valid email/i)).toBeTruthy();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });

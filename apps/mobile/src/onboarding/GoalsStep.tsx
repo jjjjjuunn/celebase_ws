@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { PrimaryGoal, DietType } from '@celebbase/shared-types';
@@ -23,31 +24,31 @@ interface GoalsStepProps {
 }
 
 const PRIMARY_GOAL_OPTIONS: ReadonlyArray<{ value: PrimaryGoal; label: string }> = [
-  { value: 'weight_loss', label: '체중 감량' },
-  { value: 'muscle_gain', label: '근육 증가' },
-  { value: 'maintenance', label: '현재 상태 유지' },
-  { value: 'longevity', label: '장수 / 건강 수명' },
-  { value: 'energy', label: '에너지 향상' },
-  { value: 'gut_health', label: '장 건강' },
-  { value: 'skin_health', label: '피부 건강' },
-  { value: 'athletic_performance', label: '운동 수행 능력' },
+  { value: 'weight_loss', label: 'Weight loss' },
+  { value: 'muscle_gain', label: 'Muscle gain' },
+  { value: 'maintenance', label: 'Maintain weight' },
+  { value: 'longevity', label: 'Longevity & healthspan' },
+  { value: 'energy', label: 'More energy' },
+  { value: 'gut_health', label: 'Gut health' },
+  { value: 'skin_health', label: 'Skin health' },
+  { value: 'athletic_performance', label: 'Athletic performance' },
 ];
 
 const SECONDARY_GOAL_OPTIONS: ReadonlyArray<string> = [
-  '수면 개선',
-  '스트레스 감소',
-  '집중력',
-  '면역력',
-  '심혈관 건강',
+  'Better sleep',
+  'Stress relief',
+  'Focus',
+  'Immunity',
+  'Heart health',
 ];
 
 const DIET_TYPE_OPTIONS: ReadonlyArray<{ value: DietType; label: string }> = [
-  { value: 'omnivore', label: '잡식 (제한 없음)' },
-  { value: 'pescatarian', label: '페스코 (생선만)' },
-  { value: 'vegetarian', label: '베지테리안' },
-  { value: 'vegan', label: '비건' },
-  { value: 'keto', label: '키토' },
-  { value: 'paleo', label: '팔레오' },
+  { value: 'omnivore', label: 'Omnivore (no restrictions)' },
+  { value: 'pescatarian', label: 'Pescatarian' },
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'keto', label: 'Keto' },
+  { value: 'paleo', label: 'Paleo' },
 ];
 
 export function GoalsStep({
@@ -69,7 +70,7 @@ export function GoalsStep({
 
   function validateAndNext(): void {
     if (primaryGoal === undefined) {
-      setError('가장 중요한 목표 하나를 선택해주세요.');
+      setError('Please choose your primary goal.');
       return;
     }
     setError(null);
@@ -77,22 +78,22 @@ export function GoalsStep({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="이전 단계">
+        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.stepLabel}>5 / 6</Text>
-        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="닫기">
+        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.closeButton}>✕</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>목표와 식단 선호</Text>
+        <Text style={styles.title}>Goals & diet</Text>
 
         <View style={styles.field}>
-          <Text style={styles.label}>가장 중요한 목표 (하나)</Text>
+          <Text style={styles.label}>Primary goal (pick one)</Text>
           <View style={styles.chipRow}>
             {PRIMARY_GOAL_OPTIONS.map((opt) => {
               const active = primaryGoal === opt.value;
@@ -117,7 +118,7 @@ export function GoalsStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>관심 있는 부가 목표 <Text style={styles.optional}>· 여러 개 선택 가능</Text></Text>
+          <Text style={styles.label}>Other goals <Text style={styles.optional}>· Select any that apply</Text></Text>
           <View style={styles.chipRow}>
             {SECONDARY_GOAL_OPTIONS.map((goal) => {
               const active = secondaryGoals.includes(goal);
@@ -142,7 +143,7 @@ export function GoalsStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>식단 유형 <Text style={styles.optional}>· 선택, 없으면 비워두세요</Text></Text>
+          <Text style={styles.label}>Diet type <Text style={styles.optional}>· Optional, leave blank if none</Text></Text>
           <View style={styles.chipRow}>
             {DIET_TYPE_OPTIONS.map((opt) => {
               const active = dietType === opt.value;
@@ -173,13 +174,13 @@ export function GoalsStep({
         <TouchableOpacity
           onPress={validateAndNext}
           accessibilityRole="button"
-          accessibilityLabel="다음 단계로"
+          accessibilityLabel="Continue"
           style={styles.nextButton}
         >
-          <Text style={styles.nextButtonText}>다음</Text>
+          <Text style={styles.nextButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

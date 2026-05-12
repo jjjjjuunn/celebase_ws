@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureCognito } from './src/lib/cognito';
+import { configureRevenueCat } from './src/lib/revenuecat';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { ClaimsFeedScreen } from './src/screens/ClaimsFeedScreen';
 import { ClaimDetailScreen } from './src/screens/ClaimDetailScreen';
+import { PaywallScreen } from './src/screens/PaywallScreen';
 import { OnboardingFlow } from './src/onboarding/OnboardingFlow';
 import { resolveToken } from './src/lib/tokens';
 import { bootstrapSession } from './src/services/auth-bootstrap';
@@ -15,6 +18,9 @@ import { onLogoutSignal, type LogoutReason } from './src/lib/auth-events';
 // Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
 configureCognito();
+// RevenueCat SDK — IAP 호출 전에 configure 되어야 한다. DEV 에서 API key 부재 시
+// silent skip (UI 둘러보기 전용 — purchase 호출 시점에 native module 부재로 throw).
+configureRevenueCat();
 
 type Screen =
   | 'loading'
@@ -22,27 +28,36 @@ type Screen =
   | 'signup'
   | 'authenticated'
   | 'claim_detail'
-  | 'onboarding';
+  | 'onboarding'
+  | 'paywall';
 
 // 5종 reason 중 사용자에게 사유를 알려야 하는 두 케이스는 Alert. 나머지는 silent.
 function describeLogout(reason: LogoutReason): { title: string; message: string } | null {
   if (reason === 'reuse_detected') {
     return {
-      title: '보안 알림',
+      title: 'Security alert',
       message:
-        '다른 위치에서 동일한 계정이 사용된 정황이 감지되어 모든 디바이스에서 로그아웃했습니다. 다시 로그인해 주세요.',
+        "We detected your account being used from another location and signed you out everywhere. Please sign in again.",
     };
   }
   if (reason === 'account_deleted') {
     return {
-      title: '계정 안내',
-      message: '계정이 삭제되었습니다. 복구가 필요하면 고객센터로 문의해 주세요.',
+      title: 'Account notice',
+      message: 'Your account has been deleted. Contact support if you need to restore it.',
     };
   }
   return null;
 }
 
 export default function App(): React.JSX.Element {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+function AppContent(): React.JSX.Element {
   const [screen, setScreen] = useState<Screen>('loading');
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
@@ -142,6 +157,21 @@ export default function App(): React.JSX.Element {
     );
   }
 
+  if (screen === 'paywall') {
+    return (
+      <>
+        <PaywallScreen
+          onClose={() => {
+            // PurchaseResult 는 향후 tier-aware navigation 에서 활용 — 본 sub-task 는
+            // ClaimsFeed 복귀까지만. CHORE-MOBILE-PAYWALL-EXIT-001 백로그.
+            setScreen('authenticated');
+          }}
+        />
+        <StatusBar style="auto" />
+      </>
+    );
+  }
+
   return (
     <>
       <ClaimsFeedScreen
@@ -151,6 +181,9 @@ export default function App(): React.JSX.Element {
         }}
         onOnboardingPress={() => {
           setScreen('onboarding');
+        }}
+        onUpgradePress={() => {
+          setScreen('paywall');
         }}
       />
       <StatusBar style="auto" />

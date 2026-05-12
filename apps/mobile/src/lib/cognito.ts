@@ -48,6 +48,27 @@ let configured = false;
  */
 export function configureCognito(): void {
   if (configured) return;
+
+  // DEV-ONLY escape hatch (opt-in): EXPO_PUBLIC_DEV_SKIP_AUTH=1 일 때만 env 미주입을
+  // 허용. 미설정이면 기존대로 throw — prod 안전성 유지.
+  // 실제 signIn / signUp 호출 시점에 Amplify 가 자체적으로 에러. UI 점검 전용.
+  if (__DEV__ && process.env['EXPO_PUBLIC_DEV_SKIP_AUTH'] === '1') {
+    const hasAllEnv =
+      typeof process.env['EXPO_PUBLIC_COGNITO_USER_POOL_ID'] === 'string' &&
+      process.env['EXPO_PUBLIC_COGNITO_USER_POOL_ID'] !== '' &&
+      process.env['EXPO_PUBLIC_COGNITO_USER_POOL_ID'] !== 'us-west-2_XXXXXXXXX' &&
+      typeof process.env['EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID'] === 'string' &&
+      process.env['EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID'] !== '' &&
+      typeof process.env['EXPO_PUBLIC_AWS_REGION'] === 'string' &&
+      process.env['EXPO_PUBLIC_AWS_REGION'] !== '';
+    if (!hasAllEnv) {
+      // eslint-disable-next-line no-console
+      console.warn('[cognito] DEV_SKIP_AUTH: env 미주입 → Amplify.configure skip (UI 점검 전용)');
+      configured = true;
+      return;
+    }
+  }
+
   const { userPoolId, userPoolClientId } = readCognitoEnv();
   Amplify.configure({
     Auth: {

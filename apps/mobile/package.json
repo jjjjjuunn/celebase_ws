@@ -23,7 +23,7 @@
       "^@celebbase/shared-types$": "<rootDir>/../../packages/shared-types/dist/index.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(\\.pnpm/[^/]+/node_modules/)?((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/|@expo-google-fonts/|react-navigation|@react-navigation/|@unimodules/|unimodules|sentry-expo|native-base|react-native-svg|@testing-library/react-native|@celebbase/|aws-amplify|@aws-amplify/|react-native-get-random-values))"
+      "node_modules/(?!(\\.pnpm/[^/]+/node_modules/)?((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/|@expo-google-fonts/|react-navigation|@react-navigation/|@unimodules/|unimodules|sentry-expo|native-base|react-native-svg|@testing-library/react-native|@celebbase/|aws-amplify|@aws-amplify/|react-native-get-random-values|react-native-purchases))"
     ]
   },
   "dependencies": {
@@ -37,7 +37,9 @@
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-get-random-values": "~1.11.0"
+    "react-native-get-random-values": "~1.11.0",
+    "react-native-purchases": "^8.10.4",
+    "react-native-safe-area-context": "~5.6.0"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
