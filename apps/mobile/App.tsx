@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
-
-import { tokens } from '@celebbase/design-tokens';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
 import { configureCognito } from './src/lib/cognito';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
-import { px, resolveToken } from './src/lib/tokens';
+import { ClaimsFeedScreen } from './src/screens/ClaimsFeedScreen';
+import { ClaimDetailScreen } from './src/screens/ClaimDetailScreen';
+import { resolveToken } from './src/lib/tokens';
 import { bootstrapSession } from './src/services/auth-bootstrap';
 import { onLogoutSignal, type LogoutReason } from './src/lib/auth-events';
 
@@ -15,7 +15,7 @@ import { onLogoutSignal, type LogoutReason } from './src/lib/auth-events';
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
 configureCognito();
 
-type Screen = 'loading' | 'login' | 'signup' | 'authenticated';
+type Screen = 'loading' | 'login' | 'signup' | 'authenticated' | 'claim_detail';
 
 // 5종 reason 중 사용자에게 사유를 알려야 하는 두 케이스는 Alert. 나머지는 silent.
 function describeLogout(reason: LogoutReason): { title: string; message: string } | null {
@@ -38,6 +38,7 @@ function describeLogout(reason: LogoutReason): { title: string; message: string 
 export default function App(): React.JSX.Element {
   // cold start 동안 SecureStore 토큰 확인 — 결과 오기 전엔 'loading'.
   const [screen, setScreen] = useState<Screen>('loading');
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +53,7 @@ export default function App(): React.JSX.Element {
       if (message !== null) {
         Alert.alert(message.title, message.message);
       }
+      setSelectedClaimId(null);
       setScreen('login');
     });
 
@@ -102,38 +104,39 @@ export default function App(): React.JSX.Element {
     );
   }
 
+  if (screen === 'claim_detail' && selectedClaimId !== null) {
+    return (
+      <>
+        <ClaimDetailScreen
+          claimId={selectedClaimId}
+          onBack={() => {
+            setSelectedClaimId(null);
+            setScreen('authenticated');
+          }}
+        />
+        <StatusBar style="auto" />
+      </>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>CelebBase</Text>
-      <Text style={styles.subtitle}>건강한 일상을 위한 웰니스 플랫폼</Text>
+    <>
+      <ClaimsFeedScreen
+        onClaimPress={(id) => {
+          setSelectedClaimId(id);
+          setScreen('claim_detail');
+        }}
+      />
       <StatusBar style="auto" />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  title: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    marginBottom: px(tokens.light['--cb-space-3']),
-  },
-  subtitle: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
   },
 });
