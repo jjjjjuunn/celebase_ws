@@ -21,6 +21,8 @@ import { listClaims } from '../services/claims';
 
 interface ClaimsFeedScreenProps {
   onClaimPress: (id: string) => void;
+  /** 우상단 "프로필 입력" 진입 — bio-profile 미입력 사용자용. */
+  onOnboardingPress?: () => void;
 }
 
 type FeedState = {
@@ -41,7 +43,10 @@ const INITIAL_STATE: FeedState = {
   error: null,
 };
 
-export function ClaimsFeedScreen({ onClaimPress }: ClaimsFeedScreenProps): React.JSX.Element {
+export function ClaimsFeedScreen({
+  onClaimPress,
+  onOnboardingPress,
+}: ClaimsFeedScreenProps): React.JSX.Element {
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [state, setState] = useState<FeedState>(INITIAL_STATE);
 
@@ -128,6 +133,18 @@ export function ClaimsFeedScreen({ onClaimPress }: ClaimsFeedScreenProps): React
 
   return (
     <View style={styles.container}>
+      {onOnboardingPress !== undefined ? (
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            onPress={onOnboardingPress}
+            accessibilityRole="button"
+            accessibilityLabel="프로필 입력"
+            style={styles.onboardingLink}
+          >
+            <Text style={styles.onboardingLinkText}>📋 프로필 입력하기</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <CategoryTabs selected={filter} onSelect={setFilter} />
       {state.loading ? (
         <View style={styles.centered}>
@@ -168,6 +185,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: resolveToken('light', '--cb-color-bg'),
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: px(tokens.light['--cb-space-4']),
+    paddingTop: px(tokens.light['--cb-space-2']),
+  },
+  onboardingLink: {
+    paddingVertical: px(tokens.light['--cb-space-2']),
+    paddingHorizontal: px(tokens.light['--cb-space-3']),
+  },
+  onboardingLinkText: {
+    fontSize: px(tokens.light['--cb-body-sm']),
+    color: resolveToken('light', '--cb-color-brand'),
+    fontWeight: '600',
   },
   centered: {
     flex: 1,
