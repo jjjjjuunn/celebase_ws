@@ -5457,7 +5457,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 18 suite
 date: 2026-05-13
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M5-POLISH-001
-commit_sha: PENDING
+commit_sha: 740a676
 files_changed:
   - packages/design-tokens/tokens.css
   - apps/mobile/src/components/TrustGradeBadge.tsx
