@@ -5399,3 +5399,56 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 - **검증**: typecheck/lint PASS, 17 suites / 102 tests PASS (M3 15/93 + 신규 2/9).
 ### 미완료: **PHI 영역 후속 sub-task (IMPL-MOBILE-M4-PHI-002 가칭)** — S5 Activity & Health (allergies + medical_conditions + medications + GLP-1 자동 감지), S6 Goals, S7 Reveal + 최종 `POST /api/users/me/bio-profile` + `PATCH /api/users/me`. Health Disclaimer 노출 의무. **Apple App Privacy / Google Play Data Safety mapping** (M0.5 deferred, M5 출시 전 필수). bio-profile GET 으로 자동 진입 분기. 셀럽 avatar 이미지 실제 fetch.
 ### 연관 파일: apps/mobile/src/services/celebrities.ts, apps/mobile/src/onboarding/types.ts, apps/mobile/src/onboarding/PersonaSelectStep.tsx, apps/mobile/src/onboarding/BasicInfoStep.tsx, apps/mobile/src/onboarding/BodyMetricsStep.tsx, apps/mobile/src/onboarding/OnboardingFlow.tsx, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/App.tsx, apps/mobile/__tests__/services/celebrities.test.ts, apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx, spec.md
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M5-NAV-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - apps/mobile/src/navigation/AuthNavigator.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/navigation/DiscoverNavigator.tsx
+  - apps/mobile/src/navigation/PlanNavigator.tsx
+  - apps/mobile/src/navigation/ProfileNavigator.tsx
+  - apps/mobile/src/navigation/SettingsNavigator.tsx
+  - apps/mobile/src/screens/SettingsScreen.tsx
+  - apps/mobile/src/screens/ProfileScreen.tsx
+  - apps/mobile/src/screens/CelebrityDetailScreen.tsx
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/src/services/users.ts
+  - apps/mobile/src/services/meal-plans.ts
+  - apps/mobile/src/services/celebrities.ts
+  - apps/mobile/src/screens/ClaimsFeedScreen.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/__tests__/App.test.tsx
+  - apps/mobile/__tests__/decisions.test.ts
+  - apps/mobile/eas.json
+  - apps/mobile/package.json
+verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 18 suites / 116 tests PASS)
+---
+### 완료: M5 sub-task — Tab navigation + Settings/Profile/Celebrity Detail/Meal Plan + 워크플로 개선 — IMPL-MOBILE-M5-NAV-001
+- **Navigation 인프라 신규** (`src/navigation/`):
+  - `types.ts` — RootStackParamList (Auth/Main/Onboarding/Paywall modals), MainTabsParamList (4 tabs), 각 inner stack ParamList (Discover/Plan/Profile/Settings), CompositeScreenProps 타입.
+  - `RootNavigator.tsx` — bootstrapSession → auth vs main 분기, onLogoutSignal 구독, Onboarding/Paywall modal screens (presentation: 'modal').
+  - `AuthNavigator.tsx` — Login/Signup. 성공 시 root reset → Main.
+  - `MainTabsNavigator.tsx` — 4 bottom tabs (Discover 🔍 / Plan 🥗 / Profile 👤 / Settings ⚙️). 브랜드 tint + design-tokens.
+  - `DiscoverNavigator.tsx` — ClaimsFeed → ClaimDetail / CelebrityDetail. modal 진입은 `useNavigation<NativeStackNavigationProp<RootStackParamList>>()` 로 root 직접 참조 (getParent() 체이닝 회피 — TS strict + lint 둘 다 통과).
+  - `PlanNavigator.tsx` / `ProfileNavigator.tsx` / `SettingsNavigator.tsx` — 단일 screen stack + root nav 모달 wiring.
+- **4 신규 화면** (`src/screens/`):
+  - `SettingsScreen.tsx` — Apple Guideline 5.1.1(v) 준수: Account (Delete account 확인 prompt) / Subscription (Apple deep link) / Legal (Terms·Privacy·Support) / Sign out. signalLogout('expired_or_missing') 호출 (LogoutReason enum 제약).
+  - `ProfileScreen.tsx` — initial avatar placeholder + display_name + email + TierBadge + joined date + following celeb + locale + Upgrade card (free tier) + Edit profile entry.
+  - `CelebrityDetailScreen.tsx` — header (avatar + name + category + bio) + claims FlatList. tier 인지 잠금 (trust A/B + free → paywall 진입).
+  - `MealPlanScreen.tsx` — 4-state (loading/empty/error/loaded). DailyMealSchema 실제 필드 (`meal_type`/`recipe_id`/`adjusted_nutrition.calories`/`narrative`) 사용. 빈 plan 시 paywall CTA.
+- **신규 서비스** (`src/services/`): `users.ts` (`getCurrentUser` Zod parse), `meal-plans.ts` (`listMyMealPlans` + `getMealPlan`). `celebrities.ts` 에 `getCelebrity(slug)` + `listCelebrityClaims(slug)` 추가.
+- **App.tsx rewrite** — 192 lines → 22 lines. SafeAreaProvider + RootNavigator + StatusBar. screen union state 제거 (RN navigation 으로 위임). gesture-handler import 선두.
+- **워크플로 개선 1 — testID 마이그레이션**: Login (email/password/submit/signup-link), Signup (submit), ClaimsFeed (onboarding-cta/upgrade), Settings (delete-account/manage-subscription/terms/privacy/support/signout), Profile (upgrade/edit), CelebrityDetail (back) 에 testID 부여. label 변경에 회복 탄력성 ↑.
+- **워크플로 개선 2 — Decision-as-test**: `__tests__/decisions.test.ts` 신규. spec 결정을 코드 invariant 로 박음: ① 단일 paywall tier $34.99/mo (`memory/project_pricing_single_tier_3499.md` 참조), ② trust A/B + free = locked (isClaimLocked 직접 검증), ③ en-US 단일 locale (`project_target_market_us_english.md`), ④ Imperial 단위 (feet+inches / pounds, BodyMetricsStep). 회귀 시 빨간불 + memory 링크가 commit 에 남음.
+- **package.json**: @react-navigation/native@^7.2.4, native-stack@^7.15.0, bottom-tabs@^7.16.0, react-native-gesture-handler@~2.28.0, react-native-screens@~4.16.0 추가. eas.json: development build profile 에 ios.simulator + development-device profile 분리.
+- **검증**: lint 0 / typecheck 0 / 18 suites · 116 tests PASS. Expo Go 폰 실기기 시각 검증 (사용자).
+### 미완료: Apple App Privacy / Google Play Data Safety mapping (M0.5 deferred, M5 출시 전 필수). RevenueCat live key 주입 + IAP 실 결제 sandbox 검증. Account deletion BE endpoint (현재 placeholder UI). Profile avatar 실제 fetch. spec.md §7.2/§7.3 patch (Settings/Profile/MealPlan tab 추가) — 본 PR 에 미포함, 후속 SPEC-SYNC commit 으로 처리.
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/AuthNavigator.tsx, apps/mobile/src/navigation/MainTabsNavigator.tsx, apps/mobile/src/navigation/DiscoverNavigator.tsx, apps/mobile/src/navigation/PlanNavigator.tsx, apps/mobile/src/navigation/ProfileNavigator.tsx, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/src/screens/SettingsScreen.tsx, apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/services/users.ts, apps/mobile/src/services/meal-plans.ts, apps/mobile/src/services/celebrities.ts, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/decisions.test.ts, apps/mobile/eas.json, apps/mobile/package.json

@@ -146,6 +146,7 @@ export function ClaimsFeedScreen({
               onPress={onOnboardingPress}
               accessibilityRole="button"
               accessibilityLabel="Set up profile"
+              testID="claims-onboarding-cta"
               style={styles.onboardingLink}
             >
               <Text style={styles.onboardingLinkText}>📋 Set up your profile</Text>
@@ -156,6 +157,7 @@ export function ClaimsFeedScreen({
               onPress={onUpgradePress}
               accessibilityRole="button"
               accessibilityLabel="Upgrade"
+              testID="claims-upgrade"
               style={styles.upgradeLink}
             >
               <Text style={styles.upgradeLinkText}>⭐ Upgrade</Text>

@@ -62,6 +62,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
 
       <TextInput
         accessibilityLabel="Email"
+        testID="login-email"
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
@@ -77,6 +78,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
 
       <TextInput
         accessibilityLabel="Password"
+        testID="login-password"
         autoCapitalize="none"
         autoComplete="password"
         autoCorrect={false}
@@ -98,6 +100,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
 
       <TouchableOpacity
         accessibilityLabel="Sign in"
+        testID="login-submit"
         accessibilityRole="button"
         accessibilityState={{ disabled: submitting }}
         disabled={submitting}
@@ -115,6 +118,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
 
       <TouchableOpacity
         accessibilityLabel="Create account"
+        testID="login-signup-link"
         accessibilityRole="link"
         disabled={submitting}
         onPress={onSignupRequest}

@@ -161,6 +161,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
         <TouchableOpacity
           accessibilityLabel="Sign up"
+          testID="signup-submit"
           accessibilityRole="button"
           accessibilityState={{ disabled: submitting }}
           disabled={submitting}
