@@ -11,6 +11,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -91,11 +92,19 @@ export function ProfileScreen({
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.avatarSection}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarInitial}>
-              {user.display_name.slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
+          {user.avatar_url !== null ? (
+            <Image
+              accessibilityLabel={`${user.display_name} avatar`}
+              source={{ uri: user.avatar_url }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitial}>
+                {user.display_name.slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
+          )}
           <Text style={styles.displayName}>{user.display_name}</Text>
           <Text style={styles.email}>{user.email}</Text>
           <TierBadge tier={user.subscription_tier} />
@@ -214,6 +223,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: px(tokens.light['--cb-space-2']),
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    marginBottom: px(tokens.light['--cb-space-2']),
+    backgroundColor: resolveToken('light', '--cb-color-surface'),
   },
   avatarInitial: {
     fontSize: 40,

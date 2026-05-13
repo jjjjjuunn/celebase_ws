@@ -62,6 +62,19 @@
   --cb-skeleton-base:    #EDE5DF;
   --cb-skeleton-shimmer: #F5EDE8;
 
+  /* Trust grade badges (CHORE-DESIGN-TRUST-GRADE-001) — A best → E lowest.
+     Signal/utility colors; same in light/dark since they convey absolute trust level. */
+  --cb-color-trust-a-bg: #0E8F7D;   /* teal — verified */
+  --cb-color-trust-a-fg: #FFFFFF;
+  --cb-color-trust-b-bg: #C9A84C;   /* gold — strong */
+  --cb-color-trust-b-fg: #1A1917;
+  --cb-color-trust-c-bg: #D4654A;   /* orange — moderate */
+  --cb-color-trust-c-fg: #FFFFFF;
+  --cb-color-trust-d-bg: #B4232C;   /* red — weak (disclaimer triggers) */
+  --cb-color-trust-d-fg: #FFFFFF;
+  --cb-color-trust-e-bg: #6A737C;   /* grey — unverified */
+  --cb-color-trust-e-fg: #FFFFFF;
+
   /* Semantic aliases */
   --cb-color-bg:           var(--cb-neutral-0);
   --cb-color-surface:      var(--cb-neutral-50);

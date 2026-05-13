@@ -1878,6 +1878,47 @@ ClaimDetailScreen
 - 검색바 (셀럽/태그 검색)
 - "이 셀럽처럼 먹어보기" 활성화 — M5 IAP + Inspired plan 완성 후
 
+#### 7.2 Mobile M5 tab navigation *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-M5-NAV-001)*
+
+M5 paywall scaffold 와 동반된 react-navigation 도입. `App.tsx` 의 `useState<Screen>` 분기 → RootStack + nested stacks 구조로 전환. Web spec 의 4-tab 구조 (Discover / My Plan / Track / Profile) 와 다르게 mobile 은 **Discover / Plan / Profile / Settings** 4 탭 — Track 은 M5+ 로 deferred, Settings 는 Apple Guideline 5.1.1(v) (sign out + account deletion) 충족용으로 분리.
+
+```
+RootStack (NavigationContainer)
+  ├── Auth (cold start: bootstrapSession 미발견 시) — Login / Signup
+  ├── Main (인증 완료 시) — BottomTabs (4 tabs)
+  │     ├── Discover  (🔍) — ClaimsFeed → ClaimDetail / CelebrityDetail
+  │     ├── Plan      (🥗) — MealPlanScreen (loaded / empty / error / loading)
+  │     ├── Profile   (👤) — ProfileScreen (avatar + tier badge + Upgrade card)
+  │     └── Settings  (⚙️) — SettingsScreen (Account · Subscription · Legal · Sign out)
+  ├── Onboarding  [modal, presentation: 'modal']
+  └── Paywall     [modal, presentation: 'modal']
+```
+
+**구현 위치**:
+- Navigation: `apps/mobile/src/navigation/{RootNavigator,AuthNavigator,MainTabsNavigator,DiscoverNavigator,PlanNavigator,ProfileNavigator,SettingsNavigator,types}.tsx`
+- Screens 신규: `apps/mobile/src/screens/{SettingsScreen,ProfileScreen,CelebrityDetailScreen,MealPlanScreen}.tsx`
+- Services: `apps/mobile/src/services/{users,meal-plans}.ts` + `celebrities.ts` 확장 (`getCelebrity`, `listCelebrityClaims`)
+- App.tsx: 192 → 22 lines (SafeAreaProvider + RootNavigator wrapper)
+
+**Modal navigation 패턴**: tab 내부 stack 에서 root-level modal (Onboarding/Paywall) 진입 시 `useNavigation<NativeStackNavigationProp<RootStackParamList>>()` 로 root nav 객체를 직접 잡는다. `navigation.getParent()` 체이닝은 TS strict (`Object is possibly undefined`) + lint (`no-unnecessary-condition`) 양쪽에 걸리므로 회피.
+
+**Tier-aware lock**: `ClaimsFeedScreen` + `CelebrityDetailScreen` 의 ClaimCard 는 `isClaimLocked(trust_grade, tier)` 가 true 면 onPress → `rootNav.navigate('Paywall')` 로 전환. trust A/B + free tier 가 lock 조합 (decisions.test.ts 에서 invariant 박음).
+
+**Settings 화면 의무 항목 (Apple Guideline 5.1.1(v))**:
+- Sign out — `signalLogout('expired_or_missing')` 후 RootNavigator 가 Auth phase 로 자동 전환
+- Delete account — 확인 prompt + "submitted within 7 days" placeholder (BE endpoint 미존재, 후속 chore)
+- Manage subscription — Apple `itms-apps://apps.apple.com/account/subscriptions` deep link
+
+**Workflow 개선 (본 PR 동반)**:
+- testID 마이그레이션: 라벨 변경에 회복 탄력적인 셀렉터. `login-email`, `login-submit`, `claims-upgrade`, `settings-delete-account`, `profile-upgrade` 등.
+- Decision-as-test (`__tests__/decisions.test.ts`): pricing $34.99/mo · trust A/B + free=lock · en-US locale · Imperial 단위 invariant 를 코드로 박음. 실수로 변경 시 빨간불 + memory 문서 링크가 commit 에 남도록.
+
+**M5 범위 외 (출시 전 필수, deferred)**:
+- RevenueCat live API key 주입 + sandbox 결제 검증 (현재 PaywallScreen 은 DEV mock 만)
+- Apple App Privacy / Google Play Data Safety mapping (M0.5 deferred 항목)
+- Account deletion BE endpoint (`DELETE /api/users/me` 또는 service-driven workflow)
+- Profile avatar fetch 는 본 PR 에서 `Image` 컴포넌트로 wiring (avatar_url null fallback = initial placeholder). 실 업로드/CDN 흐름은 후속.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```
