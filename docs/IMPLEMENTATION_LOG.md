@@ -30,6 +30,40 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-12
 agent: claude-opus-4-7
+task_id: CHORE-STAGING-COGNITO-MOBILE-CLIENT-ID
+commit_sha: c67f079
+files_changed:
+  - services/user-service/.env.staging.example
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (terraform apply staging 완료 — mobile client 7m3snohc7f23nsk15vugh7i4ve 신규 생성 + smoke client 회수, gitignored .env.staging 실제값 반영)
+---
+### 완료: staging Cognito mobile client 발급 + env example placeholder 추가 — CHORE-STAGING-COGNITO-MOBILE-CLIENT-ID
+- **트리거**: 동료 (Dohyun) 가 M1 인증 작업 시작 시 mobile public client ID 필요. `infra/cognito/main.tf:147` 의 mobile client 리소스가 main 에 있었지만 (IMPL-MOBILE-AUTH-001 / PR #36) staging 환경에 `terraform apply` 미실행 상태였음.
+- **운영 변경 (코드 외)**:
+  - `cd infra/cognito && terraform apply -var=environment=staging -auto-approve` 실행
+  - 신규: `aws_cognito_user_pool_client.mobile` (name=`celebbase-mobile-staging`, generate_secret=false, SRP+REFRESH only, 60min access/id token, 30d refresh)
+  - 회수: `aws_cognito_user_pool_client.smoke` (CHORE-006 staging debug client, 운영 영향 0)
+  - terraform output `cognito_mobile_client_id`: **`7m3snohc7f23nsk15vugh7i4ve`**
+- **gitignored env 반영** (commit 외, 운영자 직접 적용):
+  - `services/user-service/.env.staging` 에 `COGNITO_MOBILE_CLIENT_ID=7m3snohc7f23nsk15vugh7i4ve` 추가
+  - user-service staging 인스턴스 재기동 시 IMPL-MOBILE-AUTH-001 의 audience 배열 검증이 `[bff_client_id, mobile_client_id]` ANY-match 로 통과 가능
+- **본 PR 의 코드 변경** (1 file, +4 lines):
+  - `services/user-service/.env.staging.example` 에 `COGNITO_MOBILE_CLIENT_ID` placeholder 추가 — 신규 환경 셋업 시 누락 방지. apps/web (BFF) 는 mobile client ID 를 직접 사용하지 않으므로 변경 없음.
+- **동료 전달 사항** (apps/mobile/.env):
+  - `EXPO_PUBLIC_COGNITO_USER_POOL_ID=us-west-2_GvpQnHLEj`
+  - `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID=7m3snohc7f23nsk15vugh7i4ve`
+  - `EXPO_PUBLIC_AWS_REGION=us-west-2`
+- **L1 chore** (example placeholder 1줄 + 운영 적용, 코드 변경 0줄): review 불필요.
+
+### 미완료:
+- **user-service staging 재기동**: 새 env 변수 반영 위해 인스턴스 재기동 필요 (배포 시스템 의존 — Fly.io / ECS / k8s).
+- **동료 M5 IAP**: 남은 Plan v5 단계. M0~M4 (PR #63-#68) 완료 후 진입 가능.
+
+### 연관 파일: services/user-service/.env.staging.example, infra/cognito/main.tf (이미 main, 본 commit 미변경)
+
+---
+date: 2026-05-12
+agent: claude-opus-4-7
 task_id: IMPL-MOBILE-M4-PHI-002
 commit_sha: 54164bb
 files_changed:
