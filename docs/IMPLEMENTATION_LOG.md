@@ -5404,7 +5404,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck/lint/test PASS — 
 date: 2026-05-13
 agent: claude-opus-4-7 (direct implementation)
 task_id: IMPL-MOBILE-M5-NAV-001
-commit_sha: bcaf78f
+commit_sha: 8e8ac8b
 files_changed:
   - apps/mobile/App.tsx
   - apps/mobile/src/navigation/types.ts
