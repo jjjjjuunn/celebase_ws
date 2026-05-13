@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
@@ -30,7 +31,7 @@ type DetailState =
   | { phase: 'loaded'; data: schemas.LifestyleClaimDetailResponse };
 
 const HEALTH_DISCLAIMER =
-  '본 정보는 교육 목적으로 제공되며 의료 조언을 대체하지 않습니다. 의료 결정은 의사와 상의하세요.';
+  'This information is for educational purposes only and is not intended as medical advice. Consult a physician for medical decisions.';
 
 export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): React.JSX.Element {
   const [state, setState] = useState<DetailState>({ phase: 'loading' });
@@ -56,15 +57,15 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
   }, [claimId]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={onBack}
           accessibilityRole="button"
-          accessibilityLabel="뒤로"
+          accessibilityLabel="Back"
           style={styles.backButton}
         >
-          <Text style={styles.backButtonText}>← 뒤로</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
       </View>
 
@@ -74,12 +75,12 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
         </View>
       ) : state.phase === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>불러오기에 실패했습니다.</Text>
+          <Text style={styles.errorText}>Couldn't load this claim.</Text>
         </View>
       ) : (
         <DetailBody data={state.data} />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -102,9 +103,9 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       ) : null}
 
       <View style={styles.sourcesSection}>
-        <Text style={styles.sectionTitle}>출처</Text>
+        <Text style={styles.sectionTitle}>Sources</Text>
         {sources.length === 0 ? (
-          <Text style={styles.bodyText}>등록된 출처가 없습니다.</Text>
+          <Text style={styles.bodyText}>No sources available.</Text>
         ) : (
           sources.map((source) => <SourceRow key={source.id} source={source} />)
         )}
@@ -118,8 +119,8 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 
       {showInspiredCta ? (
         <View style={styles.ctaDisabled}>
-          <Text style={styles.ctaDisabledText}>이 셀럽처럼 먹어보기</Text>
-          <Text style={styles.ctaCaption}>곧 제공됩니다</Text>
+          <Text style={styles.ctaDisabledText}>Eat like this celebrity</Text>
+          <Text style={styles.ctaCaption}>Coming soon</Text>
         </View>
       ) : null}
     </ScrollView>
@@ -140,7 +141,7 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
         <Text style={styles.sourceOutletDisabled}>
           {source.outlet}{date !== null ? ` · ${date}` : ''}
         </Text>
-        <Text style={styles.sourceWarning}>출처 링크 검증 실패</Text>
+        <Text style={styles.sourceWarning}>Source link unavailable</Text>
       </View>
     );
   }
@@ -151,7 +152,7 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
         void Linking.openURL(source.url ?? '');
       }}
       accessibilityRole="link"
-      accessibilityLabel={`${source.outlet} 외부 링크 열기`}
+      accessibilityLabel={`Open ${source.outlet} link`}
       style={styles.sourceRow}
     >
       <Text style={styles.sourceOutlet}>

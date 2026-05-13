@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { Sex } from '@celebbase/shared-types';
@@ -28,10 +29,10 @@ const MIN_YEAR = 1920;
 const MAX_YEAR = CURRENT_YEAR - 13; // 만 13세 이상
 
 const SEX_OPTIONS: ReadonlyArray<{ value: Sex; label: string }> = [
-  { value: 'female', label: '여성' },
-  { value: 'male', label: '남성' },
-  { value: 'other', label: '기타' },
-  { value: 'prefer_not_to_say', label: '응답 안 함' },
+  { value: 'female', label: 'Female' },
+  { value: 'male', label: 'Male' },
+  { value: 'other', label: 'Other' },
+  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
 ];
 
 export function BasicInfoStep({
@@ -49,16 +50,16 @@ export function BasicInfoStep({
 
   function validateAndNext(): void {
     if (displayName.trim() === '') {
-      setError('이름을 입력해주세요.');
+      setError('Please enter your name.');
       return;
     }
     const year = Number.parseInt(birthYearText, 10);
     if (Number.isNaN(year) || year < MIN_YEAR || year > MAX_YEAR) {
-      setError(`생년은 ${String(MIN_YEAR)}–${String(MAX_YEAR)} 사이의 4자리 숫자여야 합니다.`);
+      setError(`Birth year must be a 4-digit number between ${String(MIN_YEAR)} and ${String(MAX_YEAR)}.`);
       return;
     }
     if (sex === undefined) {
-      setError('성별을 선택해주세요.');
+      setError('Please select an option.');
       return;
     }
     setError(null);
@@ -66,47 +67,47 @@ export function BasicInfoStep({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="이전 단계">
+        <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.stepLabel}>2 / 3</Text>
-        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="닫기">
+        <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.closeButton}>✕</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.title}>기본 정보를 알려주세요</Text>
-        <Text style={styles.subtitle}>식단 추천에 사용되는 비-건강 정보입니다.</Text>
+        <Text style={styles.title}>Tell us about yourself</Text>
+        <Text style={styles.subtitle}>Basic details to personalize your recommendations.</Text>
 
         <View style={styles.field}>
-          <Text style={styles.label}>이름</Text>
+          <Text style={styles.label}>Name</Text>
           <TextInput
             value={displayName}
             onChangeText={setDisplayName}
-            placeholder="예: 도현"
-            accessibilityLabel="이름"
+            placeholder="e.g. Alex"
+            accessibilityLabel="Name"
             style={styles.input}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>출생 연도</Text>
+          <Text style={styles.label}>Birth year</Text>
           <TextInput
             value={birthYearText}
             onChangeText={setBirthYearText}
-            placeholder="예: 1995"
+            placeholder="e.g. 1995"
             keyboardType="number-pad"
             maxLength={4}
-            accessibilityLabel="출생 연도"
+            accessibilityLabel="Birth year"
             style={styles.input}
           />
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>성별</Text>
+          <Text style={styles.label}>Sex</Text>
           <View style={styles.sexRow}>
             {SEX_OPTIONS.map((opt) => {
               const active = sex === opt.value;
@@ -142,13 +143,13 @@ export function BasicInfoStep({
         <TouchableOpacity
           onPress={validateAndNext}
           accessibilityRole="button"
-          accessibilityLabel="다음 단계로"
+          accessibilityLabel="Continue"
           style={styles.nextButton}
         >
-          <Text style={styles.nextButtonText}>다음</Text>
+          <Text style={styles.nextButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

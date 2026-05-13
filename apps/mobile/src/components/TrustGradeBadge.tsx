@@ -28,7 +28,7 @@ export function TrustGradeBadge({ grade }: TrustGradeBadgeProps): React.JSX.Elem
   return (
     <View
       style={[styles.badge, { backgroundColor: palette.bg }]}
-      accessibilityLabel={`신뢰등급 ${grade}`}
+      accessibilityLabel={`Trust grade ${grade}`}
     >
       <Text style={[styles.label, { color: palette.fg }]}>{palette.label}</Text>
     </View>

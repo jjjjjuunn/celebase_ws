@@ -37,6 +37,45 @@ function makeResponse(status: number, body: unknown): Response {
   });
 }
 
+// fixture trust_grade = 'C' (lockable threshold 는 A/B 이므로 'free' tier 에서도 unlocked)
+// — 본 테스트 스위트는 claim feed list 동작만 검증. tier gating 은 별도 unit.
+const CLAIM_FIXTURE_UNLOCKED = { ...CLAIM_FIXTURE, trust_grade: 'C' as const };
+
+// useCurrentTier 가 호출하는 GET /api/subscriptions/me 응답 (free tier).
+const SUBSCRIPTION_FREE = { subscription: null };
+
+/**
+ * fetch mock router — claims feed + subscription me 두 endpoint 라우팅.
+ * 호출 URL 패턴으로 분기. 미정의 path 는 빈 200 응답.
+ */
+function mockFetchRouter(
+  fetchSpy: jest.SpyInstance,
+  routes: { claims?: Response | (() => Response); claimsList?: Response[] },
+): void {
+  let claimsCallIndex = 0;
+  fetchSpy.mockImplementation((url: string | URL | Request) => {
+    const urlStr =
+      typeof url === 'string'
+        ? url
+        : url instanceof URL
+          ? url.href
+          : url.url;
+    if (urlStr.includes('/api/subscriptions/me')) {
+      return Promise.resolve(makeResponse(200, SUBSCRIPTION_FREE));
+    }
+    if (urlStr.includes('/api/claims/feed')) {
+      if (routes.claimsList !== undefined) {
+        const res = routes.claimsList[claimsCallIndex] ?? makeResponse(200, { claims: [], next_cursor: null, has_next: false });
+        claimsCallIndex += 1;
+        return Promise.resolve(res);
+      }
+      const single = typeof routes.claims === 'function' ? routes.claims() : routes.claims;
+      return Promise.resolve(single ?? makeResponse(200, { claims: [], next_cursor: null, has_next: false }));
+    }
+    return Promise.resolve(makeResponse(200, {}));
+  });
+}
+
 describe('<ClaimsFeedScreen />', () => {
   let fetchSpy: jest.SpyInstance;
 
@@ -53,9 +92,9 @@ describe('<ClaimsFeedScreen />', () => {
   });
 
   it('첫 페이지 로드 → 카드 headline 노출', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      makeResponse(200, { claims: [CLAIM_FIXTURE], next_cursor: null, has_next: false }),
-    );
+    mockFetchRouter(fetchSpy, {
+      claims: makeResponse(200, { claims: [CLAIM_FIXTURE_UNLOCKED], next_cursor: null, has_next: false }),
+    });
 
     render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
@@ -63,58 +102,59 @@ describe('<ClaimsFeedScreen />', () => {
   });
 
   it('빈 응답 → empty state 노출', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      makeResponse(200, { claims: [], next_cursor: null, has_next: false }),
-    );
+    mockFetchRouter(fetchSpy, {
+      claims: makeResponse(200, { claims: [], next_cursor: null, has_next: false }),
+    });
 
     render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
-    expect(await screen.findByText('아직 등록된 claim 이 없습니다.')).toBeTruthy();
+    expect(await screen.findByText('No claims yet.')).toBeTruthy();
   });
 
   it('fetch 실패 → error state + 재시도 버튼', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      makeResponse(500, { error: { code: 'INTERNAL', message: 'boom' } }),
-    );
+    mockFetchRouter(fetchSpy, {
+      claims: makeResponse(500, { error: { code: 'INTERNAL', message: 'boom' } }),
+    });
 
     render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
-    expect(await screen.findByText('불러오기에 실패했습니다.')).toBeTruthy();
-    expect(screen.getByText('다시 시도')).toBeTruthy();
+    expect(await screen.findByText("Couldn't load claims.")).toBeTruthy();
+    expect(screen.getByText('Try again')).toBeTruthy();
   });
 
   it('카테고리 탭 클릭 → list reset + claim_type query 부착 재호출', async () => {
-    fetchSpy
-      .mockResolvedValueOnce(
-        makeResponse(200, { claims: [CLAIM_FIXTURE], next_cursor: null, has_next: false }),
-      )
-      .mockResolvedValueOnce(
+    mockFetchRouter(fetchSpy, {
+      claimsList: [
+        makeResponse(200, { claims: [CLAIM_FIXTURE_UNLOCKED], next_cursor: null, has_next: false }),
         makeResponse(200, { claims: [], next_cursor: null, has_next: false }),
-      );
+      ],
+    });
 
     render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    fireEvent.press(screen.getByText('운동'));
+    fireEvent.press(screen.getByText('Fitness'));
 
     await waitFor(() => {
-      // 2번째 호출 url 에 claim_type=workout 포함
-      const [secondUrl] = fetchSpy.mock.calls[1] as [string, RequestInit];
-      expect(secondUrl).toContain('claim_type=workout');
+      const calls = fetchSpy.mock.calls as Array<[unknown, unknown]>;
+      const workoutCall = calls.find(
+        ([url]) => typeof url === 'string' && url.includes('claim_type=workout'),
+      );
+      expect(workoutCall).toBeTruthy();
     });
   });
 
   it('카드 탭 → onClaimPress 콜백 호출', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      makeResponse(200, { claims: [CLAIM_FIXTURE], next_cursor: null, has_next: false }),
-    );
+    mockFetchRouter(fetchSpy, {
+      claims: makeResponse(200, { claims: [CLAIM_FIXTURE_UNLOCKED], next_cursor: null, has_next: false }),
+    });
     const onClaimPress = jest.fn();
 
     render(<ClaimsFeedScreen onClaimPress={onClaimPress} />);
-    await screen.findByLabelText(`claim ${CLAIM_FIXTURE.headline}`);
+    await screen.findByLabelText(`claim ${CLAIM_FIXTURE_UNLOCKED.headline}`);
 
-    fireEvent.press(screen.getByLabelText(`claim ${CLAIM_FIXTURE.headline}`));
+    fireEvent.press(screen.getByLabelText(`claim ${CLAIM_FIXTURE_UNLOCKED.headline}`));
 
-    expect(onClaimPress).toHaveBeenCalledWith(CLAIM_FIXTURE.id);
+    expect(onClaimPress).toHaveBeenCalledWith(CLAIM_FIXTURE_UNLOCKED.id);
   });
 });

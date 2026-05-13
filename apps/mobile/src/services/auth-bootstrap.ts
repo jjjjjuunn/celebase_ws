@@ -19,6 +19,12 @@ export type BootstrapResult = 'authenticated' | 'login';
  * @returns 'authenticated' = 토큰 둘 다 존재 / 'login' = 하나라도 부재
  */
 export async function bootstrapSession(): Promise<BootstrapResult> {
+  // DEV-ONLY escape hatch: EXPO_PUBLIC_DEV_SKIP_AUTH=1 → 로그인 우회 후 메인 진입.
+  // BE 호출은 실패하지만 화면 layout 점검은 가능.
+  if (__DEV__ && process.env['EXPO_PUBLIC_DEV_SKIP_AUTH'] === '1') {
+    return 'authenticated';
+  }
+
   const [accessToken, refreshToken] = await Promise.all([
     getAccessToken(),
     getRefreshToken(),

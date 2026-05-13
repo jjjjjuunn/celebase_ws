@@ -39,16 +39,19 @@ function mockCelebrities(fetchSpy: jest.SpyInstance): void {
 }
 
 // S2 → S5 진입까지 진행. happy path 테스트의 공용 도구.
+// Imperial 단위 (5'7" ≈ 170cm, 143 lb ≈ 65kg).
 function advanceThroughS2toS4(): void {
-  fireEvent.press(screen.getByLabelText('Beyoncé 선택'));
-  fireEvent.press(screen.getByLabelText('다음 단계로'));
-  fireEvent.changeText(screen.getByLabelText('이름'), '도현');
-  fireEvent.changeText(screen.getByLabelText('출생 연도'), '1995');
-  fireEvent.press(screen.getByLabelText('남성'));
-  fireEvent.press(screen.getByLabelText('다음 단계로'));
-  fireEvent.changeText(screen.getByLabelText('키'), '170');
-  fireEvent.changeText(screen.getByLabelText('몸무게'), '65');
-  fireEvent.press(screen.getByLabelText('입력 완료'));
+  fireEvent.press(screen.getByLabelText('Select Beyoncé'));
+  // S2 → S3
+  fireEvent.press(screen.getByLabelText('Continue'));
+  fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
+  fireEvent.changeText(screen.getByLabelText('Birth year'), '1995');
+  fireEvent.press(screen.getByLabelText('Male'));
+  fireEvent.press(screen.getByLabelText('Continue'));
+  fireEvent.changeText(screen.getByLabelText('Height in feet'), '5');
+  fireEvent.changeText(screen.getByLabelText('Height in inches'), '7');
+  fireEvent.changeText(screen.getByLabelText('Weight in pounds'), '143');
+  fireEvent.press(screen.getByLabelText('Continue'));
 }
 
 describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
@@ -71,58 +74,60 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
 
-    expect(await screen.findByLabelText('Beyoncé 선택')).toBeTruthy();
+    expect(await screen.findByLabelText('Select Beyoncé')).toBeTruthy();
   });
 
   it('S2~S4 통과 → S5 (활동량 화면) 렌더', async () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
 
     advanceThroughS2toS4();
 
-    expect(await screen.findByText('활동량과 건강 정보')).toBeTruthy();
+    expect(await screen.findByText('Activity & health')).toBeTruthy();
   });
 
   it('S3 빈 이름 → validation 에러, 진행 안 함', async () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    fireEvent.press(await screen.findByLabelText('Beyoncé 선택'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    expect(screen.getByText('이름을 입력해주세요.')).toBeTruthy();
+    expect(screen.getByText('Please enter your name.')).toBeTruthy();
   });
 
   it('S4 키 범위 밖 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    fireEvent.press(await screen.findByLabelText('Beyoncé 선택'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
-    fireEvent.changeText(screen.getByLabelText('이름'), '도현');
-    fireEvent.changeText(screen.getByLabelText('출생 연도'), '1995');
-    fireEvent.press(screen.getByLabelText('여성'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
+    fireEvent.press(screen.getByLabelText('Continue'));
+    fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
+    fireEvent.changeText(screen.getByLabelText('Birth year'), '1995');
+    fireEvent.press(screen.getByLabelText('Female'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    fireEvent.changeText(screen.getByLabelText('키'), '50');
-    fireEvent.changeText(screen.getByLabelText('몸무게'), '65');
-    fireEvent.press(screen.getByLabelText('입력 완료'));
+    // 2 ft = out of range (must be 3-8 ft)
+    fireEvent.changeText(screen.getByLabelText('Height in feet'), '2');
+    fireEvent.changeText(screen.getByLabelText('Height in inches'), '0');
+    fireEvent.changeText(screen.getByLabelText('Weight in pounds'), '143');
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    expect(screen.getByText(/키는 100–250cm/)).toBeTruthy();
+    expect(screen.getByText(/3 and 8 feet/i)).toBeTruthy();
   });
 
-  it('✕ 닫기 → onClose 콜백', async () => {
+  it('✕ Close → onClose 콜백', async () => {
     mockCelebrities(fetchSpy);
     const onClose = jest.fn();
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={onClose} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
 
-    fireEvent.press(screen.getByLabelText('닫기'));
+    fireEvent.press(screen.getByLabelText('Close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -147,41 +152,41 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
-    await screen.findByText('활동량과 건강 정보');
+    await screen.findByText('Activity & health');
 
-    expect(screen.getByLabelText('건강 정보 면책 안내')).toBeTruthy();
-    expect(screen.getByText(/교육 목적으로 제공되며/)).toBeTruthy();
+    expect(screen.getByLabelText('Health disclaimer')).toBeTruthy();
+    expect(screen.getByText(/educational purposes only/i)).toBeTruthy();
   });
 
   it('S5 activity_level 미선택 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
-    await screen.findByText('활동량과 건강 정보');
+    await screen.findByText('Activity & health');
 
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    expect(screen.getByText('활동량을 선택해주세요.')).toBeTruthy();
+    expect(screen.getByText('Please select your activity level.')).toBeTruthy();
   });
 
   it('S6 primary_goal 미선택 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
-    await screen.findByText('활동량과 건강 정보');
-    fireEvent.press(screen.getByLabelText('보통'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    await screen.findByText('Activity & health');
+    fireEvent.press(screen.getByLabelText('Moderate'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    await screen.findByText('목표와 식단 선호');
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    await screen.findByText('Goals & diet');
+    fireEvent.press(screen.getByLabelText('Continue'));
 
-    expect(screen.getByText('가장 중요한 목표 하나를 선택해주세요.')).toBeTruthy();
+    expect(screen.getByText('Please choose your primary goal.')).toBeTruthy();
   });
 
   it('S2→S7 happy path: PHI 포함 단일 POST + onDone', async () => {
@@ -234,25 +239,25 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
     const onDone = jest.fn();
 
     render(<OnboardingFlow onDone={onDone} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
 
     // S5
-    await screen.findByText('활동량과 건강 정보');
-    fireEvent.press(screen.getByLabelText('보통'));
-    fireEvent.press(screen.getByLabelText('땅콩'));
-    fireEvent.changeText(screen.getByLabelText('의료 조건'), '고혈압');
-    fireEvent.changeText(screen.getByLabelText('복용 중인 약'), '아스피린');
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    await screen.findByText('Activity & health');
+    fireEvent.press(screen.getByLabelText('Moderate'));
+    fireEvent.press(screen.getByLabelText('Peanuts'));
+    fireEvent.changeText(screen.getByLabelText('Medical conditions'), 'hypertension');
+    fireEvent.changeText(screen.getByLabelText('Medications'), 'aspirin');
+    fireEvent.press(screen.getByLabelText('Continue'));
 
     // S6
-    await screen.findByText('목표와 식단 선호');
-    fireEvent.press(screen.getByLabelText('체중 감량'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    await screen.findByText('Goals & diet');
+    fireEvent.press(screen.getByLabelText('Weight loss'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
     // S7 — saveBioProfile POST 호출 후 success → onDone
-    await screen.findByText('설정 완료!');
-    fireEvent.press(screen.getByLabelText('홈으로'));
+    await screen.findByText("You're all set!");
+    fireEvent.press(screen.getByLabelText('Go to home'));
 
     expect(onDone).toHaveBeenCalledTimes(1);
 
@@ -266,13 +271,14 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
     if (postCall === undefined) return;
     const init = postCall[1];
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(body.medical_conditions).toEqual(['고혈압']);
-    expect(body.medications).toEqual(['아스피린']);
-    expect(body.allergies).toEqual(['땅콩']);
+    expect(body.medical_conditions).toEqual(['hypertension']);
+    expect(body.medications).toEqual(['aspirin']);
+    expect(body.allergies).toEqual(['Peanuts']);
     expect(body.activity_level).toBe('moderate');
     expect(body.primary_goal).toBe('weight_loss');
-    expect(body.height_cm).toBe(170);
-    expect(body.weight_kg).toBe(65);
+    // 5'7" → 170.18 cm; 143 lb → 64.9 kg. round-tripped via lib/units.
+    expect(body.height_cm).toBe(170.2);
+    expect(body.weight_kg).toBe(64.9);
     // persona slug 는 bio-profile body 에 절대 포함되지 않아야 한다 (별도 endpoint).
     expect(body.preferred_celebrity_slug).toBeUndefined();
   });
@@ -284,19 +290,19 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
     );
 
     render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Beyoncé 선택');
+    await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
-    await screen.findByText('활동량과 건강 정보');
-    fireEvent.press(screen.getByLabelText('보통'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
-    await screen.findByText('목표와 식단 선호');
-    fireEvent.press(screen.getByLabelText('체중 감량'));
-    fireEvent.press(screen.getByLabelText('다음 단계로'));
+    await screen.findByText('Activity & health');
+    fireEvent.press(screen.getByLabelText('Moderate'));
+    fireEvent.press(screen.getByLabelText('Continue'));
+    await screen.findByText('Goals & diet');
+    fireEvent.press(screen.getByLabelText('Weight loss'));
+    fireEvent.press(screen.getByLabelText('Continue'));
 
     await waitFor(() => {
-      expect(screen.getByText('저장 실패')).toBeTruthy();
+      expect(screen.getByText('Save failed')).toBeTruthy();
     });
-    expect(screen.getByText(/저장에 실패했습니다/)).toBeTruthy();
-    expect(screen.getByLabelText('다시 시도')).toBeTruthy();
+    expect(screen.getByText(/Couldn't save your profile/)).toBeTruthy();
+    expect(screen.getByLabelText('Try again')).toBeTruthy();
   });
 });

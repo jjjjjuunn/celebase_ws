@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 
@@ -48,8 +49,8 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
         if (cancelled) return;
         // PHI 안전: err.message 만 노출 (PHI 입력값은 절대 메시지에 포함 X).
         const message = err instanceof ApiError
-          ? `저장에 실패했습니다 (${String(err.status)}).`
-          : '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+          ? `Couldn't save your profile (${String(err.status)}).`
+          : 'Network error. Please try again in a moment.';
         setPhase({ state: 'error', message });
       });
 
@@ -67,70 +68,70 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
       })
       .catch((err: unknown) => {
         const message = err instanceof ApiError
-          ? `저장에 실패했습니다 (${String(err.status)}).`
-          : '네트워크 오류가 발생했습니다.';
+          ? `Couldn't save your profile (${String(err.status)}).`
+          : 'Network error.';
         setPhase({ state: 'error', message });
       });
   }
 
   if (phase.state === 'saving') {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
-        <Text style={styles.savingText}>프로필을 저장하는 중...</Text>
-      </View>
+        <Text style={styles.savingText}>Saving your profile...</Text>
+      </SafeAreaView>
     );
   }
 
   if (phase.state === 'error') {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
-          <Text style={styles.errorTitle}>저장 실패</Text>
+          <Text style={styles.errorTitle}>Save failed</Text>
           <Text style={styles.errorBody}>{phase.message}</Text>
         </View>
         <View style={styles.footer}>
           <TouchableOpacity
             onPress={retry}
             accessibilityRole="button"
-            accessibilityLabel="다시 시도"
+            accessibilityLabel="Try again"
             style={styles.primaryButton}
           >
-            <Text style={styles.primaryButtonText}>다시 시도</Text>
+            <Text style={styles.primaryButtonText}>Try again</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onBack}
             accessibilityRole="button"
-            accessibilityLabel="이전 단계로 돌아가기"
+            accessibilityLabel="Go back"
             style={styles.secondaryButton}
           >
-            <Text style={styles.secondaryButtonText}>이전 단계로</Text>
+            <Text style={styles.secondaryButtonText}>Go back</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.centered}>
         <Text style={styles.successEmoji}>🎉</Text>
-        <Text style={styles.successTitle}>설정 완료!</Text>
+        <Text style={styles.successTitle}>You're all set!</Text>
         <Text style={styles.successBody}>
-          입력하신 정보로 셀럽 맞춤 식단을 준비합니다. 곧 만나보세요.
+          We're preparing your personalized celebrity-inspired plan. See you on the inside.
         </Text>
       </View>
       <View style={styles.footer}>
         <TouchableOpacity
           onPress={onDone}
           accessibilityRole="button"
-          accessibilityLabel="홈으로"
+          accessibilityLabel="Go to home"
           style={styles.primaryButton}
         >
-          <Text style={styles.primaryButtonText}>홈으로</Text>
+          <Text style={styles.primaryButtonText}>Go to home</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

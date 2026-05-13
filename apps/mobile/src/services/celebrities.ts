@@ -31,3 +31,30 @@ export async function listCelebrities(
   const raw = await authedFetch<unknown>(path);
   return schemas.CelebrityListResponseSchema.parse(raw);
 }
+
+/**
+ * 단일 celebrity 조회 — CelebrityDetail 화면 진입 시 사용.
+ *
+ * @param slug URL-safe identifier (e.g. 'beyonce')
+ * @throws ApiError BFF 4xx/5xx
+ */
+export async function getCelebrity(
+  slug: string,
+): Promise<{ celebrity: schemas.CelebrityWire }> {
+  const raw = (await authedFetch<unknown>(
+    `/api/celebrities/${encodeURIComponent(slug)}`,
+  )) as { celebrity: schemas.CelebrityWire };
+  return raw;
+}
+
+/**
+ * 특정 celebrity 의 claims 목록 조회 — CelebrityDetail body section.
+ */
+export async function listCelebrityClaims(
+  slug: string,
+): Promise<schemas.LifestyleClaimListResponse> {
+  const raw = await authedFetch<unknown>(
+    `/api/celebrities/${encodeURIComponent(slug)}/claims`,
+  );
+  return schemas.LifestyleClaimListResponseSchema.parse(raw);
+}

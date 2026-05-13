@@ -24,12 +24,12 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    expect(screen.getByText('CelebBase 시작하기')).toBeTruthy();
-    expect(screen.getByLabelText('이메일')).toBeTruthy();
-    expect(screen.getByLabelText('이름')).toBeTruthy();
-    expect(screen.getByLabelText('비밀번호')).toBeTruthy();
-    expect(screen.getByLabelText('가입하기')).toBeTruthy();
-    expect(screen.getByLabelText('로그인으로 돌아가기')).toBeTruthy();
+    expect(screen.getByText('Get started with CelebBase')).toBeTruthy();
+    expect(screen.getByLabelText('Email')).toBeTruthy();
+    expect(screen.getByLabelText('Name')).toBeTruthy();
+    expect(screen.getByLabelText('Password')).toBeTruthy();
+    expect(screen.getByLabelText('Sign up')).toBeTruthy();
+    expect(screen.getByLabelText('Back to sign in')).toBeTruthy();
   });
 
   it('빈 폼 제출 시 validation 에러 표시, onSuccess 미호출', () => {
@@ -37,9 +37,9 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    fireEvent.press(screen.getByLabelText('가입하기'));
+    fireEvent.press(screen.getByLabelText('Sign up'));
 
-    expect(screen.getByText(/이메일|이름|비밀번호/)).toBeTruthy();
+    expect(screen.getByText(/email|name|password/i)).toBeTruthy();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
@@ -48,12 +48,12 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    fireEvent.changeText(screen.getByLabelText('이메일'), 'a@b.co');
-    fireEvent.changeText(screen.getByLabelText('이름'), 'Alice');
-    fireEvent.changeText(screen.getByLabelText('비밀번호'), 'short');
-    fireEvent.press(screen.getByLabelText('가입하기'));
+    fireEvent.changeText(screen.getByLabelText('Email'), 'a@b.co');
+    fireEvent.changeText(screen.getByLabelText('Name'), 'Alice');
+    fireEvent.changeText(screen.getByLabelText('Password'), 'short');
+    fireEvent.press(screen.getByLabelText('Sign up'));
 
-    expect(screen.getByText(/8자 이상/)).toBeTruthy();
+    expect(screen.getByText(/at least 8/i)).toBeTruthy();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
@@ -62,7 +62,7 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    fireEvent.press(screen.getByLabelText('로그인으로 돌아가기'));
+    fireEvent.press(screen.getByLabelText('Back to sign in'));
     expect(onBackToLogin).toHaveBeenCalledTimes(1);
   });
 });

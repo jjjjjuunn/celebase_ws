@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
@@ -63,12 +64,12 @@ export function PersonaSelectStep({
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="닫기"
+          accessibilityLabel="Close"
         >
           <Text style={styles.closeButton}>✕</Text>
         </TouchableOpacity>
@@ -76,9 +77,9 @@ export function PersonaSelectStep({
       </View>
 
       <View style={styles.intro}>
-        <Text style={styles.title}>닮고 싶은 셀럽을 골라주세요</Text>
+        <Text style={styles.title}>Pick a celebrity to follow</Text>
         <Text style={styles.subtitle}>
-          선택한 셀럽의 wellness 습관을 기반으로 식단을 추천해드려요.
+          We'll tailor your wellness recommendations based on their habits.
         </Text>
       </View>
 
@@ -88,7 +89,7 @@ export function PersonaSelectStep({
         </View>
       ) : state.phase === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>셀럽 정보를 불러오지 못했습니다.</Text>
+          <Text style={styles.errorText}>Couldn't load celebrities.</Text>
         </View>
       ) : (
         <FlatList
@@ -118,7 +119,7 @@ export function PersonaSelectStep({
           }}
           disabled={selectedSlug === undefined}
           accessibilityRole="button"
-          accessibilityLabel="다음 단계로"
+          accessibilityLabel="Continue"
           accessibilityState={{ disabled: selectedSlug === undefined }}
           style={[
             styles.nextButton,
@@ -133,11 +134,11 @@ export function PersonaSelectStep({
                 : styles.nextButtonTextActive,
             ]}
           >
-            다음
+            Continue
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -152,7 +153,7 @@ function CelebrityCard({ item, selected, onPress }: CelebrityCardProps): React.J
     <TouchableOpacity
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${item.display_name} 선택`}
+      accessibilityLabel={`Select ${item.display_name}`}
       accessibilityState={{ selected }}
       style={[styles.card, selected ? styles.cardSelected : styles.cardUnselected]}
     >
