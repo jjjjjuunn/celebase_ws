@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-12
 agent: claude-opus-4-7
 task_id: CHORE-STAGING-COGNITO-MOBILE-CLIENT-ID
-commit_sha: PENDING
+commit_sha: c67f079
 files_changed:
   - services/user-service/.env.staging.example
   - docs/IMPLEMENTATION_LOG.md
