@@ -5452,3 +5452,32 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 18 suite
 - **검증**: lint 0 / typecheck 0 / 18 suites · 116 tests PASS. Expo Go 폰 실기기 시각 검증 (사용자).
 ### 미완료: Apple App Privacy / Google Play Data Safety mapping (M0.5 deferred, M5 출시 전 필수). RevenueCat live key 주입 + IAP 실 결제 sandbox 검증. Account deletion BE endpoint (현재 placeholder UI). Profile avatar 실제 fetch. spec.md §7.2/§7.3 patch (Settings/Profile/MealPlan tab 추가) — 본 PR 에 미포함, 후속 SPEC-SYNC commit 으로 처리.
 ### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/AuthNavigator.tsx, apps/mobile/src/navigation/MainTabsNavigator.tsx, apps/mobile/src/navigation/DiscoverNavigator.tsx, apps/mobile/src/navigation/PlanNavigator.tsx, apps/mobile/src/navigation/ProfileNavigator.tsx, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/src/screens/SettingsScreen.tsx, apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/services/users.ts, apps/mobile/src/services/meal-plans.ts, apps/mobile/src/services/celebrities.ts, apps/mobile/src/screens/ClaimsFeedScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/__tests__/App.test.tsx, apps/mobile/__tests__/decisions.test.ts, apps/mobile/eas.json, apps/mobile/package.json
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7 (direct implementation)
+task_id: IMPL-MOBILE-M5-POLISH-001
+commit_sha: 740a676
+files_changed:
+  - packages/design-tokens/tokens.css
+  - apps/mobile/src/components/TrustGradeBadge.tsx
+  - apps/mobile/src/screens/ProfileScreen.tsx
+  - apps/mobile/__tests__/screens/SettingsScreen.test.tsx
+  - apps/mobile/__tests__/screens/ProfileScreen.test.tsx
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 22 suites / 140 tests PASS)
+---
+### 완료: M5 polish — trust grade 토큰화 + Profile avatar fetch + spec sync + 4 화면 통합 테스트 — IMPL-MOBILE-M5-POLISH-001
+- **CHORE-DESIGN-TRUST-GRADE-001 close**: `tokens.css` 에 `--cb-color-trust-{a..e}-{bg,fg}` 10 토큰 추가 (signal/utility 성격이라 light/dark 동일). `TrustGradeBadge.tsx` 내부 hardcoded hex (`#0E8F7D` 등 5쌍) → `resolveToken(...)` 으로 치환. 색상 변경 점은 design-tokens 단일 source 로 통일.
+- **Profile avatar fetch 실 적용**: `MeResponseSchema.user.avatar_url` (string | null) wiring. URL 존재 시 `<Image source={{ uri }}>` 96×96 원형, null 시 기존 initial placeholder fallback. `accessibilityLabel="${display_name} avatar"` 제공.
+- **spec.md §7.2 patch — Mobile M5 tab navigation**: PIVOT-MOBILE-2026-05 § 의 "Mobile M5 tab navigation" 신규 절. RootStack/MainTabs/inner stacks 구조, modal navigation 패턴 (root nav 직접 참조 vs getParent() 체이닝 회피), tier-aware lock, Settings Apple 5.1.1(v) 항목, workflow 개선 (testID + Decision-as-test), M5 범위 외 backlog (RevenueCat key, Privacy mapping, account deletion BE, avatar upload). IMPL-MOBILE-M5-NAV-001 SPEC-SYNC 의무 close (`.claude/rules/spec-dod.md` PIVOT MOBILE 요구).
+- **4 화면 통합 테스트 신규** (`__tests__/screens/`, 24 tests):
+  - `SettingsScreen.test.tsx` (6) — 필수 UI 섹션 존재, Sign out → handleSignOut → signOut + signalLogout 호출, Delete account confirm prompt, Terms/Privacy/Support deep link, premium tier Manage subscription 노출 + Apple deep link, free tier Manage 미노출.
+  - `ProfileScreen.test.tsx` (7) — GET /api/users/me 성공 시 display_name/email/Free 배지, free tier Upgrade 카드 + 클릭 콜백, premium tier Premium 배지 + Upgrade 미노출, avatar_url 존재 시 Image 렌더 (placeholder 부재), avatar_url null 시 initial placeholder, fetch 실패 시 error state, Edit 콜백.
+  - `CelebrityDetailScreen.test.tsx` (6) — 두 fetch 병렬 (celeb + claims) 성공 시 header + list 렌더, empty state, 잠긴 claim (trust A + free) 탭 시 silent block, 잠금 안된 claim (trust C + free) 탭 시 onClaimPress 호출, Back 콜백, celeb fetch 실패 시 error.
+  - `MealPlanScreen.test.tsx` (5) — empty / loaded with meals (이름 + 날짜 + macros + meal narratives + capitalized meal_type) / daily_plans 빈 배열 guard / fetch 실패 / active 없으면 list 첫 항목 선택.
+- **검증**: lint 0 / typecheck 0 / **22 suites · 140 tests PASS** (이전 18/116 → 22/140, +4 suites +24 tests).
+### 미완료: RevenueCat live key 주입 + IAP sandbox 결제 검증 (JUNWON 대기). Apple App Privacy / Play Data Safety mapping (M0.5 deferred). Account deletion BE endpoint. Expo Go 실기기 시각 회귀 검증 (4 탭 + lock → paywall + sign-out).
+### 연관 파일: packages/design-tokens/tokens.css, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/__tests__/screens/SettingsScreen.test.tsx, apps/mobile/__tests__/screens/ProfileScreen.test.tsx, apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx, apps/mobile/__tests__/screens/MealPlanScreen.test.tsx, spec.md
