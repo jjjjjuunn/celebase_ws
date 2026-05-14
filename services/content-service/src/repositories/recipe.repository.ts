@@ -37,6 +37,7 @@ interface RecipeJoinRow {
   created_at: Date;
   updated_at: Date;
   citations: unknown;
+  nutrition_source: string;
   // recipe_ingredient columns (prefixed)
   ri_id: string | null;
   ri_ingredient_id: string | null;
@@ -88,6 +89,7 @@ function assembleRecipe(rows: RecipeJoinRow[]): RecipeWithIngredients | null {
     created_at: first.created_at,
     updated_at: first.updated_at,
     citations: (first.citations as Citation[] | null) ?? [],
+    nutrition_source: first.nutrition_source as Recipe['nutrition_source'],
     recipe_ingredients: [],
   };
 
@@ -149,7 +151,7 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at, r.citations,
+       r.is_active, r.created_at, r.updated_at, r.citations, r.nutrition_source,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,
@@ -196,7 +198,7 @@ export async function findByIds(
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at, r.citations,
+       r.is_active, r.created_at, r.updated_at, r.citations, r.nutrition_source,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,

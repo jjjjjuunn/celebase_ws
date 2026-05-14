@@ -163,6 +163,8 @@ export interface Recipe {
   video_url: string | null;
   /** spec §5.8 LLM Enhancement Layer — citations JSONB (migration 0011). */
   citations: Citation[];
+  /** CelebBase P0 — recipe nutrition 출처 추적 (migration 0019). */
+  nutrition_source: 'derived_from_ingredients' | 'manual_verified' | 'manual_legacy';
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
