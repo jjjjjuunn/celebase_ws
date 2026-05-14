@@ -5528,7 +5528,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
 date: 2026-05-13
 agent: claude-opus-4-7
 task_id: CHORE-MOBILE-STAGING-BFF-001
-commit_sha: PENDING
+commit_sha: 4432e20
 files_changed:
   - apps/web/next.config.ts
   - apps/web/Dockerfile
