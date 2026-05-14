@@ -5607,3 +5607,25 @@ verified_by: claude-opus-4-7 + gemini-adversarial (codex r1 hallucination ignore
 - **Stacked PR 시리즈 완료**: PR-A1 (#73) + PR-A2 (#75) + PR-A3 (이 PR) — P0.1~P0.4 시작 prerequisite 완료.
 ### 미완료: 사용자 USDA_FDC_API_KEY 로 실제 4-step backfill 실행 (review-only → 수동 검수 → backfill → recompute). 그 후 P0.1 (PR-B) 시작 가능. CHORE-MAIN-PYTHON-DEPS (task #6) 동일 carry-over.
 ### 연관 파일: db/seeds/scripts/recompute-recipe-nutrition.ts, spec.md
+
+
+---
+date: 2026-05-14
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: IMPL-MEAL-P0-RDA-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/micronutrient_checker.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_micronutrient_checker.py
+  - spec.md
+verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + NIH-ODS-WebSearch
+---
+### 완료: P0.1 — RDA 18-nutrient + sex 파라미터 + check_weekly_avg + spec sync (PR-B1)
+- `micronutrient_checker.py`: RDA 6→18 (NIH ODS DRI 성인 19-50, NIH ODS factsheet URL 출처). `_RDA_FEMALE_OVERRIDES` 8 항목 (Fe 18, Vit A 700µg, **Vit C 75mg** *(fix-2 Gemini HIGH)*, Vit K 90µg, Mg 320mg, Zn 8mg, omega3 1.1g, **Potassium 2600mg** *(fix-2 NASEM 2019)*). `check_micronutrients(daily_totals, sex='unisex')` kwarg + default. `check_weekly_avg` 신규 (7일 평균 위임). `_SUPPLEMENTS` 18 항목. `__all__` 확장.
+- `pipeline.py:200` (fix-1 Codex HIGH): `bio_profile.get("sex", "unisex")` + Literal validation + `check_micronutrients(daily_totals, sex=user_sex)` 전달. female false-positive 결핍 알람 차단. sex 는 비-PHI demographic (security.md PHI 정의 외).
+- `test_micronutrient_checker.py`: 11 시나리오 (18 compliant / vegan B12 / keto fiber+folate / sex Fe override / female 7 override / unisex default / empty / weekly avg delegates / weekly empty / boundary 0.69 fail / 0.71 pass). Codex review boundary 부동소수 trap 회피 (`1.6 × 0.7 = 1.1199...`) MIN_COMPLIANCE ± 0.01 사용.
+- `spec.md §5.3 Step 4`: 18 nutrient 목록 + sex 파라미터 + weekly mode + NIH ODS URL + LLM 영양 수치 생성 금지 명시 (§5.5 Provenance 연계).
+- **L2-extended review**: Codex r1 HIGH (pipeline sex 미전달) → fix-1, Gemini r2 HIGH (Vit C + Potassium override 누락, WebSearch NIH ODS cross-verify) → fix-2. MEDIUM 3건: 1 accept_chore (MIN_COMPLIANCE 의미적 불일치 — CHORE-MICRO-RATIO-CONSISTENCY 후속), 1 accept (phi_minimizer 우회 — sex 비-PHI), 1 fixed (unisex default test). qa-exec: pytest 135/137 PASS (2 skip = LLM), ruff + typecheck clean.
+### 미완료: PR-B2 (IMPL-MEAL-P0-AGG-001 — nutrition_aggregator.py + pipeline.py 인라인 합산 제거). 후속 CHORE-MICRO-RATIO-CONSISTENCY (MIN_COMPLIANCE 비교를 round 후로 변경). CHORE-MAIN-PYTHON-DEPS (gate test pythonjsonlogger).
+### 연관 파일: services/meal-plan-engine/src/engine/micronutrient_checker.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/tests/unit/test_micronutrient_checker.py, spec.md
