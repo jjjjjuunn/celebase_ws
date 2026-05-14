@@ -5505,3 +5505,22 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
 - **L3 pipeline**: Codex review #1 PASS (0 finding) + Gemini adversarial r2 (HIGH 1건 → fix-2 / MEDIUM 1건 → accept defense-in-depth) + qa-exec 89/89 PASS 86.5% coverage
 ### 미완료: PR-A2 (backfill-ingredient-nutrition.ts CLI + db/seeds/types.ts SeedIngredient 확장 + USDA live API call), PR-A3 (recompute-recipe-nutrition.ts + spec.md §3.1/§5.5 sync). CHORE-MAIN-PYTHON-DEPS (gate-check test step 의 .venv/bin/pytest 강제 — 본 sub-task gate-implement+gate-qa 에서 발견).
 ### 연관 파일: db/migrations/0019_nutrition_provenance.sql, services/content-service/src/clients/usda-fdc.client.ts, services/content-service/src/repositories/recipe.repository.ts, services/content-service/tests/unit/usda-fdc.client.test.ts, packages/shared-types/src/entities.ts
+
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: CHORE-CONTENT-001-b
+commit_sha: PENDING
+files_changed:
+  - db/seeds/scripts/backfill-ingredient-nutrition.ts
+  - db/seeds/types.ts
+verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
+---
+### 완료: USDA ingredient nutrition backfill CLI (PR-A2)
+- `db/seeds/scripts/backfill-ingredient-nutrition.ts`: 2-step CLI (`--review-only` → review.csv → manual accepted_fdc_id → apply). 22 USDA nutrientId → DB 컬럼 매핑, atomic 5-column UPDATE, fail-closed (`nutrition_source IS NULL > 0` → exit 1), idempotent re-run (`WHERE nutrition_source IS NULL` 만 처리), RFC 4180 quote-aware CSV escape.
+- `db/seeds/types.ts`: `SeedIngredient` 에 `fdc_id?`, `portion_conversions?` optional 추가.
+- **L3 review**: Codex r1 PASS, Gemini r2 HIGH (omega3_g 매핑 — 1257 PUFA total → 4-component sum 1404/1278/1280/1272 ALA+EPA+DPA+DHA 변경) → fix-1, qa-exec 89/89 PASS.
+- PR-A1 (#73, 6507771) 의 usda-fdc.client + migration 0019 사용.
+### 미완료: PR-A3 (recompute-recipe-nutrition.ts + spec.md §3.1/§5.5 sync). 사용자 USDA_FDC_API_KEY (.env.local) 로 실제 backfill 실행 — review-only → 수동 review CSV 검수 → apply.
+### 연관 파일: db/seeds/scripts/backfill-ingredient-nutrition.ts, db/seeds/types.ts
