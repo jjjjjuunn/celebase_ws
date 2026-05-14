@@ -5,12 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       service:
-        description: 'Deploy target (user-service | all)'
+        description: 'Deploy target'
         required: true
-        default: 'user-service'
+        default: 'all'
         type: choice
         options:
           - user-service
+          - web
           - all
 
   # CI 통과 후 main 브랜치 push 시 자동 실행
@@ -18,8 +19,14 @@ on:
     branches: [main]
     paths:
       - 'services/user-service/**'
+      - 'apps/web/**'
       - 'packages/shared-types/**'
       - 'packages/service-core/**'
+      - 'packages/ui-kit/**'
+      - 'packages/design-tokens/**'
+      - 'docker/caddy/**'
+      - 'docker-compose.yml'
+      - 'scripts/preflight-env.sh'
       - '.github/workflows/cd.yml'
 
 concurrency:
@@ -35,20 +42,25 @@ env:
 #   AWS_ACCESS_KEY_ID        — ECR push + Secrets Manager read 권한
 #   AWS_SECRET_ACCESS_KEY
 #   ECR_REGISTRY             — e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com
-#   STAGING_SSH_KEY          — staging 서버 SSH 비밀키 (PEM 전체 내용)
-#   STAGING_SERVER_IP        — staging 서버 IP 주소
+#   STAGING_SSH_KEY          — staging 서버 SSH 비밀키 (PEM, base64)
+#   STAGING_SERVER_IP        — staging 서버 IP (elastic IP 권장 — CHORE-MOBILE-STAGING-BFF-001 P1)
 #   STAGING_SERVER_USER      — staging 서버 SSH 유저 (e.g. ubuntu, ec2-user)
+#   STAGING_DOMAIN           — public hostname (e.g. staging.celebbase.com)
+#                              — build-arg for NEXT_PUBLIC_WS_* + Caddy LE issuance
 #
 # 서버 사전 준비 (operator):
-#   1. EC2 인스턴스 생성 (Amazon Linux 2023 또는 Ubuntu 22.04)
-#   2. Docker + docker compose 설치
-#   3. /app 디렉토리에 docker-compose.yml + .env.staging 배포
-#   4. GitHub Secrets에 위 값 등록
+#   1. EC2 + Elastic IP attach
+#   2. Route53 A record <STAGING_DOMAIN> → elastic IP
+#   3. Security group inbound 80/443 open (LE HTTP-01 + HTTPS)
+#   4. Docker + docker compose installed
+#   5. /app/docker-compose.yml + /app/.env.staging (web + user-service env vars)
+#   6. ECR repos: celebase-user-service, celebase-web
+#   7. NTP synchronized (timedatectl)
 # ────────────────────────────────────────────────────────────────────────────
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 1: CI 게이트 — 테스트/lint/typecheck 통과 확인
+  # Job 1: CI 게이트 — typecheck/lint/build 통과 확인
   # ──────────────────────────────────────────────────────────────────────────
   ci-gate:
     name: "✅ CI Gate"
@@ -79,6 +91,18 @@ jobs:
         env:
           NODE_ENV: test
 
+      # web BFF (mobile gateway) — typecheck + build only (jest test slow on CI)
+      - name: Typecheck web
+        run: pnpm --filter web typecheck
+
+      - name: Build web
+        run: pnpm --filter web build
+        env:
+          # build-time NEXT_PUBLIC_* injection — placeholder values for CI build verification.
+          # Real values are injected in the build-push job below.
+          NEXT_PUBLIC_WS_URL: wss://${{ secrets.STAGING_DOMAIN || 'staging.example.com' }}
+          NEXT_PUBLIC_WS_HOST: ${{ secrets.STAGING_DOMAIN || 'staging.example.com' }}
+
   # ──────────────────────────────────────────────────────────────────────────
   # Job 2: Docker 이미지 빌드 → ECR push
   # ──────────────────────────────────────────────────────────────────────────
@@ -87,8 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci-gate
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
       short_sha: ${{ steps.vars.outputs.short_sha }}
+      user_service_image: ${{ steps.push-user.outputs.image }}
+      web_image: ${{ steps.push-web.outputs.image }}
 
     steps:
       - uses: actions/checkout@v4
@@ -105,11 +130,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push user-service
-        id: meta
+        id: push-user
+        if: github.event.inputs.service == 'user-service' || github.event.inputs.service == 'all' || github.event_name == 'push'
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           IMAGE_TAG: ${{ steps.vars.outputs.short_sha }}
@@ -121,10 +146,36 @@ jobs:
             .
           docker push "$ECR_REGISTRY/celebase-user-service:$IMAGE_TAG"
           docker push "$ECR_REGISTRY/celebase-user-service:staging-latest"
-          echo "tags=$ECR_REGISTRY/celebase-user-service:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+            "$ECR_REGISTRY/celebase-user-service:$IMAGE_TAG")
+          echo "image=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "USER_SERVICE_IMAGE_REF=$DIGEST" >> "$GITHUB_ENV"
+
+      - name: Build and push web (BFF)
+        id: push-web
+        if: github.event.inputs.service == 'web' || github.event.inputs.service == 'all' || github.event_name == 'push'
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.vars.outputs.short_sha }}
+          STAGING_DOMAIN: ${{ secrets.STAGING_DOMAIN }}
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_WS_URL=wss://${STAGING_DOMAIN} \
+            --build-arg NEXT_PUBLIC_WS_HOST=${STAGING_DOMAIN} \
+            -t "$ECR_REGISTRY/celebase-web:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/celebase-web:staging-latest" \
+            -f apps/web/Dockerfile \
+            .
+          docker push "$ECR_REGISTRY/celebase-web:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/celebase-web:staging-latest"
+          # Capture full image ref (with digest) for rollback target.
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+            "$ECR_REGISTRY/celebase-web:$IMAGE_TAG")
+          echo "image=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "WEB_IMAGE_REF=$DIGEST" >> "$GITHUB_ENV"
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 3: Staging 서버에 배포 (SSH)
+  # Job 3: Staging 서버에 배포 (SSH) + preflight + auto-rollback
   # ──────────────────────────────────────────────────────────────────────────
   deploy:
     name: "🚀 Deploy to Staging"
@@ -133,36 +184,143 @@ jobs:
     environment: staging
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sparse — preflight script + .env.staging.required manifests only.
+          sparse-checkout: |
+            scripts/preflight-env.sh
+            apps/web/.env.staging.required
+          sparse-checkout-cone-mode: false
+
       - name: Write SSH key
         env:
           SSH_KEY_B64: ${{ secrets.STAGING_SSH_KEY }}
         run: |
           echo "$SSH_KEY_B64" | base64 -d > /tmp/staging_key
           chmod 600 /tmp/staging_key
-          echo "KEY_SIZE=$(wc -c < /tmp/staging_key)"
-          head -1 /tmp/staging_key | cut -c1-40
+
+      - name: Upload preflight script + required manifest
+        env:
+          HOST: ${{ secrets.STAGING_SERVER_IP }}
+          REMOTE_USER: ${{ secrets.STAGING_SERVER_USER }}
+        run: |
+          scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
+            scripts/preflight-env.sh \
+            "$REMOTE_USER@$HOST:/app/scripts/preflight-env.sh"
+          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" \
+            "mkdir -p /app/apps/web"
+          scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
+            apps/web/.env.staging.required \
+            "$REMOTE_USER@$HOST:/app/apps/web/.env.staging.required"
 
       - name: Deploy via SSH
         env:
           HOST: ${{ secrets.STAGING_SERVER_IP }}
           REMOTE_USER: ${{ secrets.STAGING_SERVER_USER }}
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         run: |
-          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" bash -s <<ENDSSH
-          set -e
+          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" bash -s <<'ENDSSH'
+          # GitHub Actions context variables are interpolated by the yaml engine
+          # BEFORE the heredoc reaches the remote shell. The quoted ENDSSH then
+          # protects $LOCAL_VARS on the remote side from premature expansion.
+          set -euo pipefail
           cd /app
-          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-          docker compose pull user-service
-          docker compose up -d --force-recreate user-service
-          for i in 1 2 3 4 5 6; do
-            if curl -sf http://localhost:3001/health; then echo "healthy"; exit 0; fi
-            sleep 5
-          done
-          exit 1
+
+          STAGING_DOMAIN='${{ secrets.STAGING_DOMAIN }}'
+          ECR_REGISTRY='${{ secrets.ECR_REGISTRY }}'
+          WEB_IMAGE_REF='${{ needs.build-push.outputs.web_image }}'
+          # github.event.inputs is empty for push triggers — fall back to 'all'.
+          SERVICE_INPUT='${{ github.event.inputs.service }}'
+          DEPLOY_TARGET="${SERVICE_INPUT:-all}"
+
+          echo "▶ Deploy target: ${DEPLOY_TARGET}"
+          chmod +x /app/scripts/preflight-env.sh
+
+          # 1. Capture rollback target (current web image ref) BEFORE pull.
+          PREVIOUS_WEB_REF=""
+          if WEB_CID=$(docker compose ps -q web 2>/dev/null) && [ -n "${WEB_CID}" ]; then
+            PREVIOUS_WEB_REF=$(docker inspect "${WEB_CID}" --format='{{.Config.Image}}' 2>/dev/null || echo "")
+          fi
+          if [ -n "${PREVIOUS_WEB_REF}" ]; then
+            echo "${PREVIOUS_WEB_REF}" > /app/.web-previous-ref
+            echo "▶ rollback target: ${PREVIOUS_WEB_REF}"
+          else
+            echo "▶ no prior web container — initial deploy"
+          fi
+
+          # 2. ECR login.
+          aws ecr get-login-password --region us-west-2 | \
+            docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+
+          # 3. Preflight (skip if user-service-only deploy — web env not relevant).
+          if [ "${DEPLOY_TARGET}" != "user-service" ]; then
+            bash /app/scripts/preflight-env.sh apps/web
+          fi
+
+          # 4. Pull + recreate target services.
+          case "${DEPLOY_TARGET}" in
+            user-service)
+              docker compose pull user-service
+              docker compose up -d --force-recreate user-service
+              ;;
+            web)
+              docker compose pull web caddy
+              docker compose up -d --force-recreate web caddy
+              ;;
+            all)
+              docker compose pull user-service web caddy
+              docker compose up -d --force-recreate user-service web caddy
+              ;;
+          esac
+
+          # 5. Healthcheck.
+          if [ "${DEPLOY_TARGET}" = "user-service" ]; then
+            # user-service direct probe (no public HTTPS path).
+            for i in 1 2 3 4 5 6; do
+              if curl -fsS --max-time 5 http://localhost:3001/health; then
+                echo "✅ user-service healthy (loop ${i})"
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "❌ user-service healthcheck failed"
+            exit 1
+          else
+            # web + caddy: probe public HTTPS endpoint. 180s window for LE
+            # cert issuance + Next cold start (plan v3 §B-6).
+            HEALTH_URL="https://${STAGING_DOMAIN}/api/health"
+            for i in $(seq 1 18); do
+              if curl -fsS --max-time 5 "${HEALTH_URL}"; then
+                echo "✅ ${HEALTH_URL} healthy after ${i}0s"
+                exit 0
+              fi
+              sleep 10
+            done
+
+            # 6. Auto-rollback (web only — caddy + user-service rarely break).
+            echo "❌ public healthcheck failed — attempting auto-rollback"
+            if [ -n "${PREVIOUS_WEB_REF}" ]; then
+              echo "▶ rolling web back to ${PREVIOUS_WEB_REF}"
+              WEB_IMAGE_REF="${PREVIOUS_WEB_REF}" docker compose up -d --force-recreate web
+              sleep 15
+              if curl -fsS --max-time 5 "${HEALTH_URL}"; then
+                echo "⚠️  rolled back successfully — investigate broken commit"
+                exit 1
+              fi
+              echo "⚠️  rollback also failed — manual intervention required on staging EC2"
+            else
+              echo "⚠️  no rollback target — manual intervention required"
+            fi
+            exit 1
+          fi
           ENDSSH
 
       - name: Notify success
         if: success()
         run: |
-          echo "✅ Deployed celebase-user-service:${{ needs.build-push.outputs.short_sha }} to staging"
-
+          echo "✅ Deployed: ${{ github.event.inputs.service || 'all' }} (sha ${{ needs.build-push.outputs.short_sha }})"
+          if [ -n "${{ needs.build-push.outputs.web_image }}" ]; then
+            echo "  web: ${{ needs.build-push.outputs.web_image }}"
+          fi
+          if [ -n "${{ needs.build-push.outputs.user_service_image }}" ]; then
+            echo "  user-service: ${{ needs.build-push.outputs.user_service_image }}"
+          fi
