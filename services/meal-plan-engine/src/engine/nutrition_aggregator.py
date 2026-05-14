@@ -10,6 +10,7 @@ P0.3 / P0.4 prerequisite.
 from __future__ import annotations
 
 import logging
+import math
 from typing import Dict, List
 
 from .allergen_filter import RecipeSlot
@@ -53,6 +54,22 @@ KNOWN_MICRO_KEYS: frozenset[str] = frozenset(
 )
 
 
+def _coerce_finite(value: object) -> float | None:
+    """int/float 만 float 으로 변환. NaN/Infinity/bool/기타 타입은 None 반환.
+
+    NaN < MIN_COMPLIANCE 가 False 를 반환하여 micronutrient_checker 의 결핍 검출이
+    silent false-positive (충족) 로 오판되는 데이터 무결성 사고를 방지한다.
+    bool 은 int 의 subclass 이지만 영양값으로 부적절하므로 명시적 거부.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        f = float(value)
+        if math.isfinite(f):
+            return f
+    return None
+
+
 def _extract_flat_nutrition(slot: RecipeSlot) -> Dict[str, float]:
     """RecipeSlot.nutrition (macros + nested `micronutrients` dict) → flat dict.
 
@@ -66,63 +83,39 @@ def _extract_flat_nutrition(slot: RecipeSlot) -> Dict[str, float]:
 
     또는 이미 flat 한 dict 도 지원 (PR-A2 backfill 의 단순 매핑).
 
-    결측 / None / non-numeric 값은 warn 로그 + skip.
+    NaN / Infinity / non-numeric / None 값은 per-recipe 1 회 요약 warn 후 skip
+    (로그 스팸 방지: 4 meal × 18 nutrient 최악 케이스 72 줄 → 4 줄로 축소).
     """
     nutr = slot.nutrition or {}
     result: Dict[str, float] = {}
+    rejected_keys: list[str] = []
+
+    def _accept(key: str, raw: object) -> None:
+        coerced = _coerce_finite(raw)
+        if coerced is None:
+            rejected_keys.append(key)
+            return
+        result[key] = coerced
 
     for k, v in nutr.items():
         if k == "micronutrients" and isinstance(v, dict):
-            # nested micronutrients dict — flatten
             for mk, mv in v.items():
-                if mv is None:
-                    _logger.warning(
-                        "aggregator: None micronutrient recipe=%s key=%s",
-                        slot.recipe_id,
-                        mk,
-                    )
-                    continue
-                if isinstance(mv, (int, float)):
-                    result[mk] = float(mv)
-                elif isinstance(mv, dict) and "value" in mv:
-                    # {value, unit, confidence} rich object 도 지원 (forward-compat)
-                    val = mv.get("value")
-                    if isinstance(val, (int, float)):
-                        result[mk] = float(val)
-                    elif val is None:
-                        _logger.warning(
-                            "aggregator: None micronutrient value recipe=%s key=%s",
-                            slot.recipe_id,
-                            mk,
-                        )
-                    else:
-                        _logger.warning(
-                            "aggregator: non-numeric micronutrient value recipe=%s key=%s type=%s",
-                            slot.recipe_id,
-                            mk,
-                            type(val).__name__,
-                        )
+                if isinstance(mv, dict) and "value" in mv:
+                    # {value, unit, confidence} rich object — value 만 추출.
+                    # unit 검증은 nutrition_normalizer 책임 (Plan §Task 3 책임 경계).
+                    _accept(mk, mv.get("value"))
                 else:
-                    _logger.warning(
-                        "aggregator: unrecognised micro format recipe=%s key=%s",
-                        slot.recipe_id,
-                        mk,
-                    )
-        elif v is None:
-            _logger.warning(
-                "aggregator: None value recipe=%s key=%s",
-                slot.recipe_id,
-                k,
-            )
-        elif isinstance(v, (int, float)):
-            result[k] = float(v)
+                    _accept(mk, mv)
         else:
-            _logger.warning(
-                "aggregator: non-numeric value recipe=%s key=%s type=%s",
-                slot.recipe_id,
-                k,
-                type(v).__name__,
-            )
+            _accept(k, v)
+
+    if rejected_keys:
+        _logger.warning(
+            "aggregator: rejected non-finite/non-numeric values recipe=%s count=%d keys=%s",
+            slot.recipe_id,
+            len(rejected_keys),
+            ",".join(sorted(set(rejected_keys))[:10]),
+        )
     return result
 
 

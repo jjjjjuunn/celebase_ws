@@ -89,6 +89,59 @@ def test_aggregate_day_rich_micronutrient_format() -> None:
     assert result["iron_mg"] == 4.0
 
 
+def test_aggregate_day_nan_infinity_rejected() -> None:
+    """NaN / Infinity / bool / str — _coerce_finite 가 거부. result 에 미포함.
+
+    micronutrient_checker 의 ratio < MIN_COMPLIANCE 비교 시 NaN 은 항상 False 반환 →
+    silent false-positive (충족) 차단. data integrity invariant.
+    """
+    nan = float("nan")
+    inf = float("inf")
+    slots = [
+        _make_slot(
+            "r1",
+            {
+                "calories": 400,
+                "protein_g": nan,  # NaN — 거부
+                "carbs_g": inf,  # Infinity — 거부
+                "fat_g": True,  # bool — 거부 (int subclass 함정)
+                "fiber_g": "12",  # str — 거부
+                "sugar_g": 5.0,  # 정상
+            },
+        ),
+    ]
+    result = aggregate_day(slots)
+    assert result == {"calories": 400.0, "sugar_g": 5.0}
+    assert "protein_g" not in result
+    assert "carbs_g" not in result
+    assert "fat_g" not in result
+    assert "fiber_g" not in result
+
+
+def test_aggregate_day_log_consolidated_per_recipe(caplog) -> None:
+    """다수 invalid value 가 있어도 recipe 당 warn 1 회만 발생 (로그 스팸 방지)."""
+    import logging
+
+    nan = float("nan")
+    slot = _make_slot(
+        "r1",
+        {
+            "calories": 400,
+            "protein_g": nan,
+            "carbs_g": nan,
+            "fat_g": nan,
+            "fiber_g": nan,
+            "sugar_g": nan,
+        },
+    )
+    with caplog.at_level(logging.WARNING, logger="src.engine.nutrition_aggregator"):
+        aggregate_day([slot])
+    rejection_logs = [r for r in caplog.records if "rejected" in r.getMessage()]
+    assert len(rejection_logs) == 1, (
+        f"expected 1 consolidated warn per recipe, got {len(rejection_logs)}"
+    )
+
+
 def test_known_micro_keys_size() -> None:
     """KNOWN_MICRO_KEYS sanity: 7 macros + 18 micros − 1 (fiber_g 중복) = 24.
 
