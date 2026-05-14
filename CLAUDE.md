@@ -65,6 +65,7 @@
 | `.claude/rules/multi-session.md` | FE/BE/BFF 다중 세션 협업 규칙, shared-types 계약, 48h 통합 룰 |
 | `docs/MOBILE-ROADMAP.md` | Active client (Expo / RN) roadmap — PIVOT-MOBILE-2026-05 이후 north-star (`docs/FE-ROADMAP.md` archived) |
 | `docs/SPEC-PIVOT-PLAN.md` | IMPL-MOBILE-* / INFRA-MOBILE-* task ↔ spec.md 갱신 섹션 매핑 트리거 레지스트리 |
+| `docs/MEAL-PLAN-PERSONALIZATION-ROADMAP.md` | 7-Layer personalized meal plan 정상화 long-term roadmap (P0~P3, NIH ODS / USDA 출처 강제, CHORE-CONTENT-001 + P0.1~P0.4 task 분할 + 진행 상태). **세션 시작 시 본 문서 + 최근 IMPLEMENTATION_LOG entry 우선 확인.** |
 | `CODEX-INSTRUCTIONS.md` | Codex 에이전트용 프로젝트 인스트럭션 |
 | `services/commerce-service/docs/openapi.yaml` | commerce-service OpenAPI 3.1 스펙 (결제·구독·장바구니 경계, IMPL-016) |
 | `services/analytics-service/docs/openapi.yaml` | analytics-service OpenAPI 3.1 스펙 (daily-log CRUD·요약·reports, IMPL-017) |
