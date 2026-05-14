@@ -56,11 +56,21 @@ const USDA_TO_DB_NUTRIENT: Record<number, string> = {
   1090: 'magnesium_mg',
   1095: 'zinc_mg',
   1092: 'potassium_mg',
-  1257: 'omega3_g',
+  // omega3_g 는 USDA_TO_DB_NUTRIENT 단일 매핑 X — 1257 (Fatty acids, total polyunsaturated)
+  // 은 PUFA 전체 (omega-3 + 6 + 9) 라 over-report. 정확한 omega-3 = OMEGA3_NUTRIENT_IDS 합산.
+  // Gemini review-r2 HIGH finding 반영.
   1091: 'phosphorus_mg',
   1103: 'selenium_ug',
   1100: 'iodine_ug',
 };
+
+// Omega-3 합산 매핑 (Gemini review-r2 HIGH finding) — USDA 의 omega-3 fatty acids:
+//   1404 = ALA (α-linolenic acid, 18:3 n-3)
+//   1278 = EPA (eicosapentaenoic acid, 20:5 n-3)
+//   1280 = DPA (docosapentaenoic acid, 22:5 n-3)
+//   1272 = DHA (docosahexaenoic acid, 22:6 n-3)
+// 단일 PUFA 합계 (1257) 가 아닌 위 4개 합산만 omega3_g 로 사용.
+const OMEGA3_NUTRIENT_IDS: ReadonlySet<number> = new Set([1404, 1278, 1280, 1272]);
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -407,11 +417,24 @@ function escapeCsvField(value: string): string {
 
 function extractNutritionPer100g(nutrients: FdcNutrient[]): Record<string, number> {
   const result: Record<string, number> = {};
+  let omega3Sum = 0;
+  let omega3Seen = false;
   for (const nutrient of nutrients) {
-    const key = USDA_TO_DB_NUTRIENT[nutrient.nutrientId];
-    if (key && typeof nutrient.value === 'number' && Number.isFinite(nutrient.value)) {
-      result[key] = nutrient.value;
+    const value = nutrient.value;
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      continue;
     }
+    const key = USDA_TO_DB_NUTRIENT[nutrient.nutrientId];
+    if (key) {
+      result[key] = value;
+    }
+    if (OMEGA3_NUTRIENT_IDS.has(nutrient.nutrientId)) {
+      omega3Sum += value;
+      omega3Seen = true;
+    }
+  }
+  if (omega3Seen) {
+    result['omega3_g'] = omega3Sum;
   }
   return result;
 }
