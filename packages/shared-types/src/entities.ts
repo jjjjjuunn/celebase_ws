@@ -180,6 +180,11 @@ export interface Ingredient {
   default_unit: string | null;
   allergens: string[];
   nutrition_per_100g: Partial<Nutrition>;
+  fdc_id: number | null;
+  nutrition_source: 'usda_fdc' | 'nih_ods' | 'manual_verified' | null;
+  nutrition_source_version: string | null;
+  nutrition_updated_at: string | null;
+  portion_conversions: Record<string, number>;
   is_active: boolean;
   created_at: Date;
 }
