@@ -29,6 +29,23 @@ import { postJson } from '../lib/api-client';
 import { clearTokens, setTokens } from '../lib/secure-store';
 
 /**
+ * 잔존 Amplify 세션을 best-effort 로 정리한다.
+ *
+ * Amplify v6 의 알려진 footgun: 회원가입/로그인 부분 시도 후 시뮬레이터/기기
+ * Keychain 에 partial auth state 가 남으면, 다음 amplifySignIn/amplifySignUp 이
+ * `UserAlreadyAuthenticatedException` 으로 거절된다. 매 인증 진입부에서 선제적으로
+ * sign out 하여 깨끗한 상태에서 시작한다 — 잔존 세션이 없으면 throw 할 수 있으나
+ * 무시 (best-effort). spec.md §11 mobile auth ingress 와 모순 없는 hardening.
+ */
+async function clearStaleSession(): Promise<void> {
+  try {
+    await amplifySignOut();
+  } catch {
+    // best-effort — 정리할 세션이 없으면 무시한다.
+  }
+}
+
+/**
  * 기존 사용자 로그인. 성공 시 SecureStore 에 access/refresh 저장.
  *
  * @throws Error Cognito SRP 실패 (비밀번호 오류, 사용자 미존재, MFA 미지원 단계 등)
@@ -37,6 +54,7 @@ import { clearTokens, setTokens } from '../lib/secure-store';
 export async function signIn(params: { email: string; password: string }): Promise<schemas.AuthTokens> {
   const { email, password } = params;
 
+  await clearStaleSession();
   const result = await amplifySignIn({ username: email, password });
   if (!result.isSignedIn) {
     // MFA / NEW_PASSWORD_REQUIRED 같은 추가 단계 — M1-E UI 에서 별도 처리.
@@ -82,6 +100,7 @@ export async function signUp(params: {
 }): Promise<{ nextStep: 'CONFIRM_SIGN_UP' | 'DONE' }> {
   const { email, password, display_name } = params;
 
+  await clearStaleSession();
   const result = await amplifySignUp({
     username: email,
     password,
@@ -125,6 +144,7 @@ export async function confirmSignUpAndLogin(params: {
   await amplifyConfirmSignUp({ username: email, confirmationCode: code });
 
   // 코드 검증 성공 — 즉시 signIn 으로 id_token 확보
+  await clearStaleSession();
   const signInResult = await amplifySignIn({ username: email, password });
   if (!signInResult.isSignedIn) {
     throw new Error(
