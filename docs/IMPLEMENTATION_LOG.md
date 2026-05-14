@@ -5487,7 +5487,7 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 22 suite
 date: 2026-05-13
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
 task_id: CHORE-CONTENT-001-a
-commit_sha: PENDING
+commit_sha: 6507771
 files_changed:
   - db/migrations/0019_nutrition_provenance.sql
   - services/content-service/src/clients/usda-fdc.client.ts
