@@ -22,7 +22,11 @@ set -euo pipefail
 
 SVC_DIR="${1:?usage: preflight-env.sh <svc-dir>}"
 REQUIRED_FILE="${SVC_DIR}/.env.staging.required"
-ACTUAL="${PREFLIGHT_ENV_FILE:-/app/.env.staging}"
+# Default to the env file inside the same svc-dir (one env per service).
+# Override with PREFLIGHT_ENV_FILE for ad-hoc testing. Previously this
+# defaulted to /app/.env.staging (user-service's env), causing web
+# preflight to validate the wrong file and fail with "missing keys".
+ACTUAL="${PREFLIGHT_ENV_FILE:-${SVC_DIR}/.env.staging}"
 
 if [ ! -f "${REQUIRED_FILE}" ]; then
   echo "❌ required manifest missing: ${REQUIRED_FILE}"
