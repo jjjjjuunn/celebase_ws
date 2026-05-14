@@ -259,6 +259,10 @@ services:
       args:
         NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3000}
         NEXT_PUBLIC_WS_HOST: ${NEXT_PUBLIC_WS_HOST:-localhost:3000}
+    # `staging` profile — web is NOT booted by default (CI / local-dev base
+    # compose). `docker compose --profile staging up -d web caddy` activates it.
+    # CI E2E tests (.github/workflows/ci.yml) only need the BE services, not BFF.
+    profiles: ["staging"]
     image: ${WEB_IMAGE_REF:-celebase/celebase-web:local}
     ports:
       - "3000:3000"
@@ -289,6 +293,8 @@ services:
     # Staging TLS termination + reverse proxy → web:3000.
     # STAGING_DOMAIN must be set in shell env or /app/.env on the host
     # (compose-level var substitution AND container env for Caddyfile {$VAR}).
+    # `staging` profile — same rationale as web above. CI does not boot caddy.
+    profiles: ["staging"]
     image: caddy:2.8.4-alpine@sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
     ports:
       - "80:80"
