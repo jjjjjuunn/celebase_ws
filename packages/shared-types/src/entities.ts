@@ -163,6 +163,8 @@ export interface Recipe {
   video_url: string | null;
   /** spec §5.8 LLM Enhancement Layer — citations JSONB (migration 0011). */
   citations: Citation[];
+  /** CelebBase P0 — recipe nutrition 출처 추적 (migration 0019). */
+  nutrition_source: 'derived_from_ingredients' | 'manual_verified' | 'manual_legacy';
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -180,6 +182,11 @@ export interface Ingredient {
   default_unit: string | null;
   allergens: string[];
   nutrition_per_100g: Partial<Nutrition>;
+  fdc_id: number | null;
+  nutrition_source: 'usda_fdc' | 'nih_ods' | 'manual_verified' | null;
+  nutrition_source_version: string | null;
+  nutrition_updated_at: string | null;
+  portion_conversions: Record<string, number>;
   is_active: boolean;
   created_at: Date;
 }

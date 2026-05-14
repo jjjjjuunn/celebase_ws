@@ -37,6 +37,7 @@ interface RecipeJoinRow {
   created_at: Date;
   updated_at: Date;
   citations: unknown;
+  nutrition_source: string;
   // recipe_ingredient columns (prefixed)
   ri_id: string | null;
   ri_ingredient_id: string | null;
@@ -55,6 +56,11 @@ interface RecipeJoinRow {
   i_default_unit: string | null;
   i_allergens: string[] | null;
   i_nutrition_per_100g: unknown;
+  i_fdc_id: number | null;
+  i_nutrition_source: string | null;
+  i_nutrition_source_version: string | null;
+  i_nutrition_updated_at: Date | null;
+  i_portion_conversions: unknown;
   i_is_active: boolean | null;
   i_created_at: Date | null;
 }
@@ -83,6 +89,7 @@ function assembleRecipe(rows: RecipeJoinRow[]): RecipeWithIngredients | null {
     created_at: first.created_at,
     updated_at: first.updated_at,
     citations: (first.citations as Citation[] | null) ?? [],
+    nutrition_source: first.nutrition_source as Recipe['nutrition_source'],
     recipe_ingredients: [],
   };
 
@@ -122,6 +129,12 @@ function assembleRecipe(rows: RecipeJoinRow[]): RecipeWithIngredients | null {
         default_unit: row.i_default_unit,
         allergens: row.i_allergens ?? [],
         nutrition_per_100g: (row.i_nutrition_per_100g ?? {}) as Ingredient['nutrition_per_100g'],
+        fdc_id: row.i_fdc_id,
+        nutrition_source: row.i_nutrition_source as Ingredient['nutrition_source'],
+        nutrition_source_version: row.i_nutrition_source_version,
+        nutrition_updated_at:
+          row.i_nutrition_updated_at !== null ? row.i_nutrition_updated_at.toISOString() : null,
+        portion_conversions: (row.i_portion_conversions ?? {}) as Ingredient['portion_conversions'],
         is_active: row.i_is_active,
         created_at: row.i_created_at,
       },
@@ -138,7 +151,7 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at, r.citations,
+       r.is_active, r.created_at, r.updated_at, r.citations, r.nutrition_source,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,
@@ -155,6 +168,11 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
        i.default_unit AS i_default_unit,
        i.allergens   AS i_allergens,
        i.nutrition_per_100g AS i_nutrition_per_100g,
+       i.fdc_id      AS i_fdc_id,
+       i.nutrition_source AS i_nutrition_source,
+       i.nutrition_source_version AS i_nutrition_source_version,
+       i.nutrition_updated_at AS i_nutrition_updated_at,
+       i.portion_conversions AS i_portion_conversions,
        i.is_active   AS i_is_active,
        i.created_at  AS i_created_at
      FROM recipes r
@@ -180,7 +198,7 @@ export async function findByIds(
        r.id, r.base_diet_id, r.title, r.slug, r.description, r.meal_type,
        r.prep_time_min, r.cook_time_min, r.servings, r.difficulty,
        r.nutrition, r.instructions, r.tips, r.image_url, r.video_url,
-       r.is_active, r.created_at, r.updated_at, r.citations,
+       r.is_active, r.created_at, r.updated_at, r.citations, r.nutrition_source,
        ri.id         AS ri_id,
        ri.ingredient_id AS ri_ingredient_id,
        ri.quantity   AS ri_quantity,
@@ -197,6 +215,11 @@ export async function findByIds(
        i.default_unit AS i_default_unit,
        i.allergens   AS i_allergens,
        i.nutrition_per_100g AS i_nutrition_per_100g,
+       i.fdc_id      AS i_fdc_id,
+       i.nutrition_source AS i_nutrition_source,
+       i.nutrition_source_version AS i_nutrition_source_version,
+       i.nutrition_updated_at AS i_nutrition_updated_at,
+       i.portion_conversions AS i_portion_conversions,
        i.is_active   AS i_is_active,
        i.created_at  AS i_created_at
      FROM recipes r
