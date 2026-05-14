@@ -5481,3 +5481,27 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 22 suite
 - **검증**: lint 0 / typecheck 0 / **22 suites · 140 tests PASS** (이전 18/116 → 22/140, +4 suites +24 tests).
 ### 미완료: RevenueCat live key 주입 + IAP sandbox 결제 검증 (JUNWON 대기). Apple App Privacy / Play Data Safety mapping (M0.5 deferred). Account deletion BE endpoint. Expo Go 실기기 시각 회귀 검증 (4 탭 + lock → paywall + sign-out).
 ### 연관 파일: packages/design-tokens/tokens.css, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/__tests__/screens/SettingsScreen.test.tsx, apps/mobile/__tests__/screens/ProfileScreen.test.tsx, apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx, apps/mobile/__tests__/screens/MealPlanScreen.test.tsx, spec.md
+
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: CHORE-CONTENT-001-a
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0019_nutrition_provenance.sql
+  - services/content-service/src/clients/usda-fdc.client.ts
+  - services/content-service/src/repositories/recipe.repository.ts
+  - services/content-service/tests/unit/usda-fdc.client.test.ts
+  - packages/shared-types/src/entities.ts
+verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
+---
+### 완료: USDA FDC client + nutrition provenance migration (PR-A1/A2/A3 stacked 의 첫 sub-task)
+- Migration 0019: ingredients 5 컬럼 (fdc_id, nutrition_source CHECK, nutrition_source_version, nutrition_updated_at, portion_conversions JSONB) + recipes 1 컬럼 (nutrition_source DEFAULT 'manual_legacy' CHECK) + CONCURRENTLY idx_ingredients_fdc_id 부분 인덱스
+- USDA FoodData Central client (`services/content-service/src/clients/usda-fdc.client.ts`): L3 review CRITICAL/HIGH 반영 — X-Api-Key header 만 사용 (query param 노출 차단), scheme-prefix SSRF guard + ALLOWED_HOST 이중 가드, redactPath() 함수로 error message 에서 api_key 제거, AbortController timeout (default 10s), exponential backoff retry (429/5xx)
+- unit test 10 시나리오 (happy / SSRF / 429 retry success+exhaust / timeout / 400 redact / getFoodDetail happy + invalid fdcId + missing payload / network error retry) — 86.32% coverage
+- packages/shared-types/src/entities.ts: Ingredient 5 신규 필드 + Recipe nutrition_source 필드 추가 (Gemini adversarial r2 HIGH finding 으로 fix-2 추가)
+- services/content-service/src/repositories/recipe.repository.ts: RecipeJoinRow + 두 SELECT (findById, findByIds) + assembleRecipe 에 nutrition_source 매핑 반영
+- **L3 pipeline**: Codex review #1 PASS (0 finding) + Gemini adversarial r2 (HIGH 1건 → fix-2 / MEDIUM 1건 → accept defense-in-depth) + qa-exec 89/89 PASS 86.5% coverage
+### 미완료: PR-A2 (backfill-ingredient-nutrition.ts CLI + db/seeds/types.ts SeedIngredient 확장 + USDA live API call), PR-A3 (recompute-recipe-nutrition.ts + spec.md §3.1/§5.5 sync). CHORE-MAIN-PYTHON-DEPS (gate-check test step 의 .venv/bin/pytest 강제 — 본 sub-task gate-implement+gate-qa 에서 발견).
+### 연관 파일: db/migrations/0019_nutrition_provenance.sql, services/content-service/src/clients/usda-fdc.client.ts, services/content-service/src/repositories/recipe.repository.ts, services/content-service/tests/unit/usda-fdc.client.test.ts, packages/shared-types/src/entities.ts
