@@ -1,4 +1,3 @@
-
 """Micronutrient adequacy checker — spec.md §5.3 Step 4."""
 
 from __future__ import annotations
@@ -179,4 +178,3 @@ def check_weekly_avg(
             avg[nutrient] = avg.get(nutrient, 0.0) + (value / n)
 
     return check_micronutrients(avg, sex=sex)
-

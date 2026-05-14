@@ -202,7 +202,8 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     sex_raw = bio_profile.get("sex", "unisex")
     user_sex: str = sex_raw if sex_raw in ("male", "female") else "unisex"
     micro_report = micronutrient_checker.check_micronutrients(
-        daily_totals, sex=user_sex  # type: ignore[arg-type]
+        daily_totals,
+        sex=user_sex,  # type: ignore[arg-type]
     )
 
     await _emit(on_progress, {"pass": 2, "pct": 55})
