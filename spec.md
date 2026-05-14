@@ -1273,9 +1273,23 @@ carb_kcal = remaining_kcal × (1 - base_diet.fat_ratio)
 - 대체 재료 매핑 테이블(substitution_map)에서 영양소 프로필이 가장 유사한 대안 선택
 - 대체 불가능한 경우 해당 레시피 전체를 같은 meal_type의 다른 레시피로 교체
 
-**Step 4: Micronutrient Compliance**
-- FDA Recommended Daily Allowances(RDA) 대비 일일 식단의 주요 미량영양소 충족률 계산
-- 70% 미만 충족 영양소가 있을 경우 해당 영양소가 풍부한 식재료 추가 또는 보충제 권고
+**Step 4: Micronutrient Adequacy Check**
+
+각 식단의 1일 / 7일 평균 영양소 totals 를 **NIH Office of Dietary Supplements DRI 표** (성인 19-50) 기준 RDA 와 비교한다. (https://ods.od.nih.gov/HealthInformation/nutrientrecommendations.aspx)
+
+**추적 영양소 18개**:
+- 매크로 관련: `fiber_g` (25g)
+- 비타민: `vitamin_a_ug_rae` (900µg / 700µg female), `vitamin_c_mg` (90), `vitamin_d_ug` (15), `vitamin_e_mg` (15), `vitamin_k_ug` (120 / 90 female), `vitamin_b6_mg` (1.3), `vitamin_b12_ug` (2.4), `folate_ug_dfe` (400)
+- 미네랄: `calcium_mg` (1000), `iron_mg` (8 / 18 female), `magnesium_mg` (420 / 320 female), `zinc_mg` (11 / 8 female), `potassium_mg` (3400), `phosphorus_mg` (700), `selenium_ug` (55), `iodine_ug` (150)
+- 지방산: `omega3_g` (1.6 / 1.1 female)
+
+**컴플라이언스 기준**: 일별 RDA 대비 70% 이상 (`MIN_COMPLIANCE = 0.70`). 미달 시 `deficient` 리스트 + 보충제 제안 (`_SUPPLEMENTS`).
+
+**Sex 파라미터**: `check_micronutrients(daily_totals, sex)` — `"male"` (baseline RDA), `"female"` (Fe/Vit A/K/Mg/Zn/omega3 override), `"unisex"` (default, male baseline).
+
+**Weekly 모드**: `check_weekly_avg(weekly_totals: list[dict], sex)` — 7일 평균 계산 후 `check_micronutrients` 위임.
+
+**LLM 금지**: 영양 수치 RDA 값 생성에 LLM 사용 절대 금지 — NIH ODS / IOM DRI 공식 표만 (§5.5 Provenance 와 일관).
 
 **Step 5: Variety Optimization**
 - 7일 식단 내 동일 레시피 최대 2회 반복 제한

@@ -197,7 +197,14 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         for k, v in nutr.items():
             daily_totals[k] = daily_totals.get(k, 0.0) + float(v)
 
-    micro_report = micronutrient_checker.check_micronutrients(daily_totals)
+    # IMPL-MEAL-P0-RDA-001: bio_profile.sex 전달 → female RDA override 적용
+    # (Vit A/K/Mg/Zn/omega3 female RDA < male baseline — 미전달 시 false-positive 결핍)
+    sex_raw = bio_profile.get("sex", "unisex")
+    user_sex: str = sex_raw if sex_raw in ("male", "female") else "unisex"
+    micro_report = micronutrient_checker.check_micronutrients(
+        daily_totals,
+        sex=user_sex,  # type: ignore[arg-type]
+    )
 
     await _emit(on_progress, {"pass": 2, "pct": 55})
 
