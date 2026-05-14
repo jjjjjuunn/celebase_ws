@@ -43,17 +43,31 @@ missing=()
 empty=()
 
 while IFS= read -r line || [ -n "${line}" ]; do
-  # Skip blank lines and comments.
-  key="$(echo "${line}" | sed -E 's/[[:space:]]+$//')"
+  # Trim trailing whitespace, skip blanks + comments.
+  key="$(echo "${line}" | sed -E 's/[[:space:]]+$//; s/^[[:space:]]+//')"
   [ -z "${key}" ] && continue
   [[ "${key}" =~ ^# ]] && continue
 
-  # ${ACTUAL} format: KEY=value (POSIX shell env file).
-  match="$(grep -E "^${key}=" "${ACTUAL}" || true)"
+  # Manifest key must be valid env var name — guards against regex metachar
+  # injection and matches POSIX env var naming convention.
+  if ! [[ "${key}" =~ ^[A-Z_][A-Z0-9_]*$ ]]; then
+    echo "❌ invalid manifest key (expect ^[A-Z_][A-Z0-9_]*\$): ${key}"
+    exit 1
+  fi
+
+  # First match only — duplicate keys in .env.staging are operator error,
+  # docker compose uses the last definition; we surface presence not order.
+  match="$(grep -E "^${key}=" "${ACTUAL}" 2>/dev/null | head -1 || true)"
   if [ -z "${match}" ]; then
     missing+=("${key}")
-  elif [ "${match}" = "${key}=" ]; then
-    empty+=("${key}")
+  else
+    # Strip leading KEY= and trim whitespace before/after value.
+    value="${match#${key}=}"
+    trimmed="$(echo "${value}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+    # Also reject quoted-empty values: "", ''
+    if [ -z "${trimmed}" ] || [ "${trimmed}" = '""' ] || [ "${trimmed}" = "''" ]; then
+      empty+=("${key}")
+    fi
   fi
 done < "${REQUIRED_FILE}"
 
@@ -84,18 +98,61 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 0
 fi
 
-if ! docker compose ps user-service 2>/dev/null | grep -qE 'running|healthy'; then
-  echo "⚠️  user-service not running — skipping JWT equality check (re-run after BE boot)"
+# Identify user-service container by ID (not text grep — robust across compose
+# output format changes).
+USER_CID="$(docker compose ps -q user-service 2>/dev/null || true)"
+if [ -z "${USER_CID}" ]; then
+  echo "ℹ️  user-service container not present — skipping JWT equality check"
   exit 0
 fi
 
-WEB_HASH="$(grep -E '^INTERNAL_JWT_SECRET=' "${ACTUAL}" | cut -d= -f2- | sha256sum | cut -d' ' -f1)"
-# Hash inside container so raw secret never leaves the container's stdout.
-USER_HASH="$(docker compose exec -T user-service sh -c \
-  'printenv INTERNAL_JWT_SECRET 2>/dev/null | sha256sum' | cut -d' ' -f1 || echo "")"
+# Inspect actual health status (not text scrape).
+USER_HEALTH="$(docker inspect "${USER_CID}" \
+  --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' \
+  2>/dev/null || echo "unknown")"
 
-if [ -z "${USER_HASH}" ] || [ "${USER_HASH}" = "$(echo -n '' | sha256sum | cut -d' ' -f1)" ]; then
-  echo "⚠️  user-service has empty INTERNAL_JWT_SECRET — verify user-service .env.staging"
+case "${USER_HEALTH}" in
+  healthy)
+    : # proceed to JWT compare
+    ;;
+  starting|none|unknown|"")
+    echo "⚠️  user-service health=${USER_HEALTH:-unknown} — skipping JWT check"
+    echo "   (re-run preflight after user-service reaches healthy state)"
+    exit 0
+    ;;
+  unhealthy|*)
+    # Refuse to proceed when user-service is unhealthy — we cannot verify
+    # JWT secret parity and Bearer flow would fail anyway.
+    echo "❌ user-service unhealthy (${USER_HEALTH}) — refusing to deploy"
+    echo "   Inspect: docker compose logs user-service --tail 50"
+    exit 1
+    ;;
+esac
+
+WEB_HASH="$(grep -E '^INTERNAL_JWT_SECRET=' "${ACTUAL}" | head -1 | cut -d= -f2- | sha256sum | cut -d' ' -f1)"
+
+# Hash inside container so raw secret never leaves the container's stdout.
+# Capture both output and exit status to distinguish exec failure from empty secret.
+USER_EXEC_OUT="$(docker exec "${USER_CID}" sh -c \
+  'printenv INTERNAL_JWT_SECRET 2>/dev/null | sha256sum' 2>&1)"
+USER_EXEC_STATUS=$?
+
+if [ "${USER_EXEC_STATUS}" -ne 0 ]; then
+  echo "❌ docker exec failed against user-service (status ${USER_EXEC_STATUS})"
+  echo "   stderr: ${USER_EXEC_OUT:0:200}"
+  exit 1
+fi
+
+USER_HASH="$(echo "${USER_EXEC_OUT}" | cut -d' ' -f1)"
+EMPTY_SHA="$(echo -n '' | sha256sum | cut -d' ' -f1)"
+
+if [ ${#USER_HASH} -ne 64 ]; then
+  echo "❌ unexpected sha256 output from user-service exec: '${USER_HASH:0:80}'"
+  exit 1
+fi
+
+if [ "${USER_HASH}" = "${EMPTY_SHA}" ]; then
+  echo "❌ user-service INTERNAL_JWT_SECRET is empty — verify its .env.staging"
   exit 1
 fi
 

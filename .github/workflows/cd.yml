@@ -232,17 +232,52 @@ jobs:
           SERVICE_INPUT='${{ github.event.inputs.service }}'
           DEPLOY_TARGET="${SERVICE_INPUT:-all}"
 
+          # Input allowlist validation — defense in depth against accidental
+          # secret corruption that would otherwise inject into shell / compose.
+          if ! [[ "${STAGING_DOMAIN}" =~ ^[a-zA-Z0-9.-]+$ ]]; then
+            echo "❌ invalid STAGING_DOMAIN format"; exit 1
+          fi
+          if ! [[ "${ECR_REGISTRY}" =~ ^[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com$ ]]; then
+            echo "❌ invalid ECR_REGISTRY format"; exit 1
+          fi
+          if [ -n "${WEB_IMAGE_REF}" ] && ! [[ "${WEB_IMAGE_REF}" =~ ^[a-zA-Z0-9._/:@-]+$ ]]; then
+            echo "❌ invalid WEB_IMAGE_REF format"; exit 1
+          fi
+          case "${DEPLOY_TARGET}" in
+            user-service|web|all) ;;
+            *) echo "❌ invalid DEPLOY_TARGET: ${DEPLOY_TARGET}"; exit 1 ;;
+          esac
+
+          # Export vars consumed by docker compose interpolation (image: ${WEB_IMAGE_REF}
+          # in docker-compose.yml, STAGING_DOMAIN: ${STAGING_DOMAIN:?...} in caddy svc).
+          # Plain shell assignment is NOT enough — compose reads from the process
+          # environment, not from the parent shell's local scope.
+          export STAGING_DOMAIN ECR_REGISTRY WEB_IMAGE_REF
+
           echo "▶ Deploy target: ${DEPLOY_TARGET}"
           chmod +x /app/scripts/preflight-env.sh
 
-          # 1. Capture rollback target (current web image ref) BEFORE pull.
+          # 1. Capture rollback target — prefer ECR digest (immutable across tag
+          # moves), fall back to local image ID (.Image, content-addressed).
+          # tag-only refs are unsafe: same tag pulled later may resolve to a
+          # different (the broken) image → infinite rollback loop.
           PREVIOUS_WEB_REF=""
           if WEB_CID=$(docker compose ps -q web 2>/dev/null) && [ -n "${WEB_CID}" ]; then
-            PREVIOUS_WEB_REF=$(docker inspect "${WEB_CID}" --format='{{.Config.Image}}' 2>/dev/null || echo "")
+            DIGEST_REF=$(docker inspect "${WEB_CID}" --format='{{range .RepoDigests}}{{.}}{{"\n"}}{{end}}' 2>/dev/null | head -1 || true)
+            if [ -n "${DIGEST_REF}" ]; then
+              PREVIOUS_WEB_REF="${DIGEST_REF}"
+              echo "▶ rollback target (ECR digest): ${PREVIOUS_WEB_REF}"
+            else
+              IMAGE_ID=$(docker inspect "${WEB_CID}" --format='{{.Image}}' 2>/dev/null || true)
+              if [ -n "${IMAGE_ID}" ]; then
+                PREVIOUS_WEB_REF="${IMAGE_ID}"
+                echo "▶ rollback target (local image ID): ${PREVIOUS_WEB_REF}"
+                echo "   (note: local-only — re-build required if image is GC'd)"
+              fi
+            fi
           fi
           if [ -n "${PREVIOUS_WEB_REF}" ]; then
             echo "${PREVIOUS_WEB_REF}" > /app/.web-previous-ref
-            echo "▶ rollback target: ${PREVIOUS_WEB_REF}"
           else
             echo "▶ no prior web container — initial deploy"
           fi
@@ -272,35 +307,40 @@ jobs:
               ;;
           esac
 
-          # 5. Healthcheck.
+          # 5. Healthcheck — deadline-based so total wall time is bounded.
           if [ "${DEPLOY_TARGET}" = "user-service" ]; then
-            # user-service direct probe (no public HTTPS path).
-            for i in 1 2 3 4 5 6; do
+            deadline=$((SECONDS + 60))
+            while [ "${SECONDS}" -lt "${deadline}" ]; do
               if curl -fsS --max-time 5 http://localhost:3001/health; then
-                echo "✅ user-service healthy (loop ${i})"
+                echo "✅ user-service healthy (${SECONDS}s)"
                 exit 0
               fi
               sleep 5
             done
-            echo "❌ user-service healthcheck failed"
+            echo "❌ user-service healthcheck failed (${SECONDS}s window)"
             exit 1
           else
-            # web + caddy: probe public HTTPS endpoint. 180s window for LE
-            # cert issuance + Next cold start (plan v3 §B-6).
+            # web + caddy: probe public HTTPS endpoint. 180s deadline covers
+            # LE cert issuance + Caddy startup + Next cold start (plan v3 §B-6).
             HEALTH_URL="https://${STAGING_DOMAIN}/api/health"
-            for i in $(seq 1 18); do
+            deadline=$((SECONDS + 180))
+            while [ "${SECONDS}" -lt "${deadline}" ]; do
               if curl -fsS --max-time 5 "${HEALTH_URL}"; then
-                echo "✅ ${HEALTH_URL} healthy after ${i}0s"
+                echo "✅ ${HEALTH_URL} healthy (${SECONDS}s)"
                 exit 0
               fi
               sleep 10
             done
+            echo "❌ public healthcheck failed (${SECONDS}s window) — attempting auto-rollback"
 
             # 6. Auto-rollback (web only — caddy + user-service rarely break).
-            echo "❌ public healthcheck failed — attempting auto-rollback"
             if [ -n "${PREVIOUS_WEB_REF}" ]; then
               echo "▶ rolling web back to ${PREVIOUS_WEB_REF}"
-              WEB_IMAGE_REF="${PREVIOUS_WEB_REF}" docker compose up -d --force-recreate web
+              # NOTE: rollback ref MUST be a digest or local image ID, never
+              # a tag — tags can be moved by the just-failed `docker compose
+              # pull`, which would re-pull the broken image.
+              export WEB_IMAGE_REF="${PREVIOUS_WEB_REF}"
+              docker compose up -d --force-recreate web
               sleep 15
               if curl -fsS --max-time 5 "${HEALTH_URL}"; then
                 echo "⚠️  rolled back successfully — investigate broken commit"
