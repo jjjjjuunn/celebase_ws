@@ -5511,7 +5511,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
 date: 2026-05-13
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
 task_id: CHORE-CONTENT-001-b
-commit_sha: PENDING
+commit_sha: 58c3a4c
 files_changed:
   - db/seeds/scripts/backfill-ingredient-nutrition.ts
   - db/seeds/types.ts
