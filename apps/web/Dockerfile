@@ -58,6 +58,15 @@ COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/.next/standalone/ ./
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/.next/static/ ./apps/web/.next/static/
 COPY --from=builder --chown=nextjs:nodejs /repo/apps/web/public/ ./apps/web/public/
 
+# NEXT_PUBLIC_* must be baked into the runtime image — server-side routes
+# (e.g. apps/web/src/app/api/ws-ticket/route.ts:17) call readEnv('NEXT_PUBLIC_WS_URL')
+# at module load. Builder-stage ENV does not propagate to runtime stage in
+# multi-stage builds, so re-declare ARG+ENV here.
+ARG NEXT_PUBLIC_WS_URL
+ARG NEXT_PUBLIC_WS_HOST
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+ENV NEXT_PUBLIC_WS_HOST=${NEXT_PUBLIC_WS_HOST}
+
 USER nextjs
 ENV PORT=3000 HOSTNAME=0.0.0.0 NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 

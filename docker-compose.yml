@@ -247,7 +247,11 @@ services:
 
   web:
     # Local dev: `docker compose build web` builds against the source tree.
-    # Staging EC2: WEB_IMAGE_REF (.env.staging) overrides to ECR pull tag/digest.
+    # Staging EC2: WEB_IMAGE_REF is read by compose interpolation from shell env
+    # or /app/.env (compose's `.env` for variable substitution — separate from
+    # `env_file` below which only injects into the container). The CD deploy
+    # script (Phase C cd.yml) exports `WEB_IMAGE_REF=<ecr>/celebase-web:<sha>`
+    # before `docker compose up -d web`. Manual rollback: same pattern.
     # Rollback: WEB_IMAGE_REF=<ecr>/celebase-web@sha256:... docker compose up -d --force-recreate web
     build:
       context: .
