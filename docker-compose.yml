@@ -299,7 +299,10 @@ services:
       - caddy_data:/data          # /data/caddy/certificates/ — Let's Encrypt cert persistence
       - caddy_config:/config
     environment:
-      STAGING_DOMAIN: ${STAGING_DOMAIN:-localhost}
+      # fail-fast — empty/missing STAGING_DOMAIN would loop LE issuance against
+      # `localhost`, hit the public CA rate limit, and `restart: unless-stopped`
+      # would re-trigger forever. Compose exits before starting caddy if unset.
+      STAGING_DOMAIN: ${STAGING_DOMAIN:?STAGING_DOMAIN must be set (shell env or /app/.env) — e.g. staging.celebbase.com}
     depends_on:
       web:
         condition: service_healthy
