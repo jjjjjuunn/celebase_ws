@@ -37,6 +37,25 @@ ENV NEXT_PUBLIC_WS_HOST=${NEXT_PUBLIC_WS_HOST}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# Build-time only — next build's "Collecting page data" phase module-loads
+# every BFF API route, whose top-level readEnv() (apps/web/src/app/api/_lib/
+# {env,bff-fetch}.ts) requires these. Real values are injected at container
+# start via env_file (apps/web/.env.staging). Builder-stage ENV does NOT
+# propagate to the runtime stage in multi-stage builds, so these dummies
+# are stripped from the final image.
+ENV USER_SERVICE_URL=http://build-time-dummy:0
+ENV CONTENT_SERVICE_URL=http://build-time-dummy:0
+ENV COMMERCE_SERVICE_URL=http://build-time-dummy:0
+ENV MEAL_PLAN_URL=http://build-time-dummy:0
+ENV ANALYTICS_SERVICE_URL=http://build-time-dummy:0
+ENV INTERNAL_JWT_SECRET=build-time-dummy-internal-jwt-secret-32-chars
+ENV INTERNAL_JWT_ISSUER=celebbase-user-service
+ENV COGNITO_HOSTED_UI_DOMAIN=build-time-dummy.local
+ENV COGNITO_CLIENT_ID=build-time-dummy
+ENV COGNITO_CLIENT_SECRET=build-time-dummy
+ENV COGNITO_TOKEN_ENDPOINT=https://build-time-dummy.local/oauth2/token
+ENV COGNITO_REDIRECT_URI=https://build-time-dummy.local/api/auth/callback
+
 # Turbo ^build → shared-types tsc → design-tokens build → ui-kit copy-css → web build.
 RUN pnpm --filter web... build
 
