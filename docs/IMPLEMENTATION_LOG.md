@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-14
+agent: claude-opus-4-7
+task_id: FIX-MOBILE-AUTH-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/services/auth.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (mobile typecheck + lint PASS, staging dev build 에서 UserAlreadyAuthenticatedException 재현 → fix 후 해소)
+---
+### 완료: 인증 진입부 잔존 Amplify 세션 정리 (UserAlreadyAuthenticatedException hardening) — FIX-MOBILE-AUTH-001
+- **트리거**: staging dev build (iOS simulator) 로그인 검증 중 `[UserAlreadyAuthenticatedException] There is already a signed in user.` 재현. `signIn` 의 Cognito SRP 단계는 성공했으나 직후 BFF 호출 실패 시 내부 토큰 미저장 → `bootstrapSession` 미인증 판단 → 재로그인 시 Amplify 가 "이미 로그인됨" 으로 거절하는 deadlock.
+- **변경** (`apps/mobile/src/services/auth.ts`, +20 lines):
+  - `clearStaleSession()` 헬퍼 추가 — `try { await amplifySignOut(); } catch {}` (best-effort, 정리할 세션 없으면 무시)
+  - `signIn` / `signUp` / `confirmSignUpAndLogin` 의 Cognito 호출 직전에 각각 호출 — try/catch 3중 복붙 대신 헬퍼 1개로 DRY
+- **설계 결정**: JUNWON 제안은 진입부 inline try/catch 였으나 3곳 중복이라 헬퍼로 추출 — 동작 동일. Amplify v6 의 알려진 footgun, spec.md §11 mobile auth ingress 와 모순 없는 순수 hardening 이라 spec patch 불필요.
+- **검증**: `pnpm --filter mobile typecheck` PASS, `pnpm --filter mobile lint` PASS.
+- **review**: JUNWON 리뷰 예정 (multi-session.md §1 — `apps/mobile/**` Dohyun owner 영역, JUNWON 요청 fix).
+### 미완료:
+- **"User not found" (별건)**: Cognito 인증은 통과하나 BFF `/api/auth/mobile/login` 이 `User not found` 반환 — staging DB user 행 부재 / email-bridge mobile 라우트 미적용 의심. BE/BFF 영역으로 JUNWON 처리 대기.
+- 임시 디버그 코드 (`LoginScreen.tsx` / `SignupScreen.tsx` 의 staging 검증용 raw error 노출): staging 검증 종료 후 복구 예정.
+### 연관 파일: apps/mobile/src/services/auth.ts, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx
+
+---
 date: 2026-05-12
 agent: claude-opus-4-7
 task_id: CHORE-STAGING-COGNITO-MOBILE-CLIENT-ID
