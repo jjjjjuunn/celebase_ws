@@ -4,6 +4,8 @@ export interface SeedIngredient {
   name: string;
   category: string;
   allergens: string[];
+  fdc_id?: number;
+  portion_conversions?: Record<string, number>;
 }
 
 export interface SeedRecipeIngredient {
