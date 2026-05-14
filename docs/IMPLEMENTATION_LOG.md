@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-14
 agent: claude-opus-4-7
 task_id: FIX-MOBILE-AUTH-001
-commit_sha: PENDING
+commit_sha: 1ee0b59
 files_changed:
   - apps/mobile/src/services/auth.ts
   - docs/IMPLEMENTATION_LOG.md
