@@ -116,11 +116,16 @@ describe('usda-fdc.client', () => {
     fetchSpy.mockImplementation(() => jsonResponse({ message: 'rate limit' }, 429));
 
     const promise = searchFood('pecan', { apiKey: API_KEY, maxRetries: 2 });
-    await Promise.resolve();
-    await jest.advanceTimersByTimeAsync(1000);
-    await Promise.resolve();
-    await jest.advanceTimersByTimeAsync(2000);
-    const error = await promise.catch((err) => err);
+    const [error] = await Promise.all([
+      promise.catch((err) => err),
+      (async () => {
+        await Promise.resolve();
+        await jest.advanceTimersByTimeAsync(1000);
+        await Promise.resolve();
+        await jest.advanceTimersByTimeAsync(2000);
+        await Promise.resolve();
+      })(),
+    ]);
 
     expect(error).toBeInstanceOf(UsdaClientError);
     expect(error.message).toContain('status: 429');
@@ -139,9 +144,14 @@ describe('usda-fdc.client', () => {
     });
 
     const promise = getFoodDetail(9999, { apiKey: API_KEY, timeoutMs: 50, maxRetries: 0 });
-    await jest.advanceTimersByTimeAsync(50);
-    await Promise.resolve();
-    const error = await promise.catch((err) => err);
+    const [error] = await Promise.all([
+      promise.catch((err) => err),
+      (async () => {
+        await Promise.resolve();
+        await jest.advanceTimersByTimeAsync(50);
+        await Promise.resolve();
+      })(),
+    ]);
 
     expect(error).toBeInstanceOf(UsdaClientError);
     expect(error.message).toBe('request aborted by timeout');
@@ -162,5 +172,76 @@ describe('usda-fdc.client', () => {
     expect(error).toBeInstanceOf(UsdaClientError);
     expect(error.message).not.toContain('api_key');
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('getFoodDetail happy path parses response', async () => {
+    const { getFoodDetail } = await loadClient();
+    fetchSpy.mockResolvedValueOnce(
+      jsonResponse({
+        fdcId: 2000,
+        description: 'Raw Almonds',
+        foodNutrients: [
+          { nutrientId: 203, nutrientName: 'Protein', unitName: 'g', value: 21.15 },
+          { nutrientId: 'bad', nutrientName: 'Skip', unitName: 'g', value: 0 },
+        ],
+        foodPortions: [
+          {
+            modifier: 'cup',
+            gramWeight: 95,
+            measureUnit: { name: 'Cup' },
+          },
+          { modifier: 123, gramWeight: 'invalid' },
+        ],
+      }),
+    );
+
+    const promise = getFoodDetail(2000, { apiKey: API_KEY, maxRetries: 0 });
+    await Promise.resolve();
+    await jest.advanceTimersByTimeAsync(200);
+    const detail = await promise;
+
+    expect(detail).toEqual({
+      fdcId: 2000,
+      description: 'Raw Almonds',
+      foodNutrients: [{ nutrientId: 203, nutrientName: 'Protein', unitName: 'g', value: 21.15 }],
+      foodPortions: [
+        {
+          modifier: 'cup',
+          gramWeight: 95,
+          measureUnit: { name: 'Cup' },
+        },
+      ],
+    });
+  });
+
+  it('getFoodDetail rejects non-finite fdcId', async () => {
+    const { getFoodDetail, UsdaClientError } = await loadClient();
+    await expect(getFoodDetail(Number.NaN, { apiKey: API_KEY })).rejects.toThrow(UsdaClientError);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('getFoodDetail rejects missing fdcId in payload', async () => {
+    const { getFoodDetail, UsdaClientError } = await loadClient();
+    fetchSpy.mockResolvedValueOnce(jsonResponse({ description: 'Incomplete' }));
+
+    const promise = getFoodDetail(3000, { apiKey: API_KEY, maxRetries: 0 });
+    await Promise.resolve();
+    await expect(promise).rejects.toThrow('invalid USDA response: missing fdcId');
+  });
+
+  it('searchFood retries after network error and succeeds', async () => {
+    const { searchFood } = await loadClient();
+    fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    fetchSpy.mockResolvedValueOnce(jsonResponse({ foods: [{ fdcId: 789, description: 'Peanut', dataType: 'Foundation' }] }));
+
+    const promise = searchFood('peanut', { apiKey: API_KEY, maxRetries: 1 });
+    await Promise.resolve();
+    await jest.advanceTimersByTimeAsync(1000);
+    await Promise.resolve();
+    await jest.advanceTimersByTimeAsync(200);
+    const results = await promise;
+
+    expect(results).toEqual([{ fdcId: 789, description: 'Peanut', dataType: 'Foundation' }]);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 });

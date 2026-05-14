@@ -55,6 +55,11 @@ interface RecipeJoinRow {
   i_default_unit: string | null;
   i_allergens: string[] | null;
   i_nutrition_per_100g: unknown;
+  i_fdc_id: number | null;
+  i_nutrition_source: string | null;
+  i_nutrition_source_version: string | null;
+  i_nutrition_updated_at: Date | null;
+  i_portion_conversions: unknown;
   i_is_active: boolean | null;
   i_created_at: Date | null;
 }
@@ -122,6 +127,12 @@ function assembleRecipe(rows: RecipeJoinRow[]): RecipeWithIngredients | null {
         default_unit: row.i_default_unit,
         allergens: row.i_allergens ?? [],
         nutrition_per_100g: (row.i_nutrition_per_100g ?? {}) as Ingredient['nutrition_per_100g'],
+        fdc_id: row.i_fdc_id,
+        nutrition_source: row.i_nutrition_source as Ingredient['nutrition_source'],
+        nutrition_source_version: row.i_nutrition_source_version,
+        nutrition_updated_at:
+          row.i_nutrition_updated_at !== null ? row.i_nutrition_updated_at.toISOString() : null,
+        portion_conversions: (row.i_portion_conversions ?? {}) as Ingredient['portion_conversions'],
         is_active: row.i_is_active,
         created_at: row.i_created_at,
       },
@@ -155,6 +166,11 @@ export async function findById(pool: pg.Pool, id: string): Promise<RecipeWithIng
        i.default_unit AS i_default_unit,
        i.allergens   AS i_allergens,
        i.nutrition_per_100g AS i_nutrition_per_100g,
+       i.fdc_id      AS i_fdc_id,
+       i.nutrition_source AS i_nutrition_source,
+       i.nutrition_source_version AS i_nutrition_source_version,
+       i.nutrition_updated_at AS i_nutrition_updated_at,
+       i.portion_conversions AS i_portion_conversions,
        i.is_active   AS i_is_active,
        i.created_at  AS i_created_at
      FROM recipes r
@@ -197,6 +213,11 @@ export async function findByIds(
        i.default_unit AS i_default_unit,
        i.allergens   AS i_allergens,
        i.nutrition_per_100g AS i_nutrition_per_100g,
+       i.fdc_id      AS i_fdc_id,
+       i.nutrition_source AS i_nutrition_source,
+       i.nutrition_source_version AS i_nutrition_source_version,
+       i.nutrition_updated_at AS i_nutrition_updated_at,
+       i.portion_conversions AS i_portion_conversions,
        i.is_active   AS i_is_active,
        i.created_at  AS i_created_at
      FROM recipes r

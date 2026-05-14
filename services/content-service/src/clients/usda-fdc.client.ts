@@ -179,7 +179,7 @@ async function requestJson<T>(
         throw new UsdaClientError(`status: ${String(response.status)} ${redactPath(url)}`);
       }
 
-      const payload = (await response.json()) as unknown;
+      const payload: unknown = await response.json();
       const parsed = parse(payload);
       await sleep(SUCCESS_DELAY_MS);
       return parsed;
