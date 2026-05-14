@@ -279,8 +279,14 @@ services:
       # is scoped to what actually exists on staging.
       # For local dev with all 5 BE running, add the other condition: service_healthy
       # entries in a local override file (docker-compose.dev.yml).
+      # `service_started` (not service_healthy): EC2's staging-specific
+      # /app/docker-compose.yml defines user-service without a healthcheck
+      # block — depends_on service_healthy would fail with "no healthcheck
+      # configured". The CI compose chain's user-service DOES have a healthcheck
+      # but service_started is satisfied by either. Root cause (EC2 user-service
+      # without healthcheck) is tracked separately as CHORE-USER-SERVICE-HEALTHCHECK-001.
       user-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
       interval: 10s
