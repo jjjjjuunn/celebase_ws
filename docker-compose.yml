@@ -245,6 +245,43 @@ services:
       timeout: 3s
       retries: 5
 
+  web:
+    # Local dev: `docker compose build web` builds against the source tree.
+    # Staging EC2: WEB_IMAGE_REF (.env.staging) overrides to ECR pull tag/digest.
+    # Rollback: WEB_IMAGE_REF=<ecr>/celebase-web@sha256:... docker compose up -d --force-recreate web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3000}
+        NEXT_PUBLIC_WS_HOST: ${NEXT_PUBLIC_WS_HOST:-localhost:3000}
+    image: ${WEB_IMAGE_REF:-celebase/celebase-web:local}
+    ports:
+      - "3000:3000"
+    env_file:
+      # Loaded only when present — gitignored on staging EC2.
+      # Local dev: copy apps/web/.env.staging.example → apps/web/.env.staging and fill before booting `web`.
+      - path: apps/web/.env.staging
+        required: false
+    depends_on:
+      user-service:
+        condition: service_healthy
+      content-service:
+        condition: service_healthy
+      commerce-service:
+        condition: service_healthy
+      meal-plan-engine:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   pgdata:
   redisdata:

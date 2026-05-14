@@ -1,5 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isProd = process.env.NODE_ENV === 'production';
 const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? '';
@@ -33,6 +37,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '..', '..'),
   transpilePackages: ['@celebbase/ui-kit', '@celebbase/design-tokens'],
   typedRoutes: true,
   async headers() {
