@@ -44,6 +44,7 @@ from . import (
     calorie_adjuster,
     macro_rebalancer,
     micronutrient_checker,
+    nutrition_aggregator,
     nutrition_normalizer,
     phi_minimizer,
     variety_optimizer,
@@ -189,13 +190,9 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     await _emit(on_progress, {"pass": 2, "pct": 35})
 
-    # Step 4 – Micronutrient adequacy (simplified – aggregate per-recipe nutrition)
-    daily_totals: Dict[str, float] = {}
-    for slot in safe_recipes:
-        # Assume each slot has nutrition dict for simplification purposes.
-        nutr = slot.nutrition or {}
-        for k, v in nutr.items():
-            daily_totals[k] = daily_totals.get(k, 0.0) + float(v)
+    # Step 4 – Micronutrient adequacy (P0.2: nutrition_aggregator 위임)
+    # nested micronutrients dict 도 flat 으로 풀어내 18-nutrient 매칭 가능.
+    daily_totals = nutrition_aggregator.aggregate_day(safe_recipes)
 
     # IMPL-MEAL-P0-RDA-001: bio_profile.sex 전달 → female RDA override 적용
     # (Vit A/K/Mg/Zn/omega3 female RDA < male baseline — 미전달 시 false-positive 결핍)
