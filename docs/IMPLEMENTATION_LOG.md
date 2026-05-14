@@ -5524,6 +5524,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
 ### 미완료: PR-A3 (recompute-recipe-nutrition.ts + spec.md §3.1/§5.5 sync). 사용자 USDA_FDC_API_KEY (.env.local) 로 실제 backfill 실행 — review-only → 수동 review CSV 검수 → apply.
 ### 연관 파일: db/seeds/scripts/backfill-ingredient-nutrition.ts, db/seeds/types.ts
 
+
 ---
 date: 2026-05-13
 agent: claude-opus-4-7
@@ -5586,3 +5587,23 @@ verified_by: >
 - **Deferred backlog (별도 chore)**: CHORE-CD-BUILDX-DIGEST-001 / CHORE-CD-SSH-KEY-TRAP-001 / CHORE-CD-SSH-KNOWN-HOSTS-001 / CHORE-CD-ROLLBACK-ALERTING-001 / CHORE-CADDY-LE-EMAIL-001 — Phase A~C Codex review 의 RESIDUAL_MEDIUM/LOW 중 plan v3 scope 외.
 - **prod 분기 시 follow-up**: `NEXT_PUBLIC_*` build-time baked-in 의 runtime 주입 마이그레이션 (image staging/prod 분리 회피). prod 도메인 추가 → variables.tf callback_urls override 추가 → Cognito 재배포.
 ### 연관 파일: apps/web/next.config.ts, apps/web/Dockerfile, apps/web/.env.staging.example, apps/web/.env.staging.required, apps/web/src/app/api/health/route.ts, docker-compose.yml, docker/caddy/Caddyfile, .github/workflows/cd.yml, scripts/preflight-env.sh, infra/cognito/variables.tf, apps/mobile/.env.example, spec.md, docs/SPEC-PIVOT-PLAN.md, docs/IMPLEMENTATION_LOG.md
+
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: CHORE-CONTENT-001-c
+commit_sha: PENDING
+files_changed:
+  - db/seeds/scripts/recompute-recipe-nutrition.ts
+  - spec.md
+verified_by: claude-opus-4-7 + gemini-adversarial (codex r1 hallucination ignored)
+---
+### 완료: Recipe nutrition recompute CLI + spec.md §3.1/§5.5 sync (PR-A3, Stacked PR 최종)
+- `db/seeds/scripts/recompute-recipe-nutrition.ts`: recipes (nutrition_source='manual_legacy') × recipe_ingredients JOIN → unit→gram 변환 (portion_conversions 우선 + FALLBACK_GRAM) → Σ nutrition / servings → atomic UPDATE (nutrition + nutrition_source). Mixed-source filter (`every`) 로 모든 ingredient 가 usda_fdc/nih_ods 일 때만 'derived_from_ingredients' 승격, 아니면 manual_legacy 유지 + skip. fail-closed report (warn only). idempotent.
+- `spec.md §3.1`: ingredients/recipes DDL 에 migration 0019 컬럼 (fdc_id, nutrition_source CHECK, nutrition_source_version, nutrition_updated_at, portion_conversions, recipes.nutrition_source DEFAULT 'manual_legacy') 반영. PR-A1/A2 SPEC-SYNC-DEFER 약속 이행.
+- `spec.md §5.5`: Nutrition Provenance Enforcement 단락 추가 — Ingredient-level (usda_fdc/nih_ods/manual_verified/NULL) + Recipe-level (derived_from_ingredients/manual_verified/manual_legacy) enum 정의, 4-step backfill 절차, LLM 영양 수치 생성 금지 명시.
+- **L3 review**: Codex r1 hallucination (FAIL_invalid — 존재하지 않는 파일 finding), Gemini adversarial 10/10 VERIFIED OK PASS. Claude self-review (code inspection) PASS. qa-exec 89/89 regression PASS.
+- **Stacked PR 시리즈 완료**: PR-A1 (#73) + PR-A2 (#75) + PR-A3 (이 PR) — P0.1~P0.4 시작 prerequisite 완료.
+### 미완료: 사용자 USDA_FDC_API_KEY 로 실제 4-step backfill 실행 (review-only → 수동 검수 → backfill → recompute). 그 후 P0.1 (PR-B) 시작 가능. CHORE-MAIN-PYTHON-DEPS (task #6) 동일 carry-over.
+### 연관 파일: db/seeds/scripts/recompute-recipe-nutrition.ts, spec.md
