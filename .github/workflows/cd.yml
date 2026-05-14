@@ -82,6 +82,11 @@ jobs:
         run: |
           pnpm --filter @celebbase/shared-types build
           pnpm --filter @celebbase/service-core build
+          # web (BFF) depends on ui-kit + design-tokens — without these built,
+          # `pnpm --filter web typecheck` fails with TS2307: Cannot find module
+          # '@celebbase/ui-kit' (no dist/index.d.ts).
+          pnpm --filter @celebbase/design-tokens build
+          pnpm --filter @celebbase/ui-kit build
 
       - name: Typecheck user-service
         run: pnpm --filter @celebbase/user-service typecheck
