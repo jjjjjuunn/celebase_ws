@@ -286,6 +286,27 @@ services:
       retries: 5
     restart: unless-stopped
 
+  caddy:
+    # Staging TLS termination + reverse proxy → web:3000.
+    # STAGING_DOMAIN must be set in shell env or /app/.env on the host
+    # (compose-level var substitution AND container env for Caddyfile {$VAR}).
+    image: caddy:2.8.4-alpine@sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # /data/caddy/certificates/ — Let's Encrypt cert persistence
+      - caddy_config:/config
+    environment:
+      STAGING_DOMAIN: ${STAGING_DOMAIN:-localhost}
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pgdata:
   redisdata:
+  caddy_data:
+  caddy_config:

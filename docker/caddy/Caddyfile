@@ -1,0 +1,41 @@
+# CelebBase staging — TLS termination + reverse proxy → BFF (apps/web).
+# CHORE-MOBILE-STAGING-BFF-001 Phase B.
+#
+# Caddy reads {$STAGING_DOMAIN} from container env (set by compose).
+# Cert storage: /data/caddy/certificates/<issuer>/<domain>/ — persisted to
+# caddy_data named volume so restarts/redeploys do not re-issue.
+#
+# ─────────────────────────────────────────────────────────────────────────
+# Initial dry-run (rate-limit safe — LE staging CA has 30k cert/week limit)
+# ─────────────────────────────────────────────────────────────────────────
+# 1. Uncomment the `acme_ca` line in the global block below.
+# 2. docker compose up -d caddy && docker compose logs -f caddy
+#    Wait for "certificate obtained successfully".
+# 3. curl -k https://<STAGING_DOMAIN>/api/health   # 200 (`-k` ignores staging CA)
+# 4. Switch to prod CA — DELETE staging issuer dir ONLY (preserve prod if any):
+#       docker compose exec caddy ls /data/caddy/certificates/
+#       docker compose exec caddy rm -rf \
+#         /data/caddy/certificates/acme-staging-v02.api.letsencrypt.org-directory
+# 5. Re-comment the `acme_ca` line.
+# 6. docker compose restart caddy
+#    Caddy will request a fresh cert from prod LE CA (rate-limit safe — first
+#    issuance for this domain).
+# 7. openssl s_client -connect <STAGING_DOMAIN>:443 -servername <STAGING_DOMAIN> \
+#      < /dev/null 2>&1 | grep "issuer="
+#    Confirm: issuer=...Let's Encrypt...
+# ─────────────────────────────────────────────────────────────────────────
+{
+	# Uncomment for initial LE staging CA dry-run; re-comment + restart for prod CA.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$STAGING_DOMAIN} {
+	reverse_proxy web:3000
+
+	encode gzip
+
+	log {
+		output stdout
+		format console
+	}
+}
