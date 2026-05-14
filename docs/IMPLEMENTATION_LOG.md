@@ -5629,3 +5629,27 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + NIH-ODS-WebSe
 - **L2-extended review**: Codex r1 HIGH (pipeline sex 미전달) → fix-1, Gemini r2 HIGH (Vit C + Potassium override 누락, WebSearch NIH ODS cross-verify) → fix-2. MEDIUM 3건: 1 accept_chore (MIN_COMPLIANCE 의미적 불일치 — CHORE-MICRO-RATIO-CONSISTENCY 후속), 1 accept (phi_minimizer 우회 — sex 비-PHI), 1 fixed (unisex default test). qa-exec: pytest 135/137 PASS (2 skip = LLM), ruff + typecheck clean.
 ### 미완료: PR-B2 (IMPL-MEAL-P0-AGG-001 — nutrition_aggregator.py + pipeline.py 인라인 합산 제거). 후속 CHORE-MICRO-RATIO-CONSISTENCY (MIN_COMPLIANCE 비교를 round 후로 변경). CHORE-MAIN-PYTHON-DEPS (gate test pythonjsonlogger).
 ### 연관 파일: services/meal-plan-engine/src/engine/micronutrient_checker.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/tests/unit/test_micronutrient_checker.py, spec.md
+
+
+---
+date: 2026-05-14
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: IMPL-MEAL-P0-AGG-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/nutrition_aggregator.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_nutrition_aggregator.py
+verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + claude-direct-pytest
+---
+### 완료: P0.2 — nutrition_aggregator 모듈 분리 + pipeline 인라인 합산 제거 (PR-B2)
+- `nutrition_aggregator.py` 신규 (~180 LOC): `aggregate_day(slots)` + `aggregate_week(weekly_plan)` + `KNOWN_MICRO_KEYS frozenset` (7 macros + 18 RDA micros − fiber_g 중복 = 24). nested `micronutrients` dict + `{value, unit, confidence}` rich object 양쪽 처리 (forward-compat). 책임 경계 명시: aggregator 는 정규화된 값 전제, 단위 변환은 `nutrition_normalizer` 책임 (Plan §Task 3).
+- `pipeline.py:190-200`: 인라인 sum 루프 (`for slot in safe_recipes: for k,v in nutr.items(): ...`) → `daily_totals = nutrition_aggregator.aggregate_day(safe_recipes)` 한 줄 위임. nested micronutrients 가 flat 으로 풀려 PR-B1 의 18-nutrient 매칭 활성화.
+- `_coerce_finite` 헬퍼 (fix-1 Gemini HIGH): `math.isfinite` + bool 명시 거부. NaN < MIN_COMPLIANCE 항상 False → silent false-positive (충족) 결핍 검출 사고 차단. data integrity invariant.
+- per-recipe consolidated warn (fix-1 Gemini MEDIUM): 4 meal × 18 nutrient = 72 줄/req → 1 줄/recipe 로 축소 (`rejected_keys[:10]` 요약).
+- `test_nutrition_aggregator.py`: 9 시나리오 (empty / None nutrition / nested micro / multi-slot sum / weekly 7-day / rich object / **NaN-Infinity reject** / **log-consolidated** / KNOWN_MICRO_KEYS == 24).
+- **L2-extended review (Codex 1 + Gemini 1)**: Codex r1 PASS (0 findings) — 그러나 Gemini r2 가 hypothetical reasoning 으로 NaN/Infinity (HIGH) + log spam (MEDIUM) 추가 catch. **PR-B1 권장 (P0.\* L2-extended) ROI 재검증** — Codex 단독이면 silent compliance false-positive 가 main 으로 머지될 뻔.
+- **Out-of-Scope verdict 기록**: (1) CRITICAL `safe_recipes` 전체 합산 → `plan_decided` to PR-C (P0.3 daily_totals 1일 단위 합산). (2) HIGH rich object unit 무시 → `accept` (Plan §Task 3 책임 경계).
+- qa-exec: Codex sandbox `.venv` 부재 false-failure → Claude direct verification (ruff PASS + pytest 22/22 PASS: aggregator 9 + micronutrient_checker 회귀 11 + pipeline final_out 2).
+### 미완료: PR-C (IMPL-MEAL-P0-DAILY-001 — pipeline.py:296-310 `daily_totals` 1일 단위 실제 합산 + `daily_targets` 신규 + Migration 0020 meal_plan_monthly_stats redefine). PR-D (IMPL-MEAL-P0-ILP-001 — OR-Tools CP-SAT solver). 후속 CHORE-MICRO-RATIO-CONSISTENCY + CHORE-MAIN-PYTHON-DEPS.
+### 연관 파일: services/meal-plan-engine/src/engine/nutrition_aggregator.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/tests/unit/test_nutrition_aggregator.py
