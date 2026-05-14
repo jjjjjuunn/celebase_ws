@@ -30,6 +30,15 @@
 }
 
 {$STAGING_DOMAIN} {
+	# spec.md §4.2 hybrid BFF: mobile calls /auth/refresh directly against
+	# user-service (BFF /api/auth/refresh is cookie-shaped, not bearer).
+	# Route the user-service direct path through Caddy so user-service stays
+	# off the public internet (SG keeps 3001-3005 closed).
+	@user_direct path /auth/refresh
+	reverse_proxy @user_direct user-service:3001
+
+	# Everything else → BFF (apps/web). Includes /api/* (regular BFF routes)
+	# plus SSR pages that may still be served from apps/web.
 	reverse_proxy web:3000
 
 	encode gzip
