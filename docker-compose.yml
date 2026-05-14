@@ -268,15 +268,14 @@ services:
       - path: apps/web/.env.staging
         required: false
     depends_on:
+      # Only user-service is currently deployed on staging EC2 (other BE deferred
+      # to a separate chore — CHORE-STAGING-BE-DEPLOY-001). BFF readEnv() at
+      # module-load still requires all 5 *_SERVICE_URL env vars to be present
+      # (dummy values OK for non-deployed services), but compose-level depends_on
+      # is scoped to what actually exists on staging.
+      # For local dev with all 5 BE running, add the other condition: service_healthy
+      # entries in a local override file (docker-compose.dev.yml).
       user-service:
-        condition: service_healthy
-      content-service:
-        condition: service_healthy
-      commerce-service:
-        condition: service_healthy
-      meal-plan-engine:
-        condition: service_healthy
-      analytics-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]

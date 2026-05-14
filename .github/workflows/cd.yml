@@ -186,10 +186,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Sparse — preflight script + .env.staging.required manifests only.
+          # Sparse — preflight script + .env.staging.required + Caddyfile.
           sparse-checkout: |
             scripts/preflight-env.sh
             apps/web/.env.staging.required
+            docker/caddy/Caddyfile
           sparse-checkout-cone-mode: false
 
       - name: Write SSH key
@@ -199,19 +200,33 @@ jobs:
           echo "$SSH_KEY_B64" | base64 -d > /tmp/staging_key
           chmod 600 /tmp/staging_key
 
-      - name: Upload preflight script + required manifest
+      - name: Upload preflight script + required manifest + Caddyfile
         env:
           HOST: ${{ secrets.STAGING_SERVER_IP }}
           REMOTE_USER: ${{ secrets.STAGING_SERVER_USER }}
         run: |
+          # Pre-create remote dirs (sparse-checkout only fetches files, no dirs).
+          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" \
+            "mkdir -p /app/scripts /app/apps/web /app/docker/caddy"
+
+          # preflight script (executable)
           scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
             scripts/preflight-env.sh \
             "$REMOTE_USER@$HOST:/app/scripts/preflight-env.sh"
-          ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" \
-            "mkdir -p /app/apps/web"
+
+          # .env.staging.required (preflight manifest — partial staging: 8 required keys)
           scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
             apps/web/.env.staging.required \
             "$REMOTE_USER@$HOST:/app/apps/web/.env.staging.required"
+
+          # Caddyfile (staging-specific, safe to overwrite — Caddy reads {$STAGING_DOMAIN} env)
+          # NOTE: docker-compose.yml is NOT scp'd — staging EC2 has a staging-specific
+          # compose (db/redis/user-service) and overwriting would break existing services.
+          # The web/caddy service blocks must be appended manually to /app/docker-compose.yml
+          # (one-time per host — see docs/IMPLEMENTATION_LOG.md entry for snippets).
+          scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
+            docker/caddy/Caddyfile \
+            "$REMOTE_USER@$HOST:/app/docker/caddy/Caddyfile"
 
       - name: Deploy via SSH
         env:
