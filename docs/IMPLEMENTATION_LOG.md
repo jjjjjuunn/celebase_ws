@@ -5482,7 +5482,6 @@ verified_by: claude-opus-4-7 (pnpm --filter mobile lint/typecheck PASS, 22 suite
 ### 미완료: RevenueCat live key 주입 + IAP sandbox 결제 검증 (JUNWON 대기). Apple App Privacy / Play Data Safety mapping (M0.5 deferred). Account deletion BE endpoint. Expo Go 실기기 시각 회귀 검증 (4 탭 + lock → paywall + sign-out).
 ### 연관 파일: packages/design-tokens/tokens.css, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/__tests__/screens/SettingsScreen.test.tsx, apps/mobile/__tests__/screens/ProfileScreen.test.tsx, apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx, apps/mobile/__tests__/screens/MealPlanScreen.test.tsx, spec.md
 
-
 ---
 date: 2026-05-13
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
@@ -5524,3 +5523,66 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial
 - PR-A1 (#73, 6507771) 의 usda-fdc.client + migration 0019 사용.
 ### 미완료: PR-A3 (recompute-recipe-nutrition.ts + spec.md §3.1/§5.5 sync). 사용자 USDA_FDC_API_KEY (.env.local) 로 실제 backfill 실행 — review-only → 수동 review CSV 검수 → apply.
 ### 연관 파일: db/seeds/scripts/backfill-ingredient-nutrition.ts, db/seeds/types.ts
+
+---
+date: 2026-05-13
+agent: claude-opus-4-7
+task_id: CHORE-MOBILE-STAGING-BFF-001
+commit_sha: 4432e20
+files_changed:
+  - apps/web/next.config.ts
+  - apps/web/Dockerfile
+  - apps/web/.env.staging.example
+  - apps/web/.env.staging.required
+  - apps/web/src/app/api/health/route.ts
+  - docker-compose.yml
+  - docker/caddy/Caddyfile
+  - .github/workflows/cd.yml
+  - scripts/preflight-env.sh
+  - infra/cognito/variables.tf
+  - apps/mobile/.env.example
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: >
+  claude-opus-4-7 (Phase A/B/C Codex review × 3 + Claude self-adversarial × 3
+  fallback per pipeline.md Gemini CLI tool absence; docker build → 357MB
+  image, standalone tree verified — /app/apps/web/server.js +
+  /app/packages/{design-tokens,shared-types} traced, no BE-only leak; caddy
+  validate → Valid configuration with /auth/refresh path matcher; preflight
+  script — 11 missing → exit 1 / 12 keys + JWT skip → exit 0 /
+  KEY=<whitespace> → exit 1; actionlint cd.yml yaml syntax OK)
+---
+### 완료: Staging BFF 배포 인프라 — Dockerization + Caddy TLS + CD with auto-rollback + preflight env validation — CHORE-MOBILE-STAGING-BFF-001
+- **트리거**: 동료 (Dohyun) 가 M0~M5 mobile (PR #63~#71) 끝낸 직후 staging E2E 검증이 필요. `apps/web` BFF 가 staging 어디에도 배포 안 된 상태 (`Dockerfile` 부재, `docker-compose.yml` `web` 정의 없음, `cd.yml` 이 user-service 만 자동화) — mobile 의 `EXPO_PUBLIC_BFF_BASE_URL` 이 가리킬 곳이 없었음. iOS ATS 가 plain HTTP 차단이라 TLS 종료 인프라도 동시 필요.
+- **Phase A — Dockerization** (commits bdf3d59 + 10d4e28):
+  - `apps/web/next.config.ts`: `output: 'standalone'` + `outputFileTracingRoot: path.join(__dirname, '..', '..')` (ESM `fileURLToPath(import.meta.url)` 패턴) → standalone tree 가 monorepo workspace package (`@celebbase/design-tokens`, `@celebbase/shared-types`) 를 `/app/packages/{name}/dist/` 로 정확히 trace.
+  - `apps/web/Dockerfile`: multi-stage builder/runtime (`node:22-alpine@sha256:8ea2348...` digest-pinned), non-root `nextjs:1001`, `pnpm fetch --filter web... --offline` 패턴 (`services/user-service/Dockerfile` 차용), HEALTHCHECK → `/api/health`. `NEXT_PUBLIC_WS_URL` / `NEXT_PUBLIC_WS_HOST` 는 builder + runtime stage **양쪽** 에 ARG/ENV — Phase A Codex review REGRESSION 4a (builder-only ENV 가 runtime 에 전파 안 되어 `ws-ticket/route.ts:17` `readEnv('NEXT_PUBLIC_WS_URL')` 가 module load 시 crash) 닫음.
+  - `apps/web/.env.staging.example` Required/Optional 섹션 분리 + 누락된 `ANALYTICS_SERVICE_URL` (analytics-service:3005) / `COMMERCE_SERVICE_URL` (commerce-service:3004) 추가 — 없으면 `bff-fetch.ts:29-33` 의 module-load `readEnv()` 가 첫 요청에서 crash.
+  - `apps/web/.env.staging.required` 신규 (preflight manifest 12 key, optional `INTERNAL_JWT_SECRET_NEXT` / `NEXT_PUBLIC_*` 제외 — REGRESSION B-2 false-positive 닫음).
+  - `apps/web/src/app/api/health/route.ts` 신규 (`{ok:true,ts}` 200, `dynamic='force-dynamic'`).
+  - `docker-compose.yml` `web` 서비스 추가 (build + image override 둘 다 — `${WEB_IMAGE_REF:-celebase/celebase-web:local}` — local dev / staging ECR 양립). `depends_on` 의 BE 5개 모두 `condition: service_healthy` (각 BE healthcheck 사전 audit). `env_file required:false` 로 local dev 가 `.env.staging` 없이 다른 서비스 띄울 수 있음.
+- **Phase B — Caddy TLS** (commits 3d37be1 + 0c4d8b0):
+  - `docker/caddy/Caddyfile` 신규 — `{$STAGING_DOMAIN}` env 치환, `reverse_proxy web:3000` + path matcher `/auth/refresh` → `user-service:3001` (spec §4.2 hybrid BFF 의 cookie-shaped 예외 경로를 mobile 이 hostname 동일 path-routed 로 호출 가능 — BE service ports 모두 SG 로 차단된 상태에서 hybrid auth flow 작동). LE staging-CA dry-run 절차 (acme_ca 주석 토글 → cert 정밀 삭제 → prod CA 자동 발급) 인라인 runbook. cert 정밀 경로: `/data/caddy/certificates/acme-staging-v02.api.letsencrypt.org-directory` (전체 `certificates/` 삭제 금지 — 향후 prod cert 보존).
+  - `docker-compose.yml` `caddy` 서비스 (caddy:2.8.4-alpine digest-pinned) + `caddy_data` / `caddy_config` named volume (cert 영속화 + `restart: unless-stopped`). `STAGING_DOMAIN: ${STAGING_DOMAIN:?STAGING_DOMAIN must be set ...}` fail-fast — Phase B Codex review RESIDUAL_HIGH B-3-4 (localhost default + restart loop = LE rate-limit 무한 루프) 닫음.
+- **Phase C — CD + rollback + preflight** (commits b422585 + 1559084):
+  - `.github/workflows/cd.yml` 확장 — trigger paths 에 `apps/web/**` / `packages/{ui-kit,design-tokens}/**` / `docker/caddy/**` / `docker-compose.yml` / `scripts/preflight-env.sh` 추가. `workflow_dispatch.inputs.service`: `user-service | web | all`. `ci-gate` 에 web typecheck + build. `build-push` 에 web 잡 (NEXT_PUBLIC_WS_* build-arg from `secrets.STAGING_DOMAIN`, short-SHA + staging-latest 이중 tag, `RepoDigests[0]` 캡처 → output). `deploy` 잡: sparse-checkout preflight + .required → scp EC2 → SSH heredoc with allowlist regex 검증 (`STAGING_DOMAIN`, `ECR_REGISTRY`, `WEB_IMAGE_REF` 형식) + `export` for compose interpolation (REGRESSION C-1 닫음) + 현재 web image 의 `.RepoDigests[0]` 또는 `.Image` ID 캡처 (절대 `.Config.Image` tag 사용 X — REGRESSION C-2/RESIDUAL_HIGH C-3 의 rollback 무한 루프 닫음) + preflight 실행 + pull/up + **deadline-based** healthcheck (180s for web/all, 60s for user-service — RESIDUAL_MEDIUM C-11 의 270s 실제 vs 180s 주석 불일치 닫음) + 실패 시 `export WEB_IMAGE_REF="${PREVIOUS_REF}"` 자동 rollback.
+  - `scripts/preflight-env.sh` 신규 — `.env.staging.required` manifest 기반 12 key 존재/비어있지 않음 검증 (whitespace trim + quoted-empty 거부 — C-16 닫음), manifest key 유효성 regex `^[A-Z_][A-Z0-9_]*$` (C-14 닫음), `head -1` duplicate handling (C-17), `docker compose ps -q user-service` + `docker inspect .State.Health.Status` (텍스트 scrape X — C-18), exec 실패와 empty secret 분리 (C-19), **INTERNAL_JWT_SECRET 의 user-service runtime env 와의 SHA256 equality** check (RESIDUAL_HIGH D-4 닫음 — Bearer JWT silent 401 차단; raw secret 은 컨테이너 stdout 에서 즉시 hash 되어 외부 노출 없음).
+- **Phase D — Cognito callback + mobile env** (commit 653f3a4):
+  - `infra/cognito/variables.tf` description 보강 — `callback_urls` / `logout_urls` 의 `staging.celebbase.example` placeholder 가 실 staging hostname (Route53 hosted zone 신규 구매 후) 으로 `-var` 또는 `staging.auto.tfvars` override 됨을 명시. localhost entries 는 모든 환경에서 보존 (local dev Hosted UI flow).
+  - `apps/mobile/.env.example` 주석 — staging 의 `EXPO_PUBLIC_BFF_BASE_URL` / `EXPO_PUBLIC_USER_SERVICE_URL` 둘 다 `https://<STAGING_DOMAIN>` 동일값 (Caddy path matcher 가 `/auth/refresh` 만 user-service 로 분기).
+- **Plan v3 adversarial review 누적** (gitignored: `pipeline/runs/CHORE-MOBILE-STAGING-BFF-001/`):
+  - r0 (plan v1 → v2): Codex × 2 + Gemini × 2 — HIGH 4 / MEDIUM 4 finding 모두 v2 에 반영.
+  - r0' (plan v2 → v3): Codex × 1 + Gemini × 1 — REGRESSION 2 (digest rollback parsing, preflight false positive) + RESIDUAL_HIGH 1 (JWT equality) + RESIDUAL_MEDIUM 6 모두 v3 에 반영.
+  - Phase A/B/C review 각각 Codex × 1 + Claude self-adversarial × 1 (Gemini CLI 0.39.1 `run_shell_command` 도구 부재로 fallback — `.claude/rules/pipeline.md` 의 "Gemini CLI fallback 운영 케이스" 누적 데이터포인트에 본 task 추가).
+  - Deferred backlog: CHORE-CD-BUILDX-DIGEST-001 / CHORE-CD-SSH-KEY-TRAP-001 / CHORE-CD-SSH-KNOWN-HOSTS-001 / CHORE-CD-ROLLBACK-ALERTING-001 / CHORE-CADDY-LE-EMAIL-001.
+- **spec.md §11 patch**: "Staging deployment infrastructure (CHORE-MOBILE-STAGING-BFF-001)" paragraph 추가 — Caddy 두 layer 라우팅, mobile hybrid auth flow, 180s deadline healthcheck + digest-pinned auto-rollback, preflight script. `.claude/rules/spec-dod.md` MOBILE PIVOT sync 의무 close.
+- **docs/SPEC-PIVOT-PLAN.md**: Session C 표에 본 task 행 추가 + ✅ finalize patch 완료 마킹.
+### 미완료:
+- **사용자 manual prereq 5개** (Claude 처리 불가): P1 EC2 Elastic IP attach / P2 도메인 신규 구매 + Route53 hosted zone / P3 A record + DNS 전파 / P4 SG inbound 80+443 / P5 ECR `celebase-web` repo / P6 NTP 검증.
+- **첫 staging deploy**: P1~P6 완료 후 GitHub Secrets 에 `STAGING_DOMAIN` 추가 → main 머지 → CD 자동 트리거. 첫 LE 발급 시 staging-CA dry-run 절차 (docker/caddy/Caddyfile 내 runbook) 권장.
+- **D3 EC2 `/app/.env.staging`**: 사용자가 SSH 로 BFF env 11개 수동 추가 (Required 섹션). preflight-env.sh 가 첫 deploy 직전 자동 검증.
+- **infra/cognito callback_urls 실 도메인 override**: 도메인 결정 후 `terraform apply -var='callback_urls=[...]' -var='logout_urls=[...]'`.
+- **Deferred backlog (별도 chore)**: CHORE-CD-BUILDX-DIGEST-001 / CHORE-CD-SSH-KEY-TRAP-001 / CHORE-CD-SSH-KNOWN-HOSTS-001 / CHORE-CD-ROLLBACK-ALERTING-001 / CHORE-CADDY-LE-EMAIL-001 — Phase A~C Codex review 의 RESIDUAL_MEDIUM/LOW 중 plan v3 scope 외.
+- **prod 분기 시 follow-up**: `NEXT_PUBLIC_*` build-time baked-in 의 runtime 주입 마이그레이션 (image staging/prod 분리 회피). prod 도메인 추가 → variables.tf callback_urls override 추가 → Cognito 재배포.
+### 연관 파일: apps/web/next.config.ts, apps/web/Dockerfile, apps/web/.env.staging.example, apps/web/.env.staging.required, apps/web/src/app/api/health/route.ts, docker-compose.yml, docker/caddy/Caddyfile, .github/workflows/cd.yml, scripts/preflight-env.sh, infra/cognito/variables.tf, apps/mobile/.env.example, spec.md, docs/SPEC-PIVOT-PLAN.md, docs/IMPLEMENTATION_LOG.md

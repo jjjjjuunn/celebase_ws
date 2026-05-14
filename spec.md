@@ -2224,6 +2224,15 @@ ESLint `apps/mobile/**` override (CHORE-MOBILE-001 / PR #47) 가 `@celebbase/ser
 
 **BFF subscription sync rate limit (CHORE-SUB-SYNC-RATE-LIMIT-001)**: `POST /api/subscriptions/sync` 는 `apps/web/src/app/api/_lib/route-rate-limit.ts` 의 token bucket 으로 **per-session.user_id 분당 5회** 제한된다. M5 IAP 정상 흐름은 결제당 1회 호출이라 5회 한도는 foreground/app_open 재확인 burst 까지 흡수 + 자동화 abuse (commerce → RevenueCat REST API quota 소진) 차단. 패턴 분류: §9.3 의 **Pattern B (auth-first)** — key = authenticated `session.user_id`, `createProtectedRoute` 가 unauth 를 401 로 차단하므로 invalid session 은 본 gate 도달 불가. 한도 초과 시 429 `RATE_LIMITED` envelope + `Retry-After: 60` 헤더. SUB-SYNC-002 의 adversarial T8 close.
 
+**Staging deployment infrastructure (CHORE-MOBILE-STAGING-BFF-001)**: `apps/web` BFF 와 BE service `user-service` 가 staging EC2 (Elastic IP) 위에서 docker-compose 로 운영된다. **partial staging** — `content-service` / `commerce-service` / `meal-plan-engine` / `analytics-service` 는 별도 chore (CHORE-STAGING-BE-DEPLOY-001) 로 deferred. BFF 의 module-load `readEnv()` 는 5개 `*_SERVICE_URL` env 모두 필요하므로 deploy 되지 않은 서비스는 dummy URL (`http://disabled:0` 등) 로 채워두고, BFF 코드가 해당 BE 호출 시 DNS resolve 실패 → 502 `UPSTREAM_UNREACHABLE` 응답. public ingress 는 단일 hostname (`<STAGING_DOMAIN>`, Cloudflare DNS — Route53 가 free tier 제한으로 Cloudflare Registrar 채택) 에서 **Caddy** 가 TLS 종료 (Let's Encrypt HTTP-01 자동 발급/갱신, `caddy_data` named volume 으로 cert 영속화) + 두 layer 라우팅 수행:
+
+- `/auth/refresh` → `user-service:3001` (spec §4.2 hybrid BFF 의 cookie-shaped 예외 경로 — mobile `auth-refresh.ts` 가 `EXPO_PUBLIC_USER_SERVICE_URL` 로 직접 호출)
+- 그 외 모든 path (`/`, `/api/*`, …) → BFF (`web:3000`)
+
+이렇게 하면 BE service ports (3001~3005) 의 public inbound 는 security group 으로 모두 차단된 상태에서 mobile 의 hybrid auth flow 가 그대로 동작한다. mobile `.env` 의 `EXPO_PUBLIC_BFF_BASE_URL` 과 `EXPO_PUBLIC_USER_SERVICE_URL` 은 staging 에서 동일하게 `https://<STAGING_DOMAIN>` 을 가리킨다.
+
+CD (`.github/workflows/cd.yml`) 는 `main` push 시 user-service / web image 를 ECR 에 push (short-SHA tag + `staging-latest` 이중) 한 뒤 EC2 SSH 로 `docker compose pull` + `up -d --force-recreate` + **180s deadline healthcheck** (HTTPS endpoint probe — LE 발급 + Next cold start 여유) + 실패 시 이전 web image **digest** (`RepoDigests[0]`) 로 자동 rollback. tag-only rollback 은 새로 push 된 broken image 가 같은 tag 점유로 다시 pull 되는 무한 루프를 초래하므로 금지. `scripts/preflight-env.sh` 가 `/app/.env.staging` 의 12개 필수 key 존재 + `INTERNAL_JWT_SECRET` 의 user-service 컨테이너 runtime env 와의 SHA256 equality 를 deploy 전 검증 (mismatch 시 Bearer JWT silent 401 차단; raw secret 은 컨테이너 stdout 에서 즉시 hash 되어 외부 노출 없음). Caddy + Caddyfile fail-fast: `STAGING_DOMAIN` 미설정 시 docker compose 자체가 fail 하여 `localhost` 로 LE rate-limit 무한 루프를 차단한다.
+
 ```
 celebbase-wellness/
 ├── apps/

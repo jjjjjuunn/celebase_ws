@@ -20,9 +20,25 @@ variable "hosted_ui_prefix" {
 }
 
 variable "callback_urls" {
-  description = "Allowed OAuth callback URLs for the BFF client"
+  description = <<-EOT
+    Allowed OAuth callback URLs for the BFF client.
+
+    The first entry uses `staging.celebbase.example` as a placeholder until
+    the real staging domain is registered (CHORE-MOBILE-STAGING-BFF-001 P2).
+    Override at apply time once the domain is decided:
+
+      terraform apply -var=environment=staging \\
+        -var='callback_urls=["https://staging.celebbase.com/api/auth/callback","http://localhost:3000/api/auth/callback","http://localhost:3001/api/auth/callback"]'
+
+    Or commit the values to a gitignored `staging.auto.tfvars` for the
+    staging working tree.
+
+    Localhost entries MUST be preserved across environments — they back the
+    local dev Hosted UI flow.
+  EOT
   type        = list(string)
   default = [
+    # TBD: replace with real staging domain via -var or staging.auto.tfvars
     "https://staging.celebbase.example/api/auth/callback",
     "http://localhost:3000/api/auth/callback",
     "http://localhost:3001/api/auth/callback",
@@ -30,9 +46,13 @@ variable "callback_urls" {
 }
 
 variable "logout_urls" {
-  description = "Allowed logout redirect URLs for the BFF client"
+  description = <<-EOT
+    Allowed logout redirect URLs for the BFF client. Same override pattern
+    as `callback_urls`. Localhost entries preserved.
+  EOT
   type        = list(string)
   default = [
+    # TBD: replace with real staging domain via -var or staging.auto.tfvars
     "https://staging.celebbase.example",
     "http://localhost:3000",
     "http://localhost:3001",
