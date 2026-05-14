@@ -49,6 +49,7 @@
 | IMPL-MOBILE-BFF-001 | 🟡 in-progress | §11 Project Structure (BFF active gateway 명시 — banner 흡수), §9.3 Security (cookie + bearer 분기, authSource 트래킹, padToMinLatency timing oracle, /auth/refresh 예외) | finalize patch — hybrid BFF 본문 흡수의 첫 도화선 |
 | IMPL-MOBILE-SUB-SYNC-002 | 🟡 in-progress (PR pending) | §11 BFF layer (신규 라우트 `POST /api/subscriptions/sync` + 신규 internal-client.ts helper), §11 Mobile auth ingress paragraph 에 T4 enforce 명시 (body user_id 거부 + session user_id 사용) | finalize patch — internal JWT mint 모델 + T4 enforce 명시 |
 | CHORE-MOBILE-001 | planned | §11 CI/build (mobile-ci.yml + ESLint overrides) | finalize patch (light) |
+| CHORE-MOBILE-STAGING-BFF-001 | 🟡 in-progress (PR pending — `chore/staging-bff-deploy` branch) | §11 Project Structure — "Staging deployment infrastructure" paragraph (Caddy + LE + Elastic IP + auto-rollback CD + preflight env + Caddyfile path matcher for `/auth/refresh`) | ✅ finalize patch 완료 — §11 paragraph 추가됨 (본 PR Documentation commit) |
 
 ### Mobile App (동료 작업 — 참고용)
 
