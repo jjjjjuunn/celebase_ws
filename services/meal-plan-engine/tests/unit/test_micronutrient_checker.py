@@ -52,18 +52,38 @@ def test_sex_female_overrides_all() -> None:
     totals = _scaled_totals(1.2)
     totals.update(
         {
-            "vitamin_a_ug_rae": 500.0,
-            "vitamin_k_ug": 80.0,
-            "magnesium_mg": 250.0,
-            "zinc_mg": 6.0,
-            "omega3_g": 0.85,
+            "vitamin_a_ug_rae": 500.0,    # male 900*0.7=630 fail; female 700*0.7=490 OK
+            "vitamin_c_mg": 60.0,         # male 90*0.7=63 fail; female 75*0.7=52.5 OK
+            "vitamin_k_ug": 80.0,         # male 120*0.7=84 fail; female 90*0.7=63 OK
+            "magnesium_mg": 250.0,        # male 420*0.7=294 fail; female 320*0.7=224 OK
+            "zinc_mg": 6.0,               # male 11*0.7=7.7 fail; female 8*0.7=5.6 OK
+            "omega3_g": 0.85,             # male 1.6*0.7=1.12 fail; female 1.1*0.7=0.77 OK
+            "potassium_mg": 2200.0,       # male 3400*0.7=2380 fail; female 2600*0.7=1820 OK
         }
     )
     male_report = check_micronutrients(totals, sex="male")
     female_report = check_micronutrients(totals, sex="female")
-    overrides = {"vitamin_a_ug_rae", "vitamin_k_ug", "magnesium_mg", "zinc_mg", "omega3_g"}
-    assert overrides.issubset(set(male_report.deficient))
-    assert overrides.isdisjoint(set(female_report.deficient))
+    overrides = {
+        "vitamin_a_ug_rae",
+        "vitamin_c_mg",
+        "vitamin_k_ug",
+        "magnesium_mg",
+        "zinc_mg",
+        "omega3_g",
+        "potassium_mg",
+    }
+    assert overrides.issubset(set(male_report.deficient)), f"male should fail all overrides: {male_report.deficient}"
+    assert overrides.isdisjoint(set(female_report.deficient)), f"female should pass all overrides: {female_report.deficient}"
+
+
+def test_sex_unisex_default_equals_male() -> None:
+    """default sex='unisex' uses male baseline RDA (no overrides applied)."""
+    totals = _scaled_totals(1.5)
+    totals["iron_mg"] = 10.0  # male 8*0.7=5.6 OK; female 18*0.7=12.6 fail
+    default_report = check_micronutrients(totals)
+    male_report = check_micronutrients(totals, sex="male")
+    assert default_report.deficient == male_report.deficient
+    assert "iron_mg" not in default_report.deficient
 
 
 def test_empty_totals_all_deficient() -> None:

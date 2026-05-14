@@ -46,13 +46,19 @@ RDA: Final[dict[str, float]] = {
 }
 
 # Female overrides (NIH ODS adult 19-50 female values differing from male baseline).
+# Sources:
+#   - Iron / Vit A / Vit K / Mg / Zn / omega-3: NIH ODS factsheets
+#   - Vit C: female 75 mg (NIH ODS Vit C HP factsheet)
+#   - Potassium: female 2600 mg (NASEM 2019 DRI for Sodium and Potassium)
 _RDA_FEMALE_OVERRIDES: Final[dict[str, float]] = {
     "iron_mg": 18.0,
     "vitamin_a_ug_rae": 700.0,
+    "vitamin_c_mg": 75.0,
     "vitamin_k_ug": 90.0,
     "magnesium_mg": 320.0,
     "zinc_mg": 8.0,
     "omega3_g": 1.1,
+    "potassium_mg": 2600.0,
 }
 
 MIN_COMPLIANCE: Final[float] = 0.70  # 70 %
