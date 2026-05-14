@@ -87,6 +87,9 @@ jobs:
           # '@celebbase/ui-kit' (no dist/index.d.ts).
           pnpm --filter @celebbase/design-tokens build
           pnpm --filter @celebbase/ui-kit build
+          # eslint-plugin-celebbase is loaded by `next build`'s lint step —
+          # also needs dist/index.js generated up front.
+          pnpm --filter @celebbase/eslint-plugin-celebbase build
 
       - name: Typecheck user-service
         run: pnpm --filter @celebbase/user-service typecheck
@@ -107,6 +110,23 @@ jobs:
           # Real values are injected in the build-push job below.
           NEXT_PUBLIC_WS_URL: wss://${{ secrets.STAGING_DOMAIN || 'staging.example.com' }}
           NEXT_PUBLIC_WS_HOST: ${{ secrets.STAGING_DOMAIN || 'staging.example.com' }}
+          # next build's page-data collection module-loads every BFF route,
+          # which calls readEnv() at top level (apps/web/src/app/api/_lib/
+          # bff-fetch.ts:29-33 + _lib/env.ts). Without these env vars the
+          # build fails with "Missing required env var: USER_SERVICE_URL".
+          # Values are throwaway — CI only validates type/build correctness.
+          USER_SERVICE_URL: http://ci-dummy:0
+          CONTENT_SERVICE_URL: http://ci-dummy:0
+          COMMERCE_SERVICE_URL: http://ci-dummy:0
+          MEAL_PLAN_URL: http://ci-dummy:0
+          ANALYTICS_SERVICE_URL: http://ci-dummy:0
+          INTERNAL_JWT_SECRET: ci-dummy-internal-jwt-secret-32-chars-minimum-for-hs256
+          INTERNAL_JWT_ISSUER: celebbase-user-service
+          COGNITO_HOSTED_UI_DOMAIN: ci-dummy.auth.us-west-2.amazoncognito.com
+          COGNITO_CLIENT_ID: ci-dummy-client-id
+          COGNITO_CLIENT_SECRET: ci-dummy-client-secret
+          COGNITO_TOKEN_ENDPOINT: https://ci-dummy.auth.us-west-2.amazoncognito.com/oauth2/token
+          COGNITO_REDIRECT_URI: https://ci-dummy.local/api/auth/callback
 
   # ──────────────────────────────────────────────────────────────────────────
   # Job 2: Docker 이미지 빌드 → ECR push
