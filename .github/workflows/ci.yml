@@ -256,6 +256,14 @@ jobs:
     # Cold path: 4 cached builds 20-25 min + compose up 7-9 min + pytest 20 min
     # + setup/teardown ~5 min ≈ 52-59 min. 60-min cap leaves ~1-8 min headroom.
     timeout-minutes: 60
+    env:
+      # docker-compose.yml's caddy service uses ${STAGING_DOMAIN:?...} which
+      # fails compose's yaml-parse-time interpolation even when the service
+      # itself is skipped by the staging profile (interpolation runs before
+      # profile filtering). A dummy value here satisfies the interpolation;
+      # the actual caddy service is still gated off by `profiles: [staging]`
+      # so it does not boot in CI. See CHORE-MOBILE-STAGING-BFF-001 Phase E.
+      STAGING_DOMAIN: ci-dummy.local
     steps:
       - uses: actions/checkout@v4
 
