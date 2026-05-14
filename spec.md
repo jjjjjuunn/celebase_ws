@@ -378,6 +378,8 @@ CREATE TABLE recipes (
     
     -- Nutrition per serving
     nutrition       JSONB NOT NULL,
+    nutrition_source    VARCHAR(30) DEFAULT 'manual_legacy'
+                    CHECK (nutrition_source IN ('derived_from_ingredients','manual_verified','manual_legacy')),
     /*
       nutrition schema:
       {
@@ -437,6 +439,11 @@ CREATE TABLE ingredients (
     
     -- Nutritional data per 100g
     nutrition_per_100g  JSONB DEFAULT '{}',
+    fdc_id              INTEGER,
+    nutrition_source    VARCHAR(30) CHECK (nutrition_source IN ('usda_fdc','nih_ods','manual_verified')),
+    nutrition_source_version VARCHAR(50),
+    nutrition_updated_at TIMESTAMPTZ,
+    portion_conversions JSONB DEFAULT '{}',
     
     is_active           BOOLEAN DEFAULT TRUE,
     created_at          TIMESTAMPTZ DEFAULT NOW()
@@ -1323,6 +1330,30 @@ interface NutritionStandard {
 - USDA ↔ Instacart 동일 재료의 단백질 편차가 ±5% 초과 시 경고 로그 출력
 - 칼로리 합산 오차 ±10% 초과 시 관리자 리뷰 플래그
 - USDA 데이터 타입 우선순위: Foundation Foods > SR Legacy > Branded > FNDDS
+
+### Nutrition Provenance Enforcement (CHORE-CONTENT-001 시리즈)
+
+영양 수치의 출처를 강제 추적한다 — `ingredients.nutrition_source` + `recipes.nutrition_source` 컬럼.
+
+**Ingredient-level**:
+- `usda_fdc`: USDA FoodData Central API (`api.nal.usda.gov/fdc/v1`) 에서 직접 조회. `fdc_id` + `nutrition_updated_at` 기록.
+- `nih_ods`: NIH Office of Dietary Supplements DRI 표 (predefined).
+- `manual_verified`: 수동 입력 + 검증자 sign-off.
+- `NULL`: 백필 전 상태 (CHORE-CONTENT-001-a 머지 후 일시적).
+
+**Recipe-level**:
+- `derived_from_ingredients`: 모든 ingredient 가 `usda_fdc`/`nih_ods` 이고 `recompute-recipe-nutrition.ts` 가 계산.
+- `manual_verified`: 수동 입력 검증.
+- `manual_legacy`: 초기 seed 의 수동 추정값. 신규 plan 에 사용 가능하나 신뢰도 ↓.
+
+**Backfill 절차** (one-shot, idempotent):
+1. `tsx db/seeds/scripts/backfill-ingredient-nutrition.ts --review-only` → `review.csv` 생성
+2. (수동) `review.csv` 의 `accepted_fdc_id` 컬럼 채움
+3. `tsx db/seeds/scripts/backfill-ingredient-nutrition.ts` → ingredients.nutrition_per_100g 채움
+4. `tsx db/seeds/scripts/recompute-recipe-nutrition.ts` → recipes.nutrition 재계산
+
+**LLM 금지**: 영양 수치 생성·추정에 LLM 사용 절대 금지. USDA FDC / NIH ODS / manual verified 만.
+
 
 ### 5.6 Two-Pass Meal Plan Generation (체감 대기 시간 최적화)
 
