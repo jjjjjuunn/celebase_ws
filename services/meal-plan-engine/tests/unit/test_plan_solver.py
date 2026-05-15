@@ -11,6 +11,7 @@ from src.engine.allergen_filter import RecipeSlot
 from src.engine.plan_solver import (
     DEFAULT_WEIGHTS,
     ILPInfeasibleError,
+    ILPModelError,
     build_meal_plan,
 )
 
@@ -157,3 +158,43 @@ def test_determinism_same_input_same_output() -> None:
 def test_default_weights_exposed() -> None:
     """DEFAULT_WEIGHTS 는 key 4 개 보장."""
     assert set(DEFAULT_WEIGHTS) == {"kcal", "protein", "macro", "variety"}
+
+
+def test_target_kcal_below_nutrition_bounds_rejected() -> None:
+    """NUTRITION_BOUNDS.min_daily_kcal=1200 미만 target → ValueError.
+
+    Gemini r1 CRITICAL #1 fix 회귀 보호. ai-engine.md 의무.
+    """
+    pool = _balanced_pool(size_per_type=6)
+    with pytest.raises(ValueError, match="NUTRITION_BOUNDS"):
+        build_meal_plan(
+            candidate_pool=pool,
+            target_kcal=1000,  # 1200 미만
+            macros={"protein_g": 80, "carbs_g": 120, "fat_g": 30},
+            duration_days=7,
+        )
+
+
+def test_target_kcal_above_nutrition_bounds_rejected() -> None:
+    """NUTRITION_BOUNDS.max_daily_kcal=5000 초과 target → ValueError."""
+    pool = _balanced_pool(size_per_type=6)
+    with pytest.raises(ValueError, match="NUTRITION_BOUNDS"):
+        build_meal_plan(
+            candidate_pool=pool,
+            target_kcal=5500,  # 5000 초과
+            macros={"protein_g": 200, "carbs_g": 600, "fat_g": 150},
+            duration_days=7,
+        )
+
+
+def test_ilp_model_error_class_exported() -> None:
+    """ILPModelError class export 검증 (Gemini r1 MEDIUM #2 fix).
+
+    MODEL_INVALID 분기는 실제 trigger 가 어려우므로 (보호 코드) class export 만 검증.
+    """
+    assert issubclass(ILPModelError, Exception)
+    assert ILPModelError is not ILPInfeasibleError
+    # name conflict check: 세 예외 클래스 모두 distinct
+    from src.engine.plan_solver import ILPTimeoutError
+
+    assert len({ILPInfeasibleError, ILPTimeoutError, ILPModelError}) == 3

@@ -34,6 +34,7 @@ __all__ = [
     "build_meal_plan",
     "ILPTimeoutError",
     "ILPInfeasibleError",
+    "ILPModelError",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -45,6 +46,10 @@ class ILPTimeoutError(Exception):
 
 class ILPInfeasibleError(Exception):
     """제약 조건을 만족하는 해가 존재하지 않음 (pool 부족 / 매크로 불가능)."""
+
+
+class ILPModelError(Exception):
+    """CP-SAT 가 MODEL_INVALID 반환 — 수학적 모델링 오류 / 오버플로우 (운영 버그 신호)."""
 
 
 DEFAULT_WEIGHTS: Dict[str, float] = {
@@ -60,6 +65,10 @@ _WEIGHT_SCALE = 100
 _FAT_RATIO_LOWER = 20  # 0.20 = 20 / 100
 _FAT_RATIO_UPPER = 35  # 0.35 = 35 / 100
 _MEAL_TYPES_DEFAULT: Tuple[str, ...] = ("breakfast", "lunch", "dinner", "snack")
+# NUTRITION_BOUNDS (.claude/rules/domain/ai-engine.md) — defensive input validation.
+# pipeline.calorie_adjuster 가 이미 clamp 하지만 standalone solver 호출 시 fail-safe.
+_MIN_DAILY_KCAL = 1200
+_MAX_DAILY_KCAL = 5000
 
 
 def _scale(value: float) -> int:
@@ -124,6 +133,13 @@ def build_meal_plan(
         raise ValueError("duration_days must be positive")
     if target_kcal <= 0:
         raise ValueError("target_kcal must be positive")
+    # Defensive NUTRITION_BOUNDS check — fail-closed prior to ILP build.
+    # caller (pipeline.calorie_adjuster) 가 이미 clamp 하지만 standalone 호출 시 안전망.
+    if target_kcal < _MIN_DAILY_KCAL or target_kcal > _MAX_DAILY_KCAL:
+        raise ValueError(
+            f"target_kcal {target_kcal} out of NUTRITION_BOUNDS "
+            f"[{_MIN_DAILY_KCAL}, {_MAX_DAILY_KCAL}]"
+        )
     if max_repeats < 1:
         raise ValueError("max_repeats must be at least 1")
     if time_limit_sec <= 0:
@@ -264,6 +280,9 @@ def build_meal_plan(
     solver.parameters.max_time_in_seconds = time_limit_sec
     solver.parameters.random_seed = random_seed
     solver.parameters.num_search_workers = 1
+    # interleave_search=False — single-thread search + 결정성 강화
+    # (Gemini r1 HIGH fix: ortools 9.15 의 비결정성 잠재 source 추가 차단)
+    solver.parameters.interleave_search = False
     solver.parameters.log_search_progress = False
 
     status = solver.Solve(model)
@@ -309,5 +328,11 @@ def build_meal_plan(
         raise ILPInfeasibleError("ILP solver returned INFEASIBLE status")
     if status == cp_model.UNKNOWN:
         raise ILPTimeoutError("ILP solver timed out before finding a solution")
+    if status == cp_model.MODEL_INVALID:
+        # Gemini r1 MEDIUM fix: MODEL_INVALID 는 운영 버그 신호 (수학적 모델링 오류
+        # / int64 오버플로우). INFEASIBLE 와 분리하여 alert 가능하게.
+        raise ILPModelError(
+            f"ILP solver returned MODEL_INVALID — validation request: {status_name}"
+        )
 
     raise RuntimeError(f"Unexpected solver status: {status_name}")
