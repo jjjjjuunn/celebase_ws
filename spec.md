@@ -1964,6 +1964,42 @@ RootStack (NavigationContainer)
 - Account deletion BE endpoint (`DELETE /api/users/me` 또는 service-driven workflow)
 - Profile avatar fetch 는 본 PR 에서 `Image` 컴포넌트로 wiring (avatar_url null fallback = initial placeholder). 실 업로드/CDN 흐름은 후속.
 
+#### 7.2 Mobile tab pivot to Celebrities/News *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-TABS-PIVOT-001)*
+
+IMPL-MOBILE-M5-NAV-001 의 4탭 (Discover / Plan / Profile / Settings) 은 본 task 에서 다음과 같이 재구성된다. UX hypothesis — 사용자는 claim 단위가 아닌 **셀럽 자체로 first-tap** 한다는 가정 (셀럽 그리드 → CelebrityDetail → claim deep-dive funnel). Profile 은 별도 탭의 진입 가치가 낮다고 판단해 Settings 첫 행으로 흡수.
+
+- **Celebrities** (⭐): 셀럽 그리드 → `CelebrityDetail` → 셀럽별 lifestyle claim 섹션 + `ClaimDetail`. 기존 `ClaimsFeedScreen` 의 글로벌 mixed-celeb feed 는 deferred (아래 참고).
+- **Meal & Routine** (🥗): 기존 `Plan` 탭 라벨 갱신. MealPlanScreen + 루틴(운동/수면/뷰티) 섹션 — claim 의 routine 측면이 별도 회귀 화면 (M3.5+ scope).
+- **News** (📰): wellness article feed (편집팀 큐레이션). 기존 `Profile` 탭 슬롯 대체 — ArticleDetail 은 후속 sub-task.
+- **Settings** (⚙️): Apple Guideline 5.1.1(v) 충족 + Profile 카드 (avatar + tier badge + Upgrade) 흡수.
+
+```
+RootStack (NavigationContainer)
+  ├── Auth — Login / Signup (unchanged)
+  ├── Main (인증 완료 시) — BottomTabs (4 tabs)
+  │     ├── Celebrities    (⭐) — CelebritiesGrid → CelebrityDetail → ClaimDetail
+  │     ├── Meal & Routine (🥗) — MealPlanScreen + 루틴 카드 (M3.5+)
+  │     ├── News           (📰) — NewsFeed (→ ArticleDetail 후속 sub-task)
+  │     └── Settings       (⚙️) — Profile 흡수 + Account · Subscription · Legal · Sign out
+  ├── Onboarding  [modal]
+  └── Paywall     [modal]
+```
+
+**구현 위치**:
+- Navigation 신규: `apps/mobile/src/navigation/{CelebritiesNavigator,NewsNavigator}.tsx`
+- Navigation 갱신: `apps/mobile/src/navigation/{MainTabsNavigator,types}.tsx` (4 탭 정의 갱신; legacy `Discover` / `ProfileTab` 은 orphan navigator 호환 위해 `MainTabsParamList` 에 한시 보존 — `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` 가 제거)
+- Screens 신규: `apps/mobile/src/screens/{CelebritiesScreen,NewsScreen}.tsx`
+- Mock data: `apps/mobile/src/lib/mock-data.ts` (BFF `/api/celebrities/list` + `/api/news/feed` 미존재 시점 fallback — wiring 은 후속 task 들)
+
+**기존 Claims feed 의 처리**: §7.2 Mobile claims feed read path 의 `ClaimsFeedScreen` (글로벌 mixed-celeb feed) 은 본 pivot 의 직접 진입점 아님. 셀럽-scoped claims 는 `CelebrityDetail` 안쪽 섹션으로 흡수, 글로벌 feed 의 News 탭 변형 / 검색 routing 흡수 / 완전 폐기 중 어느 길로 갈지는 JUNWON 와 합의 후 결정 (decision deferred — `IMPL-MOBILE-CLAIMS-GLOBAL-001` 신설 예정).
+
+**범위 외 (fast-follow)**:
+- `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` — Discover/Profile orphan navigator + `MainTabsParamList` legacy 행 제거
+- `IMPL-MOBILE-CELEB-LIST-001` — CelebritiesGrid 의 BFF wiring (현재 mock-data)
+- `IMPL-MOBILE-NEWS-FEED-001` — NewsFeed 의 BFF wiring
+- `IMPL-MOBILE-NEWS-DETAIL-001` — ArticleDetail screen + News stack 확장
+- `IMPL-MOBILE-PROFILE-IN-SETTINGS-001` — ProfileScreen 의 SettingsScreen 흡수 + ProfileNavigator 제거
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

@@ -31,10 +31,23 @@ export type AuthStackParamList = {
 };
 
 // ── Discover stack (claims feed + detail + celeb detail) ────
+// LEGACY — PIVOT 으로 Celebrities stack 으로 대체됨. DiscoverNavigator orphan 정리 시 제거.
 export type DiscoverStackParamList = {
   ClaimsFeed: undefined;
   ClaimDetail: { claimId: string };
   CelebrityDetail: { slug: string };
+};
+
+// ── Celebrities stack (celeb grid → celeb detail → claim detail) ────
+export type CelebritiesStackParamList = {
+  CelebritiesGrid: undefined;
+  CelebrityDetail: { slug: string };
+  ClaimDetail: { claimId: string };
+};
+
+// ── News stack (article feed) ───────────────────────────────
+export type NewsStackParamList = {
+  NewsFeed: undefined;
 };
 
 // ── Plan / Profile / Settings stacks (single screen each for now) ────
@@ -51,11 +64,15 @@ export type SettingsStackParamList = {
 };
 
 // ── Main tabs ───────────────────────────────────────────────
+// 활성 4탭: Celebrities / Plan(Meal & Routine) / News / SettingsTab.
+// Discover / ProfileTab 은 orphan navigator 의 타입 호환 유지용 — 정리 시 제거.
 export type MainTabsParamList = {
-  Discover: NavigatorScreenParams<DiscoverStackParamList>;
+  Celebrities: NavigatorScreenParams<CelebritiesStackParamList>;
   Plan: NavigatorScreenParams<PlanStackParamList>;
-  ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
+  News: NavigatorScreenParams<NewsStackParamList>;
   SettingsTab: NavigatorScreenParams<SettingsStackParamList>;
+  Discover: NavigatorScreenParams<DiscoverStackParamList>;
+  ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
 
 // ── Root stack (Auth | Main | Modals) ───────────────────────
@@ -81,6 +98,24 @@ export type DiscoverStackScreenProps<T extends keyof DiscoverStackParamList> =
     NativeStackScreenProps<DiscoverStackParamList, T>,
     CompositeScreenProps<
       BottomTabScreenProps<MainTabsParamList, 'Discover'>,
+      RootStackScreenProps<keyof RootStackParamList>
+    >
+  >;
+
+export type CelebritiesStackScreenProps<T extends keyof CelebritiesStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<CelebritiesStackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<MainTabsParamList, 'Celebrities'>,
+      RootStackScreenProps<keyof RootStackParamList>
+    >
+  >;
+
+export type NewsStackScreenProps<T extends keyof NewsStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<NewsStackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<MainTabsParamList, 'News'>,
       RootStackScreenProps<keyof RootStackParamList>
     >
   >;

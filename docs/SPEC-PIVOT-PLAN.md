@@ -65,6 +65,7 @@
 | M3 Claim feed | (동료) | §7 UX (Tab 1 — mobile 화면 구조), §3.5 LifestyleClaim (mobile read path) | M3 PR |
 | M4 Onboarding + bio-profile | (동료) | §3.3 bio-profile (mobile 입력 flow, PHI 고지 모달), §6 PHI 최소화 | M4 PR |
 | M5 Inspired plan + IAP | (동료) | §6.5 commerce (IAP → BFF sync → entitlement 흐름), §7 UX paywall, §6 PHI disclaimer | M5 PR |
+| IMPL-MOBILE-TABS-PIVOT-001 | 🟡 in-progress (PR pending — Dohyun) | §7.2 Mobile tab pivot subsection 신설 (Celebrities / Meal & Routine / News / Settings 4탭 + fast-follow 5종 분해) | 본 PR 에 spec patch 포함 — incremental Option C |
 
 ### Backlog (현재 우선순위 외)
 
