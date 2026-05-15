@@ -5842,6 +5842,32 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-dir
 
 
 ---
+date: 2026-05-15
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: IMPL-MEAL-P0-DAILY-001-b
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0020_meal_plan_monthly_stats_redefine.sql
+  - spec.md
+verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-direct-grep
+---
+### 완료: P0.3-b — Migration 0020 meal_plan_monthly_stats redefine + spec sync (PR-C2, P0.3 분할 2/2)
+- `db/migrations/0020_meal_plan_monthly_stats_redefine.sql` 신규: PR-C1 (#95) 의 `daily_totals` 실제 합산 + 신규 `daily_targets` 필드를 MV 에 노출. 컬럼 변경: `avg_daily_calories (::int)` → `avg_daily_actual_calories (::numeric)` + 신규 `avg_daily_target_calories (::numeric)`. `::numeric` 캐스팅으로 `_round_totals` round(2) 정밀도 보존.
+- **0-downtime Build-Refresh-Swap pattern** (Gemini r1 CRITICAL fix-1): 단순 DROP+CREATE 의 gap window 위험을 해결. (1) 새 MV `_v2` 생성 → (2) `CREATE UNIQUE INDEX CONCURRENTLY` (`.claude/rules/database.md` 의무, Gemini r1 CRITICAL #2 fix) → (3) `REFRESH _v2` → (4) `BEGIN; 4-RENAME atomic swap; COMMIT;` (ACCESS EXCLUSIVE lock ms 단위) → (5) `DROP _old` (CASCADE 없이 — fail-safe, Gemini r1 HIGH fix). SELECT 무중단.
+- **Backward-compat (Gemini r1 MEDIUM accept)**: 기존 row 의 `daily_targets` 부재 → `AVG()` NULL skip. partial month 왜곡 가능 → FE 가 `plans_generated` 와 비교 의무 (migration 코멘트 명시).
+- **pg driver 주의 (Gemini r1 MEDIUM accept_chore)**: `pg` 8.x 의 `::numeric` 기본 parser 가 string 반환 (BigDecimal 안전). future consumer 작성 시 `parseFloat` 명시. consumer 부재 확인: `grep -rn 'avg_daily_calories' services/` → 0 hits.
+- `spec.md` 4 영역 sync:
+  - §3.1 `meal_plans.daily_plans` JSONB 예시 (L529-548): `daily_totals` 확장 (7 macros + nested `micronutrients`) + 신규 `daily_targets` 4 필드 + DailyTotalsSchema/DailyTargetsSchema 경로 메모.
+  - §3.1 MV 정의 (L734-741): `avg_daily_actual_calories` + `avg_daily_target_calories` + Build-Refresh-Swap 코멘트 + backward-compat 주의 + pg ::numeric 안내.
+  - §5.5 NutritionStandard 경로 (L1314): `packages/shared-types/nutrition.ts` → `packages/shared-types/src/jsonb/index.ts` (PR-C1 의 실제 정의 위치).
+  - §5.6 Pass 2 출력 필드 (신규 섹션): `daily_totals`/`daily_targets` 형상 + Pass1 cleanup (3 emit → 1 emit).
+- **L3 review (Codex 2 + Gemini 1)**: Codex r1 PASS (0 finding) — 그러나 Gemini r1 이 CRITICAL × 2 (0-downtime 위반 + CONCURRENTLY 규칙 위반) + HIGH (CASCADE 남용) catch. fix-1 후 Codex r2 PASS (0 finding). **PR-C1 (#95) 의 L3 권장 ROI 재검증** — Codex 단독이면 룰 위반 4 항목이 main 으로 머지될 뻔.
+- qa-exec: Codex literal grep count mismatch (QA-PLAN expected values 가 코멘트 포함 vs 본문 기준 차이) false-failure → Claude direct SQL 본문 grep 재검증 (CONCURRENTLY=1, CASCADE=0, RENAME TO=4, DROP _old=1 — 모든 의미적 criteria PASS).
+### 미완료: PR-D (IMPL-MEAL-P0-ILP-001 — OR-Tools CP-SAT solver). 사용자 측 DB 가동 시점에 `psql $DB -f 0020_*.sql` 적용 + REFRESH 검증.
+### 연관 파일: db/migrations/0020_meal_plan_monthly_stats_redefine.sql, spec.md
+
+
+---
 date: 2026-05-14
 agent: claude-opus-4-7 + advisor (codex-gpt-5-codex + gemini-2.5-pro classifier unavailable, fallback)
 task_id: IMPL-AUTH-LAZY-PROVISION-001
