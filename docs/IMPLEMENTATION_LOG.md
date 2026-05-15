@@ -28,6 +28,68 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-15
+agent: claude-opus-4-7
+task_id: FIX-STAGING-MIGRATION-0010-0012-001
+commit_sha: PENDING
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (staging EC2 `\d users` 13 컬럼 확인 — preferred_celebrity_slug, preferences 추가 + 2 신규 인덱스. mobile signIn → BFF /api/auth/mobile/login 200 통과, LoginResponseSchema Zod 검증 통과)
+---
+### 완료: staging DB 의 migration 0010 + 0012 적용 (drift 회복) — FIX-STAGING-MIGRATION-0010-0012-001
+- **트리거**: 동료 (Dohyun) 가 mobile 로그인 실패 보고 — Cognito SRP + BFF `/api/auth/mobile/login` 도달 후 502 `BFF_CONTRACT_VIOLATION`. staging EC2 BFF stderr 의 `zodIssues` 추적 → `["user","preferred_celebrity_slug"]` `invalid_type expected:string received:undefined` 확인. `\d users` 결과 컬럼 11개 (main schema 는 13개) → migration 0010 (`preferred_celebrity_slug`) + 0012 (`preferences`) 미적용 확정.
+- **운영 변경 (코드 0건)**:
+  - staging EC2 (`44.238.103.203`, db service `app-db-1`, dbname `celebase`) 에 직접 적용:
+    ```
+    docker compose exec db psql -U celebbase -d celebase -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_celebrity_slug VARCHAR(100);"
+    docker compose exec db psql -U celebbase -d celebase -c "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_preferred_celebrity ON users(preferred_celebrity_slug) WHERE preferred_celebrity_slug IS NOT NULL;"
+    docker compose exec db psql -U celebbase -d celebase -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'::jsonb;"
+    docker compose exec db psql -U celebbase -d celebase -c "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_preferences_pantry ON users USING gin ((preferences -> 'pantry'));"
+    ```
+  - 결과: 11 → 13 컬럼, 5 → 7 인덱스. 기존 행 backfill: `preferred_celebrity_slug = NULL`, `preferences = '{}'`.
+  - 컨테이너 재기동 불필요 — DDL 변경은 다음 쿼리부터 자동 반영.
+- **본 PR 의 코드 변경 (0건)**: IMPL_LOG entry 만 추가. 마이그레이션 파일 (`db/migrations/0010_*.sql`, `0012_users_preferences.sql`) 은 이미 main 에 존재 (각각 2025-Q4 / 2026-Q1 머지). staging 환경에만 적용 안 된 상태였음.
+- **사용자 영향**: 동료 staging signIn 시도가 modified 이전엔 모두 502, 적용 후 200 통과. mobile 진입부 자동 회복.
+### 미완료:
+- **`CHORE-STAGING-MIGRATION-AUTORUN-001` (신규 backlog)**: CD workflow 에 migration runner 통합 (`node-pg-migrate` / `dbmate` / Flyway 등). 현재 staging deploy 가 컨테이너 image 만 새로 push, schema migration 은 수동 의존 → drift 재발 가능. PIVOT-MOBILE 정상화 단계의 dev infra hygiene 항목으로.
+- **`CHORE-USER-SERVICE-SCHEMA-SANITY-001` (선택 backlog)**: user-service startup 시 `information_schema.columns` sanity check 추가 — 누락 컬럼 발견 시 fail-fast. 사용자 도달 전 drift 탐지 layer.
+- **다른 migration 적용 여부 점검**: 0001~0019 중 staging 에 어떤 게 빠졌는지 전수 검사 미실시. 추후 chore 로 분리 권장.
+### 연관 파일: db/migrations/0010_users-preferred-celebrity.sql, db/migrations/0012_users_preferences.sql, services/user-service/src/repositories/user.repository.ts, packages/shared-types/src/schemas/users.ts
+
+---
+date: 2026-05-15
+agent: claude-opus-4-7
+task_id: CHORE-MOBILE-DEV-BUILD-LOCAL-001
+commit_sha: PENDING
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+  - docs/SESSION-2026-05-15-mobile-auth-incident.md
+  - .claude/rules/multi-session.md
+verified_by: claude-opus-4-7 (`npx expo run:ios` iPhone 16e simulator 에서 native module 의존 SRP signIn 성공 — Amplify v6 의 @aws-amplify/react-native modPow 정상 link. RevenueCat / Sentry / 향후 native deps 동일 경로 검증 가능 상태)
+---
+### 완료: BE owner 의 mobile dev environment 정착 + Expo Go 한계 + path 공백 함정 lesson — CHORE-MOBILE-DEV-BUILD-LOCAL-001
+- **트리거**: FIX-STAGING-MIGRATION 검증 위해 JUNWON 이 첫 mobile dev environment 진입. 초기 Expo Go (`pnpm --filter mobile start`) 사용 → 로그인 시 generic `[Unknown: An unknown error has occurred.]` → underlying `Error: The package '@aws-amplify/react-native' doesn't seem to be linked. ... You are not using Expo Go` 까지 6시간 디버깅 후 도달.
+- **운영 변경 (코드 0건)**:
+  - **프로젝트 path mv**: `~/Global PBL Program/project/applied ai project/celebase` → `~/celebase` (공백/특수문자 없음). CocoaPods `[CP-User] Generate app.config for prebuilt Constants.manifest` script 가 path 를 quote 처리 안 해서 첫 공백 위치에서 truncate → build fail. 이건 React Native + CocoaPods 의 알려진 함정.
+  - **`npx expo run:ios` 표준화**: Xcode 26.3 + CocoaPods 1.16.2 환경에서 simulator (iPhone 16e iOS 26.2) 로 dev build. native module (Amplify SRP `modPow`, RevenueCat PurchasesHybridCommon, RNGestureHandler 등) 모두 정상 link.
+- **본 PR 의 코드 변경**: IMPL_LOG entry + `docs/SESSION-2026-05-15-mobile-auth-incident.md` 회고 노트 + `.claude/rules/multi-session.md` 의 mobile dev environment section 신설 (§7 함정 표 +3 행 + §7.1 신규 — Expo Go 한계, 권장 dev environment, path 제약, npm vs pnpm, 검증 capability 요구, underlyingError 디버깅 패턴).
+- **Lesson 1 (Expo Go 한계)**: Expo Go 는 사전 컴파일된 native module 만 지원. 임의 third-party native module (`@aws-amplify/react-native`, RevenueCat, Sentry 등) 동적 로드 불가. **UI/JS 변경 preview 전용**. 인증/IAP/native 검증은 dev build (`npx expo run:ios` local 또는 EAS cloud `eas build --profile development`) 필수.
+- **Lesson 2 (path 공백 함정)**: project root path 에 공백/한글/특수문자 금지. iOS native build chain (Xcode + CocoaPods + shell scripts) 만 이 함정에 걸림 — Node/TypeScript/Docker 는 safe. RN 공식 docs 의 known constraint.
+- **Lesson 3 (`auth-events` 발견)**: dev environment 정착 후 BUG-MOBILE-AUTH-LOGIN-SIGNAL 즉시 발견. **검증 환경 결함이 production class 의 incident 를 가린다** — BE owner 도 mobile dev environment 진입 가능 상태 유지가 안정화의 한 축. multi-session §1 의 owner 경계는 유지하되 검증 capability 는 모두에게.
+- **시간 분포 (6시간 incident 회고)**:
+  - 1h — BFF schema → migration drift 진단 (real fix)
+  - 1h — Cognito user 상태 / policy 가설 검증 (false positive 3개)
+  - 2h — Amplify SDK 깊이 추적 → underlyingError 도달
+  - 1분 — Expo Go native module 부재 확정
+  - 30m — path 공백 함정 발견 + mv
+  - 30m — re-cleanup + BUG-MOBILE-AUTH-LOGIN-SIGNAL 발견 + fix
+- **검증**: signIn → MainTabs 진입, logout → Auth 복귀, 재로그인 → MainTabs 재진입 (BUG-MOBILE-AUTH-LOGIN-SIGNAL 검증과 동일 surface).
+### 미완료:
+- **`CHORE-MOBILE-DEV-BUILD-SCRIPTS-001` (선택)**: `apps/mobile/package.json` 의 `"ios": "expo start --ios"` → `"expo run:ios"` 변경 정합화. 본인은 mv 시점에 자동 변경됐으나 본 PR 에는 미포함 (동료 dev flow 영향 — 사전 합의 필요). 동료 EAS-only 라면 keep, 아니면 표준화.
+- **`FIX-STAGING-CLAIMS-LOAD-001` (별도 BE task)**: simulator 홈 화면 "Couldn't load claims." 표출 — BFF `/api/claims/*` 또는 content-service `/claims` fail 의심. 본인 영역, 다음 BE 세션으로.
+### 연관 파일: .claude/rules/multi-session.md, docs/SESSION-2026-05-15-mobile-auth-incident.md, apps/mobile/eas.json, apps/mobile/app.json, infra/cognito/main.tf
+
+---
 date: 2026-05-14
 agent: claude-opus-4-7
 task_id: FIX-MOBILE-AUTH-001
