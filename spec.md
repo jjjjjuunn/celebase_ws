@@ -2411,6 +2411,7 @@ celebbase-wellness/
 
 - Mobile public client: `generate_secret = false` + `explicit_auth_flows = ["ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"]` — App Store / Play Store 배포 바이너리에 client secret 미포함.
 - user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
+- `/auth/login` 은 Cognito JWKS-검증된 id_token 의 `sub` 로 `users` 행 매칭 실패 시 (a) email-bridge (`dev-%` cognito_sub legacy seed 사용자 atomic update) 시도 후, 그래도 매칭 실패 시 (b) lazy provisioning 으로 자동 user 행 생성 (`IMPL-AUTH-LAZY-PROVISION-001`). lazy provisioning 은 IdP-first 패턴의 안전망으로 admin-create-user 시드 / DR 복원 / signup partial failure 등에서 발생하는 Cognito-DB drift 자동 회복. `auth.user.lazy_provisioned` 감사 이벤트 emit (best-effort, `hashId` 만).
 - Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
 
 ### 11.2 Mobile CI / ESLint Guard *(PIVOT-MOBILE-2026-05)*

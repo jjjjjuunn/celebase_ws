@@ -5676,3 +5676,33 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + claude-direct
 - qa-exec: Codex sandbox `.venv` 부재 false-failure → Claude direct verification (ruff PASS + pytest 22/22 PASS: aggregator 9 + micronutrient_checker 회귀 11 + pipeline final_out 2).
 ### 미완료: PR-C (IMPL-MEAL-P0-DAILY-001 — pipeline.py:296-310 `daily_totals` 1일 단위 실제 합산 + `daily_targets` 신규 + Migration 0020 meal_plan_monthly_stats redefine). PR-D (IMPL-MEAL-P0-ILP-001 — OR-Tools CP-SAT solver). 후속 CHORE-MICRO-RATIO-CONSISTENCY + CHORE-MAIN-PYTHON-DEPS.
 ### 연관 파일: services/meal-plan-engine/src/engine/nutrition_aggregator.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/tests/unit/test_nutrition_aggregator.py
+
+
+---
+date: 2026-05-14
+agent: claude-opus-4-7 + advisor (codex-gpt-5-codex + gemini-2.5-pro classifier unavailable, fallback)
+task_id: IMPL-AUTH-LAZY-PROVISION-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - spec.md
+verified_by: claude-opus-4-7 + advisor + claude-grep-verification + full-test-suite
+---
+### 완료: user-service `/auth/login` lazy provisioning — Cognito ↔ DB drift 자동 회복 (prod blocker fix)
+- **문제**: 오늘 staging 검증 중 동료가 `BFF /api/auth/mobile/login → user-service /auth/login → "User not found"` 401. 원인 = users 행 부재. (a) admin-create-user 시드 / (b) admin-confirm-sign-up 우회 / (c) DR 복원 mismatch / (d) 인프라 마이그레이션 / (e) signup partial failure 모두 동일 상태 도달. (e) 가 prod blocker — 사용자 입장에서 "이미 가입했는데 로그인 안 됨 + 재가입 시 UsernameExistsException" 디드락.
+- **해결**: `auth.service.ts:login()` 에 lazy provisioning 분기 추가. Cognito JWKS-검증된 id_token 의 sub/email 로 users 행 자동 생성. IdP-first 안전망 패턴 (AWS Amplify, Auth0, Clerk, Firebase Auth 채택).
+- **trust 근거**: Cognito pool `auto_verified_attributes=["email"]` + email schema `mutable=false` (`infra/cognito/main.tf:27-60`) → payload.email 은 IdP 검증 + immutable. 사칭 불가.
+- **race handling**: `userRepo.create()` 가 23505 (unique_violation) catch → null. lazy provisioning 도 동일 패턴 + re-read by sub fallback (concurrent signup 정상 fallback). create + re-read 둘 다 fail 시만 401.
+- **account takeover 방어**: 공격자가 피해자 email 로 Cognito 가입 → create 시 email UNIQUE constraint 위반 → re-read by attacker_sub null → 401. email-bridge 는 `dev-%` cognito_sub 만 update — 정상 user 의 sub 변경 없음.
+- **display_name**: email local-part fallback (`payload.email.split('@')[0] || 'User'`). grep 검증으로 mobile public surface 0건 (`ProfileScreen.tsx:108` own-account only). VARCHAR(100) NOT NULL 방어 + 코드 fallback.
+- **감사 로그**: `AuthLogFieldMap` 에 `auth.user.lazy_provisioned` 신규 (LazyProvisionedFields). 기존 `auth.email_bridge.applied` 도 같이 emit 구현 (인터페이스만 있고 emit 부재 — IMPL-010-e oversight). pino best-effort, hashId(SHA-256 8 chars) 만 — Rule 8 준수.
+- **시그니처 변경**: `login(pool, provider, input, log, requestId)` — `performRotation` 선례 따름. 호출 사이트 1곳 (`auth.routes.ts:113`) 보정. 통합 test (`auth.cognito.integration.test.ts`) 는 import type 만 — 영향 없음 (grep 검증).
+- **6 신규 unit test 통과**: happy path / display_name fallback / email-bridge precedence / race re-read success / race re-read fail UnauthorizedError / regression. 기존 14 test 회귀 0. **전체 145 test / 13 suite PASS**, coverage 82.81% (threshold 80% 통과). auth.service.ts 88.05% statement / auth-log.ts 100%.
+- **spec.md §11.1 patch**: lazy provisioning path 명시 (Cognito Identity Resources L2413 다음 bullet).
+- **L3 review fallback**: r0 plan 단계에서 Codex (codex:codex-rescue agent) + Gemini (mcp__gemini-cli__ask-gemini) 병렬 호출 시도 — 둘 다 Anthropic classifier `claude-opus-4-7` 일시 unavailable. `.claude/rules/pipeline.md` 의 fallback 패턴 적용 → advisor (stronger reviewer) + grep × 4 verification (integration test signature ripple / display_name public surface / bio_profiles downstream / auth-log.ts git history). advisor HIGH 1 + MEDIUM 2 + LOW 1 finding 모두 grep 으로 disposition. **누적 데이터포인트**: `pipeline.md` Gemini fallback 표에 `codex_and_gemini_classifier_unavailable_2026-05-14` 케이스 추가.
+- **PR-phase code review**: classifier 복구 후 Codex r1+r2 또는 Claude self-adversarial 진행 예정.
+### 미완료: PR open + Codex r1+r2 code review (classifier 복구 의존). 후속 chore: CHORE-STAGING-SEED-AUTOMATION-001 (lazy provisioning 후 시드 단순화), CHORE-AUTH-IS-NEW-USER-FLAG (mobile onboarding UX 분기 — `LoginResponse.is_new_user` 필드 신설), CHORE-SES-PROD-ACCESS-001 (별도 진행 중).
+### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/src/lib/auth-log.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/tests/unit/auth.service.test.ts, spec.md

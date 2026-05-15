@@ -235,19 +235,57 @@ export async function login(
   pool: pg.Pool,
   provider: AuthProvider,
   input: LoginInput,
+  log: AuthLogger,
+  requestId: string,
 ): Promise<{ user: User } & AuthTokens> {
   let user: User | null;
 
   if (input.id_token) {
     const payload = await provider.verifyIdToken(input.id_token);
     user = await userRepo.findByCognitoSub(pool, payload.sub);
+
     if (!user) {
       // Email-bridge: legacy dev-seeded user → atomic cognito_sub update
-      user = await userRepo.findAndUpdateCognitoSubByEmail(
+      const bridged = await userRepo.findAndUpdateCognitoSubByEmail(
         pool,
         payload.email,
         payload.sub,
       );
+      if (bridged) {
+        user = bridged;
+        emitAuthLog(log, 'auth.email_bridge.applied', {
+          cognito_sub_hash: hashId(payload.sub),
+          email_hash: hashId(payload.email),
+          requestId,
+        });
+      }
+    }
+
+    if (!user) {
+      // Lazy provisioning — IMPL-AUTH-LAZY-PROVISION-001.
+      // Cognito JWKS-verified id_token: payload.sub and payload.email are
+      // both IdP-attested (email is `mutable=false` + `auto_verified` per
+      // infra/cognito/main.tf). Trust both to create the user row.
+      const displayName = payload.email.split('@')[0] || 'User';
+      const created = await userRepo.create(pool, {
+        cognito_sub: payload.sub,
+        email: payload.email,
+        display_name: displayName,
+      });
+      if (created) {
+        user = created;
+        emitAuthLog(log, 'auth.user.lazy_provisioned', {
+          user_id_hash: hashId(created.id),
+          cognito_sub_hash: hashId(payload.sub),
+          email_hash: hashId(payload.email),
+          reason: 'login_without_prior_signup',
+          requestId,
+        });
+      } else {
+        // Race with concurrent signup — another tx committed first.
+        // Re-read by sub to attach to the winning row.
+        user = await userRepo.findByCognitoSub(pool, payload.sub);
+      }
     }
   } else {
     // Dev stub: find by email

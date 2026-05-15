@@ -110,7 +110,13 @@ export async function authRoutes(
           issue: e.message,
         })));
       }
-      const result = await authService.login(pool, authProvider, parsed.data);
+      const result = await authService.login(
+        pool,
+        authProvider,
+        parsed.data,
+        request.log,
+        request.id,
+      );
       emitAuthLog(request.log, 'auth.internal_token.issued', {
         flow: 'login',
         requestId: request.id,
