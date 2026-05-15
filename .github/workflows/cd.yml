@@ -27,6 +27,8 @@ on:
       - 'docker/caddy/**'
       - 'docker-compose.yml'
       - 'scripts/preflight-env.sh'
+      - 'scripts/migration-sanity.sh'
+      - 'db/migrations/**'
       - '.github/workflows/cd.yml'
 
 concurrency:
@@ -211,11 +213,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Sparse — preflight script + .env.staging.required + Caddyfile.
+          # Sparse — preflight + migration-sanity + .env.staging.required + Caddyfile + db/migrations.
+          # CHORE-STAGING-MIGRATION-PIPELINE-001 (CR1): db/migrations/** must be
+          # fetched so that rsync→ /app/db/migrations/ can feed the `./db:/db:ro`
+          # volume mount of the db-migrate compose service on staging EC2.
           sparse-checkout: |
             scripts/preflight-env.sh
+            scripts/migration-sanity.sh
             apps/web/.env.staging.required
             docker/caddy/Caddyfile
+            db/migrations
           sparse-checkout-cone-mode: false
 
       - name: Write SSH key
@@ -225,19 +232,19 @@ jobs:
           echo "$SSH_KEY_B64" | base64 -d > /tmp/staging_key
           chmod 600 /tmp/staging_key
 
-      - name: Upload preflight script + required manifest + Caddyfile
+      - name: Upload preflight + migration-sanity + manifest + Caddyfile + migrations
         env:
           HOST: ${{ secrets.STAGING_SERVER_IP }}
           REMOTE_USER: ${{ secrets.STAGING_SERVER_USER }}
         run: |
           # Pre-create remote dirs (sparse-checkout only fetches files, no dirs).
           ssh -i /tmp/staging_key -o StrictHostKeyChecking=no "$REMOTE_USER@$HOST" \
-            "mkdir -p /app/scripts /app/apps/web /app/docker/caddy"
+            "mkdir -p /app/scripts /app/apps/web /app/docker/caddy /app/db/migrations"
 
-          # preflight script (executable)
+          # preflight + migration-sanity scripts (executable)
           scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
-            scripts/preflight-env.sh \
-            "$REMOTE_USER@$HOST:/app/scripts/preflight-env.sh"
+            scripts/preflight-env.sh scripts/migration-sanity.sh \
+            "$REMOTE_USER@$HOST:/app/scripts/"
 
           # .env.staging.required (preflight manifest — partial staging: 8 required keys)
           scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
@@ -252,6 +259,14 @@ jobs:
           scp -i /tmp/staging_key -o StrictHostKeyChecking=no \
             docker/caddy/Caddyfile \
             "$REMOTE_USER@$HOST:/app/docker/caddy/Caddyfile"
+
+          # CHORE-STAGING-MIGRATION-PIPELINE-001 (CR1): rsync migration SQL files
+          # to /app/db/migrations/ which is mounted as ./db:/db:ro by the db-migrate
+          # compose service. --delete keeps the remote tree in sync with main HEAD.
+          rsync -avz --delete \
+            -e "ssh -i /tmp/staging_key -o StrictHostKeyChecking=no" \
+            db/migrations/ \
+            "$REMOTE_USER@$HOST:/app/db/migrations/"
 
       - name: Deploy via SSH
         env:
@@ -330,6 +345,18 @@ jobs:
           if [ "${DEPLOY_TARGET}" != "user-service" ]; then
             bash /app/scripts/preflight-env.sh apps/web
           fi
+
+          # 3.5. DB migration auto-apply — CHORE-STAGING-MIGRATION-PIPELINE-001.
+          # Reuses the existing `db-migrate` compose service (postgres:16-alpine
+          # + psql + pgmigrations tracking). MUST run after preflight and BEFORE
+          # service recreate so new images see the expected schema.
+          # Operator one-time setup: see docs/runbooks/MIGRATION-ROLLBACK.md
+          # §Setup — db-migrate service block + pgmigrations reconciliation.
+          echo "▶ applying pending DB migrations..."
+          docker compose run --rm db-migrate
+          echo "▶ migration sanity check..."
+          bash /app/scripts/migration-sanity.sh
+          echo "✅ migrations applied + sanity OK"
 
           # 4. Pull + recreate target services.
           case "${DEPLOY_TARGET}" in

@@ -5905,3 +5905,31 @@ verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + us
   - CHORE-STAGING-BE-DEPLOY-001 sub-task 1~4 (JUNWON): 4 BE staging 배포
 ### 미완료: 4 Gate (G1~G4) 의 sub-task 들 — 각각 별도 chore PR 로 진행. 본 plan = 향후 5주 모든 의사결정의 기준점. CHORE-COMPLIANCE-DECISION-RECORD-001 (G2 시점에 docs/runbooks/COMPLIANCE-LAUNCH-V1.md 신설), CHORE-CAPACITY-BUDGET-001 (G3 신규), CHORE-EAS-OWNER-TRANSFER-001 / CHORE-EAS-PROD-BUILD-001 / CHORE-STORE-METADATA-001 / CHORE-TESTFLIGHT-BETA-001 / CHORE-STORE-SUBMISSION-001 / CHORE-STORE-REVIEW-RESPONSE-001 등 G4 chore 들.
 ### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md, spec.md
+
+
+---
+date: 2026-05-15
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1 17 findings) + gemini-2.5-pro (r1 13 findings)
+task_id: CHORE-STAGING-MIGRATION-PIPELINE-001
+commit_sha: PENDING
+files_changed:
+  - .github/workflows/cd.yml
+  - scripts/migration-sanity.sh
+  - docs/runbooks/MIGRATION-ROLLBACK.md
+verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + plan-v2-reflect
+---
+### 완료: CD migration auto-runner — staging drift 영구 차단 (CHORE-STAGING-MIGRATION-PIPELINE-001)
+- **문제**: 2026-05-14 staging 모바일 로그인 실패 root cause = migration 0010/0012 staging DB 미적용. CD 가 image 만 push, DB schema migration 자동 실행 안 함. 6시간 incident → manual ALTER TABLE 4번 수동 fix.
+- **해결**: 기존 `db-migrate` service (`docker-compose.yml` L33-63, custom shell + psql + pgmigrations) 재활용 + `.github/workflows/cd.yml` deploy step 에 `docker compose run --rm db-migrate` + sanity check 명시 적 실행. sparse-checkout + rsync 로 `db/migrations/` EC2 upload. staging-only (prod 는 `CHORE-PROD-MIGRATION-PIPELINE-001` 별도).
+- **Plan adversarial review (r0)**: Codex r1 17 findings (REGRESSION 3 / HIGH 4 / MEDIUM 5 / PASS 4 / CHALLENGE 1) + Gemini r1 13 findings (HIGH 2 / MEDIUM 7 / PASS 3 / CHALLENGE 1). Disposition: 18 applied + 3 deferred + 1 rejected (Gemini MEDIUM 5 pg_advisory_xact_lock — Codex PASS 5 검증으로 workflow concurrency 가 처리) + 1 separate chore (prod 분리).
+- **REGRESSION 3건 명시 fix** (v1 → v2 fundamental 변경):
+  - CR1: cd.yml sparse-checkout 에 `db/migrations/**` 누락 — db-migrate 의 `./db:/db:ro` mount 가 EC2 에 비어있음. **Fix**: sparse-checkout + rsync 추가
+  - CR2: 어제 manual fix 후 pgmigrations 미 reconcile — 첫 db-migrate run 이 0010 ALTER 재시도 → fail. **Fix**: 일회성 INSERT 절차 runbook 에 명시
+  - CR3: sanity script 의 service name `db` 잘못 — 실제 compose service = `postgres`. **Fix**: `MIGRATION_DB_SERVICE` env var configurable + default `postgres`
+- **Migration Classification Policy** 신설 (Codex HIGH 13): additive (CD autorun) vs destructive (manual gate). 19 기존 migration 모두 additive 분류. 신규 migration file 부터 `-- migration-class: ...` header convention
+- **변경 파일** (3): `.github/workflows/cd.yml` (+15 LOC: paths filter + sparse-checkout + rsync + migration step), `scripts/migration-sanity.sh` (+95 LOC 신규: 5 critical column + retry loop 10×5s + env vars), `docs/runbooks/MIGRATION-ROLLBACK.md` (+165 LOC 신규: Setup + Classification + Incident Response + Manual Execution)
+- **사용자 manual** (본 chore 머지 후 사용자가 수행): (1) `/app/docker-compose.yml` 에 db-migrate service 블록 추가 (runbook §Setup Step 1), (2) staging EC2 의 pgmigrations 에 18 row reconciliation INSERT (runbook §Setup Step 2), (3) 첫 CD 실행 검증 (runbook §Setup Step 3)
+- **Task ID Alias**: `CHORE-STAGING-MIGRATION-AUTORUN-001` (다른 세션 backlog) = 본 task 동일 작업. 본 ID 유지 (PROD-DEPLOY-ROADMAP 의 ID 가 먼저 등재)
+- **Build-push conditional 분리**: plan v2 의 path-aware build skip 은 별도 chore (`CHORE-CD-BUILD-PATH-AWARE-001`) — 본 chore scope 단순화 목적. 추후 별도 진행
+### 미완료: 본 chore PR 머지 후 사용자 manual 3 step (runbook §Setup) + 첫 CD 실행 검증. 후속 chore: CHORE-PROD-MIGRATION-PIPELINE-001 (prod 적용, pg_dump + manual gate), CHORE-MIGRATION-TOOL-EVAL-001 (Track 2 dbmate 평가), CHORE-USER-SERVICE-SCHEMA-SANITY-001 (Track 2 startup hook), CHORE-CD-BUILD-PATH-AWARE-001 (build skip 최적화). G3 다음 sub-task = CHORE-STAGING-BE-DEPLOY-001 (4 BE 배포).
+### 연관 파일: .github/workflows/cd.yml, scripts/migration-sanity.sh, docs/runbooks/MIGRATION-ROLLBACK.md
