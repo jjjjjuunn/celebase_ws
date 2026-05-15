@@ -5776,6 +5776,31 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + claude-direct
 
 
 ---
+date: 2026-05-15
+agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
+task_id: IMPL-MEAL-P0-DAILY-001-a
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - packages/shared-types/src/jsonb/index.ts
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-direct-pytest
+---
+### 완료: P0.3-a — pipeline.py daily_totals 실제 합산 + daily_targets 신규 + shared-types Zod (PR-C1, P0.3 분할 1/2)
+- `pipeline.py:308-328` weekly_plan list comp: `daily_totals` 를 `_round_totals(aggregate_day(varied_plan[i] if i < len(varied_plan) else []))` 결과로 교체. 이전 buggy 코드는 모든 day 에 `target_kcal`/`macros` 박제 (personalization 광고와 거짓 일치 — Plan §Context #2 critical bug). `daily_targets` 신규 4 필드 (target_kcal + protein_g/carbs_g/fat_g) — FE 가 "목표 vs 실제" 표시 가능.
+- `pipeline.py:108-138` `_round_totals` 헬퍼: aggregator flat output → `DailyTotalsSchema` 형태 reshape (macros + fiber_g/sodium_mg/sugar_g top-level + 18 micronutrient nested `micronutrients` key). round(2) + macros 4 키 setdefault 0.0 (FE 호환). **fix-2 Gemini CRITICAL** (Zod schema mismatch — vitamin_* 유실).
+- `pipeline.py:141-164` Pass1 cleanup: 3 `_emit(pass:1, pct:0/30/100)` → 1 `_emit(pass:1, pct:100)` + dead `_ = {plan_id, status:draft, target_kcal}` 폐기. `target_kcal` 산출 + allergen filter 유지.
+- **fix-1 Codex r1 CRITICAL**: aggregate_day source 를 `day_slots` (= display_plan[i]) 에서 `varied_plan[i]` 로 변경. `llm_reranker.py:356-372` 가 `ranked_plan` 을 `list[list[dict]]` (recipe_id/meal_type/rank/narrative/citations, nutrition 부재) 으로 직렬화 — `slot.nutrition` 접근 시 AttributeError → LLM 성공 경로 전체 crash. LLM rerank 가 day/slot 구조 보존 + enrichment 만 추가하므로 `varied_plan[i]` 합산 = LLM mode 의 정확한 영양값.
+- `shared-types/src/jsonb/index.ts`: `DailyTotalsSchema` 확장 (fiber_g, sodium_mg, sugar_g, micronutrients `z.record(z.string(), z.number())` 모두 optional). `DailyTargetsSchema` 신규 (target_kcal + macros 3, required). `DailyPlanSchema.daily_targets: DailyTargetsSchema.optional()` (기존 row backward-compat).
+- `test_pipeline.py` 신규 4: actual sum / targets preserve / LLM dict mode regression / micronutrients nested. `test_engine.py:265`: `events[0]` assertion `{pass:1, pct:0}` → `{pass:1, pct:100}` (Pass1 cleanup 정합).
+- **L3 review (Codex 2 + Gemini 1)**: Codex r1 CRITICAL → fix-1, r2 PASS (0 finding). Gemini r2 CRITICAL (Zod schema mismatch) → fix-2 + MEDIUM (test_engine assertion 갱신). HIGH/MEDIUM/LOW 추가 finding 은 accept/deferred 처리 (deferred_backlog: 0.0 fallback → PR-D ILP infeasible 분기).
+- qa-exec: Codex sandbox `.venv`/`node_modules` 부재 false-failure → Claude direct (ruff PASS + pytest 40/40 PASS: engine 14 + pipeline 6 + aggregator 9 + micronutrient 11 + tsc shared-types PASS).
+### 미완료: PR-C2 (IMPL-MEAL-P0-DAILY-001-b — `db/migrations/0020_meal_plan_monthly_stats_redefine.sql` DROP+CREATE MV + `avg_daily_actual_calories`/`avg_daily_target_calories` 컬럼 rename + spec.md §5.6 patch). PR-D (P0.4 OR-Tools ILP).
+### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, packages/shared-types/src/jsonb/index.ts, services/meal-plan-engine/tests/unit/test_pipeline.py, services/meal-plan-engine/tests/unit/test_engine.py
+
+
+---
 date: 2026-05-14
 agent: claude-opus-4-7 + advisor (codex-gpt-5-codex + gemini-2.5-pro classifier unavailable, fallback)
 task_id: IMPL-AUTH-LAZY-PROVISION-001
