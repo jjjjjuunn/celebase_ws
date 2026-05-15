@@ -1,8 +1,10 @@
 // Main 4-tab bottom navigator — 로그인 후 진입.
-//   - Discover: claims feed + claim/celeb detail
-//   - Plan: inspired meal plan
-//   - ProfileTab: user profile
-//   - SettingsTab: account/subscription/legal
+//   - Celebrities: 셀럽 그리드 + 셀럽/claim 디테일
+//   - Plan: 식단 및 루틴 (Meal & Routine)
+//   - News: 아티클 피드
+//   - SettingsTab: account/subscription/legal (+ 사용자 프로필 병합 예정)
+//
+// 사용자 스펙 (2026-05-14): 하단 4탭 — 좌→우 Celebrities / Meal & Routine / News / Settings.
 
 import { StyleSheet, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,9 +12,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { tokens } from '@celebbase/design-tokens';
 
 import { px, resolveToken } from '../lib/tokens';
-import { DiscoverNavigator } from './DiscoverNavigator';
+import { CelebritiesNavigator } from './CelebritiesNavigator';
+import { NewsNavigator } from './NewsNavigator';
 import { PlanNavigator } from './PlanNavigator';
-import { ProfileNavigator } from './ProfileNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 import type { MainTabsParamList } from './types';
 
@@ -21,16 +23,16 @@ const Tab = createBottomTabNavigator<MainTabsParamList>();
 // Emoji icons — 디자인 시스템 정식 아이콘 도입 전 임시.
 // CHORE-MOBILE-TAB-ICONS-001 백로그: SVG icon set 으로 교체.
 const TAB_ICONS = {
-  Discover: '🔍',
+  Celebrities: '⭐',
   Plan: '🥗',
-  ProfileTab: '👤',
+  News: '📰',
   SettingsTab: '⚙️',
 } as const;
 
 const TAB_LABELS = {
-  Discover: 'Discover',
-  Plan: 'Plan',
-  ProfileTab: 'Profile',
+  Celebrities: 'Celebrities',
+  Plan: 'Meal & Routine',
+  News: 'News',
   SettingsTab: 'Settings',
 } as const;
 
@@ -54,11 +56,11 @@ export function MainTabsNavigator(): React.JSX.Element {
       }}
     >
       <Tab.Screen
-        name="Discover"
-        component={DiscoverNavigator}
+        name="Celebrities"
+        component={CelebritiesNavigator}
         options={{
-          tabBarLabel: TAB_LABELS.Discover,
-          tabBarIcon: ({ focused }) => tabIcon('Discover', focused),
+          tabBarLabel: TAB_LABELS.Celebrities,
+          tabBarIcon: ({ focused }) => tabIcon('Celebrities', focused),
         }}
       />
       <Tab.Screen
@@ -70,11 +72,11 @@ export function MainTabsNavigator(): React.JSX.Element {
         }}
       />
       <Tab.Screen
-        name="ProfileTab"
-        component={ProfileNavigator}
+        name="News"
+        component={NewsNavigator}
         options={{
-          tabBarLabel: TAB_LABELS.ProfileTab,
-          tabBarIcon: ({ focused }) => tabIcon('ProfileTab', focused),
+          tabBarLabel: TAB_LABELS.News,
+          tabBarIcon: ({ focused }) => tabIcon('News', focused),
         }}
       />
       <Tab.Screen

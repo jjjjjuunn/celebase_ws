@@ -30,6 +30,47 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-15
 agent: claude-opus-4-7
+task_id: IMPL-MOBILE-TABS-PIVOT-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/mock-data.ts
+  - apps/mobile/src/navigation/CelebritiesNavigator.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - docs/IMPLEMENTATION_LOG.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - pnpm-lock.yaml
+  - spec.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck + lint PASS; dev build 화면 sanity는 npx expo run:ios 띄운 후 별도 ping)
+---
+### 완료: Mobile 4탭 pivot — Discover/Profile → Celebrities/News (IMPL-MOBILE-TABS-PIVOT-001)
+- **UX hypothesis**: 사용자가 claim 단위가 아닌 셀럽 자체로 first-tap 한다는 가정. CelebritiesGrid → CelebrityDetail → ClaimDetail funnel 로 commitment 점증.
+- **4탭 재구성**:
+  - `Discover (🔍)` → `Celebrities (⭐)` — 셀럽 그리드 root + 기존 CelebrityDetail/ClaimDetail 흡수
+  - `Plan (🥗)` 라벨 → `Meal & Routine (🥗)` — 식단 + 루틴(M3.5+) 통합 의도 라벨
+  - `ProfileTab (👤)` → `News (📰)` — wellness article feed (ArticleDetail 후속 sub-task)
+  - `SettingsTab (⚙️)` — Profile 카드 흡수 예정 (`IMPL-MOBILE-PROFILE-IN-SETTINGS-001`)
+- **신규 파일**:
+  - `navigation/CelebritiesNavigator.tsx` — Stack: CelebritiesGrid → CelebrityDetail → ClaimDetail
+  - `navigation/NewsNavigator.tsx` — Stack: NewsFeed 단일 screen (Detail 은 후속)
+  - `screens/CelebritiesScreen.tsx`, `screens/NewsScreen.tsx`
+  - `lib/mock-data.ts` — BFF `/api/celebrities/list` + `/api/news/feed` 미존재 시점 fallback
+- **types.ts**: `CelebritiesStackParamList`, `NewsStackParamList` 신규. `MainTabsParamList` 에 legacy `Discover` / `ProfileTab` 한시 보존 — orphan navigator (DiscoverNavigator, ProfileNavigator) 타입 호환 위해. `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` 가 제거.
+- **package.json**: `ios` / `android` script 가 `expo start --ios/android` → `expo run:ios/android` 로 전환 (Expo Go 회피 — `multi-session §7.1` Mobile dev environment 표준화 정합). `@expo/ngrok` 추가 (tunnel 옵션).
+- **spec.md §7.2**: "Mobile tab pivot to Celebrities/News" subsection 신설. PIVOT-MOBILE-2026-05 incremental Option C — 기존 IMPL-MOBILE-M5-NAV-001 4탭 본문은 보존하고 drift 명시.
+- **SPEC-PIVOT-PLAN.md §2 Mobile App**: 본 task 행 추가.
+- **BUG-MOBILE-AUTH-LOGIN-SIGNAL SHA 기록 흡수**: 본 PR 의 선행 commit `docs(log): record BUG-MOBILE-AUTH-LOGIN-SIGNAL commit SHA` 가 JUNWON backlog 의 "본인 후속 PR" 항목을 흡수. multi-session §1 owner 경계 침범이지만 §9 데이터 무결성 (validator 의 PENDING 1건 룰 통과) 영역 정당.
+- **테스트**: `pnpm --filter mobile typecheck` PASS, `pnpm --filter mobile lint` PASS.
+### 미완료: fast-follow 5종 — `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001`, `IMPL-MOBILE-CELEB-LIST-001` (BFF wiring), `IMPL-MOBILE-NEWS-FEED-001`, `IMPL-MOBILE-NEWS-DETAIL-001`, `IMPL-MOBILE-PROFILE-IN-SETTINGS-001`. 글로벌 mixed-celeb ClaimsFeedScreen 의 거취는 JUNWON 와 합의 후 `IMPL-MOBILE-CLAIMS-GLOBAL-001` 신설 예정.
+### 연관 파일: apps/mobile/src/navigation/{CelebritiesNavigator,NewsNavigator,MainTabsNavigator,types}.tsx, apps/mobile/src/screens/{CelebritiesScreen,NewsScreen}.tsx, apps/mobile/src/lib/mock-data.ts, apps/mobile/package.json, spec.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-15
+agent: claude-opus-4-7
 task_id: BUG-MOBILE-AUTH-LOGIN-SIGNAL
 commit_sha: b1bfdd9
 files_changed:
