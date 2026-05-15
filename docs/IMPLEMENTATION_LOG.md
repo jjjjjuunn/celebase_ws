@@ -5706,3 +5706,39 @@ verified_by: claude-opus-4-7 + advisor + claude-grep-verification + full-test-su
 - **PR-phase code review**: classifier 복구 후 Codex r1+r2 또는 Claude self-adversarial 진행 예정.
 ### 미완료: PR open + Codex r1+r2 code review (classifier 복구 의존). 후속 chore: CHORE-STAGING-SEED-AUTOMATION-001 (lazy provisioning 후 시드 단순화), CHORE-AUTH-IS-NEW-USER-FLAG (mobile onboarding UX 분기 — `LoginResponse.is_new_user` 필드 신설), CHORE-SES-PROD-ACCESS-001 (별도 진행 중).
 ### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/src/lib/auth-log.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/tests/unit/auth.service.test.ts, spec.md
+
+
+---
+date: 2026-05-14
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1 27 findings) + gemini-2.5-pro (r1 12 findings)
+task_id: STRATEGY-PROD-LAUNCH-ROADMAP-001
+commit_sha: PENDING
+files_changed:
+  - docs/PROD-DEPLOY-ROADMAP.md
+  - spec.md
+verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + user-decisions-x4
+---
+### 완료: Lean Launch Plan — 4 Gate prod 출시 트랙 (D-Day 2026-06-18)
+- **문제**: 본 codebase 의 prod 배포 트랙 명시 로드맵 부재. spec.md §10 은 product feature roadmap (Phase 1~4), MOBILE-ROADMAP 는 mobile FE 만, SPEC-PIVOT-PLAN 은 process gate — infra/deploy 영역 미정형화. PIVOT-MOBILE-2026-05 ~ staging BFF 까지 ad-hoc 진행으로 운영 결함 누적 발견 패턴 (어제 staging BFF 5 hotfix, 오늘 lazy provisioning + migration 0010/0012 누락).
+- **사용자 의도**: 5주 aggressive launch + 사용자 < 1000명까지 over-engineering 회피 (Y Combinator "do things that don't scale"). 사업성/사용자 반응 검증 전 enterprise 인프라 (ECS/RDS/CloudWatch/PagerDuty/HIPAA-BAA) 투자 회피.
+- **4 Strategic Decisions** (사용자 확정):
+  - A. PHI: medical_conditions + medications launch v1 에서 제거 → post-BAA 후 재도입. allergies + activity_level + body metrics 만 (비-PHI). CCPA + GDPR Art.9 + Apple 5.1.3 risk 거의 0
+  - B. DB: EC2 docker Postgres + S3 daily backup (RDS 비용 회피). 의식적 risk acceptance + stop conditions framework (p99 > 800ms, DB > 5GB, memory > 80%, restore > 30min, downtime > 1h, 사용자 > 1000)
+  - C. Timeline: 5주 (D-Day 2026-06-18). Codex sub-gate 분해 + Apple Dev 1주 + IAP 5d + App Privacy 3d 현실적 가정
+  - D. Plan 구조: Gate-based (Codex CHALLENGE 권장). 4 Gate (Account/IAP, PHI/Privacy, Prod Infra, Store Review). D-Day = 4 Gate 통과 조건. Calendar 는 estimate
+- **4 Gate 구조**: G1 (longest pole, Apple Dev → IAP sandbox), G2 (PHI 제거 + selection UX + legal), G3 (병렬 진행 prod EC2 + 5 BE 배포), G4 (build + beta + review)
+- **Sub-task 분해** (Codex HIGH 권장): RevenueCat live 7 sub-gate, 4 BE staging 배포 7 sub-task, Cognito prod pool 4 sub-task, prod EC2 7 sub-task
+- **Risk Register 14 항목**: Codex + Gemini 통합. Apple D&B 지연 (D-21 kill date), App Store 5.1.3 reject, IAP sandbox 실패, Cognito email spike, EC2 saturation, Paywall dev preview $34.99 mismatch, EAS owner transfer 등
+- **Adversarial review log** (r0 plan-phase):
+  - Codex r1: 27 findings (REGRESSION 2 / HIGH 11 / MEDIUM 8 / LOW 2 / PASS 4 / CHALLENGE 2)
+  - Gemini r1: 12 findings (REGRESSION 2 / HIGH 5 / MEDIUM 4 / CHALLENGE 1)
+  - Disposition: 26 applied (sub-task 분해 + risk 보강 + decision record + Gate-based reorg) + 2 deferred (chore 신규: CHORE-PHI-AUDIT-RETRY-QUEUE-001, CHORE-PHI-MEDICAL-REINTRODUCE-001) + 1 rejected (Codex REGRESSION 1 — IMPLEMENTATION_LOG DO NOT Modify, hallucination 으로 판단)
+- **spec.md §10A patch**: narrowly additive (PIVOT-MOBILE banner reconcile, Codex REGRESSION 2 권장). §10 Phase 1~4 product roadmap 은 그대로 유지. §10A 가 출시 운영 트랙 layer
+- **Next sub-task immediate start** (D-35 = today):
+  - CHORE-APPLE-DEV-001 (사용자 manual): Apple Developer Program 가입, 개인 founder 계정 primary
+  - CHORE-GOOGLE-PLAY-001 (사용자 manual): Google Play Console
+  - CHORE-SES-PROD-ACCESS-001 (사용자 manual): AWS SES production access (24~48h)
+  - CHORE-STAGING-MIGRATION-PIPELINE-001 (JUNWON): CD migration auto-runner
+  - CHORE-STAGING-BE-DEPLOY-001 sub-task 1~4 (JUNWON): 4 BE staging 배포
+### 미완료: 4 Gate (G1~G4) 의 sub-task 들 — 각각 별도 chore PR 로 진행. 본 plan = 향후 5주 모든 의사결정의 기준점. CHORE-COMPLIANCE-DECISION-RECORD-001 (G2 시점에 docs/runbooks/COMPLIANCE-LAUNCH-V1.md 신설), CHORE-CAPACITY-BUDGET-001 (G3 신규), CHORE-EAS-OWNER-TRANSFER-001 / CHORE-EAS-PROD-BUILD-001 / CHORE-STORE-METADATA-001 / CHORE-TESTFLIGHT-BETA-001 / CHORE-STORE-SUBMISSION-001 / CHORE-STORE-REVIEW-RESPONSE-001 등 G4 chore 들.
+### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md, spec.md
