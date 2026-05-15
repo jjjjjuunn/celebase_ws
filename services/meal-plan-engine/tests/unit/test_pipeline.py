@@ -91,3 +91,74 @@ async def test_final_out_always_includes_mode_flags_llm_path() -> None:
     assert result["ui_hint"] is None
     assert isinstance(result["llm_provenance"], dict)
     assert result["llm_provenance"]["model"] == "gpt-4.1-mini"
+
+
+@pytest.mark.asyncio
+async def test_daily_totals_are_actual_sum_not_target() -> None:
+    """P0.3 회귀 보호 — daily_totals 가 실제 slot.nutrition 합산."""
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id="r0",
+            meal_type="lunch",
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 500,
+                "protein_g": 30,
+                "carbs_g": 50,
+                "fat_g": 15,
+            },
+        ),
+        RecipeSlot(
+            recipe_id="r1",
+            meal_type="dinner",
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 600,
+                "protein_g": 40,
+                "carbs_g": 60,
+                "fat_g": 20,
+            },
+        ),
+        RecipeSlot(
+            recipe_id="r2",
+            meal_type="breakfast",
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 300,
+                "protein_g": 20,
+                "carbs_g": 40,
+                "fat_g": 8,
+            },
+        ),
+    ]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    result = await run_pipeline(**inputs)
+    week = result["weekly_plan"]
+    assert len(week) >= 1
+
+    day0 = week[0]
+    assert "daily_totals" in day0
+    assert day0["daily_totals"]["calories"] > 0
+    valid_sums = {500.0, 600.0, 300.0, 800.0, 900.0, 1100.0, 1400.0}
+    assert day0["daily_totals"]["calories"] in valid_sums, day0["daily_totals"]
+
+
+@pytest.mark.asyncio
+async def test_daily_targets_preserve_target_values() -> None:
+    """daily_targets 필드가 target_kcal/macros 를 그대로 보존한다."""
+    result = await run_pipeline(**_baseline_inputs())
+    week = result["weekly_plan"]
+    assert len(week) >= 1
+
+    day0 = week[0]
+    assert "daily_targets" in day0
+    targets = day0["daily_targets"]
+    assert targets["target_kcal"] == result["target_kcal"]
+    for key in ("target_kcal", "protein_g", "carbs_g", "fat_g"):
+        assert key in targets

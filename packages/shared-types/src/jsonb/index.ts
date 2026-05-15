@@ -74,14 +74,27 @@ export const DailyTotalsSchema = z.object({
   protein_g: z.number().min(0),
   carbs_g: z.number().min(0),
   fat_g: z.number().min(0),
+  fiber_g: z.number().min(0).optional(),
+  sodium_mg: z.number().min(0).optional(),
+  sugar_g: z.number().min(0).optional(),
+  micronutrients: z.record(z.string(), z.number()).optional(),
 });
 export type DailyTotals = z.infer<typeof DailyTotalsSchema>;
+
+export const DailyTargetsSchema = z.object({
+  target_kcal: z.number().min(0),
+  protein_g: z.number().min(0),
+  carbs_g: z.number().min(0),
+  fat_g: z.number().min(0),
+});
+export type DailyTargets = z.infer<typeof DailyTargetsSchema>;
 
 export const DailyPlanSchema = z.object({
   day: z.number().int().min(1),
   date: z.string(),
   meals: z.array(DailyMealSchema),
   daily_totals: DailyTotalsSchema,
+  daily_targets: DailyTargetsSchema.optional(),
 });
 export type DailyPlan = z.infer<typeof DailyPlanSchema>;
 

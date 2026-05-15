@@ -105,6 +105,14 @@ def _build_weekly_plan(
     return plan
 
 
+def _round_totals(totals: Dict[str, float]) -> Dict[str, float]:
+    """aggregate_day 출력의 각 값을 2 자리 round. JSON 직렬화 친화."""
+    rounded = {key: round(float(value), 2) for key, value in totals.items()}
+    for required in ("calories", "protein_g", "carbs_g", "fat_g"):
+        rounded.setdefault(required, 0.0)
+    return rounded
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -134,8 +142,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # Pass 1 – lightning draft (steps 1 & 4)
     # ---------------------------------------------------------------------
 
-    await _emit(on_progress, {"pass": 1, "pct": 0})
-
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
     tdee = prof_cal.get(
@@ -148,8 +154,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     target_kcal = calorie_adjuster.adjust_calories(tdee, primary_goal, activity_level)
 
-    await _emit(on_progress, {"pass": 1, "pct": 30})
-
     # --- 1b. Allergen filter ---------------------------------------------
     user_allergies = preferences.get("allergies", [])
     user_intolerances = preferences.get("intolerances", [])
@@ -158,9 +162,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     )  # type: ignore[arg-type]
 
     await _emit(on_progress, {"pass": 1, "pct": 100})
-
-    # draft_out available for Pass 1 early-return if needed in future
-    _ = {"plan_id": plan_id, "status": "draft", "target_kcal": target_kcal}
 
     # ---------------------------------------------------------------------
     # Pass 2 – deep optimisation (full stack)
@@ -302,8 +303,11 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
                 "day": i + 1,
                 "date": (date.today() + timedelta(days=i)).isoformat(),
                 "meals": [_serialize_slot(slot) for slot in day_slots],
-                "daily_totals": {
-                    "calories": round(float(target_kcal), 2),
+                "daily_totals": _round_totals(
+                    nutrition_aggregator.aggregate_day(day_slots)
+                ),
+                "daily_targets": {
+                    "target_kcal": round(float(target_kcal), 2),
                     "protein_g": round(float(macros.get("protein_g", 0.0)), 2),
                     "carbs_g": round(float(macros.get("carb_g", 0.0)), 2),
                     "fat_g": round(float(macros.get("fat_g", 0.0)), 2),
