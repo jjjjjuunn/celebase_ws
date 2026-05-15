@@ -33,6 +33,14 @@ const { UnauthorizedError, ValidationError } = await import('@celebbase/service-
 const mockPool = {} as pg.Pool;
 const devProvider = new DevAuthProvider();
 
+// Capturing logger compatible with AuthLogger — pino-style (object first, msg second).
+function makeMockLog(): {
+  info: jest.Mock;
+  warn: jest.Mock;
+} {
+  return { info: jest.fn(), warn: jest.fn() };
+}
+
 const baseUser = {
   id: 'user-uuid-1',
   cognito_sub: 'dev-fake-sub',
@@ -163,28 +171,28 @@ describe('authService.login email-bridge', () => {
       email: 'legacy@example.com',
       cognito_sub: 'cognito-real-sub',
     });
+    const log = makeMockLog();
 
-    const result = await login(mockPool, new FakeCognitoProvider(), {
-      email: 'legacy@example.com',
-      id_token: 'fake.id.token',
-    });
+    const result = await login(
+      mockPool,
+      new FakeCognitoProvider(),
+      { email: 'legacy@example.com', id_token: 'fake.id.token' },
+      log,
+      'req-bridge-1',
+    );
 
     expect(result.user.cognito_sub).toBe('cognito-real-sub');
     expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
       mockPool, 'legacy@example.com', 'cognito-real-sub',
     );
-  });
-
-  it('throws UnauthorizedError if neither cognito_sub nor email match', async () => {
-    mockFindByCognitoSub.mockResolvedValueOnce(null);
-    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
-
-    await expect(
-      login(mockPool, new FakeCognitoProvider(), {
-        email: 'ghost@example.com',
-        id_token: 'fake.id.token',
+    // IMPL-AUTH-LAZY-PROVISION-001: email-bridge emit must fire on success.
+    expect(log.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'auth.email_bridge.applied',
+        requestId: 'req-bridge-1',
       }),
-    ).rejects.toThrow(UnauthorizedError);
+      'auth.email_bridge.applied',
+    );
   });
 });
 
@@ -197,7 +205,13 @@ describe('authService.login', () => {
   it('returns user and tokens for existing user', async () => {
     mockFindByEmail.mockResolvedValueOnce(baseUser);
 
-    const result = await login(mockPool, devProvider, { email: 'test@example.com' });
+    const result = await login(
+      mockPool,
+      devProvider,
+      { email: 'test@example.com' },
+      makeMockLog(),
+      'req-login-1',
+    );
 
     expect(result.user).toEqual(baseUser);
     expect(result.access_token).toBeTruthy();
@@ -208,7 +222,13 @@ describe('authService.login', () => {
     mockFindByEmail.mockResolvedValueOnce(null);
 
     await expect(
-      login(mockPool, devProvider, { email: 'nobody@example.com' }),
+      login(
+        mockPool,
+        devProvider,
+        { email: 'nobody@example.com' },
+        makeMockLog(),
+        'req-login-2',
+      ),
     ).rejects.toThrow(UnauthorizedError);
   });
 
@@ -216,8 +236,192 @@ describe('authService.login', () => {
     mockFindByEmail.mockResolvedValueOnce({ ...baseUser, deleted_at: new Date() });
 
     await expect(
-      login(mockPool, devProvider, { email: 'test@example.com' }),
+      login(
+        mockPool,
+        devProvider,
+        { email: 'test@example.com' },
+        makeMockLog(),
+        'req-login-3',
+      ),
     ).rejects.toThrow(UnauthorizedError);
+  });
+});
+
+// IMPL-AUTH-LAZY-PROVISION-001 — recover from Cognito ↔ DB drift
+describe('authService.login lazy provisioning', () => {
+  class FakeCognitoProvider {
+    async verifyIdToken(): Promise<{ sub: string; email: string }> {
+      return Promise.resolve({ sub: 'cognito-real-sub', email: 'newuser@example.com' });
+    }
+    async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+  }
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockInsert.mockResolvedValue(undefined);
+  });
+
+  it('creates user and emits auth.user.lazy_provisioned when no cognito_sub or email match', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
+    const lazyUser = {
+      ...baseUser,
+      id: 'lazy-uuid-1',
+      email: 'newuser@example.com',
+      cognito_sub: 'cognito-real-sub',
+      display_name: 'newuser',
+    };
+    mockCreate.mockResolvedValueOnce(lazyUser);
+    const log = makeMockLog();
+
+    const result = await login(
+      mockPool,
+      new FakeCognitoProvider(),
+      { email: 'newuser@example.com', id_token: 'fake.id.token' },
+      log,
+      'req-lazy-1',
+    );
+
+    expect(result.user.cognito_sub).toBe('cognito-real-sub');
+    expect(result.user.display_name).toBe('newuser');
+    // Defense-in-depth: lazy-provisioned user must inherit the DB default
+    // subscription_tier ('free'). Guards against future code accidentally
+    // assigning a non-default tier in the lazy create payload.
+    expect(result.user.subscription_tier).toBe('free');
+    expect(mockCreate).toHaveBeenCalledWith(mockPool, {
+      cognito_sub: 'cognito-real-sub',
+      email: 'newuser@example.com',
+      display_name: 'newuser',
+    });
+    expect(log.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'auth.user.lazy_provisioned',
+        reason: 'login_without_prior_signup',
+        requestId: 'req-lazy-1',
+      }),
+      'auth.user.lazy_provisioned',
+    );
+  });
+
+  it('falls back to "User" display_name when email local-part is empty', async () => {
+    class EmptyLocalPartProvider {
+      async verifyIdToken(): Promise<{ sub: string; email: string }> {
+        // Defense-in-depth: DB VARCHAR(100) NOT NULL would block empty string,
+        // but the code-level fallback ensures we never even attempt the INSERT
+        // with '' for display_name.
+        return Promise.resolve({ sub: 'sub-empty', email: '@malformed.example' });
+      }
+      async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+        return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+      }
+    }
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce({
+      ...baseUser,
+      id: 'lazy-empty-1',
+      email: '@malformed.example',
+      cognito_sub: 'sub-empty',
+      display_name: 'User',
+    });
+
+    await login(
+      mockPool,
+      new EmptyLocalPartProvider(),
+      { email: '@malformed.example', id_token: 'fake.id.token' },
+      makeMockLog(),
+      'req-lazy-2',
+    );
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      mockPool,
+      expect.objectContaining({ display_name: 'User' }),
+    );
+  });
+
+  it('does not trigger lazy provisioning when email-bridge succeeds', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce({
+      ...baseUser,
+      email: 'newuser@example.com',
+      cognito_sub: 'cognito-real-sub',
+    });
+
+    await login(
+      mockPool,
+      new FakeCognitoProvider(),
+      { email: 'newuser@example.com', id_token: 'fake.id.token' },
+      makeMockLog(),
+      'req-lazy-3',
+    );
+
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('recovers from race when create returns null and re-read by sub succeeds', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce(null);
+    const raceWinner = {
+      ...baseUser,
+      id: 'race-winner-1',
+      email: 'newuser@example.com',
+      cognito_sub: 'cognito-real-sub',
+    };
+    mockFindByCognitoSub.mockResolvedValueOnce(raceWinner);
+    const log = makeMockLog();
+
+    const result = await login(
+      mockPool,
+      new FakeCognitoProvider(),
+      { email: 'newuser@example.com', id_token: 'fake.id.token' },
+      log,
+      'req-lazy-4',
+    );
+
+    expect(result.user.id).toBe('race-winner-1');
+    // lazy_provisioned event should NOT fire — the row was created by the winning tx.
+    expect(log.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'auth.user.lazy_provisioned' }),
+      expect.anything(),
+    );
+  });
+
+  it('throws UnauthorizedError when create returns null and re-read also fails', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce(null);
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+
+    await expect(
+      login(
+        mockPool,
+        new FakeCognitoProvider(),
+        { email: 'newuser@example.com', id_token: 'fake.id.token' },
+        makeMockLog(),
+        'req-lazy-5',
+      ),
+    ).rejects.toThrow(UnauthorizedError);
+  });
+
+  it('regression: existing cognito_sub match does NOT trigger lazy provisioning', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce({
+      ...baseUser,
+      cognito_sub: 'cognito-real-sub',
+    });
+
+    await login(
+      mockPool,
+      new FakeCognitoProvider(),
+      { email: 'newuser@example.com', id_token: 'fake.id.token' },
+      makeMockLog(),
+      'req-lazy-6',
+    );
+
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockFindAndUpdateCognitoSubByEmail).not.toHaveBeenCalled();
   });
 });
 
