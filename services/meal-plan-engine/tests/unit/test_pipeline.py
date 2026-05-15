@@ -232,3 +232,57 @@ async def test_daily_totals_llm_mode_uses_varied_plan_not_dict_ranked_plan() -> 
     assert "narrative" in day0["meals"][0]
     # daily_totals 는 varied_plan 의 RecipeSlot 합산 — calories 500.0
     assert day0["daily_totals"]["calories"] == 500.0
+
+
+@pytest.mark.asyncio
+async def test_daily_totals_micronutrients_nested_not_flat() -> None:
+    """Schema mismatch 회귀 보호 (Gemini review-r2 CRITICAL fix):
+
+    aggregator 는 flat output 이지만 DailyTotalsSchema 는 micronutrients 를 nested
+    dict 로 기대 (packages/shared-types/src/jsonb/index.ts). `_round_totals` 가
+    reshape — macros 4-7 top-level + 18 micros nested `micronutrients` 키.
+    """
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id="r0",
+            meal_type="lunch",
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 500,
+                "protein_g": 30,
+                "carbs_g": 50,
+                "fat_g": 15,
+                "fiber_g": 8,
+                "sodium_mg": 400,
+                # 18 micronutrient flat (PR-A USDA backfill 형식)
+                "vitamin_c_mg": 60,
+                "calcium_mg": 200,
+                "iron_mg": 4,
+            },
+        ),
+    ]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    result = await run_pipeline(**inputs)
+    day0 = result["weekly_plan"][0]
+    totals = day0["daily_totals"]
+
+    # macros + fiber_g/sodium_mg 는 top-level
+    assert totals["calories"] == 500.0
+    assert totals["protein_g"] == 30.0
+    assert totals["fiber_g"] == 8.0
+    assert totals["sodium_mg"] == 400.0
+
+    # 18 micronutrient 는 nested dict
+    assert "micronutrients" in totals
+    micros = totals["micronutrients"]
+    assert micros["vitamin_c_mg"] == 60.0
+    assert micros["calcium_mg"] == 200.0
+    assert micros["iron_mg"] == 4.0
+
+    # vitamin/iron 등은 top-level 에 노출되지 않아야 함 (schema 정합성)
+    assert "vitamin_c_mg" not in totals
+    assert "iron_mg" not in totals
