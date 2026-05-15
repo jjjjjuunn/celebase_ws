@@ -286,6 +286,10 @@ describe('authService.login lazy provisioning', () => {
 
     expect(result.user.cognito_sub).toBe('cognito-real-sub');
     expect(result.user.display_name).toBe('newuser');
+    // Defense-in-depth: lazy-provisioned user must inherit the DB default
+    // subscription_tier ('free'). Guards against future code accidentally
+    // assigning a non-default tier in the lazy create payload.
+    expect(result.user.subscription_tier).toBe('free');
     expect(mockCreate).toHaveBeenCalledWith(mockPool, {
       cognito_sub: 'cognito-real-sub',
       email: 'newuser@example.com',

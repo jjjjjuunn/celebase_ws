@@ -263,9 +263,13 @@ export async function login(
 
     if (!user) {
       // Lazy provisioning — IMPL-AUTH-LAZY-PROVISION-001.
-      // Cognito JWKS-verified id_token: payload.sub and payload.email are
-      // both IdP-attested (email is `mutable=false` + `auto_verified` per
-      // infra/cognito/main.tf). Trust both to create the user row.
+      // SECURITY: trust on payload.sub/email derives from the provider's
+      // verifyIdToken contract — CognitoAuthProvider.verifyIdToken validates
+      // RS256 signature against JWKS + issuer + audience array + exp +
+      // token_use==='id'. Cognito pool config locks email as immutable
+      // (infra/cognito/main.tf: email schema mutable=false +
+      // auto_verified_attributes=["email"]). Any future AuthProvider must
+      // preserve these guarantees or this branch becomes a forgery vector.
       const displayName = payload.email.split('@')[0] || 'User';
       const created = await userRepo.create(pool, {
         cognito_sub: payload.sub,
