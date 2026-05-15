@@ -527,13 +527,32 @@ CREATE TABLE meal_plans (
             }
           ],
           "daily_totals": {
-            "calories": 1850,
-            "protein_g": 140,
-            "carbs_g": 180,
-            "fat_g": 62
+            "calories": 1850.42,
+            "protein_g": 140.5,
+            "carbs_g": 180.2,
+            "fat_g": 62.1,
+            "fiber_g": 28.0,
+            "sodium_mg": 1850.0,
+            "sugar_g": 45.3,
+            "micronutrients": {
+              "vitamin_c_mg": 95.5,
+              "vitamin_b12_ug": 3.2,
+              "iron_mg": 12.4,
+              "calcium_mg": 1020.0
+            }
+          },
+          "daily_targets": {
+            "target_kcal": 1900,
+            "protein_g": 150,
+            "carbs_g": 175,
+            "fat_g": 65
           }
         }
       ]
+      IMPL-MEAL-P0-DAILY-001-a (PR #95): daily_totals 는 nutrition_aggregator
+        실제 합산 (macros top-level + 18 micronutrient nested). daily_targets 는
+        신규 4 필드 (target_kcal + macros) — FE 가 "목표 vs 실제" 표시 가능.
+        DailyTotalsSchema / DailyTargetsSchema: packages/shared-types/src/jsonb/index.ts
     */
     
     created_at      TIMESTAMPTZ DEFAULT NOW(),
@@ -726,12 +745,17 @@ CREATE INDEX idx_phi_logs_retention ON phi_access_logs(retention_until);
 -- MATERIALIZED VIEW: 월간 식단 통계 (성능 최적화)
 -- ============================================
 
+-- IMPL-MEAL-P0-DAILY-001-b (PR-C2): Migration 0020 — DROP + CREATE.
+-- avg_daily_calories → avg_daily_actual_calories + 신규 avg_daily_target_calories.
+-- ::int → ::numeric (소수점 정밀도 보존 — _round_totals round(2)).
+-- backward-compat: 기존 row 의 daily_targets 부재 → NULL, AVG() 무시.
 CREATE MATERIALIZED VIEW IF NOT EXISTS meal_plan_monthly_stats AS
-SELECT 
+SELECT
     mp.user_id,
     DATE_TRUNC('month', mp.start_date) AS month,
     COUNT(DISTINCT mp.id) AS plans_generated,
-    AVG((day_elem->'daily_totals'->>'calories')::int) AS avg_daily_calories,
+    AVG((day_elem->'daily_totals'->>'calories')::numeric) AS avg_daily_actual_calories,
+    AVG((day_elem->'daily_targets'->>'target_kcal')::numeric) AS avg_daily_target_calories,
     COUNT(DISTINCT mp.id) FILTER (WHERE mp.status = 'completed') AS completed_count
 FROM meal_plans mp,
      jsonb_array_elements(mp.daily_plans) AS day_elem
@@ -1311,7 +1335,7 @@ carb_kcal = remaining_kcal × (1 - base_diet.fat_ratio)
 
 **문제 예시**: USDA는 비타민D를 `µg` 단위로 제공하나, 레시피 DB는 `IU` 단위를 사용 (1µg = 40 IU). 변환 누락 시 영양소 계산 20~30% 편차 발생.
 
-**표준 스키마 (`packages/shared-types/nutrition.ts`)**:
+**표준 스키마 (`packages/shared-types/src/jsonb/index.ts`)**:
 ```typescript
 interface NutritionStandard {
   source: 'usda_fdc' | 'instacart' | 'manual';
