@@ -105,6 +105,38 @@ def _build_weekly_plan(
     return plan
 
 
+_DAILY_TOTALS_TOP_LEVEL_KEYS: frozenset[str] = frozenset(
+    {"calories", "protein_g", "carbs_g", "fat_g", "fiber_g", "sodium_mg", "sugar_g"}
+)
+
+
+def _round_totals(totals: Dict[str, float]) -> Dict[str, Any]:
+    """aggregate_day flat output → DailyTotalsSchema 형태.
+
+    aggregator 는 macros 와 18 micronutrient 를 모두 flat 으로 반환하지만
+    shared-types `DailyTotalsSchema` (packages/shared-types/src/jsonb/index.ts) 는
+    macros 를 top-level / micronutrients 를 nested `micronutrients` dict 로 분리.
+    Zod 의 일관된 parse 를 위해 본 함수가 reshape 한다.
+
+    각 수치는 2 자리 round (JSON 직렬화 친화). macros 4 키는 빈 day 대비 0.0 fallback
+    (`setdefault`) — FE 의 calories 직접 렌더 호환. 단 NUTRITION_BOUNDS.min_daily_kcal
+    위반 silent-fail 가능성은 별도 chore (PR-D ILP infeasible 분기) 로 위임.
+    """
+    rounded_top: Dict[str, Any] = {}
+    micronutrients: Dict[str, float] = {}
+    for key, value in totals.items():
+        v = round(float(value), 2)
+        if key in _DAILY_TOTALS_TOP_LEVEL_KEYS:
+            rounded_top[key] = v
+        else:
+            micronutrients[key] = v
+    for required in ("calories", "protein_g", "carbs_g", "fat_g"):
+        rounded_top.setdefault(required, 0.0)
+    if micronutrients:
+        rounded_top["micronutrients"] = micronutrients
+    return rounded_top
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -134,8 +166,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     # Pass 1 – lightning draft (steps 1 & 4)
     # ---------------------------------------------------------------------
 
-    await _emit(on_progress, {"pass": 1, "pct": 0})
-
     # --- 1a. Calorie target ------------------------------------------------
     prof_cal = phi_minimizer.minimize_profile(bio_profile, "calorie_adjustment")
     tdee = prof_cal.get(
@@ -148,8 +178,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     target_kcal = calorie_adjuster.adjust_calories(tdee, primary_goal, activity_level)
 
-    await _emit(on_progress, {"pass": 1, "pct": 30})
-
     # --- 1b. Allergen filter ---------------------------------------------
     user_allergies = preferences.get("allergies", [])
     user_intolerances = preferences.get("intolerances", [])
@@ -158,9 +186,6 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     )  # type: ignore[arg-type]
 
     await _emit(on_progress, {"pass": 1, "pct": 100})
-
-    # draft_out available for Pass 1 early-return if needed in future
-    _ = {"plan_id": plan_id, "status": "draft", "target_kcal": target_kcal}
 
     # ---------------------------------------------------------------------
     # Pass 2 – deep optimisation (full stack)
@@ -297,13 +322,23 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,
         "nutrition_standard": nutrition_std.asdict(),
+        # P0.3 합산은 RecipeSlot 보장된 varied_plan[i] 에서 수행.
+        # display_plan 은 LLM mode 일 때 list[list[dict]] (llm_reranker 가
+        # recipe_id/meal_type/rank/narrative/citations 만 직렬화 — nutrition 부재).
+        # LLM rerank 는 day/slot 구조를 보존하고 enrichment 만 부여하므로 (llm_reranker.py
+        # ranked_plan 재구성 루프 참조), varied_plan[i] 의 합산 = display_plan[i] 의 영양 합산.
         "weekly_plan": [
             {
                 "day": i + 1,
                 "date": (date.today() + timedelta(days=i)).isoformat(),
                 "meals": [_serialize_slot(slot) for slot in day_slots],
-                "daily_totals": {
-                    "calories": round(float(target_kcal), 2),
+                "daily_totals": _round_totals(
+                    nutrition_aggregator.aggregate_day(
+                        varied_plan[i] if i < len(varied_plan) else []
+                    )
+                ),
+                "daily_targets": {
+                    "target_kcal": round(float(target_kcal), 2),
                     "protein_g": round(float(macros.get("protein_g", 0.0)), 2),
                     "carbs_g": round(float(macros.get("carb_g", 0.0)), 2),
                     "fat_g": round(float(macros.get("fat_g", 0.0)), 2),

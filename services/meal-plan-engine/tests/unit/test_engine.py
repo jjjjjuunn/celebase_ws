@@ -262,7 +262,8 @@ async def test_run_pipeline_produces_weekly_plan_of_duration_length():  # noqa: 
     assert result["status"] == "completed"
     assert len(result["weekly_plan"]) == 7
     # Progress events fired in expected order.
-    assert events[0] == {"pass": 1, "pct": 0}
+    # IMPL-MEAL-P0-DAILY-001-a: Pass1 의 3 emit → 1 emit (pct:100) 로 축소.
+    assert events[0] == {"pass": 1, "pct": 100}
     assert events[-1] == {"pass": 2, "pct": 100}
 
 
