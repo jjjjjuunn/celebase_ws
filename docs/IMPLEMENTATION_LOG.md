@@ -5682,7 +5682,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + claude-direct
 date: 2026-05-14
 agent: claude-opus-4-7 + advisor (codex-gpt-5-codex + gemini-2.5-pro classifier unavailable, fallback)
 task_id: IMPL-AUTH-LAZY-PROVISION-001
-commit_sha: 56e2d2b
+commit_sha: e4b1589
 files_changed:
   - services/user-service/src/services/auth.service.ts
   - services/user-service/src/lib/auth-log.ts
