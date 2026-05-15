@@ -98,6 +98,98 @@ BFF 는 BE/FE 양쪽에 의존하므로 일반적으로 **마지막에 진입**:
 | `docs/IMPLEMENTATION_LOG.md` 동시 append → conflict | 짧게 자주 머지. 충돌 시 양쪽 entry 모두 보존 (시간순 재배치) |
 | BE 가 LLM 응답 shape 자주 변경 → FE 따라가야 함 | 변경 즉시 push + 양쪽 세션 매일 아침 `git pull` 루틴 |
 | 한 세션이 다른 영역 침범 | `.claude/rules/multi-session.md` 의 Session Topology 표를 세션 시작 시 Claude 가 자동 인용 |
+| BE/BFF owner 가 mobile 검증 위해 Expo Go 사용 | **Expo Go 는 UI/JS preview only** — 인증/IAP/native module 검증은 dev build 필수. 아래 §7.1 참조 (CHORE-MOBILE-DEV-BUILD-LOCAL-001 lesson, 2026-05-15 incident) |
+| project path 에 공백/한글/특수문자 | iOS native build (CocoaPods build script) 가 path quote 처리 안 해서 첫 공백에서 truncate. clone 위치는 ASCII + 공백 0 강제 (예: `~/celebase/`) |
+| staging schema drift (migration 누락) | CD pipeline 에 migration runner 미통합 → 수동 적용 의존. backlog `CHORE-STAGING-MIGRATION-AUTORUN-001` |
+
+### 7.1 Mobile dev environment (CHORE-MOBILE-DEV-BUILD-LOCAL-001 lesson)
+
+`apps/mobile` 영역은 owner 이외에도 **BE/BFF owner 가 계약 변경 시 검증할 수 있어야** 한다. mobile 검증 capability 부재가 production-class incident 를 staging 까지 가린 사례 (2026-05-15 6시간 incident, `docs/SESSION-2026-05-15-mobile-auth-incident.md`) 가 있어 다음을 표준화한다.
+
+#### Expo Go 한계 (사용 금지 영역)
+
+Expo Go 는 App Store 의 사전 컴파일된 단일 앱이라 **임의 third-party native module 동적 로드 불가**. 다음 native deps 는 **반드시 실패**:
+
+- `@aws-amplify/react-native` (Cognito SRP `modPow` native binding) — 우리 mobile 인증의 핵심
+- `react-native-purchases` (RevenueCat) — 우리 mobile IAP
+- 향후 추가될 Sentry / Crashlytics / 다른 vendor native SDK
+
+증상: 호출 직전 native binding `Proxy.get` 에서 throw → Amplify SDK 의 `assertServiceError` 가 `name === 'Error'` 케이스에서 매핑 실패 → generic `[Unknown: An unknown error has occurred.]` wrap. underlying error 까지 까봐야 진짜 원인 보임 (`AmplifyError.underlyingError` 필드).
+
+**Expo Go 가 OK 한 경우**: UI 화면 시각 확인, JS 로직만 변경 (네트워크 호출 없는 component preview), 신규 contributor 의 "처음 화면 띄우기" 검증.
+
+#### 권장 dev environment (인증/IAP/실제 BFF 호출 검증)
+
+**Option A — local dev build (`npx expo run:ios`)** ⭐ 권장 (Mac + Xcode 보유자):
+
+```bash
+cd apps/mobile
+npx expo run:ios   # 첫 빌드 ~10분 (Pods), 이후 JS 변경은 hot reload
+```
+
+전제: Xcode + CocoaPods (`brew install cocoapods`) 설치. `apps/mobile/eas.json` 의 `development.ios.simulator=true` 이미 설정됨.
+
+**Option B — EAS cloud build** (Apple Developer 계정 있을 때, 실기 검증 필요):
+
+```bash
+eas build --profile development --platform ios   # ~15분 cloud build
+```
+
+결과 .ipa 를 실기 iPhone 에 ad-hoc 설치 (TestFlight 또는 QR). Face ID / Camera / Push 같은 실기 native API 검증 시.
+
+#### Project path 제약
+
+clone 위치 path 에 **공백/한글/특수문자 금지**. CocoaPods 의 `[CP-User] Generate app.config for prebuilt Constants.manifest` 같은 build script 가 path quote 처리 안 해서 첫 공백 위치에서 truncate → `No such file or directory: /Users/.../first_token` build fail.
+
+권장: `~/celebase/` 같은 단순 path. 기존 clone 이 공백 path 면 mv 후 cleanup:
+
+```bash
+mv "OLD_PATH" "$HOME/celebase"
+cd "$HOME/celebase/<repo>"
+
+# 절대 path 박힌 prebuild artifacts 제거
+rm -rf apps/mobile/ios apps/mobile/android apps/mobile/.expo
+
+# 절대 path 박힌 pnpm symlinks 모두 제거 (find + glob 함정 회피)
+find . -name node_modules -type d -prune -exec rm -rf {} +
+
+# Xcode 의 옛 path 캐시 제거
+rm -rf ~/Library/Developer/Xcode/DerivedData
+
+# 재설치 + workspace dist 정합
+pnpm install
+pnpm --filter @celebbase/design-tokens build
+pnpm --filter @celebbase/shared-types build
+```
+
+**주의**: `npm install` 금지 (root 만 깔리고 workspace 안 깔림). 본 monorepo 는 `pnpm-lock.yaml` 사용 — 항상 `pnpm install`. 잘못 `npm install` 돌렸으면 `rm -f package-lock.json` 후 `pnpm install`.
+
+#### 검증 capability 요구
+
+BE/BFF 영역의 `shared-types` 스키마 변경 PR 작성 시, 작성자는 다음 중 하나 가능 상태여야 한다:
+
+1. local dev build (`npx expo run:ios`) 환경 정착 — 본인 Mac 에서 mobile 화면 띄울 수 있음
+2. 또는 EAS development build 셋업
+
+이 capability 가 없으면 mobile-facing 계약 변경 시 review 단계에서 sanity check 불가 → staging 도달까지 회귀 발견 지연. multi-session §1 의 owner 경계는 유지하되, **검증 capability 는 모든 세션이 보유**.
+
+#### Underlying error 디버깅 패턴
+
+Amplify v6 의 generic `Unknown` error 를 만나면 즉시 `err.underlyingError` 까지 까야 함:
+
+```typescript
+// LoginScreen.tsx 등 catch block — 디버깅 시점만 활성, 검증 후 제거
+} catch (err) {
+  if (err !== null && typeof err === 'object') {
+    const e = err as Record<string, unknown>;
+    // eslint-disable-next-line no-console
+    console.warn('[debug] err:', { name: e['name'], message: e['message'], underlyingError: e['underlyingError'] });
+  }
+  setError(mapErrorToMessage(err));
+}
+```
+
+`underlyingError` 의 `name` 이 진짜 root cause — 예: `Error: The package '@aws-amplify/react-native' doesn't seem to be linked. ... You are not using Expo Go`.
 
 ## 8. 세션 종료 루틴
 
