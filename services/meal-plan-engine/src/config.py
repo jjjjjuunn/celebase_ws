@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     LLM_MONTHLY_KILL_USD: float = 1000.0  # kill switch 자동 발화 임계값
     OPENAI_MODEL: str = "gpt-4.1-mini"  # env override로 모델 변경 가능
 
+    # ── ILP Solver (P0.4, IMPL-MEAL-P0-ILP-001) ─────────────────────────────
+    ILP_TIME_LIMIT_SEC: float = Field(default=10.0, ge=1.0, le=60.0)
+    ILP_RANDOM_SEED: int = Field(default=42)
+    PIPELINE_ILP_WEIGHTS: dict[str, float] = Field(default_factory=dict)
+    PIPELINE_USE_ILP: bool = Field(default=True)
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
