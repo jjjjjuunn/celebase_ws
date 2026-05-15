@@ -745,10 +745,14 @@ CREATE INDEX idx_phi_logs_retention ON phi_access_logs(retention_until);
 -- MATERIALIZED VIEW: 월간 식단 통계 (성능 최적화)
 -- ============================================
 
--- IMPL-MEAL-P0-DAILY-001-b (PR-C2): Migration 0020 — DROP + CREATE.
+-- IMPL-MEAL-P0-DAILY-001-b (PR-C2): Migration 0020 — Build-Refresh-Swap pattern.
 -- avg_daily_calories → avg_daily_actual_calories + 신규 avg_daily_target_calories.
 -- ::int → ::numeric (소수점 정밀도 보존 — _round_totals round(2)).
+-- 0-downtime swap: 새 MV(_v2) 생성 + CREATE INDEX CONCURRENTLY + REFRESH →
+--   atomic 4-RENAME (BEGIN/COMMIT) → 구 MV DROP. SELECT 무중단 (Gemini r1 CRITICAL fix).
 -- backward-compat: 기존 row 의 daily_targets 부재 → NULL, AVG() 무시.
+--   partial month 왜곡 가능 → FE 가 plans_generated 와 비교해 detect.
+-- pg driver 주의: ::numeric 은 string 반환 (parseFloat 명시 변환).
 CREATE MATERIALIZED VIEW IF NOT EXISTS meal_plan_monthly_stats AS
 SELECT
     mp.user_id,
@@ -1425,6 +1429,11 @@ interface NutritionStandard {
 **캐시 사전 워밍 (Pre-warming)**:
 - 매일 02:00 UTC, 최근 30일 사용량 상위 10개 셀럽 식단의 인기 레시피 조합을 Redis에 캐싱 (`popular_combo:{base_diet_id}`, TTL 24h)
 - 캐시 히트 시 Pass 1 소요 시간: ~1초
+
+**Pass 2 출력 필드 (IMPL-MEAL-P0-DAILY-001-a, PR #95)**:
+- 각 `daily_plans[].daily_totals` — `nutrition_aggregator.aggregate_day(varied_plan[i])` 실제 합산 (macros top-level + 18 micronutrient nested, `_round_totals` reshape, schema: `DailyTotalsSchema`).
+- 각 `daily_plans[].daily_targets` — `target_kcal` + macros 3 (`DailyTargetsSchema`). FE 가 "목표 vs 실제" 표시 가능.
+- Pass 1 의 3 `_emit(pass:1, pct:0/30/100)` 호출은 1 회 (`pct:100`) 로 축소 (Plan §Task 4 cleanup).
 
 ### 5.7 PHI(보호건강정보) 최소화 원칙
 
