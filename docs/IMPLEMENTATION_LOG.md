@@ -28,6 +28,41 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-15
+agent: claude-opus-4-7
+task_id: BUG-MOBILE-AUTH-LOGIN-SIGNAL
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/navigation/AuthNavigator.tsx
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - apps/mobile/src/services/auth.ts
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (pnpm --filter mobile typecheck + lint PASS, test 22/22 suites 140/140 PASS 회귀 0, npx expo run:ios iPhone 16e simulator 에서 staging signIn → MainTabs 자동 진입 검증, logout → Auth 화면 자동 복귀 검증)
+---
+### 완료: RootStack phase transition on login (BUG-MOBILE-AUTH-LOGIN-SIGNAL) — PR #93
+- **트리거**: JUNWON (BE owner) 이 FIX-STAGING-MIGRATION-0010-0012 검증 위해 mobile dev environment 처음 진입. Cognito SRP + BFF `/api/auth/mobile/login` 통과 직후 빨간 dev warning `RESET with payload {routes:[{name:'Main'}]} was not handled by any navigator` 표출.
+- **Root cause**:
+  - `LoginScreen.onSuccess` / `SignupScreen.onSuccess` 가 `navigation.getParent()?.reset({routes: [{name:'Main'}]})` 호출
+  - 그 시점 RootStack 의 phase 는 여전히 `'auth'` → conditional rendering `{phase === 'main' ? <Main/> : <Auth/>}` 으로 `Main` screen 자체가 navigator 에 미등록
+  - `auth-events` 모듈에 `signalLogout` 만 존재, login 방향 signal 부재 — 비대칭 설계 누락
+- **변경** (4 files, +77 / -25):
+  - `apps/mobile/src/lib/auth-events.ts`: `signalLogin` / `onLoginSignal` / `LoginReason` (`'manual' | 'signup'`) 신규. `logoutHandlers` / `loginHandlers` 별도 Set. `__resetAuthEvents` 양쪽 clear.
+  - `apps/mobile/src/services/auth.ts`: `signIn` → `signalLogin('manual')`, `confirmSignUpAndLogin` → `signalLogin('signup')` 호출 — `setTokens` 직후.
+  - `apps/mobile/src/navigation/RootNavigator.tsx`: `useEffect` 에 `onLoginSignal` 구독 추가 (logout 옆 대칭). cleanup 에서 `offLogin` / `offLogout` 둘 다 해제.
+  - `apps/mobile/src/navigation/AuthNavigator.tsx`: `LoginRoute` / `SignupRoute` 의 `onSuccess` 의 `navigation.reset` 제거.
+- **검증**:
+  - `pnpm --filter mobile typecheck` PASS
+  - `pnpm --filter mobile lint` PASS (`--max-warnings=0`)
+  - `pnpm --filter mobile test` — 22 suites / 140 tests PASS, 회귀 0
+  - `npx expo run:ios` iPhone 16e simulator + staging endpoint: signIn → MainTabs 진입 ✅ / Settings logout → Auth 복귀 ✅ / 재로그인 → MainTabs 재진입 ✅
+- **multi-session 경계**: `apps/mobile/**` 는 §1 topology 상 Dohyun owner. JUNWON 이 cross-boundary fix 한 근거 — §9 우선순위 (사용자 unblocking) + 동료 한나절 회수. PR 단독 self-merge 금지, Dohyun review 후 머지.
+### 미완료:
+- PR #93 동료 review + 머지 대기.
+- 머지 SHA 기록 후속 commit 필요 (기존 패턴 `docs(log): record <TASK> commit SHA`).
+### 연관 파일: apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/auth.ts, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/AuthNavigator.tsx
+
+---
 date: 2026-05-14
 agent: claude-opus-4-7
 task_id: FIX-MOBILE-AUTH-001
