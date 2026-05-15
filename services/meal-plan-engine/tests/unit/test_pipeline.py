@@ -162,3 +162,73 @@ async def test_daily_targets_preserve_target_values() -> None:
     assert targets["target_kcal"] == result["target_kcal"]
     for key in ("target_kcal", "protein_g", "carbs_g", "fat_g"):
         assert key in targets
+
+
+@pytest.mark.asyncio
+async def test_daily_totals_llm_mode_uses_varied_plan_not_dict_ranked_plan() -> None:
+    """LLM mode 회귀 보호 (codex review-r1 CRITICAL fix):
+
+    `llm_reranker.py` 의 `ranked_plan` 은 list[list[dict]] (recipe_id/meal_type/rank
+    /narrative/citations 만, nutrition 부재). aggregate_day 가 dict.nutrition 접근
+    시 AttributeError 발생 → LLM mode 전체 crash 회귀를 막는다.
+
+    합산 source = varied_plan[i] (RecipeSlot 보장). LLM rerank 는 enrichment 만
+    부여 + day/slot 구조 보존 → 영양 합산은 standard 와 LLM mode 동일.
+    """
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id="r0",
+            meal_type="lunch",
+            allergens=[],
+            ingredients=[],
+            nutrition={"calories": 500, "protein_g": 30, "carbs_g": 50, "fat_g": 15},
+        ),
+    ]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    provenance = LlmProvenance(
+        model="gpt-4.1-mini",
+        prompt_hash="a" * 16,
+        output_hash="b" * 16,
+        mode="llm",
+    )
+    # llm_reranker 실제 출력 형태 — dict 리스트.
+    dict_day = [
+        {
+            "recipe_id": "r0",
+            "meal_type": "lunch",
+            "rank": 1,
+            "narrative": "test",
+            "citations": [],
+        }
+    ]
+    fake_result = LlmRerankResult(
+        ranked_plan=[dict_day] * inputs["duration_days"],  # type: ignore[arg-type]
+        mode="llm",
+        provenance=provenance,
+        quota_exceeded=False,
+    )
+
+    with (
+        patch("src.engine.pipeline.settings.ENABLE_LLM_MEAL_PLANNER", True),
+        patch(
+            "src.engine.pipeline.llm_rerank_and_narrate",
+            return_value=fake_result,
+        ),
+    ):
+        result = await run_pipeline(
+            **inputs,
+            redis_client=object(),
+            llm_context={"persona_id": "p1", "user_id_hash": "h1"},
+        )
+
+    assert result["mode"] == "llm"
+    week = result["weekly_plan"]
+    day0 = week[0]
+    # meals 는 dict 형식 (llm_reranker 출력 그대로)
+    assert isinstance(day0["meals"][0], dict)
+    assert "narrative" in day0["meals"][0]
+    # daily_totals 는 varied_plan 의 RecipeSlot 합산 — calories 500.0
+    assert day0["daily_totals"]["calories"] == 500.0

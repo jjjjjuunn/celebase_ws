@@ -298,13 +298,20 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "macros": macros,
         "micronutrient_report": micro_report.__dict__,
         "nutrition_standard": nutrition_std.asdict(),
+        # P0.3 합산은 RecipeSlot 보장된 varied_plan[i] 에서 수행.
+        # display_plan 은 LLM mode 일 때 list[list[dict]] (llm_reranker 가
+        # recipe_id/meal_type/rank/narrative/citations 만 직렬화 — nutrition 부재).
+        # LLM rerank 는 day/slot 구조를 보존하고 enrichment 만 부여하므로 (llm_reranker.py
+        # ranked_plan 재구성 루프 참조), varied_plan[i] 의 합산 = display_plan[i] 의 영양 합산.
         "weekly_plan": [
             {
                 "day": i + 1,
                 "date": (date.today() + timedelta(days=i)).isoformat(),
                 "meals": [_serialize_slot(slot) for slot in day_slots],
                 "daily_totals": _round_totals(
-                    nutrition_aggregator.aggregate_day(day_slots)
+                    nutrition_aggregator.aggregate_day(
+                        varied_plan[i] if i < len(varied_plan) else []
+                    )
                 ),
                 "daily_targets": {
                     "target_kcal": round(float(target_kcal), 2),
