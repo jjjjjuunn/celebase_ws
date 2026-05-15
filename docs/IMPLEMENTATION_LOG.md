@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-15
 agent: claude-opus-4-7
 task_id: BUG-MOBILE-AUTH-LOGIN-SIGNAL
-commit_sha: PENDING
+commit_sha: b1bfdd9
 files_changed:
   - apps/mobile/src/lib/auth-events.ts
   - apps/mobile/src/navigation/AuthNavigator.tsx
