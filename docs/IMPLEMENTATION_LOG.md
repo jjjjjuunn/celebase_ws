@@ -5937,7 +5937,7 @@ verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + us
 date: 2026-05-15
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1 17 findings) + gemini-2.5-pro (r1 13 findings)
 task_id: CHORE-STAGING-MIGRATION-PIPELINE-001
-commit_sha: PENDING
+commit_sha: 5a9ef0a
 files_changed:
   - .github/workflows/cd.yml
   - scripts/migration-sanity.sh
