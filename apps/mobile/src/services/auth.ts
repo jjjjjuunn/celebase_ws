@@ -27,6 +27,7 @@ import type { schemas } from '@celebbase/shared-types';
 
 import { postJson } from '../lib/api-client';
 import { clearTokens, setTokens } from '../lib/secure-store';
+import { signalLogin } from '../lib/auth-events';
 
 /**
  * 잔존 Amplify 세션을 best-effort 로 정리한다.
@@ -80,6 +81,7 @@ export async function signIn(params: { email: string; password: string }): Promi
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
   });
+  signalLogin('manual');
   return tokens;
 }
 
@@ -170,6 +172,7 @@ export async function confirmSignUpAndLogin(params: {
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
   });
+  signalLogin('signup');
   return tokens;
 }
 

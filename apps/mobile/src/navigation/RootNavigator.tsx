@@ -6,7 +6,7 @@ import { NavigationContainer, type NavigationContainerRef } from '@react-navigat
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { resolveToken } from '../lib/tokens';
-import { onLogoutSignal, type LogoutReason } from '../lib/auth-events';
+import { onLoginSignal, onLogoutSignal, type LogoutReason } from '../lib/auth-events';
 import { bootstrapSession } from '../services/auth-bootstrap';
 import { AuthNavigator } from './AuthNavigator';
 import { MainTabsNavigator } from './MainTabsNavigator';
@@ -74,7 +74,7 @@ export function RootNavigator(): React.JSX.Element {
       setPhase(result === 'authenticated' ? 'main' : 'auth');
     });
 
-    const off = onLogoutSignal((reason) => {
+    const offLogout = onLogoutSignal((reason) => {
       const message = describeLogout(reason);
       if (message !== null) {
         Alert.alert(message.title, message.message);
@@ -82,9 +82,18 @@ export function RootNavigator(): React.JSX.Element {
       setPhase('auth');
     });
 
+    // BUG-MOBILE-AUTH-LOGIN-SIGNAL: login 직후 RootStack 의 phase 가 'auth' →
+    // 'main' 으로 전환되어야 navigator 에 'Main' screen 이 등록된다.
+    // 이전 구현은 LoginScreen.onSuccess 가 직접 reset('Main') 했으나 phase 미전환
+    // 상태에선 'Main' 이 등록되지 않아 navigator 가 거절. signal 기반으로 전환.
+    const offLogin = onLoginSignal(() => {
+      setPhase('main');
+    });
+
     return (): void => {
       cancelled = true;
-      off();
+      offLogout();
+      offLogin();
     };
   }, []);
 
