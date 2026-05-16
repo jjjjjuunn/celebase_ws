@@ -352,3 +352,24 @@ async def test_pipeline_ilp_disabled_uses_fallback() -> None:
             result = await run_pipeline(**inputs)
     assert not mock_solver.called
     assert result["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_pipeline_raises_when_both_ilp_and_fallback_empty() -> None:
+    """ILP infeasible + fallback `_build_weekly_plan` empty → ILPInfeasibleError fail-closed.
+
+    PR-C2 deferred_backlog (0.0 silent plan) 회귀 보호 (Gemini r1 MEDIUM fix).
+    sqs_consumer 의 outer except (line 255) 가 `update_meal_plan(..., {"status": "failed"})`
+    로 받아 FE 가 silent 0.0 calories plan 받지 않도록 보장.
+    """
+    inputs = _baseline_inputs()
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=plan_solver.ILPInfeasibleError("test infeasible"),
+        ),
+        patch("src.engine.pipeline._build_weekly_plan", return_value=[]),
+    ):
+        with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
+            await run_pipeline(**inputs)

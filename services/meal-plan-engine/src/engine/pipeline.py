@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 from datetime import date, timedelta
 from typing import Any, Callable, Dict, List
 
@@ -265,8 +266,10 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     if not varied_plan:
         weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
         if weekly_plan and any(day for day in weekly_plan):
+            # Gemini r1 HIGH #2 fix: seeded rng → fallback path 결정성 보장
+            fallback_rng = random.Random(settings.ILP_RANDOM_SEED)
             varied_plan = variety_optimizer.optimize_variety(
-                weekly_plan, candidate_pool
+                weekly_plan, candidate_pool, rng=fallback_rng
             )
         if not varied_plan and ilp_attempted:
             # PR-C2 deferred_backlog 해결: ILP 시도 후 fallback 도 빈 plan 이면 fail-closed.

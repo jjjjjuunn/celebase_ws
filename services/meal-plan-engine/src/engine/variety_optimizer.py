@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import random
 from collections import Counter
-from typing import List
+from typing import List, Optional
 
 from .allergen_filter import RecipeSlot  # re-use dataclass for consistency
 
@@ -21,6 +21,9 @@ _logger = logging.getLogger(__name__)
 
 
 MAX_RECIPE_REPEATS = 2  # 7-day window
+_DEFAULT_RNG_SEED = (
+    42  # ILP_RANDOM_SEED 와 일치 — 결정성 fail-safe (Gemini r1 HIGH #2 fix)
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -41,9 +44,16 @@ def count_recipe_repeats(weekly_plan: List[List[RecipeSlot]]) -> dict[str, int]:
 def optimize_variety(
     weekly_plan: List[List[RecipeSlot]],
     candidate_pool: List[RecipeSlot],
+    rng: Optional[random.Random] = None,
 ) -> List[List[RecipeSlot]]:
-    """Ensure no recipe appears more than :data:`MAX_RECIPE_REPEATS` times."""
+    """Ensure no recipe appears more than :data:`MAX_RECIPE_REPEATS` times.
 
+    rng 주입 시 deterministic substitute 선택 — 미주입 시 seed=42 (ILP_RANDOM_SEED 매칭)
+    로 fail-safe deterministic. CI flaky test 방지 (Gemini r1 HIGH #2 fix).
+    """
+
+    if rng is None:
+        rng = random.Random(_DEFAULT_RNG_SEED)
     current_counts = count_recipe_repeats(weekly_plan)
 
     # Index candidate pool by meal_type for quick look-ups, track used IDs.
@@ -70,7 +80,7 @@ def optimize_variety(
                 if c.recipe_id not in used_ids
             ]
             if options:
-                substitute = random.choice(options)
+                substitute = rng.choice(options)
                 new_day.append(substitute)
                 used_ids.add(substitute.recipe_id)
                 current_counts[substitute.recipe_id] += 1
