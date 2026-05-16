@@ -41,6 +41,8 @@ const baseProfile = {
   biomarkers: {},
   primary_goal: 'maintenance' as const,
   secondary_goals: [],
+  exercise_sessions: [],
+  goal_pace: 'moderate' as const,
   diet_type: null,
   cuisine_preferences: [],
   disliked_ingredients: [],

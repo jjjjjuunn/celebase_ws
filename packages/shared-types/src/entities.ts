@@ -58,6 +58,22 @@ export interface User {
 
 // ── bio_profiles ───────────────────────────────────────────────────────────
 
+/**
+ * Exercise session pattern entry — P1 (IMPL-MEAL-P1-PROFILE-SCHEMA-001).
+ *
+ * 사용자 baseline 운동 패턴 1개 (P1-D Exercise EE Model B 입력). type/intensity 는
+ * P1-D 의 MET table 매핑 키. 일간 실제 운동 트래킹은 별도 P3 도메인.
+ */
+export interface ExerciseSession {
+  type: string;
+  intensity: 'light' | 'moderate' | 'vigorous';
+  duration_min: number;
+  frequency_per_week: number;
+}
+
+/** Goal pace — weight_loss/muscle_gain 의 사용자 선택 속도 (P1-C calorie_adjuster 분기). */
+export type GoalPace = 'slow' | 'moderate' | 'aggressive';
+
 export interface BioProfile {
   id: string;
   user_id: string;
@@ -85,6 +101,10 @@ export interface BioProfile {
   // Wellness Goals
   primary_goal: PrimaryGoal | null;
   secondary_goals: string[];
+
+  // P1 (IMPL-MEAL-P1-PROFILE-SCHEMA-001)
+  exercise_sessions: ExerciseSession[];
+  goal_pace: GoalPace;
 
   // Dietary Preferences
   diet_type: DietType | null;
