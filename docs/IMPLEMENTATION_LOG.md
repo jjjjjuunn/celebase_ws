@@ -28,6 +28,32 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-16
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
+task_id: IMPL-MEAL-P1-PROFILE-SCHEMA-001
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0021_bio_profiles_p1_extension.sql
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/schemas/bio-profiles.ts
+  - services/user-service/src/repositories/bio-profile.repository.ts
+  - services/user-service/tests/unit/bio-profile.service.test.ts
+verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-2x + claude-direct-pnpm-test
+---
+### 완료: P1-A — bio_profiles foundation 확장 (exercise_sessions JSONB + goal_pace VARCHAR)
+- **Migration 0021**: `ALTER TABLE bio_profiles ADD COLUMN exercise_sessions JSONB DEFAULT '[]'::jsonb NOT NULL` + `goal_pace VARCHAR(20) DEFAULT 'moderate' NOT NULL CHECK IN ('slow','moderate','aggressive')`. PG 16 instant metadata change — 145 기존 row 즉시 valid (Gemini r1 HIGH #2 conditional false-pos 검증).
+- **shared-types**: `ExerciseSession` interface (type/intensity 'light'|'moderate'|'vigorous'/duration_min/frequency_per_week) + `GoalPace` type 추가. `ExerciseSessionSchema` (Zod max 14 frequency, intensity enum) + `GoalPaceSchema` (3 enum) export. `BioProfileWireSchema` 확장 + `_bioProfileWireRowParity` satisfies guard 갱신.
+- **user-service repository**: `UpsertData` 두 필드 + INSERT/ON CONFLICT DO UPDATE SET 두 컬럼 (`$21::jsonb` 명시 캐스팅, Codex r1 LOW #2 fix-1). DEFAULT 'moderate' = 현재 `calorie_adjuster.GOAL_FACTORS.weight_loss=0.80` 와 backward-compat.
+- **PHI 분류 결정** (Gemini r1 HIGH #1 응답): `.claude/rules/security.md` L151 명시 PHI = `biomarkers/medical_conditions/medications` 3개만. exercise_sessions/goal_pace 는 user lifestyle preference (self-reported, biometric/medical 아님). Lean Launch G2 PHI 제거 결정과 일관. CCPA Sensitive PI 분류는 후속 CHORE-LEGAL-PRIVACY-POLICY (G2) 위임. defense-in-depth: Zod 검증 + RDS at-rest encryption.
+- **4 신규 Zod malformed test** (Gemini r1 MEDIUM + Codex r1 LOW #1 fix-2): baseProfile defaults / ExerciseSessionSchema rejects missing intensity / GoalPaceSchema rejects 'extreme' / ExerciseSessionSchema accepts valid round-trip.
+- **L3 review**: Codex r1 PASS (MEDIUM PHI false-pos accept + LOW × 3 → fix-1/fix-2) → r2 PASS (0 CRITICAL/HIGH/MEDIUM). Gemini r1 HIGH × 2 (PHI false-pos / PG 16 false-pos) + MEDIUM (Zod test) → fix-2 → r2 conditional PASS (diff path workspace 한계, finding 자체 없음).
+- qa-exec: shared-types build PASS + user-service typecheck PASS + 149/149 jest PASS (145 기존 + 4 신규 Zod) + Zod sanity (ExerciseSessionSchema/GoalPaceSchema parse 성공). gate-review secrets PASS.
+- **plan 외 갭 발견**: user-service `calcBmr/calcMacroTargets` (target=tdee-500, 25/50/25) vs meal-plan-engine `calorie_adjuster/macro_rebalancer` (factor 0.80, AMDR) inconsistent. 사용자가 카드에서 보는 `bio_profiles.target_kcal` (1300) ≠ 실제 식단 (1440). **CHORE-MEAL-TARGET-KCAL-SOT-001** 별도 진행.
+### 미완료: P1-B (BMR Mifflin/Katch-McArdle 분기 — body_fat_pct 활용), P1-C (goal_pace × calorie_adjuster), P1-D (Exercise EE Model B — launch 후 defer). Mobile FE onboarding UX (exercise_sessions 입력 폼) Dohyun 트랙 위임 (DEFAULT [] graceful 동작 보장).
+### 연관 파일: db/migrations/0021_bio_profiles_p1_extension.sql, packages/shared-types/src/entities.ts, packages/shared-types/src/schemas/bio-profiles.ts, services/user-service/src/repositories/bio-profile.repository.ts, services/user-service/tests/unit/bio-profile.service.test.ts
+
+
+---
 date: 2026-05-15
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-TABS-PIVOT-001
