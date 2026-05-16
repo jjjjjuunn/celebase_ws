@@ -1,5 +1,8 @@
 """Variety optimiser — spec.md §5.3 Step 5."""
 
+# fallback_only — IMPL-MEAL-P0-ILP-001 (PR-D2) 이후 primary path 는 plan_solver.build_meal_plan.
+# 본 모듈은 ILP timeout / infeasible / model_invalid 시 graceful fallback 으로만 호출됨.
+
 from __future__ import annotations
 
 import logging

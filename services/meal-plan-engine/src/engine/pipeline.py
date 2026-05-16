@@ -47,11 +47,13 @@ from . import (
     nutrition_aggregator,
     nutrition_normalizer,
     phi_minimizer,
+    plan_solver,
     variety_optimizer,
 )
 from .allergen_filter import RecipeSlot, filter_allergens
 from .llm_reranker import llm_rerank_and_narrate
 from .llm_schema import LlmRerankResult
+from .llm_metrics import metrics as llm_metrics_singleton
 from ..config import settings
 
 __all__ = ["run_pipeline"]
@@ -230,12 +232,48 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     await _emit(on_progress, {"pass": 2, "pct": 55})
 
-    # Step 5 – Variety optimiser (weekly plan)
-    weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
-    if weekly_plan and any(day for day in weekly_plan):
-        varied_plan = variety_optimizer.optimize_variety(weekly_plan, candidate_pool)
-    else:
-        varied_plan = []
+    # Step 5 – ILP solver (P0.4 — Plan §Task 5) with fallback to legacy variety optimiser.
+    varied_plan: List[List[RecipeSlot]] = []
+    ilp_attempted = False
+    if settings.PIPELINE_USE_ILP:
+        ilp_attempted = True
+        try:
+            varied_plan = plan_solver.build_meal_plan(
+                candidate_pool=safe_recipes,
+                target_kcal=int(target_kcal),
+                macros=macros,
+                duration_days=duration_days,
+                time_limit_sec=settings.ILP_TIME_LIMIT_SEC,
+                random_seed=settings.ILP_RANDOM_SEED,
+                weights=settings.PIPELINE_ILP_WEIGHTS or None,
+            )
+            llm_metrics_singleton.record_ilp_success(status="optimal_or_feasible")
+        except plan_solver.ILPTimeoutError:
+            llm_metrics_singleton.record_ilp_timeout(reason="solver_timeout")
+            varied_plan = []
+        except plan_solver.ILPInfeasibleError:
+            llm_metrics_singleton.record_ilp_infeasible(reason="ilp_infeasible")
+            varied_plan = []
+        except plan_solver.ILPModelError:
+            llm_metrics_singleton.record_ilp_model_error(reason="model_invalid")
+            _logger.exception(
+                "ILP solver returned MODEL_INVALID — falling back to variety optimiser"
+            )
+            varied_plan = []
+
+    # Fallback (PIPELINE_USE_ILP=false or ILP exception caught above)
+    if not varied_plan:
+        weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
+        if weekly_plan and any(day for day in weekly_plan):
+            varied_plan = variety_optimizer.optimize_variety(
+                weekly_plan, candidate_pool
+            )
+        if not varied_plan and ilp_attempted:
+            # PR-C2 deferred_backlog 해결: ILP 시도 후 fallback 도 빈 plan 이면 fail-closed.
+            # _round_totals 의 0.0 silent plan 방지 — FE 가 status='failed' schema 로 받음.
+            raise plan_solver.ILPInfeasibleError(
+                "Both ILP solver and variety_optimizer fallback produced empty plan"
+            )
 
     await _emit(on_progress, {"pass": 2, "pct": 70})
 

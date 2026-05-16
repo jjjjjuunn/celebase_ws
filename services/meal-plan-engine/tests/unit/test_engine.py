@@ -12,6 +12,7 @@ from typing import List
 import math
 
 import pytest
+from unittest.mock import patch
 
 from src.engine import (
     calorie_adjuster,
@@ -249,15 +250,16 @@ async def test_run_pipeline_produces_weekly_plan_of_duration_length():  # noqa: 
     async def _cb(payload: dict) -> None:
         events.append(payload)
 
-    result = await run_pipeline(
-        plan_id="plan-test",
-        base_diet=base_diet,
-        bio_profile=bio_profile,
-        preferences=preferences,
-        candidate_pool=candidate_pool,
-        duration_days=7,
-        on_progress=_cb,
-    )
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", False):
+        result = await run_pipeline(
+            plan_id="plan-test",
+            base_diet=base_diet,
+            bio_profile=bio_profile,
+            preferences=preferences,
+            candidate_pool=candidate_pool,
+            duration_days=7,
+            on_progress=_cb,
+        )
 
     assert result["status"] == "completed"
     assert len(result["weekly_plan"]) == 7
@@ -279,13 +281,14 @@ async def test_run_pipeline_duration_three_produces_three_days():  # noqa: D401
     }
     preferences = {"allergies": [], "intolerances": []}
 
-    result = await run_pipeline(
-        plan_id="plan-short",
-        base_diet=base_diet,
-        bio_profile=bio_profile,
-        preferences=preferences,
-        candidate_pool=candidate_pool,
-        duration_days=3,
-        on_progress=lambda _p: None,
-    )
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", False):
+        result = await run_pipeline(
+            plan_id="plan-short",
+            base_diet=base_diet,
+            bio_profile=bio_profile,
+            preferences=preferences,
+            candidate_pool=candidate_pool,
+            duration_days=3,
+            on_progress=lambda _p: None,
+        )
     assert len(result["weekly_plan"]) == 3
