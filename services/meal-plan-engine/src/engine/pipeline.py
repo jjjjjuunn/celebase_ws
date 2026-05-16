@@ -238,9 +238,19 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     ilp_attempted = False
     if settings.PIPELINE_USE_ILP:
         ilp_attempted = True
+        # filter_allergens 의 UNAVAILABLE placeholder slot (allergen_filter.py:81) 은
+        # nutrition=None 이라 plan_solver 의 strict validation (plan_solver.py:159) 에서
+        # ValueError → pipeline 미포착 → SQS retry loop. Codex r1 HIGH fix.
+        # boundary 에서 필터 → ILP infeasible 시 자연스럽게 fallback path 진입.
+        solver_pool = [
+            slot
+            for slot in safe_recipes
+            if slot.nutrition is not None
+            and all(key in slot.nutrition for key in ("calories", "protein_g", "fat_g"))
+        ]
         try:
             varied_plan = plan_solver.build_meal_plan(
-                candidate_pool=safe_recipes,
+                candidate_pool=solver_pool,
                 target_kcal=int(target_kcal),
                 macros=macros,
                 duration_days=duration_days,

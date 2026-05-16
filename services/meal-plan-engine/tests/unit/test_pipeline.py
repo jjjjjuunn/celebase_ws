@@ -355,6 +355,57 @@ async def test_pipeline_ilp_disabled_uses_fallback() -> None:
 
 
 @pytest.mark.asyncio
+async def test_pipeline_filters_nutrition_none_slots_from_ilp_pool() -> None:
+    """UNAVAILABLE placeholder slot (nutrition=None) → ILP pool 에서 제외 (Codex r1 HIGH fix).
+
+    `filter_allergens` 가 안전 대안 부재 시 nutrition=None placeholder 생성
+    (allergen_filter.py:81). plan_solver 는 nutrition=None 시 strict ValueError raise
+    (plan_solver.py:159). pipeline 이 boundary 에서 필터링 → ValueError 미발생,
+    필터된 풀로 정상 호출.
+    """
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id=f"r{i}-{mt}",
+            meal_type=mt,
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 400,
+                "protein_g": 25,
+                "carbs_g": 50,
+                "fat_g": 12,
+            },
+        )
+        for mt in ("breakfast", "lunch", "dinner", "snack")
+        for i in range(6)
+    ]
+    placeholder = RecipeSlot(
+        recipe_id="UNAVAILABLE",
+        meal_type="snack",
+        allergens=[],
+        ingredients=[],
+        nutrition=None,
+    )
+    pool_with_placeholder = pool + [placeholder]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": pool_with_placeholder}
+    inputs["candidate_pool"] = pool_with_placeholder
+
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver,
+    ):
+        mock_solver.return_value = [[pool[0]]] * inputs["duration_days"]
+        result = await run_pipeline(**inputs)
+
+    assert mock_solver.called
+    called_pool = mock_solver.call_args.kwargs["candidate_pool"]
+    assert all(slot.nutrition is not None for slot in called_pool)
+    assert placeholder not in called_pool
+    assert result["status"] == "completed"
+
+
+@pytest.mark.asyncio
 async def test_pipeline_raises_when_both_ilp_and_fallback_empty() -> None:
     """ILP infeasible + fallback `_build_weekly_plan` empty → ILPInfeasibleError fail-closed.
 
