@@ -5868,6 +5868,34 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-dir
 
 
 ---
+date: 2026-05-16
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2+r3+r4) + gemini-2.5-pro-via-cli-0.42 (r1+r2+r3)
+task_id: IMPL-MEAL-P0-ILP-001-b
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/engine/variety_optimizer.py
+  - services/meal-plan-engine/src/engine/llm_metrics.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+verified_by: claude-opus-4-7 + codex-review-4x + gemini-adversarial-3x + claude-direct-pytest
+---
+### 완료: P0.4-b — pipeline.py ILP 통합 + variety_optimizer fallback 결정성 + llm_metrics ILP 4 카운터 (PR-D2)
+- `pipeline.py` Step 5: `plan_solver.build_meal_plan` primary path + `variety_optimizer.optimize_variety` fallback (PIPELINE_USE_ILP=False or ILP exception). 4 종 ILP exception (ILPTimeoutError / ILPInfeasibleError / ILPModelError / boundary ValueError 회피) 분기 처리 + Prometheus 카운터 emit.
+- **boundary defensive filter** (Codex r1 HIGH fix-2): `filter_allergens` 의 nutrition=None UNAVAILABLE placeholder (allergen_filter.py:81) 가 plan_solver strict validation (plan_solver.py:159) 와 충돌 → pipeline 호출 직전 `solver_pool = [s for s in safe_recipes if s.nutrition is not None and required keys present]` 필터링.
+- **fallback 결정성** (Gemini r1 HIGH fix-1): `variety_optimizer.optimize_variety` 에 `rng: random.Random` 매개변수 추가 + pipeline 에서 `random.Random(settings.ILP_RANDOM_SEED)` 명시 주입. ILP_RANDOM_SEED 와 일치한 fail-safe default (seed=42) 모듈 상수.
+- **PR-C2 deferred_backlog 완전 해결** (Gemini r2 HIGH fix-3): 초기 `if not varied_plan and ilp_attempted: raise` 가 PIPELINE_USE_ILP=False 분기에서 silent 0.0 plan 통과 → `ilp_attempted` 조건 제거. ILP on/off 무관하게 fallback empty 시 ILPInfeasibleError raise (`_round_totals` 0.0 silent plan 방지, sqs_consumer status='failed' 처리).
+- `llm_metrics.py`: `record_ilp_success` (status="optimal_or_feasible") + `record_ilp_timeout` (reason="solver_timeout") + `record_ilp_infeasible` (reason="ilp_infeasible") + `record_ilp_model_error` (reason="model_invalid") 4 신규 메서드. `inc(...)` 위임.
+- `variety_optimizer.py`: `# fallback_only` 주석 + `_DEFAULT_RNG_SEED=42` 상수 + `Optional[random.Random]` 매개변수 + `random.choice → rng.choice` (line 73).
+- `test_pipeline.py` 6 신규 테스트: uses_ilp_solver_when_enabled / falls_back_when_ilp_timeout / ilp_disabled_uses_fallback / filters_nutrition_none_slots_from_ilp_pool / raises_when_both_ilp_and_fallback_empty / raises_when_ilp_disabled_and_fallback_empty (= 12 total in pipeline file).
+- `test_engine.py`: round-robin assertion 갱신 (legacy `_build_weekly_plan` fallback path 보존 검증, ILP path 는 별도 test_pipeline 에서).
+- **L3 review (Codex 4 rounds + Gemini 3 rounds)**: Codex r1/r2 HIGH (UNAVAILABLE) → fix-2 → r3 MEDIUM (false-positive, pydantic v2 boot-time ValidationError 검증) + LOW 3 → r4 PASS. Gemini r1 CRITICAL × 1 (false-pos: exception ≠ early-return, advisor verdict) + HIGH × 2 + MEDIUM × 1 + LOW × 1 → fix-1 → r2 HIGH × 2 (#1 진짜, #2 false-pos) + MEDIUM × 2 → fix-3 → r3 PASS (0 finding).
+- qa-exec: ruff format/check PASS + pytest 159/159 PASS (148 기존 + 11 신규 ILP) + pydantic boot-time ValidationError 검증 + PIPELINE_ILP_WEIGHTS env coerce 확인. turbo/fake_stubs false-failure (Python-only worktree pattern).
+### 미완료: 사용자 측 staging 배포 시 PIPELINE_USE_ILP=True 기본 + 운영 모니터링 (ilp_timeout_total / ilp_infeasible_total alerting). 후속 chore: ILP metric label cardinality 엄격화 (allow-listed enum, Codex r4 LOW), CHORE-MAIN-PYTHON-DEPS (gate-check Python venv 강제, 별도 진행).
+### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/engine/variety_optimizer.py, services/meal-plan-engine/src/engine/llm_metrics.py, services/meal-plan-engine/tests/unit/test_pipeline.py, services/meal-plan-engine/tests/unit/test_engine.py
+
+
+---
 date: 2026-05-15
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2+r3+r4) + gemini-2.5-pro-via-cli-0.42
 task_id: IMPL-MEAL-P0-ILP-001-a
