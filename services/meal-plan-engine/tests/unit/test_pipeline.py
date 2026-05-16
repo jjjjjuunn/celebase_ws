@@ -424,3 +424,19 @@ async def test_pipeline_raises_when_both_ilp_and_fallback_empty() -> None:
     ):
         with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
             await run_pipeline(**inputs)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_raises_when_ilp_disabled_and_fallback_empty() -> None:
+    """PIPELINE_USE_ILP=False + fallback empty → ILPInfeasibleError fail-closed (fix-3).
+
+    Gemini r2 HIGH #1 + Codex r3 LOW #2 회귀 보호: rollback feature flag 로 ILP 비활성화
+    한 경우에도 PR-C2 deferred_backlog (0.0 silent plan) 재발 방지.
+    """
+    inputs = _baseline_inputs()
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", False),
+        patch("src.engine.pipeline._build_weekly_plan", return_value=[]),
+    ):
+        with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
+            await run_pipeline(**inputs)

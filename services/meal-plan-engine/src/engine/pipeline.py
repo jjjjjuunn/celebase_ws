@@ -235,9 +235,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     # Step 5 – ILP solver (P0.4 — Plan §Task 5) with fallback to legacy variety optimiser.
     varied_plan: List[List[RecipeSlot]] = []
-    ilp_attempted = False
     if settings.PIPELINE_USE_ILP:
-        ilp_attempted = True
         # filter_allergens 의 UNAVAILABLE placeholder slot (allergen_filter.py:81) 은
         # nutrition=None 이라 plan_solver 의 strict validation (plan_solver.py:159) 에서
         # ValueError → pipeline 미포착 → SQS retry loop. Codex r1 HIGH fix.
@@ -281,9 +279,11 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
             varied_plan = variety_optimizer.optimize_variety(
                 weekly_plan, candidate_pool, rng=fallback_rng
             )
-        if not varied_plan and ilp_attempted:
-            # PR-C2 deferred_backlog 해결: ILP 시도 후 fallback 도 빈 plan 이면 fail-closed.
-            # _round_totals 의 0.0 silent plan 방지 — FE 가 status='failed' schema 로 받음.
+        # PR-C2 deferred_backlog 해결 (fix-3): ilp_attempted 무관하게 fail-closed.
+        # PIPELINE_USE_ILP=False 분기에서도 empty plan = abnormal (allergy filter 가
+        # 모든 recipe 제거 등). _round_totals 의 0.0 silent plan 방지.
+        # Gemini r2 HIGH #1 + Codex r3 LOW #2 finding 대응.
+        if not varied_plan:
             raise plan_solver.ILPInfeasibleError(
                 "Both ILP solver and variety_optimizer fallback produced empty plan"
             )
