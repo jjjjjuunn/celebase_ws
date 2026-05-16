@@ -5796,7 +5796,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + NIH-ODS-WebSe
 date: 2026-05-14
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
 task_id: IMPL-MEAL-P0-AGG-001
-commit_sha: PENDING
+commit_sha: de5a63f
 files_changed:
   - services/meal-plan-engine/src/engine/nutrition_aggregator.py
   - services/meal-plan-engine/src/engine/pipeline.py
@@ -5820,7 +5820,7 @@ verified_by: claude-opus-4-7 + codex-review + gemini-adversarial + claude-direct
 date: 2026-05-15
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
 task_id: IMPL-MEAL-P0-DAILY-001-a
-commit_sha: PENDING
+commit_sha: befcf0b
 files_changed:
   - services/meal-plan-engine/src/engine/pipeline.py
   - packages/shared-types/src/jsonb/index.ts
@@ -5845,7 +5845,7 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-dir
 date: 2026-05-15
 agent: claude-opus-4-7 + codex-gpt-5-codex + gemini-2.5-pro-via-cli-0.42
 task_id: IMPL-MEAL-P0-DAILY-001-b
-commit_sha: PENDING
+commit_sha: 186bfeb
 files_changed:
   - db/migrations/0020_meal_plan_monthly_stats_redefine.sql
   - spec.md
@@ -5871,7 +5871,7 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-dir
 date: 2026-05-16
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2+r3+r4) + gemini-2.5-pro-via-cli-0.42 (r1+r2+r3)
 task_id: IMPL-MEAL-P0-ILP-001-b
-commit_sha: PENDING
+commit_sha: 7320368
 files_changed:
   - services/meal-plan-engine/src/engine/pipeline.py
   - services/meal-plan-engine/src/engine/variety_optimizer.py
@@ -5899,7 +5899,7 @@ verified_by: claude-opus-4-7 + codex-review-4x + gemini-adversarial-3x + claude-
 date: 2026-05-15
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2+r3+r4) + gemini-2.5-pro-via-cli-0.42
 task_id: IMPL-MEAL-P0-ILP-001-a
-commit_sha: PENDING
+commit_sha: 0716828
 files_changed:
   - services/meal-plan-engine/src/engine/plan_solver.py
   - services/meal-plan-engine/tests/unit/test_plan_solver.py
