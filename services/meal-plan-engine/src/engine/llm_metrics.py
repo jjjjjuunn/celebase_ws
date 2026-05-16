@@ -77,6 +77,22 @@ class LlmMetrics:
             self.inc("llm_latency_seconds_total", value=latency_s)
             self.inc("llm_latency_calls")
 
+    def record_ilp_success(self, *, status: str) -> None:
+        """ILP solver 성공 (OPTIMAL or FEASIBLE) — IMPL-MEAL-P0-ILP-001-b."""
+        self.inc("ilp_success_total", status=status)
+
+    def record_ilp_timeout(self, *, reason: str) -> None:
+        """ILP solver time_limit_sec 초과 → fallback 진입."""
+        self.inc("ilp_timeout_total", reason=reason)
+
+    def record_ilp_infeasible(self, *, reason: str) -> None:
+        """ILP solver INFEASIBLE → fallback 진입 또는 fail-closed."""
+        self.inc("ilp_infeasible_total", reason=reason)
+
+    def record_ilp_model_error(self, *, reason: str) -> None:
+        """ILP solver MODEL_INVALID (수학적 모델링 오류) — 운영 alert 신호."""
+        self.inc("ilp_model_error_total", reason=reason)
+
     def record_gate_failure(self, gate: str, reason: str | None = None) -> None:
         """Safety Gate 위반 1건 기록.
 

@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
+from src.engine import plan_solver
 from src.engine.allergen_filter import RecipeSlot
 from src.engine.llm_schema import LlmProvenance, LlmRerankResult
 from src.engine.pipeline import run_pipeline
@@ -21,6 +22,12 @@ _REQUIRED_KEYS = {"mode", "quota_exceeded", "ui_hint", "llm_provenance"}
 
 def _mk_slot(rid: str, meal: str = "lunch") -> RecipeSlot:
     return RecipeSlot(recipe_id=rid, meal_type=meal, allergens=[], ingredients=[])
+
+
+@pytest.fixture(autouse=True)
+def _disable_ilp_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("src.engine.pipeline.settings.PIPELINE_USE_ILP", False)
+    yield
 
 
 def _baseline_inputs() -> Dict[str, Any]:
@@ -286,3 +293,150 @@ async def test_daily_totals_micronutrients_nested_not_flat() -> None:
     # vitamin/iron 등은 top-level 에 노출되지 않아야 함 (schema 정합성)
     assert "vitamin_c_mg" not in totals
     assert "iron_mg" not in totals
+
+
+@pytest.mark.asyncio
+async def test_pipeline_uses_ilp_solver_when_enabled() -> None:
+    """PIPELINE_USE_ILP=True (default) → plan_solver.build_meal_plan 호출 + 결과 사용."""
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id=f"r{i}",
+            meal_type=mt,
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 400 + i * 50,
+                "protein_g": 25 + i,
+                "carbs_g": 50,
+                "fat_g": 12,
+            },
+        )
+        for mt in ("breakfast", "lunch", "dinner", "snack")
+        for i in range(6)
+    ]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True):
+        with patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver:
+            mock_solver.return_value = [[pool[0]]] * inputs["duration_days"]
+            result = await run_pipeline(**inputs)
+    assert mock_solver.called
+    assert result["status"] == "completed"
+    assert len(result["weekly_plan"]) == inputs["duration_days"]
+
+
+@pytest.mark.asyncio
+async def test_pipeline_falls_back_when_ilp_timeout() -> None:
+    """ILPTimeoutError → variety_optimizer fallback path 진입."""
+    inputs = _baseline_inputs()
+
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True):
+        with patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=plan_solver.ILPTimeoutError("test timeout"),
+        ):
+            result = await run_pipeline(**inputs)
+    assert result["status"] == "completed"
+    assert "mode" in result and "quota_exceeded" in result
+    assert "ui_hint" in result and "llm_provenance" in result
+
+
+@pytest.mark.asyncio
+async def test_pipeline_ilp_disabled_uses_fallback() -> None:
+    """PIPELINE_USE_ILP=False → plan_solver 호출 X, fallback 진입."""
+    inputs = _baseline_inputs()
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", False):
+        with patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver:
+            result = await run_pipeline(**inputs)
+    assert not mock_solver.called
+    assert result["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_pipeline_filters_nutrition_none_slots_from_ilp_pool() -> None:
+    """UNAVAILABLE placeholder slot (nutrition=None) → ILP pool 에서 제외 (Codex r1 HIGH fix).
+
+    `filter_allergens` 가 안전 대안 부재 시 nutrition=None placeholder 생성
+    (allergen_filter.py:81). plan_solver 는 nutrition=None 시 strict ValueError raise
+    (plan_solver.py:159). pipeline 이 boundary 에서 필터링 → ValueError 미발생,
+    필터된 풀로 정상 호출.
+    """
+    pool: List[RecipeSlot] = [
+        RecipeSlot(
+            recipe_id=f"r{i}-{mt}",
+            meal_type=mt,
+            allergens=[],
+            ingredients=[],
+            nutrition={
+                "calories": 400,
+                "protein_g": 25,
+                "carbs_g": 50,
+                "fat_g": 12,
+            },
+        )
+        for mt in ("breakfast", "lunch", "dinner", "snack")
+        for i in range(6)
+    ]
+    placeholder = RecipeSlot(
+        recipe_id="UNAVAILABLE",
+        meal_type="snack",
+        allergens=[],
+        ingredients=[],
+        nutrition=None,
+    )
+    pool_with_placeholder = pool + [placeholder]
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": pool_with_placeholder}
+    inputs["candidate_pool"] = pool_with_placeholder
+
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver,
+    ):
+        mock_solver.return_value = [[pool[0]]] * inputs["duration_days"]
+        result = await run_pipeline(**inputs)
+
+    assert mock_solver.called
+    called_pool = mock_solver.call_args.kwargs["candidate_pool"]
+    assert all(slot.nutrition is not None for slot in called_pool)
+    assert placeholder not in called_pool
+    assert result["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_pipeline_raises_when_both_ilp_and_fallback_empty() -> None:
+    """ILP infeasible + fallback `_build_weekly_plan` empty → ILPInfeasibleError fail-closed.
+
+    PR-C2 deferred_backlog (0.0 silent plan) 회귀 보호 (Gemini r1 MEDIUM fix).
+    sqs_consumer 의 outer except (line 255) 가 `update_meal_plan(..., {"status": "failed"})`
+    로 받아 FE 가 silent 0.0 calories plan 받지 않도록 보장.
+    """
+    inputs = _baseline_inputs()
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=plan_solver.ILPInfeasibleError("test infeasible"),
+        ),
+        patch("src.engine.pipeline._build_weekly_plan", return_value=[]),
+    ):
+        with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
+            await run_pipeline(**inputs)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_raises_when_ilp_disabled_and_fallback_empty() -> None:
+    """PIPELINE_USE_ILP=False + fallback empty → ILPInfeasibleError fail-closed (fix-3).
+
+    Gemini r2 HIGH #1 + Codex r3 LOW #2 회귀 보호: rollback feature flag 로 ILP 비활성화
+    한 경우에도 PR-C2 deferred_backlog (0.0 silent plan) 재발 방지.
+    """
+    inputs = _baseline_inputs()
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", False),
+        patch("src.engine.pipeline._build_weekly_plan", return_value=[]),
+    ):
+        with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
+            await run_pipeline(**inputs)

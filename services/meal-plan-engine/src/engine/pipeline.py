@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 from datetime import date, timedelta
 from typing import Any, Callable, Dict, List
 
@@ -47,11 +48,13 @@ from . import (
     nutrition_aggregator,
     nutrition_normalizer,
     phi_minimizer,
+    plan_solver,
     variety_optimizer,
 )
 from .allergen_filter import RecipeSlot, filter_allergens
 from .llm_reranker import llm_rerank_and_narrate
 from .llm_schema import LlmRerankResult
+from .llm_metrics import metrics as llm_metrics_singleton
 from ..config import settings
 
 __all__ = ["run_pipeline"]
@@ -230,12 +233,60 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
 
     await _emit(on_progress, {"pass": 2, "pct": 55})
 
-    # Step 5 – Variety optimiser (weekly plan)
-    weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
-    if weekly_plan and any(day for day in weekly_plan):
-        varied_plan = variety_optimizer.optimize_variety(weekly_plan, candidate_pool)
-    else:
-        varied_plan = []
+    # Step 5 – ILP solver (P0.4 — Plan §Task 5) with fallback to legacy variety optimiser.
+    varied_plan: List[List[RecipeSlot]] = []
+    if settings.PIPELINE_USE_ILP:
+        # filter_allergens 의 UNAVAILABLE placeholder slot (allergen_filter.py:81) 은
+        # nutrition=None 이라 plan_solver 의 strict validation (plan_solver.py:159) 에서
+        # ValueError → pipeline 미포착 → SQS retry loop. Codex r1 HIGH fix.
+        # boundary 에서 필터 → ILP infeasible 시 자연스럽게 fallback path 진입.
+        solver_pool = [
+            slot
+            for slot in safe_recipes
+            if slot.nutrition is not None
+            and all(key in slot.nutrition for key in ("calories", "protein_g", "fat_g"))
+        ]
+        try:
+            varied_plan = plan_solver.build_meal_plan(
+                candidate_pool=solver_pool,
+                target_kcal=int(target_kcal),
+                macros=macros,
+                duration_days=duration_days,
+                time_limit_sec=settings.ILP_TIME_LIMIT_SEC,
+                random_seed=settings.ILP_RANDOM_SEED,
+                weights=settings.PIPELINE_ILP_WEIGHTS or None,
+            )
+            llm_metrics_singleton.record_ilp_success(status="optimal_or_feasible")
+        except plan_solver.ILPTimeoutError:
+            llm_metrics_singleton.record_ilp_timeout(reason="solver_timeout")
+            varied_plan = []
+        except plan_solver.ILPInfeasibleError:
+            llm_metrics_singleton.record_ilp_infeasible(reason="ilp_infeasible")
+            varied_plan = []
+        except plan_solver.ILPModelError:
+            llm_metrics_singleton.record_ilp_model_error(reason="model_invalid")
+            _logger.exception(
+                "ILP solver returned MODEL_INVALID — falling back to variety optimiser"
+            )
+            varied_plan = []
+
+    # Fallback (PIPELINE_USE_ILP=false or ILP exception caught above)
+    if not varied_plan:
+        weekly_plan = _build_weekly_plan(safe_recipes, duration_days)
+        if weekly_plan and any(day for day in weekly_plan):
+            # Gemini r1 HIGH #2 fix: seeded rng → fallback path 결정성 보장
+            fallback_rng = random.Random(settings.ILP_RANDOM_SEED)
+            varied_plan = variety_optimizer.optimize_variety(
+                weekly_plan, candidate_pool, rng=fallback_rng
+            )
+        # PR-C2 deferred_backlog 해결 (fix-3): ilp_attempted 무관하게 fail-closed.
+        # PIPELINE_USE_ILP=False 분기에서도 empty plan = abnormal (allergy filter 가
+        # 모든 recipe 제거 등). _round_totals 의 0.0 silent plan 방지.
+        # Gemini r2 HIGH #1 + Codex r3 LOW #2 finding 대응.
+        if not varied_plan:
+            raise plan_solver.ILPInfeasibleError(
+                "Both ILP solver and variety_optimizer fallback produced empty plan"
+            )
 
     await _emit(on_progress, {"pass": 2, "pct": 70})
 
