@@ -5868,6 +5868,36 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial + claude-dir
 
 
 ---
+date: 2026-05-15
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2+r3+r4) + gemini-2.5-pro-via-cli-0.42
+task_id: IMPL-MEAL-P0-ILP-001-a
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/plan_solver.py
+  - services/meal-plan-engine/tests/unit/test_plan_solver.py
+  - services/meal-plan-engine/requirements.txt
+  - services/meal-plan-engine/src/config.py
+verified_by: claude-opus-4-7 + codex-review-4x + gemini-adversarial + claude-direct-pytest
+---
+### 완료: P0.4-a — plan_solver.py 신규 (OR-Tools CP-SAT) + ortools deps + config settings (PR-D1)
+- `plan_solver.py` 신규 (~310 LOC): `build_meal_plan` + 3 예외 (`ILPTimeoutError`, `ILPInfeasibleError`, `ILPModelError`) + `DEFAULT_WEIGHTS` export. variables `x[d, mt, i] ∈ {0,1}`, hard constraints 6 (슬롯 1 recipe / forbidden 차단 / max_repeats ≤ 2 / kcal band ± 100 / protein ≥ 95% / fat_ratio 0.20-0.35 선형화), objective 4 term (λ_kcal=1.0, λ_protein=0.5, λ_macro=0.3, λ_variety=0.2).
+- **결정성**: `random_seed=42` + `num_search_workers=1` + `interleave_search=False` (Gemini r1 HIGH fix-1).
+- **NUTRITION_BOUNDS defensive validation** (Gemini r1 CRITICAL fix-1): `_MIN_DAILY_KCAL=1200` / `_MAX_DAILY_KCAL=5000` 모듈 상수 + input check. caller pipeline.calorie_adjuster 가 이미 clamp 하지만 standalone solver 안전망.
+- **MODEL_INVALID 분기** (Gemini r1 MEDIUM fix-1): cp_model.MODEL_INVALID → `ILPModelError` (운영 버그 신호, INFEASIBLE 와 분리하여 alert).
+- 정수 scale: `_SCALE=10` (소수점 1자리 보존), `_WEIGHT_SCALE=100` (weight float → int 변환). fat_ratio 선형화: `total_fat_kcal × 100 ≥ 20 × total_cal` (양변 _SCALE 일치, Gemini CRITICAL #2 false-positive 검증).
+- **ortools 버전 변경**: Plan 의 `9.11.*` → `9.15.*`. 9.11 wheel 은 cp312 까지만, Python 3.13.5 미지원. 9.15.6755 cp313 arm64 wheel 사전 검증 (macOS + manylinux_aarch64).
+- **API migration**: `cp_model.LinearExpr.Constant()` (9.11 PascalCase, deprecated) → `constant()` (9.15 소문자). Claude direct fix after Codex implement (2 locations).
+- `test_plan_solver.py` 10 시나리오: basic 7day / forbidden_ids / max_repeats / infeasible / performance (pool 200 < 10s) / determinism / default_weights / **NUTRITION_BOUNDS below + above** / **ILPModelError class export**.
+- requirements.txt: `ortools==9.15.*` (transitive: absl-py, immutabledict, numpy, pandas, protobuf, ~150MB).
+- config.py: `ILP_TIME_LIMIT_SEC` (1.0~60.0, default 10.0) + `ILP_RANDOM_SEED` (42) + `PIPELINE_ILP_WEIGHTS` (override dict) + `PIPELINE_USE_ILP` (feature flag, PR-D2 fallback 분기 시 false).
+- **L3 review (Codex 4 rounds + Gemini 1)**: Codex r1 PASS (0 finding). Gemini r1 CRITICAL × 2 + HIGH × 3 + MEDIUM × 4 + LOW × 2 → fix-1 (3 항목 실제 fix + 8 항목 verdict 차분). Codex r2 false-positive (IMPLEMENTATION_LOG out-of-scope, 다른 세션 entry). Codex r3 stale base false-positive (rebase 로 해결). Codex r4 PASS — "하드 제약·결정성 옵션 적절, NUTRITION_BOUNDS 방어 로직 부합".
+- qa-exec: pytest 10/10 + 전체 153/153 PASS, ortools 9.15.6755 import OK. ruff 는 sandbox .venv 부재 false-failure (main repo .venv 에서 이미 검증).
+- **환경 정비**: 레포 이동 후 venv shebang 깨짐 → Python 3.13.5 명시 venv 재생성. system python3 이 3.14 로 바뀐 환경에서 pydantic-core source build 실패 → `/opt/homebrew/bin/python3.13` 명시.
+### 미완료: PR-D2 (IMPL-MEAL-P0-ILP-001-b — pipeline.py 통합 + variety_optimizer fallback 주석 + llm_metrics Prometheus 카운터 + test_engine round-robin assertion). PR-C2 deferred_backlog 의 `_round_totals` 0.0 fallback NUTRITION_BOUNDS 충돌 처리 (ILP infeasible 분기에서 status='failed' / WARNING log).
+### 연관 파일: services/meal-plan-engine/src/engine/plan_solver.py, services/meal-plan-engine/tests/unit/test_plan_solver.py, services/meal-plan-engine/requirements.txt, services/meal-plan-engine/src/config.py
+
+
+---
 date: 2026-05-14
 agent: claude-opus-4-7 + advisor (codex-gpt-5-codex + gemini-2.5-pro classifier unavailable, fallback)
 task_id: IMPL-AUTH-LAZY-PROVISION-001
