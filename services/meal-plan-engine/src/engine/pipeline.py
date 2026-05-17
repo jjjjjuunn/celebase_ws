@@ -211,6 +211,8 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         fat_ratio=preferences.get("fat_ratio", 0.35),
         diet_type=prof_macro.get("diet_type", "balanced"),
         medications=prof_macro.get("medications") or [],
+        # CHORE-MEAL-AGGRESSIVE-PROTEIN-001: weight_loss × aggressive → protein 2.0g/kg 강화
+        goal_pace=prof_macro.get("goal_pace", "moderate"),
     )
 
     await _emit(on_progress, {"pass": 2, "pct": 25})
