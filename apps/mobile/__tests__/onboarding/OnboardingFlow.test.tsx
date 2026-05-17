@@ -210,6 +210,8 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
         biomarkers: {},
         primary_goal: 'weight_loss',
         secondary_goals: [],
+        exercise_sessions: [],
+        goal_pace: 'moderate',
         diet_type: null,
         cuisine_preferences: [],
         disliked_ingredients: [],

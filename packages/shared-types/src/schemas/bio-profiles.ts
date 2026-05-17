@@ -10,6 +10,17 @@ import type { BioProfile } from '../entities.js';
 import { UuidV7 } from './_utils.js';
 import { BiomarkersSchema, MacroTargetsSchema } from '../jsonb/index.js';
 
+/** Exercise session wire schema — P1 (IMPL-MEAL-P1-PROFILE-SCHEMA-001). */
+export const ExerciseSessionSchema = z.object({
+  type: z.string().min(1).max(50),
+  intensity: z.enum(['light', 'moderate', 'vigorous']),
+  duration_min: z.number().int().positive(),
+  frequency_per_week: z.number().int().positive().max(14),
+});
+
+/** Goal pace wire schema — P1 (IMPL-MEAL-P1-PROFILE-SCHEMA-001). */
+export const GoalPaceSchema = z.enum(['slow', 'moderate', 'aggressive']);
+
 export const BioProfileWireSchema = z.object({
   id: UuidV7,
   user_id: UuidV7,
@@ -34,6 +45,10 @@ export const BioProfileWireSchema = z.object({
 
   primary_goal: PrimaryGoal.nullable(),
   secondary_goals: z.array(z.string()),
+
+  // P1 (IMPL-MEAL-P1-PROFILE-SCHEMA-001)
+  exercise_sessions: z.array(ExerciseSessionSchema),
+  goal_pace: GoalPaceSchema,
 
   diet_type: DietType.nullable(),
   cuisine_preferences: z.array(z.string()),
@@ -93,6 +108,8 @@ const _bioProfileWireRowParity = null as unknown as BioProfileWire satisfies {
   biomarkers: BioProfile['biomarkers'];
   primary_goal: BioProfile['primary_goal'];
   secondary_goals: BioProfile['secondary_goals'];
+  exercise_sessions: BioProfile['exercise_sessions'];
+  goal_pace: BioProfile['goal_pace'];
   diet_type: BioProfile['diet_type'];
   cuisine_preferences: BioProfile['cuisine_preferences'];
   disliked_ingredients: BioProfile['disliked_ingredients'];

@@ -41,6 +41,8 @@ const baseProfile = {
   biomarkers: {},
   primary_goal: 'maintenance' as const,
   secondary_goals: [],
+  exercise_sessions: [],
+  goal_pace: 'moderate' as const,
   diet_type: null,
   cuisine_preferences: [],
   disliked_ingredients: [],
@@ -199,5 +201,39 @@ describe('bioProfileService.recalculate — activity multipliers', () => {
     const calls = mockUpdateCalculated.mock.calls;
     const call = calls[calls.length - 1] as [unknown, unknown, { tdee_kcal: number }, unknown];
     expect(call[2].tdee_kcal).toBe(expectedTdee);
+  });
+});
+
+describe('bioProfileService P1-A — exercise_sessions / goal_pace round-trip (IMPL-MEAL-P1-PROFILE-SCHEMA-001)', () => {
+  it('baseProfile defaults: exercise_sessions [] + goal_pace moderate', () => {
+    expect(baseProfile.exercise_sessions).toEqual([]);
+    expect(baseProfile.goal_pace).toBe('moderate');
+  });
+
+  it('Zod schema rejects malformed exercise session (missing intensity)', async () => {
+    const { schemas } = await import('@celebbase/shared-types');
+    expect(() =>
+      schemas.ExerciseSessionSchema.parse({
+        type: 'running',
+        duration_min: 30,
+        frequency_per_week: 3,
+      }),
+    ).toThrow(/intensity/);
+  });
+
+  it('Zod schema rejects unknown goal_pace value', async () => {
+    const { schemas } = await import('@celebbase/shared-types');
+    expect(() => schemas.GoalPaceSchema.parse('extreme')).toThrow();
+  });
+
+  it('Zod schema accepts valid exercise session', async () => {
+    const { schemas } = await import('@celebbase/shared-types');
+    const parsed = schemas.ExerciseSessionSchema.parse({
+      type: 'running',
+      intensity: 'moderate',
+      duration_min: 45,
+      frequency_per_week: 3,
+    });
+    expect(parsed.intensity).toBe('moderate');
   });
 });

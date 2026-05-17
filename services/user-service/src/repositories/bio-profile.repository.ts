@@ -1,6 +1,11 @@
 import type pg from 'pg';
-import type { BioProfile, Biomarkers } from '@celebbase/shared-types';
-import type { MacroTargets } from '@celebbase/shared-types';
+import type {
+  BioProfile,
+  Biomarkers,
+  ExerciseSession,
+  GoalPace,
+  MacroTargets,
+} from '@celebbase/shared-types';
 import type { PhiKeyProvider } from '@celebbase/service-core';
 import { encryptJson, decryptJson } from '@celebbase/service-core';
 
@@ -66,6 +71,8 @@ type UpsertData = {
   biomarkers?: Record<string, unknown> | undefined;
   primary_goal?: string | null | undefined;
   secondary_goals?: string[] | undefined;
+  exercise_sessions?: ExerciseSession[] | undefined;
+  goal_pace?: GoalPace | undefined;
   diet_type?: string | null | undefined;
   cuisine_preferences?: string[] | undefined;
   disliked_ingredients?: string[] | undefined;
@@ -88,10 +95,12 @@ export async function upsert(
        user_id, birth_year, sex, height_cm, weight_kg, waist_cm, body_fat_pct,
        activity_level, sleep_hours_avg, stress_level,
        allergies, intolerances, medical_conditions, medications, biomarkers,
-       primary_goal, secondary_goals, diet_type, cuisine_preferences, disliked_ingredients
+       primary_goal, secondary_goals, diet_type, cuisine_preferences, disliked_ingredients,
+       exercise_sessions, goal_pace
      ) VALUES (
        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-       $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+       $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+       $21::jsonb, $22
      )
      ON CONFLICT (user_id) DO UPDATE SET
        birth_year            = EXCLUDED.birth_year,
@@ -113,6 +122,8 @@ export async function upsert(
        diet_type             = EXCLUDED.diet_type,
        cuisine_preferences   = EXCLUDED.cuisine_preferences,
        disliked_ingredients  = EXCLUDED.disliked_ingredients,
+       exercise_sessions     = EXCLUDED.exercise_sessions,
+       goal_pace             = EXCLUDED.goal_pace,
        updated_at            = NOW(),
        version               = bio_profiles.version + 1
      RETURNING *`,
@@ -137,6 +148,8 @@ export async function upsert(
       data.diet_type ?? null,
       data.cuisine_preferences ?? [],
       data.disliked_ingredients ?? [],
+      JSON.stringify(data.exercise_sessions ?? []),
+      data.goal_pace ?? 'moderate',
     ],
   );
   const row = rows[0];
