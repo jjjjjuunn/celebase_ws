@@ -43,12 +43,17 @@ function calcBmr(profile: BioProfile): number {
 }
 
 /**
- * @deprecated Cached estimate only — meal-plan-engine `macro_rebalancer.rebalance_macros`
- * 가 식단 생성 시 source of truth. body composition / medications / diet_type / goal_pace
- * 를 모두 반영한 정확 macros 를 계산한다 (AMDR IOM + GLP-1 protein force 등).
+ * [SoT NOTE — CHORE-MEAL-TARGET-KCAL-SOT-001] Cached estimate only.
+ *
+ * meal-plan-engine `macro_rebalancer.rebalance_macros` 가 식단 생성 시 source of truth.
+ * body composition / medications / diet_type / goal_pace 를 모두 반영한 정확 macros 를
+ * 계산한다 (AMDR IOM + GLP-1 protein force 등).
  *
  * 본 함수는 카드 표시용 placeholder (legacy). 사용자에게 보이는 macros 는 식단의
- * `daily_targets` 사용을 권장. SoT 정책: CHORE-MEAL-TARGET-KCAL-SOT-001.
+ * `daily_targets` 사용을 권장. 후속 CHORE-MEAL-TARGET-KCAL-SOT-002 가 함수 자체 제거.
+ *
+ * Note: `@deprecated` JSDoc 미사용 — eslint `@typescript-eslint/no-deprecated` 가
+ * 동일 파일 내 호출 (`recalculate`) 을 lint 에러로 catch. 실제 제거는 후속 chore.
  */
 function calcMacroTargets(targetKcal: number, primaryGoal: string): MacroTargets {
   let proteinPct = 0.25;
