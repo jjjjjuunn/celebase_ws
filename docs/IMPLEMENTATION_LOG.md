@@ -28,6 +28,33 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-17
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1)
+task_id: IMPL-MEAL-P1-BMR-DISPATCH-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/bio-profile.service.ts
+  - services/user-service/tests/unit/bio-profile.service.test.ts
+verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-1x + claude-direct-pnpm-test
+---
+### 완료: P1-B — calcBmr Mifflin / Katch-McArdle dispatch (body_fat_pct 활용)
+- **dispatch rule**: `body_fat_pct ∈ [3, 60]` (DB CHECK constraint 일치) → Katch-McArdle (`370 + 21.6 × LBM`, LBM = weight × (1 - bf/100)) 우선. 외 → Mifflin-St Jeor fallback (기존 동작 보존).
+- **공신력 출처 명시**: Mifflin 1990 PubMed 2305711 (`calcBmr` 주석). Katch-McArdle 우월성은 LBM 의 metabolic active mass 직접 predictor 라는 mechanical 강점으로 일반화 (Gemini r1 LOW Frankenfield 인용 정정 — 해당 paper 는 일반인구 Mifflin 우월 결론). self-reported body_fat_pct 정확도 한계 명시 (P2 source flag chore).
+- **`BMR_SAFE_FALLBACK_KCAL` 상수 추출** (Codex r1 LOW magic number fix-1).
+- **수치 검증** (Gemini r1 cross-verify): male 90kg, 178cm, 36yo 기준
+  - Mifflin: 1837 (default)
+  - Katch @ body_fat 15% (LBM 76.5): **2022** kcal
+  - Katch @ body_fat 30% (LBM 63): **1731** kcal (Δ291, LBM 반영)
+  - 동일 사용자가 muscular (저체지방) → 더 높은 BMR, obese (고체지방) → 더 낮은 BMR — physiologically sound (Gemini confirm).
+- **edge case**: body_fat_pct null → Mifflin / [3, 60] 외 → Mifflin (입력 오류 보호) / weight null → 1800 safe fallback (Katch 도 weight 필수).
+- **L3 review**: Codex r1 PASS (LOW × 3 → fix-1: 1 magic number) → r2 PASS (0 CRITICAL/HIGH/MEDIUM, LOW 1 scope 외 fiber_g). Gemini r1 PASS (LOW × 2 → fix-1: Frankenfield 정정 + body_fat_pct confidence accept).
+- qa-exec: typecheck PASS + 154/154 jest PASS + algorithm sanity (Katch 15% = 2022, 30% = 1731). gate-review secrets PASS.
+- **engine 무영향**: meal-plan-engine 은 user-service cached bmr_kcal 사용 (engine 자체 BMR 계산 없음). 즉시 식단 정밀화는 next recalculate trigger 후.
+### 미완료: P1-C (goal_pace × calorie_adjuster 분기), CHORE-MEAL-TARGET-KCAL-SOT-001 (user-service vs engine 일관성), P1-D (Exercise EE Model B — launch 후 defer). UI 측 새 BMR 값 표시는 별도 (FE 가 BMR 직접 렌더 X, recalculate trigger 만).
+### 연관 파일: services/user-service/src/services/bio-profile.service.ts, services/user-service/tests/unit/bio-profile.service.test.ts
+
+
+---
 date: 2026-05-16
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
 task_id: IMPL-MEAL-P1-PROFILE-SCHEMA-001
