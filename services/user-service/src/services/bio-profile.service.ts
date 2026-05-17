@@ -42,6 +42,19 @@ function calcBmr(profile: BioProfile): number {
   return Math.round(base - 78); // other: male/female 평균
 }
 
+/**
+ * [SoT NOTE — CHORE-MEAL-TARGET-KCAL-SOT-001] Cached estimate only.
+ *
+ * meal-plan-engine `macro_rebalancer.rebalance_macros` 가 식단 생성 시 source of truth.
+ * body composition / medications / diet_type / goal_pace 를 모두 반영한 정확 macros 를
+ * 계산한다 (AMDR IOM + GLP-1 protein force 등).
+ *
+ * 본 함수는 카드 표시용 placeholder (legacy). 사용자에게 보이는 macros 는 식단의
+ * `daily_targets` 사용을 권장. 후속 CHORE-MEAL-TARGET-KCAL-SOT-002 가 함수 자체 제거.
+ *
+ * Note: `@deprecated` JSDoc 미사용 — eslint `@typescript-eslint/no-deprecated` 가
+ * 동일 파일 내 호출 (`recalculate`) 을 lint 에러로 catch. 실제 제거는 후속 chore.
+ */
 function calcMacroTargets(targetKcal: number, primaryGoal: string): MacroTargets {
   let proteinPct = 0.25;
   let carbsPct = 0.50;
@@ -81,6 +94,24 @@ export async function createOrUpdateBioProfile(
   return recalculate(pool, userId, keyProvider);
 }
 
+/**
+ * Recalculate BMR/TDEE 및 cached target_kcal/macros estimate.
+ *
+ * **SoT 정책 (CHORE-MEAL-TARGET-KCAL-SOT-001)**:
+ * - `bmr_kcal` + `tdee_kcal` = user-service single source of truth (P1-B Mifflin/Katch
+ *   dispatch). engine 도 동일 cached 값 사용 (재계산 X).
+ * - `target_kcal` + `macro_targets` = **placeholder estimate only**. 식단 생성용 실제
+ *   값은 meal-plan-engine 의 `calorie_adjuster.adjust_calories` (P1-C goal_pace 분기) +
+ *   `macro_rebalancer.rebalance_macros` (AMDR + medications + diet_type) 가 SoT.
+ *
+ * 현재 user-service 의 `target_kcal = tdee - 500` (절대 deficit) 은 engine 의
+ * `tdee × goal_pace_factor` (e.g. weight_loss × 0.75 = 25% deficit) 와 결과 다름:
+ * tdee=2500 시 user-service 2000 vs engine aggressive 1875. 사용자에게 보이는 카드
+ * 숫자는 식단 결과 (`daily_targets`) 사용 권장 — 후속 PR 에서 FE fallback 갱신.
+ *
+ * 본 함수는 backward-compat 위해 estimate 계속 저장. 후속 chore (CHORE-MEAL-TARGET
+ * -KCAL-SOT-002) 가 user-service 측 target_kcal/macros null 저장 + FE 변경.
+ */
 export async function recalculate(
   pool: pg.Pool,
   userId: string,
@@ -94,11 +125,12 @@ export async function recalculate(
     : 1.55;
   const tdee = Math.round(bmr * multiplier);
 
+  // [DEPRECATED estimate] 실제 식단 target_kcal 은 engine SoT. 카드 표시용 placeholder.
   let targetKcal = tdee;
   if (profile.primary_goal === 'weight_loss') targetKcal = tdee - 500;
   else if (profile.primary_goal === 'muscle_gain') targetKcal = tdee + 300;
 
-  // Clamp to safe range (spec §5 AI engine nutrition bounds)
+  // Clamp to safe range (spec §5 AI engine NUTRITION_BOUNDS)
   targetKcal = Math.max(1200, Math.min(5000, targetKcal));
 
   const macroTargets = calcMacroTargets(targetKcal, profile.primary_goal ?? 'maintenance');
