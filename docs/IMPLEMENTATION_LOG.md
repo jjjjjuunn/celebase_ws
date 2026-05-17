@@ -29,6 +29,40 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-17
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
+task_id: IMPL-MEAL-P1-GOAL-PACE-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/src/engine/calorie_adjuster.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-2x + claude-direct-pytest
+---
+### 완료: P1-C — goal_pace × calorie_adjuster 분기 (weight_loss/muscle_gain 속도 사용자 선택)
+- `phi_minimizer.TASK_FIELD_MAP["calorie_adjustment"]` 에 `'goal_pace'` 추가 — bio_profile 에서 engine 으로 통과 권한.
+- `calorie_adjuster.GOAL_PACE_MULTIPLIERS` 신규:
+  - `weight_loss`: {slow=0.90, moderate=0.80, aggressive=0.75} — Aragon AA 2017 권장 상한 25% 내
+  - `muscle_gain`: {slow=1.05, moderate=1.15, aggressive=**1.20**} — fix-1 보수적 (Gemini r1 HIGH: 1.25 = Slater 2019 권장 상한 15% 초과 → 1.20 으로 변경)
+  - moderate 는 기존 GOAL_FACTORS 와 일치 → 기존 호출부 backward-compat.
+- `_goal_factor` dispatch: weight_loss/muscle_gain 은 pace_map 우선, 외 (maintenance/glp1_support/athletic_performance) 는 기존 분기 유지.
+- `pipeline.py`: `prof_cal.get('goal_pace', 'moderate')` 추출 + `adjust_calories(.., goal_pace=...)` 전달.
+- **수치 검증** (Gemini r2 confirm): tdee=2500 기준
+  - weight_loss: slow 2250 / moderate 2000 (회귀) / aggressive 1875
+  - muscle_gain: slow 2625 / moderate 2875 (회귀) / **aggressive 3000** (fix-1: 1.25 → 1.20)
+  - maintenance × aggressive = 2500 (no-op)
+  - aggressive deficit tdee=1400 → MIN_KCAL clamp 1200
+- **L3 review**: Codex r1 PASS (MEDIUM fallback + LOW × 2) → r2 PASS (MEDIUM Pydantic accept). Gemini r1 conditional FAIL (HIGH aggressive surplus 25%) → fix-1 (1.25 → 1.20) → r2 PASS (LOW overall, 20% surplus = 인지된 정책 결정).
+- **advisor verdict**: launch-blocking 임상 risk 아니지만 default 는 보수적이 안전. 사용자 자율 확장은 한번 풀어준 걸 좁히는 것보다 처음부터 narrow 가 쉬움. 25% surplus unlock 은 CHORE-MEAL-AGGRESSIVE-PROTEIN-SAFEGUARDS 후속.
+- qa-exec: ruff PASS + 169/169 pytest PASS (159 기존 + 9 신규 P1-C engine + 1 신규 pipeline propagation) + 수치 sanity output 일치. gate-review secrets PASS.
+- **Plan-time verification scenario ROI**: 9개 acceptance 숫자 박았고 Gemini가 3125 (구 25% surplus) 를 임상적 근거로 challenge → fix-1 도출. 시나리오 없었으면 launch 후 실수치로 문제 발견했을 것. P1-A LESSONS 의 advisor 권고 (falsifiable acceptance 의무) 가치 입증.
+### 미완료: CHORE-MEAL-TARGET-KCAL-SOT-001 (user-service vs engine target_kcal 일관성), CHORE-MEAL-AGGRESSIVE-PROTEIN-SAFEGUARDS (protein 2.0g/kg 자동 강화 + Mobile FE UI 경고 + LBM tracking → 25% surplus unlock), P1-D (Exercise EE Model B — launch 후 P2 defer). user-service `bio-profile.service.ts` calcBmr/recalculate 측 goal_pace 활용은 CHORE-SoT 와 함께 처리 (현재 user-service 는 weight_loss → tdee - 500 hardcode).
+### 연관 파일: services/meal-plan-engine/src/engine/phi_minimizer.py, services/meal-plan-engine/src/engine/calorie_adjuster.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/tests/unit/test_engine.py, services/meal-plan-engine/tests/unit/test_pipeline.py
+
+
+---
+date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1)
 task_id: IMPL-MEAL-P1-BMR-DISPATCH-001
 commit_sha: PENDING

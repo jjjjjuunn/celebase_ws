@@ -178,8 +178,12 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "primary_goal", preferences.get("primary_goal", "maintenance")
     )
     activity_level = prof_cal.get("activity_level", "moderate")
+    # IMPL-MEAL-P1-GOAL-PACE-001: bio_profile.goal_pace 활용 (DEFAULT 'moderate')
+    goal_pace = prof_cal.get("goal_pace", "moderate")
 
-    target_kcal = calorie_adjuster.adjust_calories(tdee, primary_goal, activity_level)
+    target_kcal = calorie_adjuster.adjust_calories(
+        tdee, primary_goal, activity_level, goal_pace=goal_pace
+    )
 
     # --- 1b. Allergen filter ---------------------------------------------
     user_allergies = preferences.get("allergies", [])
