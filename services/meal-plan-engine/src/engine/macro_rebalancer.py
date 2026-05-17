@@ -44,6 +44,14 @@ _MIN_CARB_G: Final[int] = 50
 
 # spec §5.3 + ai-engine.md "GLP-1 모드: 단백질 최소 체중 x 2.0g 강제"
 _GLP1_PROTEIN_PER_KG: Final[float] = 2.0
+
+# CHORE-MEAL-AGGRESSIVE-PROTEIN-001: weight_loss × goal_pace='aggressive' (25% deficit)
+# 시 muscle 보존을 위한 protein 강화 floor.
+# Aragon AA et al., J Int Soc Sports Nutr 2017;14:16 (cut 시 ≥2.3 g/kg 권장).
+# Helms ER et al., J Int Soc Sports Nutr 2014;11:20 (natural physique 2.3~3.1 g/kg).
+# 2.0 g/kg 은 보수적 floor (GLP-1 force 와 동일). 2.3+ unlock 은 LBM tracking 후속.
+_AGGRESSIVE_CUT_PROTEIN_PER_KG: Final[float] = 2.0
+
 _GLP1_MEDICATION_TOKENS: Final[frozenset[str]] = frozenset(
     {
         "glp1",
@@ -90,6 +98,7 @@ def rebalance_macros(
     diet_type: str = "balanced",
     medications: Iterable[str] | None = None,
     weight_unit: Literal["kg", "lbs"] = "kg",
+    goal_pace: str = "moderate",
 ) -> dict[str, float]:
     """Compute macro gram targets and return them in a dict.
 
@@ -152,6 +161,18 @@ def rebalance_macros(
     effective = max(base_mult, goal_min)
     if _has_glp1(medications):
         effective = max(effective, _GLP1_PROTEIN_PER_KG)
+
+    # CHORE-MEAL-AGGRESSIVE-PROTEIN-001: aggressive cut → muscle 보존 강화
+    pace_key = goal_pace.strip().lower()
+    if goal_key == "weight_loss" and pace_key == "aggressive":
+        if effective < _AGGRESSIVE_CUT_PROTEIN_PER_KG:
+            _logger.info(
+                "aggressive weight_loss: protein multiplier %.2f → %.2f g/kg",
+                effective,
+                _AGGRESSIVE_CUT_PROTEIN_PER_KG,
+            )
+        effective = max(effective, _AGGRESSIVE_CUT_PROTEIN_PER_KG)
+
     effective = max(PROTEIN_BOUNDS[0], min(PROTEIN_BOUNDS[1], effective))
 
     protein_g = weight_kg * effective

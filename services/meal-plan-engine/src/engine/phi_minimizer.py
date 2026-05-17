@@ -16,7 +16,13 @@ TASK_FIELD_MAP: dict[str, list[str]] = {
         "tdee_kcal",
         "target_kcal",
     ],
-    "macro_rebalance": ["weight_kg", "activity_level", "diet_type", "medications"],
+    "macro_rebalance": [
+        "weight_kg",
+        "activity_level",
+        "diet_type",
+        "medications",
+        "goal_pace",  # CHORE-MEAL-AGGRESSIVE-PROTEIN-001: aggressive cut → protein 2.0g/kg
+    ],
     "allergen_filter": ["allergies", "intolerances"],
     "glp1_adjustment": ["weight_kg", "primary_goal"],
 }
