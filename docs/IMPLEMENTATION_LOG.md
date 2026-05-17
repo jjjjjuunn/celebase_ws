@@ -29,6 +29,40 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-17
+agent: claude-opus-4-7
+task_id: SPEC-SYNC-MEAL-P0-P1-001
+commit_sha: PENDING
+files_changed:
+  - spec.md
+verified_by: claude-opus-4-7 + claude-direct-grep
+---
+### 완료: SPEC SYNC — spec.md §3 + §5 P0/P1 drift 정렬
+- **drift 영역 매핑** (P0 + P1 시리즈 9 PR 후 누적):
+  - §3.1 bio_profiles: P1-A `exercise_sessions` + `goal_pace` 컬럼 누락
+  - §3.1 ingredients/recipes: P0 (Migration 0019 nutrition_provenance) 이미 반영 ✅
+  - §5.3 Step 1 calorie_adjustment: P1-C goal_pace 분기 누락
+  - §5.3 Step 5: ILP solver (P0.4) 누락, "Variety Optimization" 만 명시
+  - §5.4 Model Serving: OR-Tools CP-SAT 누락
+  - §5.6 Two-Pass: P0.3 daily_totals/daily_targets 이미 반영 ✅
+  - §5.7 PHI: phi_minimizer goal_pace + tdee_kcal/target_kcal 누락
+  - 신규 §5.9 BMR Dispatch (P1-B Mifflin/Katch) 필요
+  - 신규 §5.10 SoT 정책 (CHORE-MEAL-TARGET-KCAL-SOT-001) 필요
+- **변경**:
+  - §3.1 bio_profiles 에 두 컬럼 + JSDoc-style schema comment 추가
+  - §5.3 Step 1: GOAL_PACE_MULTIPLIERS 전체 매트릭스 + 출처 (Aragon 2017, Slater 2019, Frankenfield)
+  - §5.3 Step 5: ILP solver 전체 명세 (변수/제약/목적/결정성 옵션) + fallback chain + fail-closed 패턴
+  - §5.4 Model Serving 표: ILP solver 행 추가 (`ortools==9.15.*`)
+  - §5.7 PHI: phi_minimizer 표 + 코드 예제 goal_pace 추가
+  - 신규 §5.9 BMR Dispatch: Mifflin/Katch dispatch + 출처 + 수치 예시
+  - 신규 §5.10 SoT: bmr/tdee = user-service, target_kcal/macros = engine
+- **L0 review** (코드 변경 0, docs only): Codex/Gemini review skip 정당. validate_impl_log + grep verification 만.
+- **다른 트랙 영향**: Dohyun mobile FE (exercise_sessions/goal_pace 입력 UX), infra session (DB schema 신규 컬럼 staging 측 검증) — 정보 동기화 valuable.
+### 미완료: spec.md §5.5 Nutrition Standardization 의 `confidence` micronutrient rich object 형식과 실제 USDA backfill (scalar) 의 불일치 — P2 RAG 단계에서 spec/code 정렬 (Plan §Out of Scope). §10 product roadmap 갱신 (P0/P1 완료 markdown) 별도.
+### 연관 파일: spec.md
+
+
+---
+date: 2026-05-17
 agent: claude-opus-4-7 + advisor
 task_id: CHORE-MEAL-TARGET-KCAL-SOT-001
 commit_sha: PENDING
