@@ -12,13 +12,27 @@ const ACTIVITY_MULTIPLIERS: Record<string, number> = {
   very_active: 1.9,
 };
 
-function calcBmr(profile: BioProfile): number {
-  const { weight_kg, height_cm, birth_year, sex } = profile;
-  if (!weight_kg || !height_cm || !birth_year) return 1800; // safe fallback
+// body_fat_pct DB CHECK constraint (0001_initial-schema.sql:64) 와 일치하는
+// 신뢰 가능 범위. 범위 밖이면 입력 오류로 간주하고 Mifflin fallback.
+const BODY_FAT_PCT_MIN = 3;
+const BODY_FAT_PCT_MAX = 60;
 
+function calcBmr(profile: BioProfile): number {
+  const { weight_kg, height_cm, birth_year, sex, body_fat_pct } = profile;
+  if (!weight_kg) return 1800; // safe fallback (Katch도 weight 필수)
+
+  // Katch-McArdle (1973) — body composition 기반, 활동인구에서 Mifflin 보다 정확
+  // (Frankenfield DC et al., J Am Diet Assoc 2005;105(5):775-89)
+  if (body_fat_pct !== null && body_fat_pct >= BODY_FAT_PCT_MIN && body_fat_pct <= BODY_FAT_PCT_MAX) {
+    const lbm = weight_kg * (1 - body_fat_pct / 100);
+    return Math.round(370 + 21.6 * lbm);
+  }
+
+  // Mifflin-St Jeor (1990) — body_fat_pct 부재 시 표준
+  // (Mifflin MD et al., Am J Clin Nutr 1990;51(2):241-7, PubMed 2305711)
+  if (!height_cm || !birth_year) return 1800;
   const age = new Date().getFullYear() - birth_year;
   const base = 10 * weight_kg + 6.25 * height_cm - 5 * age;
-
   if (sex === 'male') return Math.round(base + 5);
   if (sex === 'female') return Math.round(base - 161);
   return Math.round(base - 78); // other: average

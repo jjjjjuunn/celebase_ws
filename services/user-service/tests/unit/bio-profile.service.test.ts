@@ -204,6 +204,77 @@ describe('bioProfileService.recalculate — activity multipliers', () => {
   });
 });
 
+describe('bioProfileService P1-B — BMR dispatch (Mifflin / Katch-McArdle, IMPL-MEAL-P1-BMR-DISPATCH-001)', () => {
+  // 기준 사용자: male 1990-birth, 178cm, 90kg
+  const heavyProfile = { ...baseProfile, height_cm: 178, weight_kg: 90, sex: 'male' as const };
+
+  it('body_fat_pct null → Mifflin fallback (회귀 보호)', async () => {
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - 1990;
+    const expectedBmr = Math.round(10 * 90 + 6.25 * 178 - 5 * age + 5);
+    const profile = { ...heavyProfile, body_fat_pct: null };
+
+    mockFindByUserId.mockResolvedValueOnce(profile);
+    mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: expectedBmr });
+
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
+    const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
+    expect(call[2].bmr_kcal).toBe(expectedBmr);
+  });
+
+  it('body_fat_pct 15 → Katch-McArdle (LBM 76.5 → BMR 2022)', async () => {
+    const profile = { ...heavyProfile, body_fat_pct: 15 };
+    const expectedBmr = Math.round(370 + 21.6 * (90 * (1 - 0.15)));
+
+    mockFindByUserId.mockResolvedValueOnce(profile);
+    mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: expectedBmr });
+
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
+    const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
+    expect(call[2].bmr_kcal).toBe(expectedBmr);
+    expect(expectedBmr).toBe(2022);
+  });
+
+  it('body_fat_pct 30 → Katch-McArdle (LBM 63 → BMR 1731, Δ291 less than 15%)', async () => {
+    const profile = { ...heavyProfile, body_fat_pct: 30 };
+    const expectedBmr = Math.round(370 + 21.6 * (90 * (1 - 0.30)));
+
+    mockFindByUserId.mockResolvedValueOnce(profile);
+    mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: expectedBmr });
+
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
+    const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
+    expect(call[2].bmr_kcal).toBe(expectedBmr);
+    expect(expectedBmr).toBe(1731);
+    expect(expectedBmr).toBeLessThan(2022); // Katch 가 LBM 반영
+  });
+
+  it('body_fat_pct boundary 2.5 (< 3) → Mifflin fallback', async () => {
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - 1990;
+    const mifflinExpected = Math.round(10 * 90 + 6.25 * 178 - 5 * age + 5);
+    const profile = { ...heavyProfile, body_fat_pct: 2.5 };
+
+    mockFindByUserId.mockResolvedValueOnce(profile);
+    mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: mifflinExpected });
+
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
+    const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
+    expect(call[2].bmr_kcal).toBe(mifflinExpected);
+  });
+
+  it('weight_kg null → 1800 safe fallback (Katch도 weight 필수)', async () => {
+    const profile = { ...heavyProfile, weight_kg: null, body_fat_pct: 20 };
+
+    mockFindByUserId.mockResolvedValueOnce(profile);
+    mockUpdateCalculated.mockResolvedValueOnce({ ...profile, bmr_kcal: 1800 });
+
+    await recalculate(mockPool, 'user-1', mockKeyProvider);
+    const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
+    expect(call[2].bmr_kcal).toBe(1800);
+  });
+});
+
 describe('bioProfileService P1-A — exercise_sessions / goal_pace round-trip (IMPL-MEAL-P1-PROFILE-SCHEMA-001)', () => {
   it('baseProfile defaults: exercise_sessions [] + goal_pace moderate', () => {
     expect(baseProfile.exercise_sessions).toEqual([]);
