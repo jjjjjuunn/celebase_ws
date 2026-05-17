@@ -350,12 +350,16 @@ def test_goal_pace_muscle_gain_moderate_regression() -> None:
 
 
 def test_goal_pace_muscle_gain_aggressive() -> None:
-    """tdee 2500 × muscle_gain × aggressive (1.25) = 3125."""
+    """tdee 2500 × muscle_gain × aggressive (1.20) = 3000.
+
+    Note: 1.20 = 보수적 default (Slater 2019 권장 상한 15% 인접). 25% surplus
+    unlock 은 CHORE-MEAL-AGGRESSIVE-PROTEIN-SAFEGUARDS 완료 후.
+    """
     assert (
         calorie_adjuster.adjust_calories(
             2500, primary_goal="muscle_gain", goal_pace="aggressive"
         )
-        == 3125
+        == 3000
     )
 
 

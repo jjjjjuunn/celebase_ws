@@ -25,9 +25,12 @@ GOAL_FACTORS: dict[str, float] = {
 # Aragon AA et al., J Int Soc Sports Nutr 2017;14:16 (deficit consensus 20~25%);
 # Slater GJ et al., Sports Med 2019;49(Suppl 2):103-12 (lean bulking 5~15%).
 # moderate 는 기존 GOAL_FACTORS 값과 일치 — 기존 호출부 backward-compat.
+# aggressive surplus 는 보수적 default 1.20 (Slater 권장 상한 15% 인접). 25% surplus
+# unlock 은 후속 chore (CHORE-MEAL-AGGRESSIVE-PROTEIN-SAFEGUARDS — protein 2.0g/kg
+# 자동 강화 + Mobile FE 경고 UI + LBM tracking) 완료 후.
 GOAL_PACE_MULTIPLIERS: dict[str, dict[str, float]] = {
     "weight_loss": {"slow": 0.90, "moderate": 0.80, "aggressive": 0.75},
-    "muscle_gain": {"slow": 1.05, "moderate": 1.15, "aggressive": 1.25},
+    "muscle_gain": {"slow": 1.05, "moderate": 1.15, "aggressive": 1.20},
 }
 _DEFAULT_GOAL_PACE = "moderate"
 
