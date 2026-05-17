@@ -29,6 +29,29 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-17
+agent: claude-opus-4-7 + advisor
+task_id: CHORE-MEAL-TARGET-KCAL-SOT-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/bio-profile.service.ts
+  - .claude/rules/domain/ai-engine.md
+verified_by: claude-opus-4-7 + claude-direct-pnpm-test
+---
+### 완료: CHORE — target_kcal/macro_targets SoT 정책 명시 (option D-minimal)
+- **P0 발견 갭**: user-service `recalculate` 가 `target_kcal = tdee - 500` (절대 deficit) + `calcMacroTargets` 25/50/25 hardcode → meal-plan-engine `calorie_adjuster × goal_pace` (P1-C) + `macro_rebalancer` (AMDR + medications) 와 다른 결과. tdee=2500 시 user-service 2000 vs engine aggressive 1875.
+- **사용자 옵션 결정**: D-minimal — comment + rule deprecated 표시만, FE 변경/실제 nullify 는 후속 (advisor: launch v1 사용자가 1300 vs 1440 직접 비교 X. drawer = 능동적 click view).
+- **변경 사항** (코드 logic 무변경, 회귀 0):
+  - `bio-profile.service.ts` `calcMacroTargets` + `recalculate` 에 deprecated JSDoc + inline comment. engine 이 SoT 임을 명시.
+  - `.claude/rules/domain/ai-engine.md` 신규 섹션 "Source of Truth 정책": bmr/tdee = user-service, target_kcal/macros = meal-plan-engine. FE 표시 권장 (`daily_targets` 우선) + 향후 cleanup (CHORE-MEAL-TARGET-KCAL-SOT-002) 명시.
+- **advisor 통찰**: P1-B 후 BMR 은 이미 일관성 있음 (engine 은 cached 사용). 진짜 갭은 target_kcal + macros 만. cross-service HTTP RPC 우려는 과장 (calorie_adjuster.adjust_calories 는 순수 함수 µs 비용이나 cross-language process 경계는 50-200ms). engine = SoT 가 자연스러움.
+- **회귀**: shared-types build + user-service typecheck + 154/154 test PASS.
+- **L0 review** (.claude/rules/pipeline.md): 코드 logic 무변경 + docs/rule 만 변경 → Codex/Gemini review skip 정당. PR description 에 차분.
+### 미완료: CHORE-MEAL-TARGET-KCAL-SOT-002 (user-service target_kcal/macros null 저장 + bio_profiles 컬럼 drop migration + FE MealRationaleDrawer fallback chain 갱신 → daily_targets 우선). launch 후 P2 와 묶음.
+### 연관 파일: services/user-service/src/services/bio-profile.service.ts, .claude/rules/domain/ai-engine.md
+
+
+---
+date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
 task_id: IMPL-MEAL-P1-GOAL-PACE-001
 commit_sha: PENDING

@@ -31,6 +31,24 @@ NUTRITION_TOLERANCE = {
 - 알레르기: 대체 재료 불가 시 레시피 통째로 교체. 알레르겐 포함 레시피 제공 절대 금지.
 - GLP-1 모드: 단백질 최소 체중 x 2.0g 강제.
 
+## Source of Truth 정책 (CHORE-MEAL-TARGET-KCAL-SOT-001)
+
+cross-service nutrition 계산의 single source 분리:
+
+| 필드 | SoT | 비고 |
+|------|-----|------|
+| `bmr_kcal` | user-service `calcBmr` | Mifflin-St Jeor (default) / Katch-McArdle (body_fat_pct 신뢰 시, P1-B) |
+| `tdee_kcal` | user-service `recalculate` | bmr × ACTIVITY_MULTIPLIERS |
+| `target_kcal` | **meal-plan-engine `calorie_adjuster.adjust_calories`** | goal_pace 분기 + NUTRITION_BOUNDS clamp (P1-C). user-service 측 `bio_profiles.target_kcal` 은 cached estimate (deprecated, 후속 chore 에서 null 저장). |
+| `macro_targets` | **meal-plan-engine `macro_rebalancer.rebalance_macros`** | AMDR (IOM) + medications (GLP-1 force) + diet_type 반영. user-service 측 `calcMacroTargets` 는 cached placeholder (deprecated). |
+
+**FE 표시 권장**:
+- BMR/TDEE → `bio_profiles.bmr_kcal/tdee_kcal` (user-service SoT)
+- target_kcal/macros → **식단 결과의 `daily_targets`** (engine SoT). `bio_profiles` 의 동일 필드는 fallback 만 (deprecated estimate).
+
+**향후 cleanup**:
+- CHORE-MEAL-TARGET-KCAL-SOT-002: user-service `recalculate` 가 target_kcal/macro_targets 을 null 저장 + `bio_profiles.target_kcal/macro_targets` 컬럼 drop migration + FE fallback chain 갱신.
+
 ### `final_out` 4 필드 invariant (IMPL-AI-002 교훈)
 
 `pipeline.py` 의 모든 early-return 경로는 다음 4 필드를 **항상** set 해야 한다:
