@@ -440,3 +440,21 @@ async def test_pipeline_raises_when_ilp_disabled_and_fallback_empty() -> None:
     ):
         with pytest.raises(plan_solver.ILPInfeasibleError, match="empty plan"):
             await run_pipeline(**inputs)
+
+
+@pytest.mark.asyncio
+async def test_pipeline_propagates_goal_pace_to_calorie_adjuster() -> None:
+    """P1-C 통합: bio_profile.goal_pace='aggressive' → adjust_calories 호출 시 전달.
+
+    bio_profile tdee_kcal=2500 + weight_loss + aggressive → target_kcal = 1875
+    (0.75×2500). phi_minimizer 가 calorie_adjustment task 의 'tdee_kcal' 필드 통과.
+    """
+    inputs = _baseline_inputs()
+    inputs["bio_profile"] = {
+        **inputs["bio_profile"],
+        "tdee_kcal": 2500,  # phi_minimizer.TASK_FIELD_MAP 의 정식 필드명
+        "primary_goal": "weight_loss",
+        "goal_pace": "aggressive",
+    }
+    result = await run_pipeline(**inputs)
+    assert result["target_kcal"] == 1875

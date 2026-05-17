@@ -292,3 +292,101 @@ async def test_run_pipeline_duration_three_produces_three_days():  # noqa: D401
             on_progress=lambda _p: None,
         )
     assert len(result["weekly_plan"]) == 3
+
+
+# ---------------------------------------------------------------------------
+# P1-C: goal_pace × calorie_adjuster (IMPL-MEAL-P1-GOAL-PACE-001) -----------
+# ---------------------------------------------------------------------------
+
+
+def test_goal_pace_weight_loss_slow() -> None:
+    """tdee 2500 × weight_loss × slow (0.90) = 2250."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="weight_loss", goal_pace="slow"
+        )
+        == 2250
+    )
+
+
+def test_goal_pace_weight_loss_moderate_regression() -> None:
+    """tdee 2500 × weight_loss × moderate (0.80) = 2000 — 기존 동작 회귀."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="weight_loss", goal_pace="moderate"
+        )
+        == 2000
+    )
+
+
+def test_goal_pace_weight_loss_aggressive() -> None:
+    """tdee 2500 × weight_loss × aggressive (0.75) = 1875."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="weight_loss", goal_pace="aggressive"
+        )
+        == 1875
+    )
+
+
+def test_goal_pace_muscle_gain_slow() -> None:
+    """tdee 2500 × muscle_gain × slow (1.05) = 2625."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="muscle_gain", goal_pace="slow"
+        )
+        == 2625
+    )
+
+
+def test_goal_pace_muscle_gain_moderate_regression() -> None:
+    """tdee 2500 × muscle_gain × moderate (1.15) = 2875 — 기존 동작 회귀."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="muscle_gain", goal_pace="moderate"
+        )
+        == 2875
+    )
+
+
+def test_goal_pace_muscle_gain_aggressive() -> None:
+    """tdee 2500 × muscle_gain × aggressive (1.25) = 3125."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="muscle_gain", goal_pace="aggressive"
+        )
+        == 3125
+    )
+
+
+def test_goal_pace_maintenance_no_op() -> None:
+    """maintenance 는 goal_pace 무시 (기존 GOAL_FACTORS=1.0). tdee 2500 → 2500."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="maintenance", goal_pace="aggressive"
+        )
+        == 2500
+    )
+
+
+def test_goal_pace_aggressive_deficit_clamped_to_min() -> None:
+    """aggressive deficit 가 MIN_KCAL (1200) 충돌 → clamp.
+
+    tdee 1400 × 0.75 = 1050 → clamp 1200.
+    """
+    assert (
+        calorie_adjuster.adjust_calories(
+            1400, primary_goal="weight_loss", goal_pace="aggressive"
+        )
+        == 1200
+    )
+
+
+def test_goal_pace_unknown_falls_back_to_moderate() -> None:
+    """unknown goal_pace → moderate fallback + WARNING (정확성: weight_loss moderate=0.80)."""
+    assert (
+        calorie_adjuster.adjust_calories(
+            2500, primary_goal="weight_loss", goal_pace="extreme"
+        )
+        == 2000
+    )

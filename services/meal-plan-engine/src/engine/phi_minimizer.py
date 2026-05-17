@@ -12,6 +12,7 @@ TASK_FIELD_MAP: dict[str, list[str]] = {
         "height_cm",
         "activity_level",
         "primary_goal",
+        "goal_pace",  # IMPL-MEAL-P1-GOAL-PACE-001
         "tdee_kcal",
         "target_kcal",
     ],
