@@ -6167,7 +6167,7 @@ verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + pl
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-SUB-SCHEMA-001
-commit_sha: PENDING
+commit_sha: 42df0f6
 files_changed:
   - packages/shared-types/src/schemas/subscriptions.ts
   - apps/mobile/src/services/subscriptions.ts
