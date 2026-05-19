@@ -394,3 +394,90 @@ def test_goal_pace_unknown_falls_back_to_moderate() -> None:
         )
         == 2000
     )
+
+
+# ---------------------------------------------------------------------------
+# CHORE-MEAL-AGGRESSIVE-PROTEIN-001: aggressive cut protein 강화 -----------
+# ---------------------------------------------------------------------------
+
+
+def test_aggressive_cut_forces_protein_to_2g_per_kg() -> None:
+    """weight_loss × aggressive → protein 2.0 g/kg 강화.
+
+    70kg × moderate activity → base 1.6, goal_min 1.4 → max 1.6.
+    aggressive cut floor 2.0 적용 → effective 2.0 → protein_g 140.
+    """
+    macros = macro_rebalancer.rebalance_macros(
+        target_kcal=1875,
+        weight_kg=70,
+        activity_level="moderate",
+        primary_goal="weight_loss",
+        fat_ratio=0.30,
+        goal_pace="aggressive",
+    )
+    assert macros["protein_multiplier"] == 2.0
+    assert macros["protein_g"] == 140.0
+
+
+def test_moderate_cut_protein_unchanged_regression() -> None:
+    """weight_loss × moderate → 기존 1.6 g/kg (회귀 보호).
+
+    70kg × moderate activity → base 1.6, goal_min 1.4 → effective 1.6 → protein_g 112.
+    """
+    macros = macro_rebalancer.rebalance_macros(
+        target_kcal=2000,
+        weight_kg=70,
+        activity_level="moderate",
+        primary_goal="weight_loss",
+        fat_ratio=0.30,
+        goal_pace="moderate",
+    )
+    assert macros["protein_multiplier"] == 1.6
+    assert macros["protein_g"] == 112.0
+
+
+def test_aggressive_muscle_gain_no_protein_boost() -> None:
+    """muscle_gain × aggressive 은 protein 강화 X (aggressive cut 만 적용).
+
+    70kg × very_active → base 2.0, goal_min 2.2 → effective 2.2 → protein_g 154.
+    """
+    macros = macro_rebalancer.rebalance_macros(
+        target_kcal=3000,
+        weight_kg=70,
+        activity_level="very_active",
+        primary_goal="muscle_gain",
+        fat_ratio=0.25,
+        goal_pace="aggressive",
+    )
+    assert macros["protein_multiplier"] == 2.2
+    assert macros["protein_g"] == 154.0
+
+
+def test_glp1_and_aggressive_no_double_boost() -> None:
+    """GLP-1 medications + aggressive 중복 — 둘 다 2.0 floor 라 max 합쳐서 2.0.
+
+    70kg × light → base 1.4, goal_min 1.4 → 1.4. GLP-1 force → 2.0.
+    aggressive cut → max(2.0, 2.0) = 2.0. 중복 효과 없음.
+    """
+    macros = macro_rebalancer.rebalance_macros(
+        target_kcal=1875,
+        weight_kg=70,
+        activity_level="light",
+        primary_goal="weight_loss",
+        fat_ratio=0.30,
+        medications=["ozempic"],
+        goal_pace="aggressive",
+    )
+    assert macros["protein_multiplier"] == 2.0
+
+
+def test_aggressive_cut_default_goal_pace_no_boost() -> None:
+    """goal_pace 미지정 (default 'moderate') 시 aggressive 강화 X (회귀)."""
+    macros = macro_rebalancer.rebalance_macros(
+        target_kcal=2000,
+        weight_kg=70,
+        activity_level="moderate",
+        primary_goal="weight_loss",
+        fat_ratio=0.30,
+    )
+    assert macros["protein_multiplier"] == 1.6  # aggressive 강화 X

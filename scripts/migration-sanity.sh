@@ -16,7 +16,7 @@
 # Env vars (all optional with safe defaults):
 #   MIGRATION_DB_SERVICE — docker compose service name (default: postgres)
 #   PGUSER               — DB user (default: celebbase)
-#   PGDATABASE           — DB name (default: celebase)
+#   PGDATABASE           — DB name (default: celebbase)
 
 set -euo pipefail
 
@@ -65,7 +65,7 @@ done
 # Credentials sourced from env (PGUSER / PGDATABASE) — no hardcoded -U flag.
 # ─────────────────────────────────────────────────────────────────────────────
 PGUSER_VAL="${PGUSER:-celebbase}"
-PGDATABASE_VAL="${PGDATABASE:-celebase}"
+PGDATABASE_VAL="${PGDATABASE:-celebbase}"
 
 missing=()
 for entry in "${CRITICAL_COLUMNS[@]}"; do

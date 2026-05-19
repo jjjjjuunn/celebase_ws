@@ -29,6 +29,41 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-17
+agent: claude-opus-4-7 + codex-gpt-5-codex (r1) + gemini-2.5-pro-via-cli-0.42 (r1)
+task_id: CHORE-MEAL-AGGRESSIVE-PROTEIN-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/engine/macro_rebalancer.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/engine/phi_minimizer.py
+  - services/meal-plan-engine/tests/unit/test_engine.py
+verified_by: claude-opus-4-7 + codex-review-1x + gemini-adversarial-1x + claude-direct-pytest
+---
+### 완료: CHORE — aggressive cut protein 2.0g/kg 강화 (P1-C aggressive unlock 조건 1/3)
+- **배경**: P1-C 가 `goal_pace='aggressive'` 도입 + Gemini r1 권고로 muscle_gain × aggressive 1.25 → 1.20 보수적 default. 25% surplus unlock 의 3 조건: (1) protein 2.0g/kg 자동 강화 [본 chore, backend], (2) Mobile FE UI 경고 [Dohyun 트랙], (3) LBM tracking [P2 영역].
+- **알고리즘**: `macro_rebalancer.rebalance_macros` 에 `goal_pace: str = "moderate"` 매개변수 추가. `weight_loss × goal_pace='aggressive'` 시 effective protein multiplier 를 `_AGGRESSIVE_CUT_PROTEIN_PER_KG=2.0` floor 적용 (GLP-1 force 와 동일 수준, max chain). PROTEIN_BOUNDS [0.8, 3.0] 내. muscle_gain × aggressive 는 영향 X (기존 2.2 유지).
+- **공신력 출처**:
+  - Aragon AA et al., J Int Soc Sports Nutr 2017;14:16 (cut 시 ≥ 2.3 g/kg 권장)
+  - Helms ER et al., J Int Soc Sports Nutr 2014;11:20 (natural physique 2.3~3.1 g/kg)
+  - 2.0 = 보수적 floor. 2.3+ unlock 은 LBM tracking 후속 (P2).
+- **수치 검증** (70kg, Gemini r1 cross-verify):
+  - aggressive cut (target 1875): protein_g 140 (multiplier 2.0). P 30% / F 21% / C 49% — clinically reasonable.
+  - moderate cut (target 2000): protein_g 112 (multiplier 1.6, 회귀).
+  - muscle_gain aggressive (target 3000, very_active): protein_g 154 (multiplier 2.2, no boost).
+  - GLP-1 + aggressive: protein_multiplier 2.0 (no double).
+- **변경**:
+  - `macro_rebalancer.py`: 상수 + 매개변수 + aggressive cut 분기 (max chain) + info log
+  - `pipeline.py`: `prof_macro.get("goal_pace", "moderate")` 전달
+  - `phi_minimizer.py`: `TASK_FIELD_MAP["macro_rebalance"]` 에 "goal_pace" 추가
+  - `test_engine.py`: 5 신규 시나리오 (aggressive cut force / moderate 회귀 / muscle_gain no-op / GLP-1 중복 / default no-boost)
+- **L3 review**: Codex r1 PASS (LOW × 2 = goal_pace 검증 + Enum 상수, P1-C 와 동일 design accept). Gemini r1 PASS (보수적 2.0 floor 정당, 우리 5 test 가 Gemini 제안 4 test 100% 커버).
+- qa-exec: ruff PASS + 174/174 pytest PASS (169 기존 + 5 신규) + sanity script (protein_multiplier 2.0 aggressive, 1.6 moderate). gate-review secrets PASS.
+### 미완료: muscle_gain × aggressive 1.20 → 1.25 unlock (Mobile FE UI 경고 + LBM tracking 완료 후). spec.md §5.3 Step 2 갱신 (후속 SPEC-SYNC chore).
+### 연관 파일: services/meal-plan-engine/src/engine/macro_rebalancer.py, services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/engine/phi_minimizer.py, services/meal-plan-engine/tests/unit/test_engine.py
+
+
+---
+date: 2026-05-17
 agent: claude-opus-4-7
 task_id: SPEC-SYNC-MEAL-P0-P1-001
 commit_sha: PENDING
