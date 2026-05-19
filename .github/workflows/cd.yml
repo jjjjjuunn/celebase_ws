@@ -355,7 +355,7 @@ jobs:
           echo "▶ applying pending DB migrations..."
           docker compose run --rm db-migrate
           echo "▶ migration sanity check..."
-          bash /app/scripts/migration-sanity.sh
+          MIGRATION_DB_SERVICE=db bash /app/scripts/migration-sanity.sh
           echo "✅ migrations applied + sanity OK"
 
           # 4. Pull + recreate target services.
