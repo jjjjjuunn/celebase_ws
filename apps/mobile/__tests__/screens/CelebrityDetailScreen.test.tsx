@@ -50,7 +50,7 @@ const CLAIM_C = {
 
 const CLAIM_A_LOCKED = { ...CLAIM_C, id: '01927000-0000-7000-8000-000000000002', headline: 'secret nutrition protocol', trust_grade: 'A' as const };
 
-const SUBSCRIPTION_FREE = { subscription: null };
+const SUBSCRIPTION_FREE = { tier: 'free' as const };
 
 function makeResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {

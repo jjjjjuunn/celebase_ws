@@ -42,7 +42,8 @@ function makeResponse(status: number, body: unknown): Response {
 const CLAIM_FIXTURE_UNLOCKED = { ...CLAIM_FIXTURE, trust_grade: 'C' as const };
 
 // useCurrentTier 가 호출하는 GET /api/subscriptions/me 응답 (free tier).
-const SUBSCRIPTION_FREE = { subscription: null };
+// IMPL-MOBILE-SUB-SCHEMA-001 이후 wire shape 는 `{ tier }` (단순화).
+const SUBSCRIPTION_FREE = { tier: 'free' as const };
 
 /**
  * fetch mock router — claims feed + subscription me 두 endpoint 라우팅.

@@ -111,8 +111,12 @@ export function AccountClient(): React.ReactElement {
         return;
       }
       try {
-        const subRes = await fetcher('/api/subscriptions/me', { schema: schemas.GetMySubscriptionResponseSchema });
-        setSub(subRes.subscription);
+        // user-service `/subscriptions/me` 는 `{ tier }` 만 반환 — tier 자체는
+        // user.subscription_tier 로도 동일 값이라 별도 setter 불필요.
+        // Full subscription details (cancel_at_period_end, current_period_end, stripe_*)
+        // 는 commerce-service 의 별도 endpoint 가 staging 에 배포된 후 복원 (CHORE-STAGING-BE-DEPLOY-001).
+        // 그때까지 sub state 는 null 유지 — cancel/renewal UI 자동으로 비표시.
+        await fetcher('/api/subscriptions/me', { schema: schemas.GetMySubscriptionResponseSchema });
       } catch {
         // subscription service unavailable — degrade gracefully
       }
