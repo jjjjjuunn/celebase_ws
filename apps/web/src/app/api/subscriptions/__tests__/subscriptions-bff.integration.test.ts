@@ -34,9 +34,9 @@ import { GET as subscriptionsMeGET } from '../me/route';
 
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
 
-// Free-tier user — no active paid subscription. The schema allows
-// `subscription: null` which is the simplest valid payload.
-const SUBSCRIPTION_PAYLOAD = { subscription: null };
+// user-service `/subscriptions/me` returns `{ tier }` only — full subscription
+// details are commerce-service owned (IMPL-MOBILE-SUB-SCHEMA-001).
+const SUBSCRIPTION_PAYLOAD = { tier: 'free' as const };
 
 function validSession(): void {
   mockJwtVerify.mockResolvedValueOnce(

@@ -43,9 +43,22 @@ export const CreateSubscriptionResponseSchema = z.object({
 });
 export type CreateSubscriptionResponse = z.infer<typeof CreateSubscriptionResponseSchema>;
 
-// GET /subscriptions/me — current subscription or null (free tier).
+// GET /subscriptions/me — returns the user's current tier only.
+//
+// user-service owns `users.subscription_tier` (denormalized fast-path for
+// tier-gate decisions) and exposes only that field via this endpoint
+// (`services/user-service/src/routes/subscription.routes.ts`). Full
+// subscription details (Stripe customer/period, cancel_at_period_end) are
+// commerce-service owned and will be exposed via a separate endpoint once
+// commerce-service is deployed on staging (CHORE-STAGING-BE-DEPLOY-001).
+//
+// History: prior shape `{ subscription: SubscriptionWire | null }` assumed
+// commerce-service `subscriptions` table as source-of-truth, but user-service
+// returns only `{ tier }`. Schema simplified to match deployed reality
+// (IMPL-MOBILE-SUB-SCHEMA-001). `SubscriptionWireSchema` is preserved for
+// cancel/checkout endpoints that still surface the full row.
 export const GetMySubscriptionResponseSchema = z.object({
-  subscription: SubscriptionWireSchema.nullable(),
+  tier: SubscriptionTier,
 });
 export type GetMySubscriptionResponse = z.infer<typeof GetMySubscriptionResponseSchema>;
 

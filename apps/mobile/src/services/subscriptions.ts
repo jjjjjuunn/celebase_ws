@@ -34,13 +34,17 @@ export async function getCurrentSubscription(): Promise<schemas.GetMySubscriptio
 }
 
 /**
- * subscription 응답에서 tier 만 추출. null → 'free'.
+ * subscription 응답에서 tier 추출. user-service 가 이미 tier 만 반환하므로 단순 통과.
+ *
+ * History: 과거 wire shape 가 `{ subscription: SubscriptionWire | null }` 이라
+ * commerce-service 의 full row 를 기대했지만 user-service 는 `{ tier }` 만 응답.
+ * 두 layer 간 schema mismatch 로 BFF ZodError → mobile silent fallback 'free' 발생
+ * (IMPL-MOBILE-SUB-SCHEMA-001 에서 정렬).
  */
 export function tierFromSubscription(
   res: schemas.GetMySubscriptionResponse,
 ): SubscriptionTier {
-  if (res.subscription === null) return 'free';
-  return res.subscription.tier;
+  return res.tier;
 }
 
 // ── POST /api/subscriptions/sync ───────────────────────────────────────────

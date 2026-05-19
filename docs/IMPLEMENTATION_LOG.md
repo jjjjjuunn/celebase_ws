@@ -6196,3 +6196,37 @@ verified_by: claude-opus-4-7 + codex-adversarial-r1 + gemini-adversarial-r1 + pl
 - **Build-push conditional 분리**: plan v2 의 path-aware build skip 은 별도 chore (`CHORE-CD-BUILD-PATH-AWARE-001`) — 본 chore scope 단순화 목적. 추후 별도 진행
 ### 미완료: 본 chore PR 머지 후 사용자 manual 3 step (runbook §Setup) + 첫 CD 실행 검증. 후속 chore: CHORE-PROD-MIGRATION-PIPELINE-001 (prod 적용, pg_dump + manual gate), CHORE-MIGRATION-TOOL-EVAL-001 (Track 2 dbmate 평가), CHORE-USER-SERVICE-SCHEMA-SANITY-001 (Track 2 startup hook), CHORE-CD-BUILD-PATH-AWARE-001 (build skip 최적화). G3 다음 sub-task = CHORE-STAGING-BE-DEPLOY-001 (4 BE 배포).
 ### 연관 파일: .github/workflows/cd.yml, scripts/migration-sanity.sh, docs/runbooks/MIGRATION-ROLLBACK.md
+
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SUB-SCHEMA-001
+commit_sha: 42df0f6
+files_changed:
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - apps/mobile/src/services/subscriptions.ts
+  - apps/web/src/app/(app)/account/AccountClient.tsx
+  - apps/web/src/app/api/subscriptions/__tests__/subscriptions-bff.integration.test.ts
+  - apps/mobile/__tests__/screens/ClaimsFeedScreen.test.tsx
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+verified_by: claude-opus-4-7
+---
+### 완료: GetMySubscriptionResponseSchema 를 user-service 실제 응답에 맞춰 단순화 (IMPL-MOBILE-SUB-SCHEMA-001)
+- **문제**: staging 에서 admin escalation 으로 `users.subscription_tier='elite'` 적용 후에도 mobile Settings 가 `Free` 표시. staging BFF 로그에 `"BFF schema validation failed", zodIssues:[{path:["subscription"],message:"Required"}]` 가 누적. user-service `/subscriptions/me` 는 `{tier}` 만 반환 (deployed 실제), 그러나 wire schema 는 `{subscription: SubscriptionWire | null}` 을 기대 → ZodError → mobile silent catch → fail-closed 'free' fallback.
+- **선택 — C 안 (simplify everywhere)**: wire schema 를 user-service 응답에 맞춰 `{tier}` 로 단순화. B 안 (BFF 에 synthetic wrap) 은 가짜 id/period 데이터 생성 + drift 재발 구조 영구화 위험. C 안은 single source of truth 정합 + 향후 commerce-service 배포 후 별도 endpoint 로 full detail 분리 가능.
+- **변경**:
+  - `packages/shared-types/src/schemas/subscriptions.ts`: `GetMySubscriptionResponseSchema = z.object({tier: SubscriptionTier})` 로 단순화. 코멘트에 history + commerce-service 배포 후 별도 endpoint 분리 의도 명시. `SubscriptionWireSchema` 는 유지 (Cancel/Create response 등 다른 endpoint 용).
+  - `apps/mobile/src/services/subscriptions.ts`: `tierFromSubscription(res) → res.tier` 단순화.
+  - `apps/web/src/app/(app)/account/AccountClient.tsx` (frozen patch): `subRes.subscription` 접근 제거. `sub` state 는 null 유지 — cancel/renewal UI 자동 비표시 (commerce-service 정식 endpoint 복원 시점까지).
+  - 테스트 fixture 3개 (`subscriptions-bff.integration.test.ts`, `ClaimsFeedScreen.test.tsx`, `CelebrityDetailScreen.test.tsx`): `{subscription: null}` → `{tier: 'free'}`.
+- **검증**:
+  - `pnpm --filter @celebbase/shared-types typecheck/build/lint` PASS
+  - `pnpm --filter web typecheck/lint` PASS (web warning 들은 pre-existing, 본 변경 무관)
+  - `pnpm --filter mobile typecheck/lint` PASS
+  - `pnpm --filter web test --testPathPattern=subscriptions-bff` 5/5 PASS
+  - `pnpm --filter mobile test --testPathPattern="ClaimsFeedScreen|CelebrityDetailScreen"` 11/11 PASS
+- **Spec sync**: `pipeline/runs/IMPL-MOBILE-SUB-SCHEMA-001/SPEC-SYNC-DEFER.md` 마커 작성 — wire shape 변경이 spec.md §4.2 / §11 의 subscription/BFF 단락에 영향. 본 task 는 staging hotfix 우선 머지 + spec 본문 backfill 은 `SPEC-SYNC-SUB-SCHEMA-001` 후속 task 로 분리 (`docs/SPEC-PIVOT-PLAN.md` §3 등록).
+- **Review tier**: L2 (shape simplify only, business logic 변경 없음. entitlement gate 자체 로직 무변경).
+### 미완료: staging 재배포 후 verify (dev@celebbase.local Settings 에서 Elite 표시 확인). 후속: SPEC-SYNC-SUB-SCHEMA-001 (spec.md §4.2/§11 본문 정합), commerce-service 배포 후 `GET /subscriptions/me/full` 신규 endpoint 로 cancel_at_period_end/current_period_end 복원.
+### 연관 파일: packages/shared-types/src/schemas/subscriptions.ts, apps/mobile/src/services/subscriptions.ts, apps/web/src/app/(app)/account/AccountClient.tsx, services/user-service/src/routes/subscription.routes.ts (변경 없음 — 참조)
