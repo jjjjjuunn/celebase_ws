@@ -6319,7 +6319,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001
-commit_sha: PENDING
+commit_sha: 655e278
 files_changed:
   - services/user-service/src/services/auth.service.ts
   - packages/service-core/src/middleware/jwt.ts
