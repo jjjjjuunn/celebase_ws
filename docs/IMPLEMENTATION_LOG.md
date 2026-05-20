@@ -6608,3 +6608,25 @@ verified_by: claude-opus-4-7 (staging SSH config read + JWKS endpoint + Cognito 
 - **Review tier**: L3 (인증/JWT posture) — codex/gemini CLI 미사용, advisor + claude-direct (staging 사실관계 + Cognito client describe) 판정.
 ### 미완료: #24 real SRP login positive 신호 (FE 의존), #22 Phase 3 (위 4-조건 게이트 충족 후 실행).
 ### 연관 파일: services/user-service/src/services/auth.service.ts, packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/config.py, /app/.env.staging (staging ops)
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-TIER-SYNC-WIRE-VERIFY-001
+commit_sha: PENDING
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (live local E2E BFF→commerce→user-service, mock RevenueCat REST, primary log evidence)
+---
+### 완료: 티어 동기화 wire 경로 라이브 검증 — RevenueCat→commerce→user-service updateTier (CHORE-TIER-SYNC-WIRE-VERIFY-001)
+- **배경**: advisor 가 플래그한 미검증 경로. E2E #26 (IMPL premium meal-plan) 은 `UPDATE users SET subscription_tier='premium'` 직접 DB set 으로 우회 → 실제 webhook/pull-sync → cross-service updateTier wire 경로는 한 번도 실행된 적 없음.
+- **검증 방법**: mock RevenueCat REST (host `:4599`, `GET /v1/subscribers/:id` → active premium entitlement) + 로컬 commerce 를 `REVENUECAT_ENABLED=true` + `REVENUECAT_API_BASE_URL=http://host.docker.internal:4599` + `PRODUCT_TIER_MAP_JSON={"celebbase_premium_monthly":"premium"}` 로 임시 재기동 (override 는 `/tmp` 비-커밋, 검증 후 제거). BFF `POST /api/subscriptions/sync {source:'purchase'}` 로 실 경로 구동.
+- **검증된 4 wire 관찰 (primary 로그 증거)**:
+  1. BFF 가 `aud=commerce-service:internal` 내부 JWT mint → commerce `/internal/subscriptions/refresh-from-revenuecat` 가 verify (200 응답).
+  2. **commerce 가 `aud=user-service:internal` 내부 JWT mint → user-service `/internal/users/:id/tier` 가 verify** — 한 번도 실행된 적 없던 링크. DB `users.subscription_tier` free→premium 갱신 확인.
+  3. user-service `tier_sync_idempotency` INSERT + `UPDATE users` 적용 (`subscription.sync.success` 로그 1회). commerce `subscriptions` row upsert (premium/active/2099) 확인.
+  4. 동일 `{source:'purchase'}` 재호출 (idempotency-key `…:premium:sync:4070908800000` 동일) → user-service read-through dedup 이 409 반환 (2차 호출은 `subscription.sync.started/success` 미발생) → commerce 가 `'409'` substring catch (`InternalClientError: 409 …`) → BFF 200 정상 응답 (에러 비전파). `tier_sync_idempotency` row 1개만 → 중복 미적용 확인.
+- **결과**: `GET /api/subscriptions/me` → `{tier:'premium'}`. 플래그 닫힘 — 결제 webhook/pull-sync → tier 반영 wire 경로 정상.
+- **Review tier**: L3 (결제/구독 데이터 + 내부 auth) — advisor + claude-direct live E2E 판정. Stripe webhook signature 경로는 본 세션 범위 외 (양 경로 모두 `userClient.syncTier` 공유 링크로 수렴 → pull-sync 검증으로 공유 링크 커버).
+### 미완료: (backlog CHORE-USER-SVC-INTERNAL-TIER-TEST-001) user-service provider `/internal/users/:id/tier` 직접 통합 테스트 부재 — 라이브 E2E 로 today 동작은 입증했으나 회귀 보호용 provider 테스트 추가 필요. Stripe webhook signature 검증 라이브 테스트는 별도.
+### 연관 파일: services/commerce-service/src/services/revenuecat-sync.service.ts, services/commerce-service/src/services/user-service.client.ts, services/user-service/src/routes/internal.routes.ts, services/user-service/src/services/tier-sync.service.ts, apps/web/src/app/api/subscriptions/sync/route.ts
