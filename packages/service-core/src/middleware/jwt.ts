@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import { createRemoteJWKSet, decodeProtectedHeader, jwtVerify, type JWTPayload } from "jose";
 import { UnauthorizedError } from "../errors.js";
 
 export interface JwtAuthOptions {
@@ -67,13 +67,32 @@ async function verifyToken(token: string, config: JwtConfig): Promise<JWTPayload
   return payload;
 }
 
-// Internal HS256 verification — mirrors meal-plan-engine's PyJWT contract
-// (algorithms HS256, require sub/exp/token_use, token_use === 'access') so the
-// internal access token issued by user-service verifies identically across the
-// TS and Python services. Issuer is bound to INTERNAL_JWT_ISSUER (default
-// 'celebbase-user-service') — aligned across signer (auth.service.ts) and all
-// verifiers in CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001.
+// Internal token verification (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2 — dual
+// verify). The internal access token issued by user-service is verified
+// identically across TS + Python services: require sub/exp/token_use,
+// token_use === 'access', issuer bound to INTERNAL_JWT_ISSUER (default
+// 'celebbase-user-service', aligned in CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001).
+//
+// Algorithm dispatch keyed off the (attacker-controlled) header alg, but each
+// alg routes to a DIFFERENT key — HS256 → shared secret, RS256 → user-service
+// JWKS public key — so RS256/HS256 algorithm-confusion is structurally
+// impossible (jose's explicit `algorithms` further pins it). During the
+// HS256→RS256 migration both paths are live; HS256 is dropped in Phase 3.
 const DEFAULT_INTERNAL_ISSUER = "celebbase-user-service";
+
+let _internalJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getInternalJwks(uri: string) {
+  if (!_internalJwks) {
+    _internalJwks = createRemoteJWKSet(new URL(uri));
+  }
+  return _internalJwks;
+}
+
+/** Test-only: clear the cached internal JWKS so a fresh key set is fetched. */
+export function resetInternalJwksForTest(): void {
+  _internalJwks = null;
+}
 
 function loadInternalSecret(): Uint8Array | null {
   const secret = process.env["INTERNAL_JWT_SECRET"];
@@ -81,16 +100,44 @@ function loadInternalSecret(): Uint8Array | null {
   return new TextEncoder().encode(secret);
 }
 
+function loadInternalJwksUri(): string | undefined {
+  const uri = process.env["INTERNAL_JWKS_URI"];
+  return uri !== undefined && uri !== "" ? uri : undefined;
+}
+
 function loadInternalIssuer(): string {
   return process.env["INTERNAL_JWT_ISSUER"] ?? DEFAULT_INTERNAL_ISSUER;
 }
 
-async function verifyInternalToken(token: string, secret: Uint8Array): Promise<JWTPayload> {
-  const { payload } = await jwtVerify(token, secret, {
-    algorithms: ["HS256"],
-    issuer: loadInternalIssuer(),
-    requiredClaims: ["sub", "exp", "token_use"],
-  });
+async function verifyInternalToken(
+  token: string,
+  secret: Uint8Array | null,
+  jwksUri: string | undefined,
+): Promise<JWTPayload> {
+  const { alg } = decodeProtectedHeader(token);
+  const issuer = loadInternalIssuer();
+  let payload: JWTPayload;
+
+  if (alg === "RS256") {
+    if (jwksUri === undefined) {
+      throw new UnauthorizedError("RS256 token but INTERNAL_JWKS_URI not configured");
+    }
+    ({ payload } = await jwtVerify(token, getInternalJwks(jwksUri), {
+      algorithms: ["RS256"],
+      issuer,
+      requiredClaims: ["sub", "exp", "token_use"],
+    }));
+  } else {
+    if (secret === null) {
+      throw new UnauthorizedError("HS256 token but INTERNAL_JWT_SECRET not configured");
+    }
+    ({ payload } = await jwtVerify(token, secret, {
+      algorithms: ["HS256"],
+      issuer,
+      requiredClaims: ["sub", "exp", "token_use"],
+    }));
+  }
+
   if (payload["token_use"] !== "access") {
     throw new UnauthorizedError("Invalid token_use: expected access");
   }
@@ -130,22 +177,29 @@ function addStubHook(app: FastifyInstance, publicPaths: ReadonlySet<string>): vo
 export function registerJwtAuth(app: FastifyInstance, opts?: JwtAuthOptions): void {
   const publicPaths = new Set<string>([...DEFAULT_PUBLIC_PATHS, ...(opts?.publicPaths ?? [])]);
 
-  // Explicit internal HS256 mode — opt-in per service (no env-based silent
-  // switch). The BFF forwards the internal access token to these services.
+  // Explicit internal mode — opt-in per service (no env-based silent switch).
+  // The BFF forwards the internal access token to these services. Verifies
+  // RS256 (via INTERNAL_JWKS_URI) and/or HS256 (via INTERNAL_JWT_SECRET) — at
+  // least one must be configured (dual during the HS256→RS256 migration).
   if (opts?.mode === "internal") {
     const secret = loadInternalSecret();
-    if (!secret) {
+    const jwksUri = loadInternalJwksUri();
+    if (secret === null && jwksUri === undefined) {
       const nodeEnv = process.env["NODE_ENV"] ?? "development";
       if (nodeEnv === "production") {
         app.log.fatal(
-          "INTERNAL_JWT_SECRET must be set in production for internal JWT auth mode. Cannot start.",
+          "INTERNAL_JWT_SECRET or INTERNAL_JWKS_URI must be set in production for internal JWT auth mode. Cannot start.",
         );
         process.exit(1);
       }
       addStubHook(app, publicPaths);
       return;
     }
-    app.log.info("JWT verification enabled via internal HS256");
+    app.log.info(
+      "JWT verification enabled via internal token (RS256=%s, HS256=%s)",
+      jwksUri !== undefined ? "on" : "off",
+      secret !== null ? "on" : "off",
+    );
     app.addHook("onRequest", async (request: FastifyRequest, _reply: FastifyReply) => {
       const urlPath = request.url.split("?")[0];
       if (urlPath !== undefined && isPublicPath(urlPath, publicPaths)) return;
@@ -154,7 +208,7 @@ export function registerJwtAuth(app: FastifyInstance, opts?: JwtAuthOptions): vo
       if (!token) throw new UnauthorizedError("Missing or malformed Authorization header");
 
       try {
-        const payload = await verifyInternalToken(token, secret);
+        const payload = await verifyInternalToken(token, secret, jwksUri);
         const sub = payload.sub;
         if (!sub) throw new UnauthorizedError("JWT missing sub claim");
         (request as FastifyRequest & { userId: string }).userId = sub;

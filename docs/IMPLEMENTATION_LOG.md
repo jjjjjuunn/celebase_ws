@@ -6372,3 +6372,22 @@ verified_by: claude-opus-4-7
 - **spec sync**: §9.3 비대칭 마이그레이션 phase 1/2/3 계획 추가.
 ### 미완료 (후속 phase): Phase 2 (전 verifier dual-verify RS256+HS256 → user-service 서명 RS256 전환), Phase 3 (HS256 fallback 제거). #4 는 Phase 3 후 "JWKS_URI repoint to user-service" 로 귀결. Phase 1 staging 배포: user-service 수동 recreate (CD silent-exit).
 ### 연관 파일: services/user-service/src/lib/internal-signing-key.ts, services/user-service/src/routes/jwks.routes.ts, packages/service-core/src/middleware/jwt.ts (Phase 2 dual-verify 대상)
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/middleware/jwt.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+verified_by: claude-opus-4-7
+---
+### 완료: Phase 2a-i — service-core internal mode RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001)
+- **Phase 2a (verifier dual-verify, additive·dormant)의 keystone**: service-core `registerJwtAuth(mode:'internal')` 가 RS256(user-service JWKS) + HS256(shared secret) 둘 다 검증.
+- **구현**: `verifyInternalToken` 이 token header `alg` 로 분기 — RS256 → `INTERNAL_JWKS_URI` 의 `createRemoteJWKSet`, HS256 → `INTERNAL_JWT_SECRET`. 각 alg 가 **다른 키**로 라우팅되어 RS256/HS256 algorithm-confusion 구조적 불가 (jose `algorithms` 로 추가 pin). issuer/token_use/sub 검증은 양 경로 공통. 최소 한 쪽(secret or JWKS) 설정 필수 (prod 미설정 시 process.exit).
+- **dormant 안전성**: staging 에 `INTERNAL_JWKS_URI` 미설정 → HS256-only (현 동작 무변경). 토큰도 아직 HS256 (Phase 2b 전). RS256 경로는 deployed-but-dormant.
+- **검증**: service-core 43 tests pass (RS256 dual-verify 4건: JWKS 검증 / JWKS 미설정 시 거부 / RS256 refresh 거부 / dual HS256 동작). global fetch mock 으로 JWKS 서빙, `resetInternalJwksForTest` 로 캐시 격리. typecheck/lint clean, coverage jwt.ts 87%.
+- **Review tier**: L3. adversarial: alg-confusion(RS256 토큰을 HS256 키로 검증) → alg 별 키 분리 + jose algorithms pin 으로 차단; 헤더 alg 가 attacker-controlled 이나 잘못된 alg 는 해당 키 검증 실패.
+### 미완료 (Phase 2a 나머지): meal-plan-engine dual-verify (PyJWKClient), BFF session.ts dual-verify, user-service verifyInternalRefresh dual-verify. 그 후 Phase 2b (서명 RS256 전환 + INTERNAL_JWT_PRIVATE_KEY/INTERNAL_JWKS_URI staging 설정), Phase 3 (HS256 제거) + #4.
+### 연관 파일: packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts, services/user-service/src/services/auth.service.ts
