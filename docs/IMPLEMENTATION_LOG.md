@@ -6657,7 +6657,7 @@ verified_by: claude-opus-4-7 (envelope grep map + staging env reader analysis + 
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FIX-USER-PATCH-PARAM-INDEX-001
-commit_sha: PENDING
+commit_sha: e410476
 files_changed:
   - services/user-service/src/repositories/user.repository.ts
   - services/user-service/tests/unit/user.repository.test.ts
