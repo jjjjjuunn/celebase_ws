@@ -6495,3 +6495,24 @@ verified_by: claude-opus-4-7
 - **Review tier**: L1 (docs/governance, 2 files).
 ### 미완료: 없음.
 ### 연관 파일: CLAUDE.md, .claude/rules/multi-session.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-BIOPROFILE-WRAP-CONTRACT-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/routes/bio-profile.routes.ts
+  - services/meal-plan-engine/src/clients/user_client.py
+  - services/meal-plan-engine/tests/unit/test_user_client.py
+verified_by: claude-opus-4-7
+---
+### 완료: bio-profile 응답 wrapped contract 정렬 (FIX-BIOPROFILE-WRAP-CONTRACT-001)
+- **버그**: user-service `/users/me/bio-profile` (POST/GET/PATCH/recalculate) 가 프로필을 **flat** 으로 반환했으나, shared-types `BioProfileResponseSchema` + BFF 는 **`{bio_profile: {...}}` wrapped** 를 기대 → BFF 가 모든 bio-profile 응답을 `BFF_CONTRACT_VIOLATION` (502) 으로 거부. **모바일 온보딩(bio-profile 읽기/쓰기)이 end-to-end 로 완전히 깨진 상태**. `/users/me` 가 `{user}` 로 wrap 하는 컨벤션과도 불일치.
+- **충돌 발견**: 동일 엔드포인트를 meal-plan-engine `user_client.get_bio_profile` 도 호출하는데 **flat 으로 소비** (`bio_profile.get("sex")`, `goal_pace`). 즉 BFF(wrapped 기대)와 mpe(flat 기대)가 같은 엔드포인트에서 충돌 — flat 이라 mpe 만 동작, 모바일은 깨짐.
+- **수정 (lockstep, 단일 풀스택 오너)**: (1) user-service 4개 핸들러를 `{ bio_profile }` 로 wrap. (2) mpe `get_bio_profile` 를 `payload.get("bio_profile", payload)` 로 unwrap — cross-service 배포 윈도우 안전 위해 flat fallback 유지.
+- **발견 경로**: `scripts/e2e/journey.sh` (FIX-ANALYTICS-DAILYLOG-DATE-WIRE-001 의 E2E 하니스) 가 onboarding 단계에서 502 표면화.
+- **검증**: 로컬 E2E 재실행 — POST /users/me/bio-profile 201, GET (post) 200 (이전 502). user-service typecheck/lint clean + 160 test. mpe ruff clean + 신규 unit test 2건 (wrapped unwrap + flat fallback). BE 라우트 응답 shape assert 하는 통합테스트 없음(회귀 0).
+- **Review tier**: L2 (cross-service 계약 정렬 — user-service + meal-plan-engine, 회귀 테스트 동반).
+### 미완료: 없음. (staging 배포 시 user-service + meal-plan-engine 동시 — fallback 으로 순서 무관.)
+### 연관 파일: services/user-service/src/routes/bio-profile.routes.ts, services/meal-plan-engine/src/clients/user_client.py
