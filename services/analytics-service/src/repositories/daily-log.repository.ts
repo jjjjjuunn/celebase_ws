@@ -16,11 +16,25 @@ export type CreateDailyLogData = {
   notes?: string | null | undefined;
 };
 
-function mapRowToWire(row: Record<string, unknown>): DailyLogWire {
+// pg returns a Postgres DATE (OID 1082) as a JS Date at local midnight; the
+// wire contract is a 'YYYY-MM-DD' string. Format from local components so the
+// calendar date round-trips regardless of the container timezone (toISOString
+// would shift the day under a positive UTC offset).
+export function toIsoDate(value: unknown): string {
+  if (value instanceof Date) {
+    const y = String(value.getFullYear()).padStart(4, '0');
+    const m = String(value.getMonth() + 1).padStart(2, '0');
+    const d = String(value.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(value);
+}
+
+export function mapRowToWire(row: Record<string, unknown>): DailyLogWire {
   return DailyLogWireSchema.parse({
     id: row['id'],
     user_id: row['user_id'],
-    log_date: row['log_date'],
+    log_date: toIsoDate(row['log_date']),
     meals_completed: row['meals_completed'] ?? {},
     weight_kg: row['weight_kg'],
     energy_level: row['energy_level'],

@@ -6495,3 +6495,24 @@ verified_by: claude-opus-4-7
 - **Review tier**: L1 (docs/governance, 2 files).
 ### 미완료: 없음.
 ### 연관 파일: CLAUDE.md, .claude/rules/multi-session.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-ANALYTICS-DAILYLOG-DATE-WIRE-001
+commit_sha: def5edb
+files_changed:
+  - services/analytics-service/src/repositories/daily-log.repository.ts
+  - services/analytics-service/tests/unit/daily-log.repository.test.ts
+  - scripts/e2e/journey.sh
+verified_by: claude-opus-4-7
+---
+### 완료: daily-logs DATE→wire 매핑 500 수정 + 풀스택 E2E 하니스 (FIX-ANALYTICS-DAILYLOG-DATE-WIRE-001)
+- **버그**: `daily-log.repository.ts` `mapRowToWire` 가 pg 의 `log_date`(Postgres DATE → JS `Date` 객체)를 그대로 `DailyLogWireSchema`(`z.string()` YYYY-MM-DD)에 넘겨 `ZodError: Expected string, received date` → **POST /daily-logs + row 반환하는 GET /daily-logs 모두 500**. `created_at` 은 `toISOString()` 처리하면서 `log_date` 만 누락.
+- **latent 였던 이유**: staging 에서 해당 유저 `daily_logs` 가 비어 있어 row 매핑이 일어나지 않아 가려져 있었음 (이전 세션 staging 검증 시 `{"data":[],"has_next":false}` 200). **FE 유저가 첫 daily-log 를 만드는 순간 터질** 병목.
+- **수정**: `toIsoDate()` 헬퍼 추가 — `Date` 면 local 컴포넌트로 `YYYY-MM-DD` 포맷 (pg 가 DATE 를 local-midnight 로 파싱하므로 `toISOString` 의 TZ shift 회피), 아니면 String passthrough. `mapRowToWire` 의 `log_date` 에 적용.
+- **E2E 하니스 신규**: `scripts/e2e/journey.sh` — 모바일 앱이 호출하는 실제 BFF 엔드포인트(signup→login→onboarding→discovery→meal-plan→daily-log→subscription)를 BFF→BE→DB 로 구동, 모든 break 를 한 번에 표면화. 단일 풀스택 오너 모드의 contract regression net. **이 하니스가 본 버그를 발견**.
+- **검증**: 신규 unit test 4건 (toIsoDate Date/string + mapRowToWire Date/string row). 로컬 E2E 재실행 — POST /daily-logs 201, GET /daily-logs 200, summary 200 (이전 500 → 통과). analytics 리빌드+recreate 후 확인.
+- **Review tier**: L2 (단일 서비스 repository 버그 + 회귀 테스트).
+### 미완료: 없음. (E2E 하니스가 발견한 후속 — bio-profile wrapped contract drift — 는 별도 task 로 처리.)
+### 연관 파일: services/analytics-service/src/repositories/daily-log.repository.ts, scripts/e2e/journey.sh
