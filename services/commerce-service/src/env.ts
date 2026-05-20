@@ -4,7 +4,7 @@ const STRIPE_API_VERSION = '2025-02-24.acacia';
 
 export const EnvSchema = z
   .object({
-    PORT: z.coerce.number().int().min(1).max(65535).default(3002),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3004),
     HOST: z.string().min(1).default('0.0.0.0'),
     DATABASE_URL: z.string().min(1),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),

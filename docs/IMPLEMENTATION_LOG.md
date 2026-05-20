@@ -6230,3 +6230,36 @@ verified_by: claude-opus-4-7
 - **Review tier**: L2 (shape simplify only, business logic 변경 없음. entitlement gate 자체 로직 무변경).
 ### 미완료: staging 재배포 후 verify (dev@celebbase.local Settings 에서 Elite 표시 확인). 후속: SPEC-SYNC-SUB-SCHEMA-001 (spec.md §4.2/§11 본문 정합), commerce-service 배포 후 `GET /subscriptions/me/full` 신규 endpoint 로 cancel_at_period_end/current_period_end 복원.
 ### 연관 파일: packages/shared-types/src/schemas/subscriptions.ts, apps/mobile/src/services/subscriptions.ts, apps/web/src/app/(app)/account/AccountClient.tsx, services/user-service/src/routes/subscription.routes.ts (변경 없음 — 참조)
+
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-STAGING-BE-DEPLOY-001
+commit_sha: PENDING
+files_changed:
+  - .github/workflows/cd.yml
+  - services/commerce-service/src/env.ts
+verified_by: claude-opus-4-7
+---
+### 완료: staging EC2 에 4 BE 배포 — analytics + commerce + content + meal-plan-engine (CHORE-STAGING-BE-DEPLOY-001)
+- **문제**: user-service 외 4 backend service staging 미배포. BFF (`apps/web/src/app/api/_lib/bff-fetch.ts`) 가 4 BE 전부 route → 모든 BFF route 503. CHORE-STAGING-MIGRATION-PIPELINE-001 (#98) + #109 sanity hotfix 후속 G3 sub-task.
+- **Scope** (사용자 confirm): 4 BE 모두 — BFF routing 일관성 우선.
+- **Strategic decisions**:
+  - D1 Resource: t3.small + swap 2 GB. meal-plan-engine = openai 만 (light deps), monitor 후 OOM 발생 시 t3.medium upgrade 별도 chore
+  - D2 commerce-service port: env.ts default 3002 → 3004 (Dockerfile EXPOSE 와 일치 — source bug fix)
+  - D3 DATABASE_URL 4 BE 통일. user-service POSTGRES_* 패턴 유지
+  - D4 Internal communication: compose internal DNS (USER_SERVICE_URL=http://user-service:3001, CONTENT_SERVICE_URL=http://content-service:3002)
+  - D5 Healthcheck per-BE: Node 15s start_period, Python uvicorn meal-plan-engine 60s. deploy step BE_PORT/BE_DEADLINE lookup
+- **변경 파일** (2):
+  - `.github/workflows/cd.yml` (+123 LOC): workflow_dispatch options +4 + paths +4 + build-push +4 step (per-service ECR push + DIGEST) + deploy step input allowlist + case statement +4 + healthcheck refactor (per-BE port mapping)
+  - `services/commerce-service/src/env.ts` (+1/-1): PORT default 3004
+- **사용자 manual prerequisites** (별도, PR 머지 전):
+  - AWS ECR repos × 4
+  - staging .env append: Cognito + Stripe + RevenueCat + OpenAI + ADMIN_API_TOKEN + service URLs
+  - swap 2 GB
+  - staging compose 에 4 BE service block 추가
+- **Adversarial review (advisor)**: 5 constraint identify — scope (4 BE 모두 confirm), requirements.txt evidence (light), commerce port = source bug, ECR + Secrets ownership (사용자), concurrent session 확인 (race 없음)
+- **Review tier**: L2 (CD workflow + 4 BE 영향, 단순 user-service 패턴 복제 + 1 source bug fix)
+### 미완료: 사용자 prerequisites 완료 → PR push + merge → CD watch → smoke test. 후속: CHORE-STAGING-BE-MONITORING-001, CHORE-DEV-STAGING-SERVICE-NAME-HARMONIZE, CHORE-PG-UUIDV7-EXTENSION-001.
+### 연관 파일: .github/workflows/cd.yml, services/commerce-service/src/env.ts
