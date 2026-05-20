@@ -6790,7 +6790,7 @@ verified_by: claude-opus-4-7 (user-service 175 tests pass + web/BFF typecheck + 
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001
-commit_sha: PENDING
+commit_sha: 0afd14d
 files_changed:
   - services/content-service/src/index.ts
   - packages/service-core/tests/unit/jwt.test.ts
