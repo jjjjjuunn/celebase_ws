@@ -6739,7 +6739,7 @@ verified_by: claude-opus-4-7 (staging ops backlog audit + IMPL_LOG grep open-sta
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FIX-STAGING-MPE-SQS-CREDS-001
-commit_sha: PENDING
+commit_sha: 14395ff
 files_changed:
   - docs/PROD-DEPLOY-ROADMAP.md
 verified_by: claude-opus-4-7 (staging live — in-container boto3 cred_method=iam-role + assumed-role STS identity + consumer NoCredentialsError 0건/2분)
