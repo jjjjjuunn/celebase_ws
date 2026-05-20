@@ -18,6 +18,7 @@ const start = async (): Promise<void> => {
   // External JWT guard skips webhooks (signature-verified) and /internal/* (guarded
   // by registerInternalJwtAuth instead with audience = commerce-service:internal).
   registerJwtAuth(app, {
+    mode: 'internal',
     publicPaths: ['/webhooks/stripe', '/webhooks/revenuecat', '/internal/*'],
   });
 
