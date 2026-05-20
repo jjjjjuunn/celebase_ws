@@ -6716,3 +6716,21 @@ verified_by: claude-opus-4-7 (FE-readiness audit 종합 + 문서 정합성)
 - **Review tier**: L1 (문서 전용, 코드 변경 0).
 ### 미완료: MOBILE-ROADMAP.md §5 track 인덱스 status 갱신 (secondary, 본 PR 범위 외 — FE-WIRING-TODO + PROD-DEPLOY progress 가 substantive 인덱스 대체).
 ### 연관 파일: docs/FE-WIRING-TODO.md, apps/mobile/README.md, docs/PROD-DEPLOY-ROADMAP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: DOCS-STAGING-OPS-BACKLOG-001
+commit_sha: PENDING
+files_changed:
+  - docs/PROD-DEPLOY-ROADMAP.md
+verified_by: claude-opus-4-7 (staging ops backlog audit + IMPL_LOG grep open-status 확인)
+---
+### 완료: 배포 트랙 staging ops backlog 정리 (DOCS-STAGING-OPS-BACKLOG-001)
+- `CHORE-STAGING-BE-DEPLOY-001` 의 L1~L10 blocker chain follow-up 중 **잔여 open** 항목을 `docs/PROD-DEPLOY-ROADMAP.md` G3 에 "Staging Ops Backlog" 소절로 정리. "앞으로 할 일" 인덱스 정합.
+- **해소 확인 (PR 추적)**: CD deploy silent-exit (#125), cross-service internal HS256 token (#115), issuer-default align (#117), RS256 asymmetric signing Phase 1~2b (#119~#127), vestigial Cognito/JWKS env (#128) — 전부 머지됨.
+- **잔여 open 3건** (IMPL_LOG grep 으로 미등재 확인): `INFRA-MOBILE-SQS-TERRAFORM-001` (MEDIUM — SQS 수동생성→terraform), `CHORE-STAGING-ENV-MANAGEMENT-001` (MEDIUM — `.env.staging`→SSM), `CHORE-STAGING-MPE-HEALTHCHECK-001` (LOW — healthcheck cosmetic).
+- **허위 항목 제거**: HANDOFF L7 "caddy public 미도달" 은 잘못된 도메인 진단 — 실 staging 도메인 `staging.celebase.app` (→ 184.32.66.152) 은 L10 end-to-end 200 정상. `staging.celebbase.com` (double-b) 은 NXDOMAIN placeholder. → repo placeholder doc hygiene (LOW) 로 격하.
+- **G1-f 흡수**: vendor-enable (`REVENUECAT_ENABLED=true` staging) 은 별도 chore 아닌 G1-f sandbox sync E2E acceptance 전제.
+- **Review tier**: L1 (문서 전용, 코드 변경 0).
+### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md
