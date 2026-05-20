@@ -6677,7 +6677,7 @@ verified_by: claude-opus-4-7 (user-service jest 164 + 라이브 PATCH E2E 200 + 
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FEAT-FE-ENABLEMENT-001
-commit_sha: PENDING
+commit_sha: 55147d9
 files_changed:
   - apps/web/src/app/api/users/me/route.ts
   - packages/shared-types/src/schemas/subscriptions.ts
