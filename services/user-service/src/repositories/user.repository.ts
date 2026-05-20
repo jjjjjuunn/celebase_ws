@@ -59,11 +59,11 @@ export async function updateUser(
     return existing;
   }
 
-  const setClauses = fields.map((f, idx) => `${f} = $${String(idx + 2)}`).join(', ');
+  const setClauses = fields.map((f, idx) => `${f} = $${String(idx + 1)}`).join(', ');
   const values: unknown[] = [...fields.map((k) => data[k]), id];
 
   const { rows } = await pool.query<User>(
-    `UPDATE users SET ${setClauses}, updated_at = NOW() WHERE id = $${String(fields.length + 2)} RETURNING *`,
+    `UPDATE users SET ${setClauses}, updated_at = NOW() WHERE id = $${String(fields.length + 1)} RETURNING *`,
     values,
   );
   const row = rows[0];

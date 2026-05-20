@@ -5,6 +5,7 @@ import {
   findByCognitoSub,
   findByEmail,
   findById,
+  updateUser,
 } from '../../src/repositories/user.repository.js';
 
 const baseUser = {
@@ -98,5 +99,69 @@ describe('user.repository basic queries', () => {
   it('findByCognitoSub returns the first row or null', async () => {
     const pool = makePool({ rows: [baseUser] });
     expect(await findByCognitoSub(pool, 'dev-legacy')).toEqual(baseUser);
+  });
+});
+
+// FIX-USER-PATCH-PARAM-INDEX-001: updateUser built the SET clause with `$${idx+2}`
+// and the WHERE with `$${len+2}`, so $1 was never referenced and the WHERE
+// pointed at an out-of-range param → PG 42P18 ("could not determine data type
+// of parameter $1") on every PATCH /users/me. These assert the placeholder
+// numbers form a contiguous 1..values.length with the id bound last.
+function placeholderNumbers(text: string): number[] {
+  return [...text.matchAll(/\$(\d+)/g)].map((m) => Number(m[1]));
+}
+
+describe('user.repository.updateUser — parameterized SQL integrity', () => {
+  it('single field: $1 = value, $2 = id', async () => {
+    const pool = makePool({ rows: [baseUser] });
+    await updateUser(pool, 'u1', { display_name: 'New Name' });
+    const [text, values] = (pool.query as unknown as jest.Mock).mock.calls[0] as [
+      string,
+      unknown[],
+    ];
+    expect(text).toBe(
+      'UPDATE users SET display_name = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+    );
+    expect(values).toEqual(['New Name', 'u1']);
+    const nums = placeholderNumbers(text);
+    expect(Math.max(...nums)).toBe(values.length); // no out-of-range placeholder
+    expect(new Set(nums)).toEqual(new Set([1, 2])); // every value referenced, no gap
+  });
+
+  it('multiple fields: contiguous $1..$N, id is the last placeholder', async () => {
+    const pool = makePool({ rows: [baseUser] });
+    await updateUser(pool, 'u1', {
+      display_name: 'New Name',
+      preferred_celebrity_slug: 'ariana-grande',
+    });
+    const [text, values] = (pool.query as unknown as jest.Mock).mock.calls[0] as [
+      string,
+      unknown[],
+    ];
+    expect(values).toEqual(['New Name', 'ariana-grande', 'u1']);
+    expect(text).toContain('WHERE id = $3');
+    const nums = placeholderNumbers(text);
+    expect(Math.max(...nums)).toBe(values.length);
+    expect(new Set(nums)).toEqual(new Set([1, 2, 3]));
+  });
+
+  it('nullable field binds null at $1', async () => {
+    const pool = makePool({ rows: [baseUser] });
+    await updateUser(pool, 'u1', { preferred_celebrity_slug: null });
+    const [text, values] = (pool.query as unknown as jest.Mock).mock.calls[0] as [
+      string,
+      unknown[],
+    ];
+    expect(text).toBe(
+      'UPDATE users SET preferred_celebrity_slug = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+    );
+    expect(values).toEqual([null, 'u1']);
+  });
+
+  it('rejects unknown columns', async () => {
+    const pool = makePool({ rows: [baseUser] });
+    await expect(
+      updateUser(pool, 'u1', { evil: 'x' } as unknown as { display_name: string }),
+    ).rejects.toThrow('Unexpected column');
   });
 });
