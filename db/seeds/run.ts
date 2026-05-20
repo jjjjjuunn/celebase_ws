@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadIngredients } from './loaders/ingredientLoader.js';
 import { loadCelebrity } from './loaders/celebrityLoader.js';
+import { loadClaims, type SeedClaimsFile } from './loaders/claimsLoader.js';
 import type { SeedIngredient, SeedCelebrity } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -47,6 +48,16 @@ async function main(): Promise<void> {
       await loadCelebrity(client, celeb, ingredientMap);
       console.log(`[seed] Loaded ${celeb.display_name} (${celeb.recipes.length} recipes)`);
     }
+
+    // 3. Load lifestyle claims (FK celebrity_id → must follow celebrities).
+    //    One file per seeded celebrity under lifestyle-claims/.
+    let totalClaims = 0;
+    for (const file of CELEBRITY_FILES) {
+      const claimsFile = readJson<SeedClaimsFile>(`lifestyle-claims/${file}.json`);
+      const n = await loadClaims(client, claimsFile);
+      totalClaims += n;
+    }
+    console.log(`[seed] Loaded ${String(totalClaims)} lifestyle claims`);
 
     await client.query('COMMIT');
     console.log('[seed] Done — all data committed.');
