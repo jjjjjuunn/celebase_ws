@@ -7,7 +7,14 @@
  */
 import { jest, describe, it, expect, beforeAll, beforeEach, afterAll } from '@jest/globals';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { SignJWT } from 'jose';
+import {
+  SignJWT,
+  generateKeyPair,
+  exportJWK,
+  calculateJwkThumbprint,
+  type JWK,
+  type CryptoKey,
+} from 'jose';
 
 type HookFn = (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
@@ -16,10 +23,12 @@ let registerJwtAuth: (
   app: FastifyInstance,
   opts?: { publicPaths?: readonly string[]; mode?: 'internal' | 'jwks' | 'stub' },
 ) => void;
+let resetInternalJwksForTest: () => void;
 
 beforeAll(async () => {
   const mod = await import('../../src/middleware/jwt.js');
   registerJwtAuth = mod.registerJwtAuth;
+  resetInternalJwksForTest = mod.resetInternalJwksForTest;
 });
 
 function createMockApp(): FastifyInstance & { _hooks: HookFn[] } {
@@ -245,6 +254,7 @@ describe('registerJwtAuth — internal HS256 mode', () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     process.env['INTERNAL_JWT_SECRET'] = SECRET;
+    delete process.env['INTERNAL_JWKS_URI'];
     delete process.env['JWKS_URI'];
     delete process.env['JWT_ISSUER'];
   });
@@ -363,5 +373,114 @@ describe('registerJwtAuth — internal HS256 mode', () => {
     expect(app.log.fatal).toHaveBeenCalledWith(expect.stringContaining('INTERNAL_JWT_SECRET'));
     expect(mockExit).toHaveBeenCalledWith(1);
     mockExit.mockRestore();
+  });
+});
+
+// CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2 — internal mode dual-verify.
+// RS256 (user-service JWKS) alongside HS256 (shared secret). The header alg
+// dispatches to a different key per alg, so algorithm confusion is impossible.
+describe('registerJwtAuth — internal mode RS256 dual-verify', () => {
+  const originalEnv = process.env;
+  const SECRET = 'test-internal-secret-32-bytes-minimum-xx';
+  const JWKS_URI = 'https://user-service.internal/.well-known/jwks.json';
+  let privateKey: CryptoKey;
+  let publicJwk: JWK;
+  let kid: string;
+  let fetchSpy: ReturnType<typeof jest.spyOn>;
+
+  beforeAll(async () => {
+    const pair = await generateKeyPair('RS256', { extractable: true });
+    privateKey = pair.privateKey;
+    const full = await exportJWK(pair.publicKey);
+    kid = await calculateJwkThumbprint(full);
+    publicJwk = { ...full, alg: 'RS256', use: 'sig', kid };
+  });
+
+  async function makeRs256Token(opts: {
+    sub?: string;
+    tokenUse?: string;
+    issuer?: string;
+  }): Promise<string> {
+    const jwt = new SignJWT(opts.tokenUse !== undefined ? { token_use: opts.tokenUse } : {})
+      .setProtectedHeader({ alg: 'RS256', kid })
+      .setIssuedAt()
+      .setIssuer(opts.issuer ?? 'celebbase-user-service')
+      .setExpirationTime('15m');
+    if (opts.sub !== undefined) jwt.setSubject(opts.sub);
+    return jwt.sign(privateKey);
+  }
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    resetInternalJwksForTest();
+    // Serve the JWKS for any fetch the JWKS client makes.
+    fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ keys: [publicJwk] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+    fetchSpy.mockRestore();
+  });
+
+  it('verifies an RS256 token via the internal JWKS', async () => {
+    process.env['INTERNAL_JWKS_URI'] = JWKS_URI;
+    delete process.env['INTERNAL_JWT_SECRET'];
+
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeRs256Token({ sub: 'user-rs', tokenUse: 'access' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await getFirstHook(app)(request, mockReply);
+    expect((request as FastifyRequest & { userId: string }).userId).toBe('user-rs');
+  });
+
+  it('rejects an RS256 token when INTERNAL_JWKS_URI is not configured', async () => {
+    process.env['INTERNAL_JWT_SECRET'] = SECRET; // HS256 only
+    delete process.env['INTERNAL_JWKS_URI'];
+
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeRs256Token({ sub: 'user-rs', tokenUse: 'access' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(/INTERNAL_JWKS_URI/);
+  });
+
+  it('rejects an RS256 refresh token (token_use !== access)', async () => {
+    process.env['INTERNAL_JWKS_URI'] = JWKS_URI;
+    delete process.env['INTERNAL_JWT_SECRET'];
+
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeRs256Token({ sub: 'user-rs', tokenUse: 'refresh' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(/token_use/);
+  });
+
+  it('dual mode: HS256 token still verifies when both RS256 and HS256 configured', async () => {
+    process.env['INTERNAL_JWKS_URI'] = JWKS_URI;
+    process.env['INTERNAL_JWT_SECRET'] = SECRET;
+
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const now = Math.floor(Date.now() / 1000);
+    const hsToken = await new SignJWT({ token_use: 'access' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt(now)
+      .setSubject('user-hs')
+      .setIssuer('celebbase-user-service')
+      .setExpirationTime(now + 900)
+      .sign(new TextEncoder().encode(SECRET));
+    const request = createMockRequest({ headers: { authorization: `Bearer ${hsToken}` } });
+    await getFirstHook(app)(request, mockReply);
+    expect((request as FastifyRequest & { userId: string }).userId).toBe('user-hs');
   });
 });
