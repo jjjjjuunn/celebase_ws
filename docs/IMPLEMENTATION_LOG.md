@@ -6587,7 +6587,7 @@ verified_by: claude-opus-4-7 (jest 178 + live BFF E2E ×3 routes)
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-MIGRATION-STATUS-001
-commit_sha: PENDING
+commit_sha: c8a86eb
 files_changed:
   - docs/IMPLEMENTATION_LOG.md
 verified_by: claude-opus-4-7 (staging SSH config read + JWKS endpoint + Cognito client describe)
