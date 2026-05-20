@@ -6500,7 +6500,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FIX-BIOPROFILE-WRAP-CONTRACT-001
-commit_sha: PENDING
+commit_sha: e4379f9
 files_changed:
   - services/user-service/src/routes/bio-profile.routes.ts
   - services/meal-plan-engine/src/clients/user_client.py
