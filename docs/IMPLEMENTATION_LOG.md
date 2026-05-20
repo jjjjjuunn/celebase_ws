@@ -6812,7 +6812,7 @@ verified_by: claude-opus-4-7 (staging 로그 근본원인 + service-core jwt 회
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FIX-BFF-BASE-DIET-SCHEMA-DRIFT-001
-commit_sha: PENDING
+commit_sha: 988f952
 files_changed:
   - apps/web/src/app/api/base-diets/[id]/route.ts
   - apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts
