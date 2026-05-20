@@ -4,7 +4,9 @@ paths:
 ---
 # Multi-Session Coordination Rules
 
-> 사용자가 FE/BE/BFF 를 다른 Claude Code 세션에서 병렬로 작업할 때 49 브랜치 누적 사태(2026-04-25)를 방지하기 위한 운영 규칙.
+> **2026-05-20~ 단일 풀스택 오너 모드 (JUNWON).** FE 핸드오프 병목 제거를 위해 멀티-오너(BE/FE/BFF 분리) 모델은 종료됐다. 아래 **§1~§10 은 historical 참고용** — 단일 오너가 contract+BE+BFF+mobile 을 lockstep PR 로 변경하고 E2E 로 검증한다. shared-types hold-then-merge / 48h 통합 / owner 경계 의례는 더 이상 적용하지 않는다 (다중 세션 협업으로 복귀 시에만 복원).
+>
+> (이하 historical) 사용자가 FE/BE/BFF 를 다른 Claude Code 세션에서 병렬로 작업할 때 49 브랜치 누적 사태(2026-04-25)를 방지하기 위한 운영 규칙.
 >
 > 이 규칙은 BRANCH-CONSOLIDATION-2026-04-25 의 회고에서 도출됐다 — 세션 분리 자체는 문제가 아니었고, "통합을 미루고, 다른 세션이 만든 자산을 모르고 중복 작업한 것" 이 원인이었다.
 

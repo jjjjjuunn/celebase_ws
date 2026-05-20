@@ -15,13 +15,15 @@
 - **Partially frozen client**: `apps/web` (Next.js) — SSR pages/components/route groups 만 frozen. **BFF (`apps/web/src/app/api/**`) + server lib (`apps/web/src/lib/server/**`) 는 모바일의 active gateway** 로 살아 있다.
 - **Mobile architecture (hybrid BFF)**: mobile → BFF (`createProtectedRoute` cookie + `Authorization: Bearer` fallback) → BE 서비스. **예외**: `/auth/refresh` 는 BFF 가 cookie-shaped 라 mobile 이 user-service 를 직접 호출. 그 외 path 는 BFF 경유 (mobile-driven 신규 라우트 추가 OK — Plan v5 IMPL-MOBILE-BFF-001 / SUB-SYNC-002). Cognito SRP (Amplify) → id_token → user-service `/auth/signup`·`/auth/login` 으로 internal JWT 교환.
 
-### 1.1 Ownership (2026-05~)
+### 1.1 Ownership (2026-05-20~ 단일 풀스택 오너)
+
+> **2026-05-20**: FE 핸드오프 병목 제거를 위해 **JUNWON 단독 풀스택**으로 전환. 이전 multi-owner(Dohyun: mobile) 모델 종료. `.claude/rules/multi-session.md` §1~§10 은 historical 참고용 — 단일 오너가 contract+BE+BFF+mobile 을 한 PR 에서 lockstep 변경하고 E2E 로 검증한다.
 
 | Domain | Owner | Areas |
 |--------|-------|-------|
-| BE + active mobile-gateway BFF + infra | **JUNWON** | `services/**`, `apps/web/src/app/api/**` (BFF, mobile gateway active), `apps/web/src/lib/server/**`, `db/migrations/**`, `infra/**` |
-| FE (mobile) | **Dohyun** | `apps/mobile/**` (Expo / RN), `packages/design-tokens/**` (CSS 변수 + RN 익스포트 빌드 타겟) |
-| 공통 계약 | hold-then-merge | `packages/shared-types/**` — 한 명이 hold 후 머지, 다른 owner 동시 수정 금지 (`.claude/rules/multi-session.md` §2) |
+| **풀스택 전체** | **JUNWON** | `services/**`, `apps/web/src/app/api/**` (BFF), `apps/web/src/lib/server/**`, `apps/mobile/**` (Expo / RN), `packages/shared-types/**`, `packages/design-tokens/**`, `db/migrations/**`, `infra/**` |
+
+단일 오너이므로 `shared-types` hold-then-merge 의례 불필요 — BE Pydantic + shared-types Zod + mobile consumer 를 한 PR 에서 lockstep 변경하고 E2E 로 검증한다.
 
 **Frozen** (어느 owner 도 새 기능 추가 X — 보안·deps 패치만 JUNWON 처리):
 - `apps/web/src/app/(app|auth|marketing|slice)/**`, `apps/web/src/components/**` — Next.js SSR pages/components 만 frozen

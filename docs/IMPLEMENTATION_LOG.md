@@ -6476,3 +6476,22 @@ verified_by: claude-opus-4-7
 - **Review tier**: L1 (config dead-code 제거, 2 files, 기존 테스트로 검증 충분 — 리뷰 0회).
 ### 미완료: (선택) staging `.env.staging` 에서 잔재 Cognito/JWKS 라인 cleanup. 기능 영향 없음.
 ### 연관 파일: services/commerce-service/src/env.ts, services/analytics-service/src/env.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-OWNERSHIP-SINGLE-FULLSTACK-001
+commit_sha: 0c3bd91
+files_changed:
+  - CLAUDE.md
+  - .claude/rules/multi-session.md
+verified_by: claude-opus-4-7
+---
+### 완료: 단일 풀스택 오너 모델 전환 (CHORE-OWNERSHIP-SINGLE-FULLSTACK-001)
+- **배경**: FE(Dohyun) 핸드오프 + 늦은 통합 발견이 반복 병목(celebrities 504/subscriptions 502/auth audience mismatch/staging drift — 전부 HTTP 레벨 계약·드리프트)을 만들어, JUNWON 이 풀스택 단독 오너로 전환. multi-owner ceremony(shared-types hold-then-merge, 48h 통합, owner 경계)가 Claude 가 매 턴 self-impose 하는 마찰원이었음.
+- **CLAUDE.md §1.1**: ownership 표를 단일 행 "풀스택 전체 = JUNWON" 으로 통합 (`services/**`, BFF, `apps/mobile/**`, `shared-types`, `design-tokens`, migrations, infra). frozen(`apps/web` SSR, `ui-kit`)은 유지. shared-types lockstep(한 PR 에서 BE Pydantic + Zod + mobile consumer 동시 변경 + E2E 검증) 명시.
+- **multi-session.md**: 상단 배너로 §1~§10 을 historical 참고용으로 표시 (다중 세션 복귀 시에만 복원).
+- **목적**: 신규 세션이 옛 multi-person 규칙을 답습하지 않도록. 후속 작업(E2E 하니스)보다 먼저 머지.
+- **Review tier**: L1 (docs/governance, 2 files).
+### 미완료: 없음.
+### 연관 파일: CLAUDE.md, .claude/rules/multi-session.md
