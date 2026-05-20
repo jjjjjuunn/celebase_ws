@@ -6314,3 +6314,34 @@ verified_by: claude-opus-4-7
 - **spec sync**: spec.md §9.3 "Cross-service token verification — internal HS256" subsection 추가.
 ### 미완료: PR merge → CD build → 수동 recreate 4 svc (CD silent-exit) → JWKS_URI override 제거 → daily-logs/subscriptions internal token end-to-end 검증. 후속: CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001 (INTERNAL_JWT_ISSUER default 정합 + issuer binding), CHORE-AUTH-ASYMMETRIC-SIGNING-001 (HS256→비대칭 hardening), commerce/analytics env schema 의 vestigial JWKS_URI 요구 제거.
 ### 연관 파일: packages/service-core/src/middleware/jwt.ts, services/{user,content,commerce,analytics}-service/src/index.ts, services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/auth.service.ts
+  - packages/service-core/src/middleware/jwt.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+  - services/meal-plan-engine/tests/integration/conftest.py
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+  - services/user-service/tests/integration/logout.test.ts
+  - spec.md
+verified_by: claude-opus-4-7
+---
+### 완료: USER-token issuer default 정합 + issuer binding (CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001)
+- **문제**: user access/refresh token issuer default 가 signer 와 verifier 에서 갈렸다. `auth.service.ts loadInternalIssuer` default = `celebbase-internal`, verifier (BFF `session.ts`, user-service `env.ts`, meal-plan-engine `config.py`) default = `celebbase-user-service`. `INTERNAL_JWT_ISSUER` unset 환경(local dev/test)에서 signer 가 `celebbase-internal` 서명 → verifier 가 `celebbase-user-service` 기대 → silent 401. staging 은 env 명시라 마스킹됐었다.
+- **두 토큰 시스템 구분**: USER access/refresh token (issuer 정합 대상) ≠ service-to-service `/internal/*` token (`internal-jwt.ts`, issuer `celebbase-internal` — 이미 일관, 미변경).
+- **수정**:
+  - `auth.service.ts`: `DEFAULT_INTERNAL_ISSUER` → `celebbase-user-service`.
+  - `service-core/jwt.ts` internal mode: `verifyInternalToken` 에 issuer binding 추가.
+  - `meal-plan-engine/meal_plans.py`: pyjwt.decode `issuer=` + require `iss`.
+  - 테스트: service-core + meal-plan-engine wrong-issuer 거부 각 1건, 토큰 mint 에 iss 추가, user-service refresh-rotation/logout 의 하드코딩 issuer 정합.
+- **검증**: service-core 39 / user-service 154 / meal-plan-engine 26 unit tests pass. typecheck/lint/ruff clean.
+- **Review tier**: L3. adversarial: USER vs internal 토큰 issuer 혼동 위험 → grep 으로 분리 확인 후 USER 경로만 변경.
+- **spec sync**: §9.3 issuer 문구 "bound" 갱신.
+### 미완료: PR merge → CD build → 수동 recreate user-service + meal-plan-engine → staging 재검증. 후속 #3 ASYMMETRIC-SIGNING, #4 vestigial JWKS.
+### 연관 파일: services/user-service/src/services/auth.service.ts, packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/routes/meal_plans.py

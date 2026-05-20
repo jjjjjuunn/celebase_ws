@@ -228,6 +228,7 @@ describe('registerJwtAuth — internal HS256 mode', () => {
     sub?: string;
     tokenUse?: string;
     expSecondsFromNow?: number;
+    issuer?: string;
   }): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
     const claims: Record<string, unknown> = {};
@@ -235,7 +236,7 @@ describe('registerJwtAuth — internal HS256 mode', () => {
     const jwt = new SignJWT(claims)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt(now)
-      .setIssuer('celebbase-user-service')
+      .setIssuer(opts.issuer ?? 'celebbase-user-service')
       .setExpirationTime(now + (opts.expSecondsFromNow ?? 900));
     if (opts.sub !== undefined) jwt.setSubject(opts.sub);
     return jwt.sign(secretBytes);
@@ -290,6 +291,19 @@ describe('registerJwtAuth — internal HS256 mode', () => {
     registerJwtAuth(app, { mode: 'internal' });
 
     const token = await makeInternalToken({ sub: 'user-123' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
+  });
+
+  it('rejects a token with a mismatched issuer', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeInternalToken({
+      sub: 'user-123',
+      tokenUse: 'access',
+      issuer: 'celebbase-internal', // service-to-service issuer, not the user-token issuer
+    });
     const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
     await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
   });

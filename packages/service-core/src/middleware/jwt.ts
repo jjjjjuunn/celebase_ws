@@ -70,19 +70,25 @@ async function verifyToken(token: string, config: JwtConfig): Promise<JWTPayload
 // Internal HS256 verification — mirrors meal-plan-engine's PyJWT contract
 // (algorithms HS256, require sub/exp/token_use, token_use === 'access') so the
 // internal access token issued by user-service verifies identically across the
-// TS and Python services. Issuer is intentionally NOT checked: the two
-// INTERNAL_JWT_ISSUER defaults diverge (auth.service.ts 'celebbase-internal' vs
-// env.ts 'celebbase-user-service'), and the shared secret is the trust
-// boundary. Issuer binding is deferred until that default mismatch is fixed.
+// TS and Python services. Issuer is bound to INTERNAL_JWT_ISSUER (default
+// 'celebbase-user-service') — aligned across signer (auth.service.ts) and all
+// verifiers in CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001.
+const DEFAULT_INTERNAL_ISSUER = "celebbase-user-service";
+
 function loadInternalSecret(): Uint8Array | null {
   const secret = process.env["INTERNAL_JWT_SECRET"];
   if (!secret) return null;
   return new TextEncoder().encode(secret);
 }
 
+function loadInternalIssuer(): string {
+  return process.env["INTERNAL_JWT_ISSUER"] ?? DEFAULT_INTERNAL_ISSUER;
+}
+
 async function verifyInternalToken(token: string, secret: Uint8Array): Promise<JWTPayload> {
   const { payload } = await jwtVerify(token, secret, {
     algorithms: ["HS256"],
+    issuer: loadInternalIssuer(),
     requiredClaims: ["sub", "exp", "token_use"],
   });
   if (payload["token_use"] !== "access") {

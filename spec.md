@@ -2261,7 +2261,7 @@ user-service 는 dev/cognito provider 무관하게 **internal HS256 access token
 
 따라서 BFF 가 mobile 토큰을 forward하는 **모든 BE 서비스는 internal HS256 토큰을 검증**해야 한다 — Cognito JWKS(RS256) 가 아니다. 단일 출처:
 
-- **검증 계약** (meal-plan-engine PyJWT 와 TS service-core 가 동일): alg `HS256`, require `sub`/`exp`/`token_use`, `token_use === 'access'`, `sub` → `userId`. issuer 검증은 현재 미적용 — `INTERNAL_JWT_ISSUER` 기본값이 `auth.service.ts`(`celebbase-internal`) 와 `env.ts`(`celebbase-user-service`) 에서 갈리는 latent mismatch 가 있어 secret 을 신뢰 경계로 둔다 (issuer binding 은 default 정합 후속 작업).
+- **검증 계약** (meal-plan-engine PyJWT 와 TS service-core 가 동일): alg `HS256`, require `sub`/`exp`/`token_use`/`iss`, `token_use === 'access'`, `iss === $INTERNAL_JWT_ISSUER`, `sub` → `userId`. issuer 는 **bound** — signer(`auth.service.ts`) 와 모든 verifier(service-core / meal-plan-engine / BFF / env.ts) default 가 `celebbase-user-service` 로 정합됨 (CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001). 이전엔 `auth.service.ts` default 만 `celebbase-internal` 이라 `INTERNAL_JWT_ISSUER` unset 환경에서 silent auth 실패가 있었다. **주의**: 이 USER-token issuer 는 service-to-service `/internal/*` 토큰 issuer(`celebbase-internal`, `internal-jwt.ts`) 와 별개 — 혼동 금지.
 - **TS 서비스 적용**: `service-core/registerJwtAuth(app, { mode: 'internal' })` 명시 opt-in. user-service / content-service / commerce-service / analytics-service 모두 `mode: 'internal'`. env 존재로 암묵 전환하지 않는다 (공유 `.env` 가 서비스 검증 전략을 silent flip 하는 사고 방지).
 - **Python 서비스**: meal-plan-engine `_verify_jwt_payload` (PyJWT, 동일 계약).
 - **JWKS(RS256) 모드**는 web-first 시대 잔재로 deprecated — mobile 토큰은 RS256 이 아니므로 user-facing 서비스에서 사용 금지. (Cognito 토큰 직접 검증이 필요한 미래 요구가 생기면 별도 재도입.)

@@ -107,12 +107,18 @@ async def get_request_id(request: Request) -> str:  # noqa: D401
 
 
 def _verify_jwt_payload(token: str) -> Dict[str, Any]:
-    """Verify JWT signature and return payload using PyJWT."""
+    """Verify JWT signature and return payload using PyJWT.
+
+    Issuer bound to settings.INTERNAL_JWT_ISSUER (default
+    'celebbase-user-service') — aligned with the user-service signer and the
+    TS service-core verifier (CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001).
+    """
     payload = pyjwt.decode(
         token,
         settings.INTERNAL_JWT_SECRET,
         algorithms=["HS256"],
-        options={"require": ["sub", "exp", "token_use"]},
+        issuer=settings.INTERNAL_JWT_ISSUER,
+        options={"require": ["sub", "exp", "token_use", "iss"]},
     )
     if payload.get("token_use") != "access":
         raise ValueError("Invalid token_use: expected 'access'")

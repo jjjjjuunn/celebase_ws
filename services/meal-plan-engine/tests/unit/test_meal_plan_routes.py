@@ -74,7 +74,12 @@ def _auth_header() -> dict[str, str]:
     """Return a properly signed Authorization header with access token claims."""
 
     token = pyjwt.encode(
-        {"sub": _TEST_USER_ID, "exp": int(time.time()) + 3600, "token_use": "access"},
+        {
+            "sub": _TEST_USER_ID,
+            "exp": int(time.time()) + 3600,
+            "token_use": "access",
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
         settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
@@ -239,7 +244,29 @@ async def test_expired_token_returns_401(client):
 async def test_refresh_token_rejected_on_api(client):
     """A refresh token (token_use=refresh) should not work on protected routes."""
     token = pyjwt.encode(
-        {"sub": "u1", "exp": int(time.time()) + 3600, "token_use": "refresh"},
+        {
+            "sub": "u1",
+            "exp": int(time.time()) + 3600,
+            "token_use": "refresh",
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
+        settings.INTERNAL_JWT_SECRET,
+        algorithm="HS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_wrong_issuer_returns_401(client):
+    """A token with a mismatched issuer should be rejected (issuer binding)."""
+    token = pyjwt.encode(
+        {
+            "sub": "u1",
+            "exp": int(time.time()) + 3600,
+            "token_use": "access",
+            "iss": "celebbase-internal",
+        },
         settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
@@ -251,7 +278,11 @@ async def test_refresh_token_rejected_on_api(client):
 async def test_missing_token_use_returns_401(client):
     """A token without token_use claim should be rejected."""
     token = pyjwt.encode(
-        {"sub": "u1", "exp": int(time.time()) + 3600},
+        {
+            "sub": "u1",
+            "exp": int(time.time()) + 3600,
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
         settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
