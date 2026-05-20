@@ -6537,3 +6537,20 @@ verified_by: claude-opus-4-7
 - **Review tier**: L2 (cross-service 계약 정렬 — user-service + meal-plan-engine, 회귀 테스트 동반).
 ### 미완료: 없음. (staging 배포 시 user-service + meal-plan-engine 동시 — fallback 으로 순서 무관.)
 ### 연관 파일: services/user-service/src/routes/bio-profile.routes.ts, services/meal-plan-engine/src/clients/user_client.py
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-FIX-DB-TURBO-FILTER-001
+commit_sha: 6a93cb8
+files_changed:
+  - package.json
+verified_by: claude-opus-4-7
+---
+### 완료: `pnpm db:migrate`/`db:seed` 루트 스크립트 수정 (CHORE-FIX-DB-TURBO-FILTER-001)
+- **버그**: 두 스크립트가 `turbo run <task> --filter=db` 였으나 (1) 패키지명은 `@celebbase/db` 라 `--filter=db` 미매칭 ("No package found with name 'db'"), (2) `seed`/`migrate` task 는 turbo.json 에 미선언이라 turbo 가 실행 불가 ("Could not find task"). 즉 문서화된 로컬 dev 워크플로(`pnpm db:seed`)가 깨져 있었음 — 오버나잇 로컬 스택 bring-up 중 직접 hit.
+- **수정**: turbo 우회 — `pnpm --filter @celebbase/db run <migrate|seed>`. DB seed/migrate 는 일회성 작업이라 turbo 그래프/캐싱 불필요.
+- **검증**: `pnpm db:seed` → 237 ingredients + 10 celebrities seed 성공.
+- **Review tier**: L1 (루트 스크립트 2줄).
+### 미완료: 없음.
+### 연관 파일: package.json

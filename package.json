@@ -12,8 +12,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:migrate": "turbo run migrate --filter=db",
-    "db:seed": "turbo run seed --filter=db",
+    "db:migrate": "pnpm --filter @celebbase/db run migrate",
+    "db:seed": "pnpm --filter @celebbase/db run seed",
     "smoke:cognito": "tsx scripts/smoke/cognito-hosted-ui.ts",
     "seed:cognito": "bash scripts/seed/cognito-staging-users.sh"
   },
