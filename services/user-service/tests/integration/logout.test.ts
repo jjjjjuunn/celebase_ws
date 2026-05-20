@@ -48,7 +48,7 @@ async function makeRefreshToken(sub: string): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .setIssuer('celebbase-internal')
+    .setIssuer('celebbase-user-service')
     .sign(TEST_SECRET);
 }
 

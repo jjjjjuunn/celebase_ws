@@ -35,6 +35,7 @@ TEST_DB_URL = os.environ.get(
     "postgresql://celebbase:devpw@localhost:5432/celebbase_dev",
 )
 TEST_JWT_SECRET = os.environ.get("INTERNAL_JWT_SECRET", "dev-secret-not-for-prod")
+TEST_JWT_ISSUER = os.environ.get("INTERNAL_JWT_ISSUER", "celebbase-user-service")
 USER_SERVICE_URL = os.environ.get("INTEGRATION_USER_SVC_URL", "http://localhost:3001")
 MPE_URL = os.environ.get("INTEGRATION_MPE_URL", "http://localhost:3003")
 SQS_ENDPOINT = os.environ.get("INTEGRATION_SQS_ENDPOINT", "http://localhost:4566")
@@ -69,7 +70,13 @@ async def clean_db(db_pool):
 def _mint_jwt(user_id: str) -> str:
     now = int(time.time())
     return pyjwt.encode(
-        {"sub": user_id, "token_use": "access", "iat": now, "exp": now + 3600},
+        {
+            "sub": user_id,
+            "token_use": "access",
+            "iat": now,
+            "exp": now + 3600,
+            "iss": TEST_JWT_ISSUER,
+        },
         TEST_JWT_SECRET,
         algorithm="HS256",
     )

@@ -48,7 +48,15 @@ export interface AuthProvider {
 
 export const DEV_INTERNAL_JWT_SECRET = 'dev-internal-secret-32-chars-pad';
 const DEFAULT_DEV_SECRET = DEV_INTERNAL_JWT_SECRET;
-const DEFAULT_INTERNAL_ISSUER = 'celebbase-internal';
+// User access/refresh token issuer. MUST match the verifier defaults — BFF
+// (apps/web/.../session.ts), user-service env.ts, meal-plan-engine config.py,
+// and service-core internal mode all default to 'celebbase-user-service'.
+// Previously 'celebbase-internal', which diverged from those verifiers and
+// silently broke auth in any environment that left INTERNAL_JWT_ISSUER unset
+// (CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001). NOTE: this is the USER-token issuer
+// only — the service-to-service /internal/* token system (internal-jwt.ts,
+// internal-client.ts) keeps its own 'celebbase-internal' issuer untouched.
+const DEFAULT_INTERNAL_ISSUER = 'celebbase-user-service';
 
 export function loadDevSecret(): Uint8Array {
   const raw = process.env['INTERNAL_JWT_SECRET'] ?? DEFAULT_DEV_SECRET;

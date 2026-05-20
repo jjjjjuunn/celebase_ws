@@ -56,7 +56,7 @@ async function makeRefreshToken(
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .setIssuer('celebbase-internal')
+    .setIssuer('celebbase-user-service')
     .setJti(jtiValue)
     .sign(TEST_SECRET);
   return { token, jti: jtiValue };
@@ -387,7 +387,7 @@ describe('POST /auth/refresh — IMPL-MOBILE-AUTH-003 envelope reason codes', ()
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .setIssuer('celebbase-internal')
+      .setIssuer('celebbase-user-service')
       .setJti('jti-forged')
       .sign(wrongSecret);
 
@@ -415,7 +415,7 @@ describe('POST /auth/refresh — IMPL-MOBILE-AUTH-003 envelope reason codes', ()
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('15m')
-      .setIssuer('celebbase-internal')
+      .setIssuer('celebbase-user-service')
       .setJti('jti-access')
       .sign(TEST_SECRET);
 
@@ -444,7 +444,7 @@ describe('POST /auth/refresh — IMPL-MOBILE-AUTH-003 envelope reason codes', ()
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt(Math.floor(Date.now() / 1000) - 3600)
       .setExpirationTime(Math.floor(Date.now() / 1000) - 60)
-      .setIssuer('celebbase-internal')
+      .setIssuer('celebbase-user-service')
       .setJti('jti-expired-jwt')
       .sign(TEST_SECRET);
 
@@ -596,7 +596,7 @@ describe('POST /auth/refresh — IMPL-MOBILE-AUTH-003 envelope reason codes', ()
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('30d')
-      .setIssuer('celebbase-internal')
+      .setIssuer('celebbase-user-service')
       .setJti('jti-rid')
       .sign(wrongSecret);
 
