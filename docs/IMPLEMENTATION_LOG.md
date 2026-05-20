@@ -6345,3 +6345,30 @@ verified_by: claude-opus-4-7
 - **spec sync**: §9.3 issuer 문구 "bound" 갱신.
 ### 미완료: PR merge → CD build → 수동 recreate user-service + meal-plan-engine → staging 재검증. 후속 #3 ASYMMETRIC-SIGNING, #4 vestigial JWKS.
 ### 연관 파일: services/user-service/src/services/auth.service.ts, packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/routes/meal_plans.py
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/lib/internal-signing-key.ts
+  - services/user-service/src/routes/jwks.routes.ts
+  - services/user-service/src/index.ts
+  - services/user-service/tests/integration/jwks.routes.test.ts
+  - spec.md
+verified_by: claude-opus-4-7
+---
+### 완료: Phase 1 — user-service RS256 키 인프라 + JWKS endpoint (CHORE-AUTH-ASYMMETRIC-SIGNING-001)
+- **결정 (사용자 confirm)**: HS256 대칭키(전 서비스 공유, 침해 시 임의 토큰 위조 가능) → **RS256 비대칭 + JWKS endpoint** + **phased dual-verify** 마이그레이션. user-service 가 IdP 화.
+- **Phase 1 (본 PR, 순수 additive)**:
+  - `lib/internal-signing-key.ts`: RS256 키 로드 (prod `INTERNAL_JWT_PRIVATE_KEY` PEM / dev·test ephemeral `generateKeyPair`), public JWK 도출(private 성분 strip) + kid=RFC7638 thumbprint, 프로세스 캐시. 단일 출처 (Phase 2 서명 + JWKS 둘 다 여기서 로드).
+  - `routes/jwks.routes.ts`: `GET /.well-known/jwks.json` → `{keys:[publicJwk]}`, public path, Cache-Control 300s.
+  - `index.ts`: jwksRoutes 등록 + publicPaths 에 `/.well-known/jwks.json` 추가.
+  - **서명은 여전히 HS256** — endpoint 는 dormant (Phase 2 에서 활성).
+- **검증**: jwks.routes.test 4건 (public JWK shape + private 성분 부재 + **public key 가 private key 서명 토큰을 verify 하는 round-trip** + kid 안정성), user-service 158 tests pass, typecheck/lint clean.
+- **staging 영향 0**: user-service NODE_ENV=development → INTERNAL_JWT_PRIVATE_KEY 미설정 시 ephemeral key. endpoint 는 작동하나 아무도 verify 안 함 (dormant). 기존 HS256 흐름 무변경.
+- **Review tier**: L3 (인증 키 인프라). adversarial: private 성분 노출 방지(round-trip 테스트로 public JWK 에 d/p/q 부재 확인), prod 에서 키 미설정 시 fail-closed(`process.exit` 대신 throw → 부팅 실패).
+- **spec sync**: §9.3 비대칭 마이그레이션 phase 1/2/3 계획 추가.
+### 미완료 (후속 phase): Phase 2 (전 verifier dual-verify RS256+HS256 → user-service 서명 RS256 전환), Phase 3 (HS256 fallback 제거). #4 는 Phase 3 후 "JWKS_URI repoint to user-service" 로 귀결. Phase 1 staging 배포: user-service 수동 recreate (CD silent-exit).
+### 연관 파일: services/user-service/src/lib/internal-signing-key.ts, services/user-service/src/routes/jwks.routes.ts, packages/service-core/src/middleware/jwt.ts (Phase 2 dual-verify 대상)

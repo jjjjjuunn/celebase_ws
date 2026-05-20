@@ -9,6 +9,7 @@ import { wsTicketRoutes } from './routes/ws-ticket.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { subscriptionRoutes } from './routes/subscription.routes.js';
 import { internalRoutes } from './routes/internal.routes.js';
+import { jwksRoutes } from './routes/jwks.routes.js';
 import { registerInternalJwtAuth } from './middleware/internal-jwt.js';
 import type { AuthProvider } from './services/auth.service.js';
 import { DevAuthProvider } from './services/auth.service.js';
@@ -41,6 +42,8 @@ const start = async (): Promise<void> => {
       '/auth/refresh',
       '/auth/logout',
       '/internal/*',
+      // RS256 public key — public by contract (CHORE-AUTH-ASYMMETRIC-SIGNING-001).
+      '/.well-known/jwks.json',
     ],
   });
 
@@ -100,6 +103,7 @@ const start = async (): Promise<void> => {
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(internalRoutes, { pool });
+  jwksRoutes(app);
 
   // Slim subscription routes (Stripe removed)
   await app.register(subscriptionRoutes, { pool });
