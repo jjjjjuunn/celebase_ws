@@ -6582,3 +6582,29 @@ verified_by: claude-opus-4-7 (jest 178 + live BFF E2E ×3 routes)
 - **Review tier**: L2 (BFF 에러 계약 강화, mechanical bulk + helper, DB/스키마/토큰 형상 변경 없음). adversarial: 인증 라우트는 input-shape 검증만 surface (credential 검증은 별도 401), Zod 표준 메시지는 입력값 echo 안 함 → 본인 세션에 본인 입력 반환이라 PHI 노출 아님.
 ### 미완료: 비-Zod 수동 가드 라우트(instacart/status orderId, meal-plans/[id]/safety id, ws-ticket 응답 compose)는 body-schema 검증이 아니라 그대로 둠 (의도).
 ### 연관 파일: apps/web/src/app/api/_lib/bff-error.ts, apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/**/route.ts (21 routes)
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-MIGRATION-STATUS-001
+commit_sha: c8a86eb
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (staging SSH config read + JWKS endpoint + Cognito client describe)
+---
+### 완료: 인증 트랙 상태 정리 — #24 closure + #22 Phase 3 defer-gate (CHORE-AUTH-MIGRATION-STATUS-001)
+- **환경 사실관계 (이번 세션 staging 직접 확인)**:
+  - prod 환경 없음 — infra 는 `bootstrap` + `cognito` 모듈만. staging 이 유일 라이브 환경 (pre-launch).
+  - access token TTL = **15m** (`auth.service.ts:111`), refresh = 30d (opaque DB jti). refresh 시 새 access token 발급 → "30d" 는 HS256 access token 잔존과 무관 (15m 후 전멸).
+- **#24 — staging AUTH_PROVIDER posture (CLOSED)**:
+  - `AUTH_PROVIDER=cognito` 가 5+ CD 재배포(#128~#133)를 거쳐 유지됨 (`/app/.env.staging` 직접 확인) — dev signup bypass 닫힘 유지.
+  - staging `GET /.well-known/jwks.json` 가 유효한 RS256 공개키 서빙 → user-service RS256 서명 활성 (`INTERNAL_JWT_PRIVATE_KEY` set).
+  - BE + BFF 양쪽 `INTERNAL_JWKS_URI` set → RS256 verify 경로 라이브.
+  - mobile Cognito client (`celebbase-mobile-staging`, `7m3sno...`): secret 없음 + `ALLOW_USER_SRP_AUTH`/`ALLOW_REFRESH_TOKEN_AUTH` 만 (password flow 비활성) — 올바른 SRP-only 보안 posture.
+  - **positive 검증 시도 결론**: mobile client 가 SRP-only 라 AWS CLI 로 비-SRP 토큰 mint 불가. password flow 임시 활성화는 실 pool config 변경이라 미수행. 따라서 real id_token→`/auth/signup`→RS256 exchange 의 positive 신호는 FE mobile onboarding E2E 로 위임.
+- **#22 — Phase 3 (HS256 verify 경로 제거): DEFER + 명시 게이트**:
+  - 실제 blocker 는 refresh TTL 이 아니라 **로컬 dev 가 HS256(dev-secret) 서명** 이라는 점 — HS256 verify 제거 시 로컬 스택/E2E 즉사. alg-routed dual-verify 는 이미 algorithm-confusion-safe 이고 pre-launch 라 보안·운영 긴급도 낮음.
+  - **Phase 3 PR 착수 게이트 (전부 충족)**: (1) 로컬 docker-compose user-service 가 RS256 서명 (dev private key commit 또는 bootstrap 생성) + 모든 로컬 서비스 `INTERNAL_JWKS_URI` set, (2) FE 통한 real Cognito SRP 로그인 1회 staging E2E 성공 (RS256 production-shape flow 증명), (3) (2) 후 15m 경과, (4) Phase 3 PR 이 verify 코드와 동일 커밋에서 `.env.staging` 의 `INTERNAL_JWT_SECRET` 제거 (env var stranding 방지).
+- **Review tier**: L3 (인증/JWT posture) — codex/gemini CLI 미사용, advisor + claude-direct (staging 사실관계 + Cognito client describe) 판정.
+### 미완료: #24 real SRP login positive 신호 (FE 의존), #22 Phase 3 (위 4-조건 게이트 충족 후 실행).
+### 연관 파일: services/user-service/src/services/auth.service.ts, packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/config.py, /app/.env.staging (staging ops)
