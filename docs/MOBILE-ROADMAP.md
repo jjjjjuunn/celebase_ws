@@ -107,6 +107,8 @@
 
 상세 진행은 Plan v5 + `docs/IMPLEMENTATION_LOG.md`.
 
+> **FE-readiness 현황 (2026-05-20)**: 모바일이 호출하는 BFF 엔드포인트 전부 라이브 검증 완료 + UI 와이어링 TODO 카탈로그는 `docs/FE-WIRING-TODO.md` 참조. 위 track 인덱스는 P0 인증 트랙 시점(pre-pivot 후) 기준이라 일부 stale — 실제 FE 다음 작업의 single source 는 FE-WIRING-TODO §B.
+
 ## 6. Out of Scope (이 문서 X)
 
 - 화면 단위 sprint 분해 → Plan v5

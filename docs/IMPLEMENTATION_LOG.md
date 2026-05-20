@@ -6696,3 +6696,23 @@ verified_by: claude-opus-4-7 (typecheck shared/web/mobile + web jest 178 + 라�
 - **Review tier**: L2 (BFF 패스스루 + 계약 일원화 + seed 데이터; DB 스키마 변경 없음, auth 형상 변경 없음).
 ### 미완료: sync 전체 E2E 재검증은 commerce RevenueCat 재활성화 필요 (PR #135 에서 이미 wire 검증). FE-only 와이어링 TODO 는 docs PR 에 정리.
 ### 연관 파일: apps/web/src/app/api/users/me/route.ts, packages/shared-types/src/schemas/subscriptions.ts, apps/web/src/app/api/subscriptions/sync/route.ts, apps/mobile/src/services/subscriptions.ts, db/seeds/loaders/claimsLoader.ts, db/seeds/run.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: DOCS-FE-READINESS-DEPLOY-SYNC-001
+commit_sha: 431711a
+files_changed:
+  - docs/FE-WIRING-TODO.md
+  - apps/mobile/README.md
+  - docs/PROD-DEPLOY-ROADMAP.md
+verified_by: claude-opus-4-7 (FE-readiness audit 종합 + 문서 정합성)
+---
+### 완료: FE-readiness 문서화 — 와이어링 TODO + mobile README 갱신 + 배포 진행 로그 (DOCS-FE-READINESS-DEPLOY-SYNC-001)
+- FE-readiness audit (2026-05-20 세션) 의 결과를 영속 문서로 정리. "UI 만 고치면 되는" 상태 확정 + 앞으로 할 일 인덱스.
+- **`docs/FE-WIRING-TODO.md` (신규)**: §A 모바일이 호출하는 전 BFF 엔드포인트 라이브 검증 결과표 (PATCH 500 fix #137 / DELETE 추가·claims seed·sync schema #138 / 선행 daily-logs·bio-profile·BFF details), §B FE-only UI/네비 와이어링 TODO 12개 (파일:라인 + 작업), §C 백엔드 deferred 레지스트리 (news/trends 없음, 전체 PHI-purge 삭제, claims→items rename, provider 테스트, HS256 Phase 3), §D 데이터/설정 노트.
+- **`apps/mobile/README.md` 갱신**: stale scaffold ("Expo default App.tsx", Dohyun ownership, BFF :3000) → 현실 반영 (단일 오너 JUNWON, 앱 구현 완료, 풀스택 기동 순서 deps→shared-types build→docker→`pnpm db:seed`→BFF :3100→`npx expo run:ios`, env 변수 출처표, dev build vs Expo Go 가이드, 인증 흐름, 화면 현황표).
+- **`docs/PROD-DEPLOY-ROADMAP.md`**: Progress Log 2026-05-20 섹션 추가 — G3 staging BE 배포 완료 + migration pipeline + RS256 cutover + auth posture flip + tier-sync wire 검증 + FE-readiness audit/enablement. 4-Gate 잔여 작업 인덱스.
+- **Review tier**: L1 (문서 전용, 코드 변경 0).
+### 미완료: MOBILE-ROADMAP.md §5 track 인덱스 status 갱신 (secondary, 본 PR 범위 외 — FE-WIRING-TODO + PROD-DEPLOY progress 가 substantive 인덱스 대체).
+### 연관 파일: docs/FE-WIRING-TODO.md, apps/mobile/README.md, docs/PROD-DEPLOY-ROADMAP.md
