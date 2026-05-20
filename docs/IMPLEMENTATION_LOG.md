@@ -6785,3 +6785,25 @@ verified_by: claude-opus-4-7 (user-service 175 tests pass + web/BFF typecheck + 
 - **Review tier**: L3 (auth/subscription 경계 + 다중 서비스). 검증: user-service jest 175 통과(변경 파일 100% cov), web typecheck, engine quota 로직 직접 검증(전체 pytest 는 CI Docker py3.12).
 ### 미완료: 모바일 트랙(온보딩 후 생성 트리거 + Plan "생성중" 폴링 UI)은 `apps/mobile` 작업트리에 구현 완료됐으나 진행 중인 auth/온보딩 리팩터 WIP 와 commingle 되어 본 BE PR 과 분리(별도 커밋). staging 배포(이 PR 머지) 후 시뮬레이터 검증.
 ### 연관 파일: services/user-service/src/lib/trial.ts, services/meal-plan-engine/src/services/quota_service.py, packages/shared-types/src/schemas/subscriptions.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001
+commit_sha: 0afd14d
+files_changed:
+  - services/content-service/src/index.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+verified_by: claude-opus-4-7 (staging 로그 근본원인 + service-core jwt 회귀 테스트, CI Tests; staging E2E 는 CD 배포 후 재검증)
+---
+### 완료: staging meal-plan 생성 실패 (base-diets 401) → content-service base-diets catalog public 화 (FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001)
+- **증상 (팀원 보고)**: staging 식단 생성 실패. SQS 자격증명(FIX-STAGING-MPE-SQS-CREDS-001) 해소 후, consumer 가 메시지 수신은 하나 처리 중 `httpx.HTTPStatusError: 401 Unauthorized for content-service:3002/base-diets/{id}` (로그 24회 재시도). `enqueue` 는 정상(201), 실패는 pipeline 의 catalog fetch 단계.
+- **근본 원인**: `meal-plan-engine` 의 `content_client.get_base_diet/get_recipes_for_diet` 가 토큰 없이 호출 + content-service `publicPaths` 에 `/base-diets*` 누락. content-service 는 staging 에서 internal 모드(PR #115) 라 보호 라우트에 토큰 요구. `FIX-STAGING-CATALOG-PUBLIC-001` 이 `/celebrities*` 만 public 화하고 `/base-diets*` 를 빠뜨림. **로컬은 content-service stub 모드라 토큰 없이 통과 → staging-only 회귀** (로컬 meal-plan E2E 가 못 잡은 이유).
+- **결정**: token-forward 가 아닌 **catalog public 화** (Option A). 근거: ① `base_diets`/`recipes` 는 `celebrities` 와 동일 content-service catalog 테이블(api-conventions.md 경계표) ② 핸들러(`/base-diets/:id`, `/base-diets/:id/recipes`)가 `userId` 미사용 ③ BFF `/api/base-diets/[id]` 가 `createPublicRoute` (토큰 미forward) → **원 설계 의도가 public catalog**. token-forward 는 엔진만 고치고 BFF/mobile base-diet 상세 경로(동일하게 staging 잠복 401)를 방치.
+- **수정**: `content-service/src/index.ts` publicPaths 에 `'/base-diets'`, `'/base-diets/*'` 추가 (1줄). `service-core/src/middleware/jwt.ts` `isPublicPath` prefix wildcard 가 `/base-diets/:id` + `/base-diets/:id/recipes` 둘 다 매칭(`/recipes/:id/personalized` 는 `/recipes/*` prefix 라 영향 없음 — 보호 유지).
+- **부수 효과 (의도)**: BFF/mobile `/api/base-diets/:id` 의 잠복 401(로그인 사용자가 base-diet 상세 진입 시 발생할) 도 동시 해소.
+- **테스트**: `service-core/tests/unit/jwt.test.ts` 에 base-diets 회귀 2건 추가 (FIX-STAGING-CATALOG-PUBLIC-001 celebrities 패턴 미러) — `/base-diets`+`/base-diets/*` 가 `:id`/`:id/recipes` skip + `/recipes/:id/personalized` 인증 강제 유지.
+- **검증**: 근본원인은 staging 로그로 확정, 수정은 wildcard 회귀 테스트로 락. **staging E2E (실 meal-plan POST → base-diets 200 + plan completed) 는 CD 가 content-service 재배포 후 재검증** (코드 머지로는 미완 — 배포 루프 필요).
+- **engine `content_client` 는 tokenless 유지**: public catalog 를 fetch 하므로 토큰 불필요. 토큰을 끼우면 향후 publicPaths drift 시 깨끗한 401 신호를 가려 오히려 해롭다.
+- **Review tier**: L3 (auth 경계 — publicPaths 변경 + 다중 서비스 영향). 보안 검토: catalog 데이터(celebrities 와 동일 tier)만 public, PHI·user 데이터 무관, `/recipes/*` personalized 보호 유지 확인.
+### 연관 파일: services/content-service/src/index.ts, packages/service-core/tests/unit/jwt.test.ts
