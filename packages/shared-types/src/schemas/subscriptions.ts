@@ -69,6 +69,33 @@ export const CancelSubscriptionResponseSchema = z.object({
 });
 export type CancelSubscriptionResponse = z.infer<typeof CancelSubscriptionResponseSchema>;
 
+// POST /subscriptions/sync — mobile-driven (IMPL-MOBILE-SUB-SYNC-002). BFF reads
+// RevenueCat REST via commerce-service and returns the resolved tier. Thin
+// response distinct from SubscriptionWire (no Stripe fields). `source` tags the
+// trigger; `status` adds 'free' on top of SubscriptionStatus for the
+// no-entitlement case. Shared here so the BFF route and the mobile client stop
+// carrying duplicate inline copies that can silently drift.
+export const SyncSubscriptionSource = z.enum(['purchase', 'app_open', 'manual']);
+export type SyncSubscriptionSourceValue = z.infer<typeof SyncSubscriptionSource>;
+
+export const SyncSubscriptionRequestSchema = z
+  .object({
+    source: SyncSubscriptionSource,
+  })
+  .strict();
+export type SyncSubscriptionRequest = z.infer<typeof SyncSubscriptionRequestSchema>;
+
+export const SyncSubscriptionResponseSchema = z
+  .object({
+    user_id: UuidV7,
+    tier: SubscriptionTier,
+    status: z.enum(['active', 'past_due', 'cancelled', 'expired', 'free']),
+    current_period_end: z.string().nullable(),
+    source: SyncSubscriptionSource,
+  })
+  .strict();
+export type SyncSubscriptionResponse = z.infer<typeof SyncSubscriptionResponseSchema>;
+
 // Wire↔Row parity guard: non-nullable date fields must align with entity.
 const _subWireRowParity = null as unknown as Omit<
   SubscriptionWire,

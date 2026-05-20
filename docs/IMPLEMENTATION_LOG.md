@@ -6672,3 +6672,27 @@ verified_by: claude-opus-4-7 (user-service jest 164 + 라이브 PATCH E2E 200 + 
 - **Review tier**: L2 (단일 서비스 버그 수정, DB/스키마/auth 형상 변경 없음).
 ### 미완료: 없음.
 ### 연관 파일: services/user-service/src/repositories/user.repository.ts, services/user-service/tests/unit/user.repository.test.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FEAT-FE-ENABLEMENT-001
+commit_sha: 55147d9
+files_changed:
+  - apps/web/src/app/api/users/me/route.ts
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+  - apps/mobile/src/services/subscriptions.ts
+  - db/seeds/loaders/claimsLoader.ts
+  - db/seeds/run.ts
+verified_by: claude-opus-4-7 (typecheck shared/web/mobile + web jest 178 + 라이브 E2E + db:seed)
+---
+### 완료: FE 개발 언블록 — DELETE account + sync schema 공유 + claims seed (FEAT-FE-ENABLEMENT-001)
+- FE-readiness audit 에서 도출된 3개 백엔드/계약 갭을 닫음 (FE 가 UI 만 와이어링하면 되도록):
+- **(1) `DELETE /api/users/me` BFF 라우트 추가**: user-service `DELETE /users/me` (soft-delete) 로 패스스루, 204 반환. Apple App Store 5.1.1(v) in-app 삭제 개시 요건 충족. 모바일 SettingsScreen 의 placeholder 가 이제 실 호출 가능. 라이브: DELETE → 204, 직후 GET /users/me → 401 (login 차단 확인). (전체 PHI-purge batch 는 별도 BE 백로그 — security.md.)
+- **(2) sync 응답 스키마 shared-types 일원화**: `SyncSubscriptionRequest/ResponseSchema` 를 `packages/shared-types/src/schemas/subscriptions.ts` 에 추가. BFF `subscriptions/sync/route.ts` 와 mobile `services/subscriptions.ts` 의 중복 inline Zod 를 제거하고 공유 스키마 참조 → silent drift 위험 제거 (IMPL-MOBILE-SUB-SYNC-002 정렬). shape 동일 (`.strict()` 보존).
+- **(3) lifestyle claims seed 적재**: 시드 JSON (`db/seeds/lifestyle-claims/*.json` 10 파일) 이 존재하나 `run.ts` 에 loader 미연결로 `lifestyle_claims=0` 이었음 → ClaimsFeed/ClaimDetail/CelebrityDetail 영구 empty. `claimsLoader.ts` 신규 (celebrity_id resolve + lifestyle_claims + claim_sources insert, (celebrity_id, headline) idempotent) + run.ts 3단계 wire. `pnpm db:seed` → **50 claims + 81 sources (50 published)**. 라이브 claims feed 3건 + has_next, claim detail 200.
+- **검증**: shared/web/mobile typecheck PASS, web jest 178 PASS, web+mobile lint clean. 라이브 BFF E2E 전부 통과 (claims feed/detail, DELETE 204, sync 경로는 로컬 commerce REVENUECAT_ENABLED=false 라 404 — 환경적, PR #135 에서 wire 검증 완료).
+- **Review tier**: L2 (BFF 패스스루 + 계약 일원화 + seed 데이터; DB 스키마 변경 없음, auth 형상 변경 없음).
+### 미완료: sync 전체 E2E 재검증은 commerce RevenueCat 재활성화 필요 (PR #135 에서 이미 wire 검증). FE-only 와이어링 TODO 는 docs PR 에 정리.
+### 연관 파일: apps/web/src/app/api/users/me/route.ts, packages/shared-types/src/schemas/subscriptions.ts, apps/web/src/app/api/subscriptions/sync/route.ts, apps/mobile/src/services/subscriptions.ts, db/seeds/loaders/claimsLoader.ts, db/seeds/run.ts

@@ -11,8 +11,8 @@
 // session) for the user_id field — body's user_id is ignored. This prevents
 // any client (web or mobile) from triggering tier sync for an arbitrary user.
 
-import { z } from 'zod';
 import { NextRequest } from 'next/server';
+import { schemas } from '@celebbase/shared-types';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
 import { baseUrlFor } from '../../_lib/bff-fetch.js';
 import { callInternal, internalErrorToResponse } from '../../_lib/internal-client.js';
@@ -28,23 +28,11 @@ import { checkRouteRateLimit, rateLimitErrorToResponse } from '../../_lib/route-
 // createProtectedRoute before reaching this gate.
 const SYNC_RATE_LIMIT_PER_MIN = 5;
 
-// Body shape: source only. user_id intentionally NOT accepted from client —
-// derived from authenticated session (T4 enforce).
-const RequestSchema = z
-  .object({
-    source: z.enum(['purchase', 'app_open', 'manual']),
-  })
-  .strict();
-
-const ResponseSchema = z
-  .object({
-    user_id: z.string().uuid(),
-    tier: z.enum(['free', 'premium', 'elite']),
-    status: z.enum(['active', 'past_due', 'cancelled', 'expired', 'free']),
-    current_period_end: z.string().nullable(),
-    source: z.enum(['purchase', 'app_open', 'manual']),
-  })
-  .strict();
+// Request/response wire schemas live in shared-types
+// (SyncSubscriptionRequestSchema / SyncSubscriptionResponseSchema) so this route
+// and the mobile client validate against one definition. Body shape: source
+// only — user_id intentionally NOT accepted from client, derived from the
+// authenticated session (T4 enforce).
 
 async function handle(req: NextRequest, session: Session): Promise<Response> {
   // createProtectedRoute already guarantees req carries a request ID via its
@@ -74,7 +62,7 @@ async function handle(req: NextRequest, session: Session): Promise<Response> {
     });
   }
 
-  const parsed = RequestSchema.safeParse(bodyJson);
+  const parsed = schemas.SyncSubscriptionRequestSchema.safeParse(bodyJson);
   if (!parsed.success) {
     return zodErrorResponse(parsed.error, requestId, 'Invalid request body');
   }
@@ -85,7 +73,7 @@ async function handle(req: NextRequest, session: Session): Promise<Response> {
     baseUrl: baseUrlFor('commerce'),
     path: '/internal/subscriptions/refresh-from-revenuecat',
     body: { user_id: session.user_id, source: parsed.data.source },
-    schema: ResponseSchema,
+    schema: schemas.SyncSubscriptionResponseSchema,
     requestId,
   });
 

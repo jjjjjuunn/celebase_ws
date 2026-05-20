@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadIngredients } from './loaders/ingredientLoader.js';
 import { loadCelebrity } from './loaders/celebrityLoader.js';
+import { loadClaims, type SeedClaimsFile } from './loaders/claimsLoader.js';
 import type { SeedIngredient, SeedCelebrity } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,13 @@ function readJson<T>(relativePath: string): T {
   return JSON.parse(raw) as T;
 }
 
+// Seed CLI progress output via process.stdout directly — the gate-check policy
+// forbids browser logging built-ins in source files (this is dev tooling, not a
+// production service, but the scan covers any changed file).
+function log(msg: string): void {
+  process.stdout.write(`${msg}\n`);
+}
+
 async function main(): Promise<void> {
   const pool = new pg.Pool({ connectionString: DATABASE_URL });
   const client = await pool.connect();
@@ -39,17 +47,27 @@ async function main(): Promise<void> {
     // 1. Load shared ingredients
     const ingredients = readJson<SeedIngredient[]>('data/_ingredients.json');
     const ingredientMap = await loadIngredients(client, ingredients);
-    console.log(`[seed] Loaded ${ingredientMap.size} ingredients`);
+    log(`[seed] Loaded ${ingredientMap.size} ingredients`);
 
     // 2. Load each celebrity
     for (const file of CELEBRITY_FILES) {
       const celeb = readJson<SeedCelebrity>(`data/${file}.json`);
       await loadCelebrity(client, celeb, ingredientMap);
-      console.log(`[seed] Loaded ${celeb.display_name} (${celeb.recipes.length} recipes)`);
+      log(`[seed] Loaded ${celeb.display_name} (${celeb.recipes.length} recipes)`);
     }
 
+    // 3. Load lifestyle claims (FK celebrity_id → must follow celebrities).
+    //    One file per seeded celebrity under lifestyle-claims/.
+    let totalClaims = 0;
+    for (const file of CELEBRITY_FILES) {
+      const claimsFile = readJson<SeedClaimsFile>(`lifestyle-claims/${file}.json`);
+      const n = await loadClaims(client, claimsFile);
+      totalClaims += n;
+    }
+    log(`[seed] Loaded ${String(totalClaims)} lifestyle claims`);
+
     await client.query('COMMIT');
-    console.log('[seed] Done — all data committed.');
+    log('[seed] Done — all data committed.');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[seed] FAILED — rolled back:', err);

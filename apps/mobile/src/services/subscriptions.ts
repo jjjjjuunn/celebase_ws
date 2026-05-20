@@ -11,7 +11,6 @@
 //      읽어서 commerce-service 통해 user.tier 갱신
 //   4. 다시 getCurrentSubscription() → 새 tier 확인 후 paywall 닫고 unlocked 진입
 
-import { z } from 'zod';
 import Purchases, {
   type PurchasesOffering,
   type PurchasesPackage,
@@ -49,18 +48,11 @@ export function tierFromSubscription(
 
 // ── POST /api/subscriptions/sync ───────────────────────────────────────────
 
-export type SyncSource = 'purchase' | 'app_open' | 'manual';
+export type SyncSource = schemas.SyncSubscriptionSourceValue;
 
-// route.ts 의 inline ResponseSchema 와 동일 shape. shared-types 미반영 — 본 endpoint
-// 는 mobile-driven 신규 (IMPL-MOBILE-SUB-SYNC-002) 라 SubscriptionWireSchema 와 다른 thin 응답.
-const SyncResponseSchema = z.object({
-  user_id: z.string().uuid(),
-  tier: z.enum(['free', 'premium', 'elite']),
-  status: z.enum(['active', 'past_due', 'cancelled', 'expired', 'free']),
-  current_period_end: z.string().nullable(),
-  source: z.enum(['purchase', 'app_open', 'manual']),
-});
-export type SyncSubscriptionResponse = z.infer<typeof SyncResponseSchema>;
+// Wire schema lives in shared-types (SyncSubscriptionResponseSchema) so the BFF
+// route and this client validate against one source of truth — IMPL-MOBILE-SUB-SYNC-002.
+export type SyncSubscriptionResponse = schemas.SyncSubscriptionResponse;
 
 /**
  * BFF 가 RevenueCat REST 를 읽어 commerce-service 통해 user tier 를 갱신.
@@ -81,7 +73,7 @@ export async function syncSubscription(
     method: 'POST',
     body: { source },
   });
-  return SyncResponseSchema.parse(raw);
+  return schemas.SyncSubscriptionResponseSchema.parse(raw);
 }
 
 // ── RevenueCat SDK wrappers ────────────────────────────────────────────────
