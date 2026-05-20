@@ -249,6 +249,22 @@
 - [ ] Capacity budget worksheet 작성 + m5.large 의 stop conditions baseline 기록
 - [ ] prod Cognito pool 활성 + mobile EAS prod profile 의 env 주입 완료
 
+### G3 Staging Ops Backlog (2026-05-20 audit 도출 — prod 확장 전 해소 권장)
+
+> `CHORE-STAGING-BE-DEPLOY-001` 의 staging 4 BE 배포 + L1~L10 blocker chain 추적에서 파생. 후속 follow-up 대부분은 이미 PR 로 해소됨 — CD deploy silent-exit (#125), cross-service internal HS256 token (#115), issuer-default align (#117), RS256 asymmetric signing Phase 1~2b (#119~#127), vestigial Cognito/JWKS env 제거 (#128). 아래는 **잔여 open** 만 (IMPL_LOG grep 으로 미등재 확인).
+
+| Task ID | 내용 | 우선순위 | 비고 |
+|---------|------|---------|------|
+| **INFRA-MOBILE-SQS-TERRAFORM-001** | `celebase-staging-meal-plan-jobs` SQS queue 가 BE 배포 중 수동 생성됨. `infra/terraform/staging/sqs.tf` 로 import (prod EC2 G3c 재현성). meal-plan-engine `SQS_QUEUE_URL` import-time guard 의존 | MEDIUM | terraform 미반영 = prod 재구축 시 누락 위험 |
+| **CHORE-STAGING-ENV-MANAGEMENT-001** | `/app/.env.staging` + `/app/apps/web/.env.staging` 가 EC2 위에서만 갱신 (git/SSM 미추적). web BE URL 교정·user-service env override 등 staging-local 변경이 재provision 시 소실. SSM Parameter Store / Secrets Manager 로 이관 | MEDIUM | G3c-3 prod secrets injection 과 통합 가능 |
+| **CHORE-STAGING-MPE-HEALTHCHECK-001** | meal-plan-engine (python:3.12-slim) 에 wget/curl 부재 → healthcheck 항상 fail → "unhealthy" 라벨 (서비스 `/health` 200 정상, cosmetic). healthcheck 를 `python3 -c "import urllib.request; urllib.request.urlopen(...)"` 로 교체 (cd.yml 4be 템플릿 + staging compose) | LOW | orchestration 라벨만, 기능 정상 |
+
+**G1-f 에 흡수 (별도 chore 아님)**: staging tier-sync E2E 는 commerce `REVENUECAT_ENABLED=true` + vendor secret 필요 → G1-f (sandbox sync E2E) acceptance 의 전제. wire 경로 자체는 `CHORE-TIER-SYNC-WIRE-VERIFY-001` 에서 검증됨. 로컬은 기본 `false` 라 `/api/subscriptions/sync` 404 (정상).
+
+**Doc hygiene (LOW)**: 라이브 staging 도메인은 `staging.celebase.app` (→ 184.32.66.152, L10 end-to-end 200 검증). repo placeholder 의 `staging.celebbase.com` (double-b, NXDOMAIN) 은 미사용 — `infra/cognito/variables.tf` / `.github/workflows/cd.yml` 주석 / `apps/mobile/.env.example` 예시를 실 도메인으로 정렬 권장. (HANDOFF L7 의 "caddy public 미도달" 은 잘못된 도메인 진단이었음 — 실 도메인은 정상.)
+
+**본 문서 외 추적 backlog**: HS256 verify Phase 3 제거 (`CHORE-AUTH-MIGRATION-STATUS-001` 4조건 게이트), `/internal/users/:id/tier` provider 회귀 테스트 (`CHORE-USER-SVC-INTERNAL-TIER-TEST-001`), 전체 PHI-purge 삭제 파이프라인 (`CHORE-ACCOUNT-DELETION-PURGE-001`) → `docs/FE-WIRING-TODO.md §C`.
+
 ---
 
 ## Gate G4 — Store Review Gate
