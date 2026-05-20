@@ -4,6 +4,13 @@ import 'react-native-get-random-values';
 
 import { Amplify } from 'aws-amplify';
 
+import {
+  OAUTH_REDIRECT_SIGN_IN,
+  OAUTH_REDIRECT_SIGN_OUT,
+  readHostedUiDomain,
+  readSocialProviders,
+} from './social-config';
+
 type CognitoEnvName =
   | 'EXPO_PUBLIC_COGNITO_USER_POOL_ID'
   | 'EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID'
@@ -70,14 +77,42 @@ export function configureCognito(): void {
   }
 
   const { userPoolId, userPoolClientId } = readCognitoEnv();
-  Amplify.configure({
-    Auth: {
-      Cognito: {
-        userPoolId,
-        userPoolClientId,
+
+  // Add the Hosted-UI OAuth block ONLY when social federation is configured.
+  // SRP (email/password) keeps working in both branches — adding oauth is
+  // purely additive. Two explicit branches (rather than a built-up object)
+  // keep the Amplify union type (`CognitoUserPoolWithOAuthConfig`) clean.
+  const domain = readHostedUiDomain();
+  const providers = readSocialProviders();
+  if (domain !== undefined && providers.length > 0) {
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId,
+          userPoolClientId,
+          loginWith: {
+            oauth: {
+              domain,
+              scopes: ['openid', 'email', 'profile'],
+              redirectSignIn: [OAUTH_REDIRECT_SIGN_IN],
+              redirectSignOut: [OAUTH_REDIRECT_SIGN_OUT],
+              responseType: 'code',
+              providers,
+            },
+          },
+        },
       },
-    },
-  });
+    });
+  } else {
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId,
+          userPoolClientId,
+        },
+      },
+    });
+  }
   configured = true;
 }
 

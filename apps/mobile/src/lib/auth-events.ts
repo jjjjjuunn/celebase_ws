@@ -26,9 +26,11 @@ export type LogoutReason = Exclude<RefreshResult['status'], 'success'>;
  * - 'manual': LoginScreen 의 SRP signIn 성공
  * - 'signup': SignupScreen 의 confirmSignUp 후 자동 signIn 성공
  *
+ * - 'social': Hosted-UI 소셜 로그인 (Google/Apple) 성공 (IMPL-MOBILE-SOCIAL-001)
+ *
  * bootstrapSession 경로는 setPhase 직접 호출 (App mount 단계라 signal 불필요).
  */
-export type LoginReason = 'manual' | 'signup';
+export type LoginReason = 'manual' | 'signup' | 'social';
 
 type LogoutHandler = (reason: LogoutReason) => void;
 type LoginHandler = (reason: LoginReason) => void;

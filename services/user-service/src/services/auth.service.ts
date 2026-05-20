@@ -16,6 +16,7 @@ import {
   UnauthorizedError,
   ValidationError,
   AccountDeletedError,
+  AccountExistsError,
   MalformedRefreshError,
   RefreshExpiredOrMissingError,
   RefreshRevokedError,
@@ -332,9 +333,36 @@ export async function login(
           requestId,
         });
       } else {
-        // Race with concurrent signup — another tx committed first.
-        // Re-read by sub to attach to the winning row.
+        // create returned null → a UNIQUE violation. Two distinct causes:
+        //  (1) a concurrent signup committed first with the SAME cognito_sub —
+        //      re-read by sub attaches us to the winning row.
+        //  (2) a DIFFERENT identity already owns this email: the federated
+        //      collision (IMPL-MOBILE-SOCIAL-001). The user signed up with
+        //      email/password (or another provider), now arrives via a new
+        //      Cognito sub (e.g. "Continue with Google"). Cognito federation
+        //      does NOT auto-link, so re-read by sub stays null while
+        //      findByEmail finds the incumbent. Surface a structured 409 (no
+        //      auto-link — product decision) so the client can route the user
+        //      to their original sign-in method instead of 500-ing on the
+        //      users.email UNIQUE constraint.
         user = await userRepo.findByCognitoSub(pool, payload.sub);
+        if (!user) {
+          const incumbent = await userRepo.findByEmail(pool, payload.email);
+          if (incumbent && incumbent.cognito_sub !== payload.sub) {
+            emitAuthLog(
+              log,
+              'auth.account.provider_collision',
+              {
+                email_hash: hashId(payload.email),
+                incoming_cognito_sub_hash: hashId(payload.sub),
+                existing_cognito_sub_hash: hashId(incumbent.cognito_sub),
+                requestId,
+              },
+              'warn',
+            );
+            throw new AccountExistsError();
+          }
+        }
       }
     }
   } else {

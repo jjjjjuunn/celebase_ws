@@ -93,3 +93,18 @@ export class AccountDeletedError extends AppError {
     super(message, 401, 'ACCOUNT_DELETED');
   }
 }
+
+// 409 — a verified identity tried to sign in with an email that already
+// belongs to a DIFFERENT Cognito identity (e.g. user signed up with
+// email/password, then taps "Continue with Google"). Cognito federation does
+// not auto-link, so we surface a structured conflict rather than violating the
+// users.email UNIQUE invariant. The mobile client maps this code to guidance:
+// "sign in with your original method, then link the provider in Settings."
+// (IMPL-MOBILE-SOCIAL-001 — decision: 409, no auto-link.)
+export class AccountExistsError extends AppError {
+  public constructor(
+    message = 'An account with this email already exists with a different sign-in method',
+  ) {
+    super(message, 409, 'ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER');
+  }
+}

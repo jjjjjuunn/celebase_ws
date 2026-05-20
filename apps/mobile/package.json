@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@aws-amplify/react-native": "^1.1.0",
+    "@aws-amplify/rtn-web-browser": "^1.1.0",
     "@celebbase/design-tokens": "workspace:^",
     "@celebbase/shared-types": "workspace:^",
     "@expo/ngrok": "^4.1.3",

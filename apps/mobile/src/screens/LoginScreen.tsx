@@ -15,6 +15,7 @@ import { tokens } from '@celebbase/design-tokens';
 
 import { ApiError } from '../lib/api-client';
 import { signIn } from '../services/auth';
+import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { px, resolveToken } from '../lib/tokens';
 
 const LoginFormSchema = z.object({
@@ -115,6 +116,8 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
           <Text style={styles.buttonText}>Sign in</Text>
         )}
       </TouchableOpacity>
+
+      <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
 
       <TouchableOpacity
         accessibilityLabel="Create account"

@@ -6734,3 +6734,43 @@ verified_by: claude-opus-4-7 (staging ops backlog audit + IMPL_LOG grep open-sta
 - **G1-f 흡수**: vendor-enable (`REVENUECAT_ENABLED=true` staging) 은 별도 chore 아닌 G1-f sandbox sync E2E acceptance 전제.
 - **Review tier**: L1 (문서 전용, 코드 변경 0).
 ### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: IMPL-MOBILE-SOCIAL-001
+commit_sha: PENDING
+files_changed:
+  - infra/cognito/main.tf
+  - infra/cognito/variables.tf
+  - infra/cognito/outputs.tf
+  - packages/service-core/src/errors.ts
+  - packages/service-core/src/index.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - apps/mobile/app.json
+  - apps/mobile/package.json
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/src/lib/social-config.ts
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/components/SocialAuthButtons.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/__tests__/services/social-auth.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/runbooks/SOCIAL-LOGIN-SETUP.md
+verified_by: claude-opus-4-7 (typecheck + lint + unit tests green; terraform fmt/validate; claude-self-adversarial L3)
+---
+### 완료: Apple / Google 소셜 로그인 — Cognito Hosted UI 페더레이션 (IMPL-MOBILE-SOCIAL-001)
+- **접근**: Cognito Hosted UI 페더레이션 (네이티브 SDK / Identity Pool 아님). 기존 id_token 검증 경로 (§11.1) 재사용 → iOS·Android 단일 코드, 안정성 최대. advisor + context7 (amplify-js OAuthConfig 타입) + 공식 v6 문서로 API 표면 확정.
+- **Infra (`infra/cognito`)**: `aws_cognito_identity_provider.google` / `.apple` 를 `count = local.<p>_enabled ? 1 : 0` 게이트로 추가 — sensitive tfvars (google client id/secret, apple services/team/key id + private key) 미주입 시 federation no-op. mobile client 에 OAuth code flow (`allowed_oauth_flows=["code"]`) + PKCE (`generate_secret=false` 유지) + `celebbase://callback/` custom scheme + 동적 `supported_identity_providers` (locals concat) 추가. `terraform fmt -check` + `validate` 통과.
+- **BE (`user-service` + `service-core`)**: `AccountExistsError` (409 `ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER`) 신설. `login()` lazy-provision 경로에서 email 충돌 (create UNIQUE 위반 + incumbent cognito_sub 불일치) 감지 → 500/오해성 401 대신 구조화된 409 + `auth.account.provider_collision` 감사 이벤트 (emit-before-throw, hashId only). 단위 테스트 1건 추가 (전 112 unit green, 회귀 0).
+- **Mobile (`apps/mobile`)**: `app.json` scheme `celebbase`, `@aws-amplify/rtn-web-browser` dep, `cognito.ts` env-gated `loginWith.oauth`, 경량 `social-config.ts` (aws-amplify 미의존 게이팅 — 화면 테스트가 배럴 로드 회피), `social-auth.ts` (one-shot Hub listener + 3분 timeout + 전경로 cleanup + 409 시 amplifySignOut), `SocialAuthButtons.tsx` (env-gated, Apple-first, lazy-import), Login/Signup 화면 연결. typecheck + lint + 144 test green.
+- **안정성 (어디서든 동작)**: `EXPO_PUBLIC_COGNITO_HOSTED_UI_DOMAIN` + `EXPO_PUBLIC_SOCIAL_PROVIDERS` 미설정 시 소셜 버튼 숨김 + oauth config 미적용 → SRP-only 로 정상 동작. Terraform 자격증명 미주입 시 IdP no-op. → 자격증명 없이도 머지/배포 안전 (dormant ship).
+- **결정 (사용자 confirm)**: (1) 충돌 → 409 안내 (auto-link 아님), (2) iOS Apple → Hosted UI 통일, (3) 범위 → 모바일 전용.
+- **Review tier**: L3 (인증·토큰·federation) — Codex/Gemini CLI fallback 적용, claude-self-adversarial 1회 (10 threat 점검, 신규 CRITICAL/HIGH 0). pipeline-log 미경유 단일 오너 lockstep PR.
+### 미완료: 실 활성화 (Google Cloud / Apple Developer 자격증명 발급 + Terraform apply + EAS dev build + 기기 E2E) — 사용자 작업, `docs/runbooks/SOCIAL-LOGIN-SETUP.md` 참조. 후속 백로그: PreSignUp Lambda auto-link, iOS 네이티브 Apple 버튼, provider 로고 에셋, `LoginRequestSchema` email optional.
+### 연관 파일: infra/cognito/{main,variables,outputs}.tf, packages/service-core/src/errors.ts, services/user-service/src/services/auth.service.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/components/SocialAuthButtons.tsx, docs/runbooks/SOCIAL-LOGIN-SETUP.md

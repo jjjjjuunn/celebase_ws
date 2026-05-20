@@ -28,7 +28,9 @@ jest.unstable_mockModule('../../src/repositories/refresh-token.repository.js', (
 }));
 
 const { signup, login, DevAuthProvider } = await import('../../src/services/auth.service.js');
-const { UnauthorizedError, ValidationError } = await import('@celebbase/service-core');
+const { UnauthorizedError, ValidationError, AccountExistsError } = await import(
+  '@celebbase/service-core'
+);
 
 const mockPool = {} as pg.Pool;
 const devProvider = new DevAuthProvider();
@@ -404,6 +406,53 @@ describe('authService.login lazy provisioning', () => {
         'req-lazy-5',
       ),
     ).rejects.toThrow(UnauthorizedError);
+  });
+
+  // IMPL-MOBILE-SOCIAL-001 — federated email collision → structured 409.
+  // Scenario: user signed up with email/password (real cognito_sub "pw-sub"),
+  // later taps "Continue with Google" → Cognito mints a NEW sub. Federation
+  // does not auto-link, so the email collides on INSERT. We must return 409
+  // ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER, not 500 and not 401.
+  it('throws AccountExistsError (409) when email belongs to a different cognito_sub', async () => {
+    class GoogleProvider {
+      async verifyIdToken(): Promise<{ sub: string; email: string }> {
+        return Promise.resolve({ sub: 'google-new-sub', email: 'collision@example.com' });
+      }
+      async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+        return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+      }
+    }
+    mockFindByCognitoSub.mockResolvedValueOnce(null); // initial lookup by new sub
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null); // not a dev-seeded row
+    mockCreate.mockResolvedValueOnce(null); // INSERT hits users.email UNIQUE
+    mockFindByCognitoSub.mockResolvedValueOnce(null); // re-read by sub still null
+    mockFindByEmail.mockResolvedValueOnce({
+      ...baseUser,
+      email: 'collision@example.com',
+      cognito_sub: 'pw-sub', // incumbent owns the email with a different identity
+    });
+    const log = makeMockLog();
+
+    await expect(
+      login(
+        mockPool,
+        new GoogleProvider(),
+        { email: 'collision@example.com', id_token: 'fake.id.token' },
+        log,
+        'req-collision-1',
+      ),
+    ).rejects.toThrow(AccountExistsError);
+
+    // audit log must fire BEFORE the throw (security.md: emit-before-throw).
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'auth.account.provider_collision',
+        requestId: 'req-collision-1',
+      }),
+      'auth.account.provider_collision',
+    );
+    // No tokens issued on a collision.
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 
   it('regression: existing cognito_sub match does NOT trigger lazy provisioning', async () => {

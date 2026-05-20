@@ -2394,7 +2394,7 @@ Generator가 제출한 코드를 Evaluator가 검증할 때 사용하는 정량�
 
 **Goal**: 핵심 가치 검증 — 셀럽 식단 선택 → 개인화 → 레시피 제공
 
-- [ ] Auth (Cognito + Apple/Google SSO) — CognitoAuthProvider 백엔드 빌드 완료(IMPL-010-d), 실 활성화는 CHORE-006 대기 (현재 AUTH_PROVIDER=dev)
+- [ ] Auth (Cognito + Apple/Google SSO) — CognitoAuthProvider 백엔드 빌드 완료(IMPL-010-d), 실 활성화는 CHORE-006 대기 (현재 AUTH_PROVIDER=dev). **소셜 로그인 (Apple/Google) 코드/인프라/UI 완료 (IMPL-MOBILE-SOCIAL-001, §11.1.1 Hosted UI 페더레이션 + 409 충돌 정책)** — 실 활성화는 Google Cloud / Apple Developer 자격증명 주입 대기 (`docs/runbooks/SOCIAL-LOGIN-SETUP.md`).
 - [x] Onboarding survey (bio profile) — GET/POST/PATCH/DELETE /users/me/bio-profile 구현 (IMPL-002), PHI 감사 로그 포함
 - [x] Celebrity & base diet CRUD + seed data (10 celebrities) — content-service API (IMPL-003) + 10 celebrities 시드 180 recipes (IMPL-009)
 - [x] AI personalization engine v1 (calorie + macro + allergen) — 7개 AI 모듈 + pipeline.py 오케스트레이터 (IMPL-004-a/b/c), Quota Enforcement (IMPL-013)
@@ -2640,6 +2640,16 @@ celebbase-wellness/
 - user-service `/auth/signup`·`/auth/login` 의 id_token 검증은 `aud` 배열 검증으로 두 client 발급 토큰을 모두 수용한다 (IMPL-MOBILE-AUTH-001).
 - `/auth/login` 은 Cognito JWKS-검증된 id_token 의 `sub` 로 `users` 행 매칭 실패 시 (a) email-bridge (`dev-%` cognito_sub legacy seed 사용자 atomic update) 시도 후, 그래도 매칭 실패 시 (b) lazy provisioning 으로 자동 user 행 생성 (`IMPL-AUTH-LAZY-PROVISION-001`). lazy provisioning 은 IdP-first 패턴의 안전망으로 admin-create-user 시드 / DR 복원 / signup partial failure 등에서 발생하는 Cognito-DB drift 자동 회복. `auth.user.lazy_provisioned` 감사 이벤트 emit (best-effort, `hashId` 만).
 - Terraform stage-only protection: `lifecycle.precondition { var.environment != "prod" }` (CHORE-006 패턴) — mobile client 도 staging 외 배포 차단.
+
+#### 11.1.1 Social Federation — Google / Apple *(IMPL-MOBILE-SOCIAL-001)*
+
+소셜 로그인은 **Cognito Hosted UI 페더레이션**으로 구현한다 — 네이티브 SDK / Identity Pool 이 아니다. 단일 id_token 검증 경로 (§11.1) 를 그대로 재사용하므로 user-service 변경 최소 + 크로스플랫폼 안정성 최대.
+
+- **IdP 리소스**: `infra/cognito/main.tf` 의 `aws_cognito_identity_provider.google` (`provider_type = "Google"`) + `.apple` (`provider_type = "SignInWithApple"`). 각 리소스는 `count = local.<provider>_enabled ? 1 : 0` 게이트 — 자격증명(sensitive tfvars) 미주입 시 federation no-op, mobile client 는 `COGNITO`-only 로 유지된다. `attribute_mapping = { email = "email" }` 로 id_token `email` claim 보장. Apple email 은 **최초 동의 시에만** 반환되나 Cognito 가 immutable `email` 속성에 영속화하므로 재로그인에도 유지.
+- **Mobile client OAuth**: `allowed_oauth_flows = ["code"]` + PKCE (public client, `generate_secret = false`) + `callback_urls = ["celebbase://callback/"]` (custom scheme, app.json `scheme` 와 lockstep). SRP 와 code flow 가 한 client 에 공존 — email/password 로그인 영향 없음.
+- **Mobile flow**: Amplify v6 `signInWithRedirect({ provider })` → `ASWebAuthenticationSession`(iOS) / Custom Tabs(Android) (`@aws-amplify/rtn-web-browser`) → 리다이렉트 완료 시 Hub `signInWithRedirect` 이벤트 → id_token 을 BFF `POST /api/auth/mobile/login` 으로 교환 (기존 SRP 경로와 동일). env (`EXPO_PUBLIC_COGNITO_HOSTED_UI_DOMAIN` + `EXPO_PUBLIC_SOCIAL_PROVIDERS`) 미설정 시 소셜 버튼 숨김 + oauth config 미적용 → 어디서든 SRP 동작 보장.
+- **계정 충돌 정책 (no auto-link)**: 기존 email/password 사용자가 같은 이메일로 소셜 로그인하면 Cognito 가 **다른 sub** 를 발급한다 (federation 은 auto-link 안 함). lazy-provision 경로가 이를 감지 (`create` UNIQUE 위반 + email incumbent 의 cognito_sub 불일치) 하여 **`409 ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER`** 반환 — `users.email` UNIQUE 불변식을 보호하고 사용자를 원래 로그인 방식으로 안내한다. `auth.account.provider_collision` 감사 이벤트 emit (emit-before-throw, `hashId` 만). 자동 연결(PreSignUp Lambda)은 후속 과제로 분리.
+- **범위**: 본 task 는 mobile-only UI. BFF Hosted UI PKCE 라우트(`/api/auth/authorize-url`)는 IdP 추가 시 web 에서도 동작 가능하나 web SSR frozen 정책상 UI 미추가.
 
 ### 11.2 Mobile CI / ESLint Guard *(PIVOT-MOBILE-2026-05)*
 

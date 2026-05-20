@@ -3,6 +3,7 @@
     "name": "CelebBase",
     "slug": "celebbase-mobile",
     "version": "1.0.0",
+    "scheme": "celebbase",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
