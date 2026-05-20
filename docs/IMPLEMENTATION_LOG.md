@@ -6396,7 +6396,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
-commit_sha: PENDING
+commit_sha: 2a4b1b0
 files_changed:
   - services/meal-plan-engine/src/config.py
   - services/meal-plan-engine/src/routes/meal_plans.py
