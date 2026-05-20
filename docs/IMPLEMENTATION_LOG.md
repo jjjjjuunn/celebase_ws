@@ -6350,7 +6350,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
-commit_sha: PENDING
+commit_sha: ee9f4cd
 files_changed:
   - services/user-service/src/lib/internal-signing-key.ts
   - services/user-service/src/routes/jwks.routes.ts
