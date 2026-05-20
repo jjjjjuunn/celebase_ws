@@ -6236,7 +6236,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-STAGING-BE-DEPLOY-001
-commit_sha: PENDING
+commit_sha: ddc4e6e
 files_changed:
   - .github/workflows/cd.yml
   - services/commerce-service/src/env.ts
