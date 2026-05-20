@@ -433,7 +433,13 @@ jobs:
           # Operator one-time setup: see docs/runbooks/MIGRATION-ROLLBACK.md
           # §Setup — db-migrate service block + pgmigrations reconciliation.
           echo "▶ applying pending DB migrations..."
-          docker compose run --rm db-migrate
+          # CHORE-CD-DEPLOY-SILENT-EXIT-001: `-T` + `</dev/null` are REQUIRED.
+          # This whole script reaches the remote shell via `ssh ... bash -s
+          # <<'ENDSSH'` (stdin). Plain `docker compose run` attaches the
+          # container to stdin and CONSUMES the rest of the heredoc (sanity
+          # check + compose pull/up + healthcheck), so the shell hits EOF and
+          # exits 0 — the deploy "succeeds" having silently skipped recreate.
+          docker compose run --rm -T db-migrate </dev/null
           echo "▶ migration sanity check..."
           MIGRATION_DB_SERVICE=db bash /app/scripts/migration-sanity.sh
           echo "✅ migrations applied + sanity OK"
