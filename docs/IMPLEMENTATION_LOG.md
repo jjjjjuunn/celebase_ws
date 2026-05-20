@@ -6807,3 +6807,24 @@ verified_by: claude-opus-4-7 (staging 로그 근본원인 + service-core jwt 회
 - **engine `content_client` 는 tokenless 유지**: public catalog 를 fetch 하므로 토큰 불필요. 토큰을 끼우면 향후 publicPaths drift 시 깨끗한 401 신호를 가려 오히려 해롭다.
 - **Review tier**: L3 (auth 경계 — publicPaths 변경 + 다중 서비스 영향). 보안 검토: catalog 데이터(celebrities 와 동일 tier)만 public, PHI·user 데이터 무관, `/recipes/*` personalized 보호 유지 확인.
 ### 연관 파일: services/content-service/src/index.ts, packages/service-core/tests/unit/jwt.test.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-BFF-BASE-DIET-SCHEMA-DRIFT-001
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/api/base-diets/[id]/route.ts
+  - apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts
+verified_by: claude-opus-4-7 (CI Lint+Tests — celebrities BFF 패턴 정확 미러; post-deploy staging curl 로 200 재검증 예정)
+---
+### 완료: BFF /api/base-diets/:id 502 BFF_CONTRACT_VIOLATION 해소 — wrap 계약 정렬 (FIX-BFF-BASE-DIET-SCHEMA-DRIFT-001)
+- **증상**: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001 로 401 은 사라졌으나 BFF `/api/base-diets/:id` 가 **502 `BFF_CONTRACT_VIOLATION`** ("Upstream response failed schema validation"). 식단 생성(engine content_client 경로)과는 무관 — mobile base-diet 상세 화면 경로.
+- **근본 원인**: content-service 는 base-diet row 를 **unwrapped** 로 반환(`getBaseDiet` 직접; `/celebrities/:slug` 도 동일 unwrapped). 그러나 BFF 라우트가 이를 **wrapped `BaseDietDetailResponseSchema`(`{base_diet: ...}`)** 로 검증 → 항상 실패. (`/celebrities/[slug]` 라우트는 올바르게 `CelebrityWireSchema` 로 검증 후 `{celebrity: ...}` 로 BFF 가 wrap.)
+- **수정**: `apps/web/src/app/api/base-diets/[id]/route.ts` 가 `BaseDietWireSchema`(unwrapped) 로 검증 후 `{ base_diet: result.data }` 로 wrap — `/celebrities/[slug]` 패턴 정확 미러. content-service·engine·shared-types 스키마 무변경 (mobile 계약 `BaseDietDetailResponseSchema` 는 그대로 최종 응답 형태).
+- **테스트**: `base-diets-bff.integration.test.ts` 신규 (celebrities-bff 패턴 미러) — unwrapped upstream → 200 + `{base_diet}` wrap (수정 전 502 케이스 락), 404 propagate, 502 network error.
+- **engine 영향 없음**: consumer 의 `content_client.get_base_diet` 는 unwrapped 를 직접 쓰므로(방금 staging E2E 로 plan completed 확인) content-service 무변경이 정답 — BFF 만 잘못된 스키마로 검증하던 것.
+- **검증**: CI Lint+Tests (worktree 라 로컬 node_modules 부재). post-deploy `curl https://staging.celebase.app/api/base-diets/<id>` → 200 재확인 예정.
+- **Review tier**: L2 (단일 BFF 파일 + 테스트; auth·PHI·스키마 형상 무변경, mobile 계약 보존).
+### 부수 결정 (#3, 사용자 확정 2026-05-20): staging `INTERNAL_JWT_SECRET`(HS256) + `INTERNAL_JWT_PRIVATE_KEY`(RS256, 전 서비스 공유) 가 진단 세션 transcript 에 노출됨 → **staging-only 로 risk 수용** (staging 전용 + 테스트 데이터 + prod 는 별도 pool/키 G3). rotate 안 함 (진행 중 social-login 세션 충돌 + 실위험 낮음). 서비스별 private key 분리는 prod 키 발급 시 `CHORE-AUTH-ASYMMETRIC-SIGNING-001` 잔존 항목으로 처리.
+### 연관 파일: apps/web/src/app/api/base-diets/[id]/route.ts, apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts
