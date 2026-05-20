@@ -183,12 +183,32 @@
 | 소셜 버튼 provider 로고 | 현재 텍스트-only 버튼. Apple/Google 브랜드 가이드 로고 에셋 추가. |
 | `LoginRequestSchema` email optional | id_token 이 신뢰 루트이므로 wire 의 email 중복 제거 (계약 변경 — lockstep PR 필요). |
 | Settings 화면 "소셜 계정 연결" | 충돌 안내 메시지가 가리키는 실제 연결 UI (PreSignUp Lambda 또는 별도 link API 선행 필요). |
+| Cognito `email_verified` attribute_mapping | 현재 `attribute_mapping = { email = "email" }` 만 (email_verified 미매핑). 의도된 결정 — user-service 는 email_verified 를 검증하지 않고, Apple 은 `email_verified` 를 문자열 `"true"` 로 보내 Cognito(boolean 기대)와 타입 불일치로 federation 실패 가능 (알려진 함정). 향후 email_verified gating 이 필요하면 **Google 만** 매핑 (`email_verified = "email_verified"`) + Apple 은 별도 처리. |
 
 ---
 
 ## 10. 변경된 파일 (참고)
 
 - **Infra**: `infra/cognito/{main.tf,variables.tf,outputs.tf}` — Google/Apple IdP (count-gated) + mobile client OAuth code flow + sensitive 변수.
-- **BE**: `packages/service-core/src/errors.ts` (`AccountExistsError` 409), `services/user-service/src/services/auth.service.ts` (충돌 감지), `services/user-service/src/lib/auth-log.ts` (`auth.account.provider_collision` 이벤트) + 단위 테스트.
+- **BE**: `packages/service-core/src/{errors.ts,index.ts}` (`AccountExistsError` 409 + export), `services/user-service/src/services/auth.service.ts` (충돌 감지), `services/user-service/src/lib/auth-log.ts` (`ProviderCollisionFields` + `auth.account.provider_collision` 이벤트) + `services/user-service/tests/unit/auth.service.test.ts`.
 - **Mobile**: `apps/mobile/app.json` (scheme), `package.json` (`@aws-amplify/rtn-web-browser`), `src/lib/{cognito.ts,social-config.ts}`, `src/services/social-auth.ts`, `src/lib/auth-events.ts`, `src/components/SocialAuthButtons.tsx`, `src/screens/{LoginScreen,SignupScreen}.tsx` + 테스트.
 - **Spec**: `spec.md §11.1.1` (신규) + `§10 MVP`.
+
+---
+
+## 11. 보안 검토 — self-adversarial pass (L3)
+
+> "공격자가 이 코드로 무엇을 할 수 있나?" 관점 점검. 신규 CRITICAL/HIGH 0. (Codex/Gemini CLI fallback — `.claude/rules/pipeline.md` IMPL-AI-002 패턴.)
+
+| # | 위협 | 평가 |
+|---|------|------|
+| 1 | **위조 id_token 우회** | 소셜 경로도 `CognitoAuthProvider.verifyIdToken` (RS256 sig + JWKS + iss + aud 배열 + exp + `token_use==='id'`) 재사용 — 검증 약화 없음. wire 의 `email` 은 user-service 가 무시하고 **검증된 token 의 email** 만 사용 → 위조 body email 무력. |
+| 2 | **409 통한 이메일 enumeration** | 409 는 공격자가 **이미 그 이메일의 소셜 계정을 통제**한 뒤에야 도달 (Cognito federation 통과 필요). 임의 이메일 존재 여부 probing 불가 — 인증된 본인에게만 "비밀번호 계정 있음" 노출. |
+| 3 | **재방문 소셜 사용자 오탐 409** | `findByCognitoSub` 가 먼저 매칭 → 충돌 분기 미도달. 회귀 테스트 존재. |
+| 4 | **동시 첫 로그인 race 오탐 409** | create null 후 sub 재조회가 winner row (동일 sub) 매칭 → `incumbent.cognito_sub !== payload.sub` 거짓 → 충돌 분기 미도달. 테스트 존재. |
+| 5 | **Hub listener 누수/교차오염** | one-shot listener + `finally` cleanup + 3분 timeout. 버튼은 flight 중 disabled. user-cancel cleanup 테스트 존재. |
+| 6 | **custom scheme 가로채기** | 동일 기기 악성 앱이 `celebbase://` 가로채도 PKCE (`generate_secret=false` + code_verifier) 가 code 교환 차단. |
+| 7 | **시크릿 노출** | mobile 에 client secret 없음 (`generate_secret=false`). Google/Apple secret 은 gitignored tfvars → Cognito 만 보유, 클라이언트 미전달. |
+| 8 | **로그 PII 누출** | `auth.account.provider_collision` 은 `hashId(email/sub)` 만 emit (Rule #8), emit-before-throw 보장. token/raw email 미기록. |
+| 9 | **email claim 부재 처리** | id_token 에 email 없으면 BFF 호출 **전에** throw + `amplifySignOut` → malformed 요청 미발생. |
+| 10 | **비활성 시 공격면** | env/자격증명 부재 시 oauth config 미적용 + 버튼 숨김 → 소셜 경로 자체가 비활성, 추가 공격면 0 (dormant). |
