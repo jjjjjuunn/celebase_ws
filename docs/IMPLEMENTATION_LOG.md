@@ -6635,7 +6635,7 @@ verified_by: claude-opus-4-7 (live local E2E BFF→commerce→user-service, mock
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: CHORE-MINOR-FINDINGS-CLEANUP-001
-commit_sha: PENDING
+commit_sha: d439198
 files_changed:
   - .claude/rules/api-conventions.md
   - docs/IMPLEMENTATION_LOG.md
