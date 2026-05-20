@@ -6613,7 +6613,7 @@ verified_by: claude-opus-4-7 (staging SSH config read + JWKS endpoint + Cognito 
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: CHORE-TIER-SYNC-WIRE-VERIFY-001
-commit_sha: PENDING
+commit_sha: 3e763dd
 files_changed:
   - docs/IMPLEMENTATION_LOG.md
 verified_by: claude-opus-4-7 (live local E2E BFF→commerce→user-service, mock RevenueCat REST, primary log evidence)
