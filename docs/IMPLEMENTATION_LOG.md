@@ -6542,7 +6542,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: CHORE-FIX-DB-TURBO-FILTER-001
-commit_sha: PENDING
+commit_sha: 6a93cb8
 files_changed:
   - package.json
 verified_by: claude-opus-4-7
