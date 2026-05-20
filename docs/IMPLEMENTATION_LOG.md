@@ -6456,3 +6456,23 @@ verified_by: claude-opus-4-7
 - **Review tier**: L3 (인증 토큰 서명 형상 변경). adversarial: alg-confusion 은 verifier 가 alg 별 키 라우팅으로 차단(Phase 2a). signer 가 RS256 only 서명 → HS256 위조 토큰은 verifier 의 RS256 경로 미통과.
 ### 미완료: PR merge → CD 배포(signer flip) → **Guardrail 2**(로그인 후 토큰 header decode → alg:RS256 + kid 일치) → daily-logs/subscriptions end-to-end 재검증. 그 후 별도 PR 로 Phase 3(HS256 verify 경로 제거, 24h 안정 후) + #4(vestigial JWKS_URI repoint).
 ### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/src/lib/internal-signing-key.ts, services/user-service/src/routes/jwks.routes.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-ENV-VESTIGIAL-COGNITO-JWKS-001
+commit_sha: PENDING
+files_changed:
+  - services/commerce-service/src/env.ts
+  - services/analytics-service/src/env.ts
+verified_by: claude-opus-4-7
+---
+### 완료: commerce/analytics env schema 의 vestigial Cognito/JWKS 변수 제거 (CHORE-ENV-VESTIGIAL-COGNITO-JWKS-001)
+- **배경**: 두 서비스는 `registerJwtAuth(app, { mode: 'internal' })` 로 내부 토큰(`INTERNAL_JWT_SECRET`/`INTERNAL_JWKS_URI`)만 검증한다. external Cognito JWT 는 BFF/user-service 책임이라 `JWKS_URI`/`JWT_ISSUER`/`JWT_AUDIENCE`/`COGNITO_*` 는 schema 에 선언만 되고 어디서도 소비되지 않았다. service-core 의 `loadJwtConfig()` 는 'jwks' mode 전용 + `process.env` 직접 읽기라 서비스 env schema 와 독립.
+- **commerce** (`src/env.ts`): `JWKS_URI`/`JWT_ISSUER`/`JWT_AUDIENCE` 필드 3개 + production superRefine 의 `JWKS_URI`/`JWT_ISSUER` 필수 검증 삭제. `INTERNAL_JWT_SECRET` production 검증은 유지.
+- **analytics** (`src/env.ts`): `COGNITO_USER_POOL_ID`/`COGNITO_APP_CLIENT_ID`/`COGNITO_REGION`/`JWKS_URI`/`JWT_ISSUER`/`JWT_AUDIENCE` 필드 6개 + superRefine 전체(다른 검증 없음) 삭제. 이 required Cognito 변수들이 이번 세션 초반 analytics staging boot 실패 원인이었다(미사용인데 required → 더미값 강요).
+- **확신 근거**: src 외 참조 0, 테스트 0, `.env.example` 부재 (dist/ 빌드 산출물만 — 재생성됨). code-style.md "확신 시 완전 삭제" + "removed code backwards-compat 금지" 적용.
+- **검증**: commerce 83 test, analytics 19 test(+1 DB integration skip) 통과. 양쪽 typecheck/lint clean. staging `.env.staging` 잔재 값(JWKS_URI/COGNITO_* 등)은 zod 가 unknown key strip → 무해.
+- **Review tier**: L1 (config dead-code 제거, 2 files, 기존 테스트로 검증 충분 — 리뷰 0회).
+### 미완료: (선택) staging `.env.staging` 에서 잔재 Cognito/JWKS 라인 cleanup. 기능 영향 없음.
+### 연관 파일: services/commerce-service/src/env.ts, services/analytics-service/src/env.ts
