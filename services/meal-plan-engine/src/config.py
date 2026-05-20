@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # Internal JWT secret — must match INTERNAL_JWT_SECRET in user-service
     INTERNAL_JWT_SECRET: str = "dev-secret-not-for-prod"
     INTERNAL_JWT_ISSUER: str = "celebbase-user-service"
+    # RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a). When set,
+    # RS256 internal tokens verify against user-service's JWKS endpoint
+    # (http://user-service:3001/.well-known/jwks.json). Empty = HS256 only.
+    INTERNAL_JWKS_URI: str = ""
     CORS_ORIGINS: str = (
         "http://localhost:3000,http://localhost:3001,http://localhost:3002"
     )

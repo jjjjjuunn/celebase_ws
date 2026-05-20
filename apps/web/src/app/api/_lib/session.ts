@@ -1,5 +1,11 @@
 import type { NextRequest } from 'next/server';
-import { errors as joseErrors, jwtVerify } from 'jose';
+import {
+  createRemoteJWKSet,
+  decodeProtectedHeader,
+  errors as joseErrors,
+  jwtVerify,
+  type JWTPayload,
+} from 'jose';
 import {
   createLogger,
   toBffErrorResponse,
@@ -55,17 +61,55 @@ function getVerifierSecrets(): Uint8Array[] {
     : [enc.encode(current)];
 }
 
-// BFF verifies internal HS256 JWTs issued by user-service.
-// Cognito id_tokens never reach the BFF directly — user-service exchanges them
-// for internal tokens before issuing the cb_access cookie.
+// RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a). user-service
+// publishes its public key at INTERNAL_JWKS_URI (/.well-known/jwks.json).
+const INTERNAL_JWKS_URI = process.env['INTERNAL_JWKS_URI'];
+let _internalJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getInternalJwks(): ReturnType<typeof createRemoteJWKSet> | null {
+  if (INTERNAL_JWKS_URI === undefined || INTERNAL_JWKS_URI === '') return null;
+  if (_internalJwks === null) {
+    _internalJwks = createRemoteJWKSet(new URL(INTERNAL_JWKS_URI));
+  }
+  return _internalJwks;
+}
+
+function toSession(payload: JWTPayload, token: string): Omit<Session, 'authSource'> {
+  return {
+    user_id: String(payload.sub ?? ''),
+    email: typeof payload['email'] === 'string' ? payload['email'] : '',
+    cognito_sub:
+      typeof payload['cognito_sub'] === 'string' ? payload['cognito_sub'] : '',
+    raw_token: token,
+  };
+}
+
+// BFF verifies internal JWTs issued by user-service. Cognito id_tokens never
+// reach the BFF directly — user-service exchanges them for internal tokens
+// before issuing the cb_access cookie. Dual-verify: RS256 (user-service JWKS)
+// or HS256 (shared secret, with NEXT/CURRENT rotation), dispatched on the
+// header alg — each alg routes to a different key, so no algorithm confusion.
 //
 // Returns Omit<Session, 'authSource'>: source-agnostic on purpose. The caller
-// (createProtectedRoute) knows whether the token came from a cookie or a
-// Bearer header and injects authSource via spread. authSource is required on
-// Session to force every branch to set it explicitly (no `as Session` cast).
+// (createProtectedRoute) injects authSource via spread.
 export async function verifyAccessToken(
   token: string,
 ): Promise<Omit<Session, 'authSource'>> {
+  const { alg } = decodeProtectedHeader(token);
+
+  if (alg === 'RS256') {
+    const jwks = getInternalJwks();
+    if (jwks === null) {
+      throw new Error('RS256 token but INTERNAL_JWKS_URI not configured');
+    }
+    const { payload } = await jwtVerify(token, jwks, {
+      issuer: INTERNAL_ISSUER,
+      algorithms: ['RS256'],
+      clockTolerance: 60,
+    });
+    return toSession(payload, token);
+  }
+
   const secrets = getVerifierSecrets();
   let lastErr: unknown;
   for (const secret of secrets) {
@@ -75,15 +119,7 @@ export async function verifyAccessToken(
         algorithms: ['HS256'],
         clockTolerance: 60,
       });
-      return {
-        user_id: String(payload.sub ?? ''),
-        email: typeof payload['email'] === 'string' ? payload['email'] : '',
-        cognito_sub:
-          typeof payload['cognito_sub'] === 'string'
-            ? payload['cognito_sub']
-            : '',
-        raw_token: token,
-      };
+      return toSession(payload, token);
     } catch (err) {
       lastErr = err;
       if (err instanceof joseErrors.JWSSignatureVerificationFailed) continue;

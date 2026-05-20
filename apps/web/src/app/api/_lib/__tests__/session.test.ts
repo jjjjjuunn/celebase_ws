@@ -16,11 +16,15 @@ jest.mock('jose', () => {
   }
   return {
     jwtVerify: jest.fn(),
+    // Default to HS256 so existing tests flow through the shared-secret path;
+    // RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001) overrides per-test.
+    decodeProtectedHeader: jest.fn(() => ({ alg: 'HS256' })),
+    createRemoteJWKSet: jest.fn(() => 'mock-jwks'),
     errors: { JWTExpired, JWSSignatureVerificationFailed },
   };
 });
 
-import { jwtVerify, errors as joseErrors } from 'jose';
+import { jwtVerify, decodeProtectedHeader, errors as joseErrors } from 'jose';
 import { createProtectedRoute, createPublicRoute } from '../session';
 import { makeRequest, VALID_SESSION_PAYLOAD as VALID_PAYLOAD } from './test-helpers';
 

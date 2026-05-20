@@ -106,20 +106,49 @@ async def get_request_id(request: Request) -> str:  # noqa: D401
 # ---------------------------------------------------------------------------
 
 
-def _verify_jwt_payload(token: str) -> Dict[str, Any]:
-    """Verify JWT signature and return payload using PyJWT.
+_jwks_client: pyjwt.PyJWKClient | None = None
 
-    Issuer bound to settings.INTERNAL_JWT_ISSUER (default
-    'celebbase-user-service') — aligned with the user-service signer and the
-    TS service-core verifier (CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001).
+
+def _get_jwks_client() -> pyjwt.PyJWKClient:
+    """Lazily build (and cache) the user-service JWKS client."""
+    global _jwks_client
+    if _jwks_client is None:
+        _jwks_client = pyjwt.PyJWKClient(settings.INTERNAL_JWKS_URI)
+    return _jwks_client
+
+
+def _verify_jwt_payload(token: str) -> Dict[str, Any]:
+    """Verify an internal JWT and return its payload (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a).
+
+    Dual-verify: RS256 tokens are checked against user-service's JWKS
+    (settings.INTERNAL_JWKS_URI), HS256 tokens against the shared secret. The
+    header alg picks the path; each alg routes to a different key, so RS256/HS256
+    algorithm confusion is impossible. Issuer bound to INTERNAL_JWT_ISSUER and
+    token_use must be 'access' — identical to the TS service-core verifier.
     """
-    payload = pyjwt.decode(
-        token,
-        settings.INTERNAL_JWT_SECRET,
-        algorithms=["HS256"],
-        issuer=settings.INTERNAL_JWT_ISSUER,
-        options={"require": ["sub", "exp", "token_use", "iss"]},
-    )
+    alg = pyjwt.get_unverified_header(token).get("alg")
+    require = ["sub", "exp", "token_use", "iss"]
+
+    if alg == "RS256":
+        if not settings.INTERNAL_JWKS_URI:
+            raise ValueError("RS256 token but INTERNAL_JWKS_URI not configured")
+        signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
+        payload = pyjwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            issuer=settings.INTERNAL_JWT_ISSUER,
+            options={"require": require},
+        )
+    else:
+        payload = pyjwt.decode(
+            token,
+            settings.INTERNAL_JWT_SECRET,
+            algorithms=["HS256"],
+            issuer=settings.INTERNAL_JWT_ISSUER,
+            options={"require": require},
+        )
+
     if payload.get("token_use") != "access":
         raise ValueError("Invalid token_use: expected 'access'")
     return dict(payload)
@@ -136,7 +165,7 @@ async def get_current_user_id(authorization: str | None = Header(None)) -> str: 
         if not user_id:
             raise HTTPException(status_code=401, detail="UNAUTHORIZED")
         return str(user_id)
-    except (pyjwt.InvalidTokenError, ValueError) as exc:
+    except (pyjwt.InvalidTokenError, pyjwt.PyJWKClientError, ValueError) as exc:
         logger.debug("JWT verification failed: %s", exc)
         raise HTTPException(status_code=401, detail="UNAUTHORIZED") from exc
 
@@ -160,7 +189,7 @@ async def get_auth_info(authorization: str | None = Header(None)) -> AuthInfo:  
         if not user_id:
             raise HTTPException(status_code=401, detail="UNAUTHORIZED")
         return AuthInfo(user_id=str(user_id), raw_token=token)
-    except (pyjwt.InvalidTokenError, ValueError) as exc:
+    except (pyjwt.InvalidTokenError, pyjwt.PyJWKClientError, ValueError) as exc:
         logger.debug("JWT verification failed: %s", exc)
         raise HTTPException(status_code=401, detail="UNAUTHORIZED") from exc
 

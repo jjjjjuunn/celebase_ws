@@ -672,3 +672,64 @@ async def test_on_progress_invokes_broadcast(
     )
 
     mock_broadcast.assert_awaited_with(plan_id, {"event": "progress", "pct": 42})
+
+
+# ---------------------------------------------------------------------------
+# RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@repo_patch("list_meal_plans")
+async def test_rs256_token_via_jwks(mock_list, client, monkeypatch):
+    """An RS256 token verifies against the user-service JWKS when configured."""
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from src.routes import meal_plans as mp_module
+
+    mock_list.return_value = []
+    priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    monkeypatch.setattr(
+        settings,
+        "INTERNAL_JWKS_URI",
+        "https://user-service.internal/.well-known/jwks.json",
+    )
+    fake_key = MagicMock()
+    fake_key.key = priv.public_key()
+    fake_client = MagicMock()
+    fake_client.get_signing_key_from_jwt.return_value = fake_key
+    monkeypatch.setattr(mp_module, "_get_jwks_client", lambda: fake_client)
+
+    token = pyjwt.encode(
+        {
+            "sub": "rs-user",
+            "exp": int(time.time()) + 3600,
+            "token_use": "access",
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
+        priv,
+        algorithm="RS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_rs256_token_rejected_when_jwks_unset(client, monkeypatch):
+    """An RS256 token is rejected (401) when INTERNAL_JWKS_URI is not configured."""
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    monkeypatch.setattr(settings, "INTERNAL_JWKS_URI", "")
+    priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    token = pyjwt.encode(
+        {
+            "sub": "rs-user",
+            "exp": int(time.time()) + 3600,
+            "token_use": "access",
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
+        priv,
+        algorithm="RS256",
+    )
+    resp = await client.get("/meal-plans", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 401
