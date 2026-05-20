@@ -22,7 +22,7 @@ export type CreateDailyLogData = {
 // would shift the day under a positive UTC offset).
 export function toIsoDate(value: unknown): string {
   if (value instanceof Date) {
-    const y = value.getFullYear();
+    const y = String(value.getFullYear()).padStart(4, '0');
     const m = String(value.getMonth() + 1).padStart(2, '0');
     const d = String(value.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
