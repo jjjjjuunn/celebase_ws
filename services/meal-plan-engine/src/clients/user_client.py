@@ -66,7 +66,12 @@ async def get_bio_profile(user_id: str, auth_token: str) -> Dict[str, Any]:
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         resp = await client.get(url, headers=headers)
         resp.raise_for_status()
-        data: Dict[str, Any] = resp.json()
+        # user-service wraps the profile as {"bio_profile": {...}} (matches
+        # shared-types BioProfileResponseSchema + the /users/me {"user": ...}
+        # convention). Fall back to the raw payload so a flat response during a
+        # cross-service deploy window still works.
+        payload: Dict[str, Any] = resp.json()
+        data: Dict[str, Any] = payload.get("bio_profile", payload)
         # node-postgres serialises NUMERIC as str; engine modules require float.
         for field in (
             "height_cm",
