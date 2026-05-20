@@ -16,6 +16,7 @@ import { NextRequest } from 'next/server';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
 import { baseUrlFor } from '../../_lib/bff-fetch.js';
 import { callInternal, internalErrorToResponse } from '../../_lib/internal-client.js';
+import { zodErrorResponse } from '../../_lib/bff-error.js';
 import { checkRouteRateLimit, rateLimitErrorToResponse } from '../../_lib/route-rate-limit.js';
 
 // Per-user-id cap. M5 IAP normal flow = 1 call per purchase, so 5/min has
@@ -75,12 +76,7 @@ async function handle(req: NextRequest, session: Session): Promise<Response> {
 
   const parsed = RequestSchema.safeParse(bodyJson);
   if (!parsed.success) {
-    return internalErrorToResponse({
-      status: 400,
-      code: 'VALIDATION_ERROR',
-      message: parsed.error.errors[0]?.message ?? 'Invalid request body',
-      requestId,
-    });
+    return zodErrorResponse(parsed.error, requestId, 'Invalid request body');
   }
 
   // T4 enforce: user_id is from session, not from client body.

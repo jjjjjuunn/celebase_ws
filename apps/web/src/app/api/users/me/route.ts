@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../../_lib/bff-error.js';
 
 // user-service GET /users/me returns the User object directly (no envelope).
 // The BFF wraps it in { user: ... } to match MeResponseSchema for the frontend.
@@ -31,10 +31,7 @@ export const PATCH = createProtectedRoute(async (req: NextRequest, session: Sess
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schemas.UpdateMeRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input', requestId } }),
-      { status: 400, headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId } },
-    );
+    return zodErrorResponse(parsed.error, requestId);
   }
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
   const result = await fetchBff('user', '/users/me', {

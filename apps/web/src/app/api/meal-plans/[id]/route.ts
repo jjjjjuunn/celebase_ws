@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../../_lib/bff-error.js';
 
 const EmptyBodySchema = z.object({}).passthrough();
 const PatchRequestSchema = z
@@ -11,10 +11,9 @@ const PatchRequestSchema = z
     status: z.enum(['active', 'archived']).optional(),
     name: z.string().min(1).max(120).optional(),
   })
-  .refine(
-    (v) => v.status !== undefined || v.name !== undefined,
-    { message: 'At least one of status or name is required' },
-  );
+  .refine((v) => v.status !== undefined || v.name !== undefined, {
+    message: 'At least one of status or name is required',
+  });
 
 export async function GET(
   req: NextRequest,
@@ -52,10 +51,7 @@ export async function PATCH(
     const body: unknown = await innerReq.json().catch(() => ({}));
     const parsed = PatchRequestSchema.safeParse(body);
     if (!parsed.success) {
-      return new Response(
-        JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input', requestId } }),
-        { status: 400, headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId } },
-      );
+      return zodErrorResponse(parsed.error, requestId);
     }
     const forwardedFor = innerReq.headers.get('x-forwarded-for') ?? undefined;
     const result = await fetchBff('meal-plan', `/meal-plans/${encodeURIComponent(id)}`, {

@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
+import { zodErrorResponse } from '../../_lib/bff-error.js';
 
 // Plan 22 Phase F — three modes for the Instacart cart adapter.
 // `stub` (default): 503 NOT_IMPLEMENTED, preserves the pre-Plan-22 behaviour.
@@ -69,18 +70,11 @@ async function handleMock(
   );
 }
 
-function unavailableResponse(
-  code: string,
-  message: string,
-  requestId: string,
-): Response {
-  return new Response(
-    JSON.stringify({ error: { code, message, requestId } }),
-    {
-      status: 503,
-      headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
-    },
-  );
+function unavailableResponse(code: string, message: string, requestId: string): Response {
+  return new Response(JSON.stringify({ error: { code, message, requestId } }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
+  });
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -92,22 +86,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const rawBody: unknown = await innerReq.json().catch(() => ({}));
       const parsed = CreateCartRequestSchema.safeParse(rawBody);
       if (!parsed.success) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Invalid cart request',
-              requestId,
-            },
-          }),
-          {
-            status: 400,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Request-Id': requestId,
-            },
-          },
-        );
+        return zodErrorResponse(parsed.error, requestId, 'Invalid cart request');
       }
 
       const mode = adapterMode();

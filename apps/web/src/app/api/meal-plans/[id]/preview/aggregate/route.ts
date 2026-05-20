@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../../../_lib/session.js';
-import { toBffErrorResponse } from '../../../../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../../../../_lib/bff-error.js';
 import {
   aggregationKey,
   canonicalize,
@@ -69,15 +69,7 @@ export async function POST(
     const body: unknown = await innerReq.json().catch(() => ({}));
     const parsedBody = schemas.PlanPreviewAggregateRequestSchema.safeParse(body);
     if (!parsedBody.success) {
-      return new Response(
-        JSON.stringify({
-          error: { code: 'VALIDATION_ERROR', message: 'Invalid input', requestId },
-        }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
-        },
-      );
+      return zodErrorResponse(parsedBody.error, requestId);
     }
     const skipped = new Set(parsedBody.data.skipped_slots);
 
@@ -119,18 +111,14 @@ export async function POST(
     }
 
     const idsCsv = Array.from(recipeIds).join(',');
-    const recipesResult = await fetchBff(
-      'content',
-      `/recipes?ids=${encodeURIComponent(idsCsv)}`,
-      {
-        method: 'GET',
-        schema: ContentRecipesBatchSchema,
-        requestId,
-        forwardedFor,
-        userId: session.user_id,
-        authToken: session.raw_token,
-      },
-    );
+    const recipesResult = await fetchBff('content', `/recipes?ids=${encodeURIComponent(idsCsv)}`, {
+      method: 'GET',
+      schema: ContentRecipesBatchSchema,
+      requestId,
+      forwardedFor,
+      userId: session.user_id,
+      authToken: session.raw_token,
+    });
     if (!recipesResult.ok) {
       return toBffErrorResponse(recipesResult.error, requestId);
     }

@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createPublicRoute } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../../_lib/bff-error.js';
 
 function sessionCookies(accessToken: string, refreshToken: string): string[] {
   const secure = process.env['NODE_ENV'] === 'production' ? '; Secure' : '';
@@ -17,10 +17,7 @@ export const POST = createPublicRoute(async (req: NextRequest) => {
   const body: unknown = await req.json().catch(() => ({}));
   const parsed = schemas.LoginRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input', requestId } }),
-      { status: 400, headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId } },
-    );
+    return zodErrorResponse(parsed.error, requestId);
   }
   const forwardedFor = req.headers.get('x-forwarded-for') ?? undefined;
   const result = await fetchBff('user', '/auth/login', {

@@ -1,12 +1,11 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createProtectedRoute, type Session } from '../_lib/session.js';
+import { zodErrorResponse } from '../_lib/bff-error.js';
 
 const PersonaMatchRequestSchema = z
   .object({
-    celebritySlug: z
-      .string()
-      .regex(/^[a-z0-9][a-z0-9-]*$/, 'invalid celebrity slug'),
+    celebritySlug: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, 'invalid celebrity slug'),
     goal: z.enum(['weight_loss', 'muscle_gain', 'recovery', 'longevity', 'general']),
     wellnessKeywords: z.array(z.string().max(40)).max(10).optional(),
   })
@@ -61,22 +60,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       const parsed = PersonaMatchRequestSchema.safeParse(rawBody);
       if (!parsed.success) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Invalid persona-match request',
-              requestId,
-            },
-          }),
-          {
-            status: 400,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Request-Id': requestId,
-            },
-          },
-        );
+        return zodErrorResponse(parsed.error, requestId, 'Invalid persona-match request');
       }
 
       return new Response(

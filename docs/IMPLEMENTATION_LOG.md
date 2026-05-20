@@ -6554,3 +6554,31 @@ verified_by: claude-opus-4-7
 - **Review tier**: L1 (루트 스크립트 2줄).
 ### 미완료: 없음.
 ### 연관 파일: package.json
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-BFF-VALIDATION-DETAILS-FORWARD-001
+commit_sha: cbad01d
+files_changed:
+  - apps/web/src/app/api/_lib/bff-error.ts
+  - apps/web/src/app/api/_lib/bff-fetch.ts
+  - apps/web/src/app/api/_lib/__tests__/bff-fetch.test.ts
+  - apps/web/src/app/api/users/me/bio-profile/route.ts
+  - apps/web/src/app/api/daily-logs/route.ts
+  - apps/web/src/app/api/subscriptions/sync/route.ts
+verified_by: claude-opus-4-7 (jest 178 + live BFF E2E ×3 routes)
+---
+### 완료: BFF validation `details` 전 계층 전달 (CHORE-BFF-VALIDATION-DETAILS-FORWARD-001)
+- **증상**: FE 폼이 잘못된 입력을 보내면 BFF 가 `{code:'VALIDATION_ERROR', message:'Invalid input'}` 만 반환 → 어느 필드가 틀렸는지 알 수 없어 field-level 폼 에러 렌더 불가. E2E 중 발견 (#27).
+- **근본 원인 2곳**:
+  - **Path A (지배적)**: 라우트가 forward 전 자체 Zod `safeParse` → 실패 시 inline `new Response` 로 details 없이 하드코딩 반환. fetchBff 도달 안 함. 21개 라우트가 동일 패턴.
+  - **Path B**: `fetchBff` 의 `pickUpstreamError` 가 upstream BE 에러에서 `code/message/retryable/retry_after` 만 추출하고 `details` 누락. (`filterBffError` 는 이미 details + meta PHI redact 전달 준비됨 — source 만 끊겨 있었음.)
+- **수정**:
+  - `bff-error.ts`: `zodErrorResponse(err, requestId, message?)` helper 추가 — ZodError.issues → `[{field, issue}]` (root error 는 field 생략). `toBffErrorResponse` 경유로 기존 PHI redact 레이어 재사용.
+  - `bff-fetch.ts`: `parseUpstreamDetails()` 방어 파싱 (배열 + string issue 필수, plain-object meta 만 허용, malformed drop, 빈 결과 undefined) + `pickUpstreamError` details 추출 + `!response.ok` BffError 생성부 conditional spread.
+  - 19개 라우트(uniform 'Invalid input') + subscriptions/sync(특수: internalErrorToResponse Zod 분기) → helper 호출 일괄 교체. custom 메시지 라우트(instacart/cart 등 6개)는 message 인자로 보존.
+- **검증**: jest 178 PASS (신규 bff-fetch.test.ts 6 케이스: 정상 forward / issue-only+meta / malformed drop / non-array / 부재 / 전부 malformed). 라이브 BFF E2E: invalid bio-profile → `details:[{field:'weight_kg',...}]`, invalid daily-logs → 2-field details, valid bio-profile → 201 (회귀 없음).
+- **Review tier**: L2 (BFF 에러 계약 강화, mechanical bulk + helper, DB/스키마/토큰 형상 변경 없음). adversarial: 인증 라우트는 input-shape 검증만 surface (credential 검증은 별도 401), Zod 표준 메시지는 입력값 echo 안 함 → 본인 세션에 본인 입력 반환이라 PHI 노출 아님.
+### 미완료: 비-Zod 수동 가드 라우트(instacart/status orderId, meal-plans/[id]/safety id, ws-ticket 응답 compose)는 body-schema 검증이 아니라 그대로 둠 (의도).
+### 연관 파일: apps/web/src/app/api/_lib/bff-error.ts, apps/web/src/app/api/_lib/bff-fetch.ts, apps/web/src/app/api/**/route.ts (21 routes)
