@@ -1,92 +1,117 @@
 # apps/mobile — CelebBase Wellness Mobile
 
-> Expo SDK 54 + React Native — IMPL-MOBILE-WORKSPACE-001 minimal scaffold.
->
-> 본 패키지는 PIVOT-MOBILE-2026-05 의 active client. ownership: **Dohyun (FE Mobile)** —
-> 본 scaffold 는 동료 M0 본격 작업의 entry point. multi-session.md §1 owner table 참조.
+> Expo SDK 54 + React Native (New Architecture). PIVOT-MOBILE-2026-05 의 **active client**.
+> Ownership: **JUNWON (단일 풀스택)** — `CLAUDE.md §1.1` (2026-05-20 단일 오너 전환).
+
+이 앱은 더 이상 scaffold 가 아니다. 인증·온보딩·claim feed·meal plan·구독(IAP) 화면이 구현돼 있고,
+모든 원격 호출은 `@celebbase/shared-types` Zod 스키마로 응답을 검증한다. 남은 작업은 대부분 **UI/네비게이션 와이어링**
+(아래 `docs/FE-WIRING-TODO.md` 참조) — 백엔드/계약은 FE-readiness audit (2026-05-20) 으로 정렬됨.
 
 ---
 
-## 빠른 실행 (Quickstart)
+## 0. 사전 요구사항
 
-### 1. 의존성 설치 (모노레포 루트에서)
+| 도구 | 용도 |
+|------|------|
+| Node ≥ 22 + pnpm 9 | 모노레포 |
+| Docker Desktop | 로컬 BE 스택 (postgres/redis/localstack + 5 BE) |
+| Xcode + CocoaPods (`brew install cocoapods`) | iOS dev build (인증/IAP 검증) |
+| (선택) Android Studio + AVD | Android dev build |
+
+**clone 경로에 공백/한글/특수문자 금지** — CocoaPods build script 가 첫 공백에서 truncate (`~/celebase/` 권장, `.claude/rules/multi-session.md §7.1`).
+
+---
+
+## 1. 풀스택 로컬 기동 순서 (FE 개발자 표준)
 
 ```bash
-# 루트에서 한 번만
+# 1) 의존성 + workspace 패키지 빌드 (루트에서)
 pnpm install
-```
+pnpm --filter @celebbase/shared-types build
+pnpm --filter @celebbase/design-tokens build
 
-### 2. 환경 변수 셋업
+# 2) BE 스택 (postgres/redis/localstack + user/content/commerce/meal-plan/analytics)
+docker compose up -d
+pnpm db:seed        # 237 ingredients + 10 celebrities + 180 recipes + 50 lifestyle claims
 
-```bash
+# 3) BFF (Next.js) — 모바일의 게이트웨이. 포트 3100 사용 (3000 은 다른 dev server 와 충돌 가능)
+pnpm --filter web dev -- --port 3100
+
+# 4) 모바일 dev build (별 터미널, apps/mobile 에서)
 cd apps/mobile
-cp .env.example .env
-# .env 파일 열어서 BFF URL / Cognito client ID 등 채우기
+cp .env.example .env   # 값 채우기 — §2 참조
+npx expo run:ios       # 첫 빌드 ~10분 (Pods), 이후 JS 변경은 hot reload
 ```
 
-### 3. 개발 서버 시작
+> **`pnpm start` (Expo Go) 는 인증/IAP 검증 불가** — `@aws-amplify/react-native` (Cognito SRP) 와
+> `react-native-purchases` (RevenueCat) 는 native module 이라 Expo Go 에서 동적 로드 실패한다.
+> UI 미리보기만 필요하면 `EXPO_PUBLIC_DEV_SKIP_AUTH=1` 로 cold-start 화면 확인 가능.
+> 실제 로그인/결제 흐름은 **dev build (`npx expo run:ios`)** 필수 (`.claude/rules/multi-session.md §7.1`).
 
-```bash
-# apps/mobile 디렉토리에서
-pnpm start
+---
 
-# 또는 모노레포 루트에서
-pnpm --filter mobile start
+## 2. 환경 변수 (`apps/mobile/.env`)
+
+`EXPO_PUBLIC_*` 접두사는 빌드 시 번들에 inline 된다.
+
+| 변수 | 값 / 출처 |
+|------|----------|
+| `EXPO_PUBLIC_BFF_BASE_URL` | 로컬: `http://<Mac LAN IP>:3100` (시뮬레이터/실기기는 `localhost` 미도달 — `ipconfig getifaddr en0`). staging: `https://<staging-domain>` |
+| `EXPO_PUBLIC_USER_SERVICE_URL` | `/auth/refresh` 직접 호출용 (BFF 우회 예외). 로컬: `http://<Mac LAN IP>:3001` |
+| `EXPO_PUBLIC_COGNITO_USER_POOL_ID` | staging pool: `us-west-2_GvpQnHLEj` (Terraform `infra/cognito` output) |
+| `EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID` | staging mobile client: `7m3snohc7f23nsk15vugh7i4ve` (secret 없음 / SRP-only) |
+| `EXPO_PUBLIC_AWS_REGION` | `us-west-2` |
+| `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY` | RevenueCat 대시보드 (G1 launch track 에서 발급 — 미발급 시 Paywall dev preview) |
+
+---
+
+## 3. 인증 흐름 (구현됨)
+
+```
+SignupScreen / LoginScreen
+   │ Amplify SRP (Cognito)  → id_token
+   ▼
+POST /api/auth/mobile/{signup,login}  (BFF, Bearer 없음)  → { access_token, refresh_token }
+   ▼ expo-secure-store 저장 (celebbase.auth.{access,refresh}_token)
+authedFetch → Authorization: Bearer <access>  → 401 시 sharedRefresh()
+   │  POST /auth/refresh  (user-service 직접 — BFF cookie-shaped 예외)
+   ▼  5종 에러코드 분기: REFRESH_EXPIRED_OR_MISSING / TOKEN_REUSE_DETECTED / REFRESH_REVOKED / MALFORMED / ACCOUNT_DELETED
 ```
 
-Expo Dev Server 가 `http://localhost:8081` 에서 시작되고 QR 코드 출력.
-
-### 4. 폰에서 보기 — 3가지 방법
-
-| 방법 | 절차 |
-|------|------|
-| **A. Expo Go (가장 빠름)** | App Store / Play Store 에서 `Expo Go` 설치 → 같은 Wi-Fi 에서 QR 스캔 → 앱 즉시 실행 |
-| **B. iOS 시뮬레이터 (Mac 전용)** | Xcode 설치 후 `pnpm ios` |
-| **C. Android 에뮬레이터** | Android Studio + AVD 셋업 후 `pnpm android` |
-| **D. 웹 브라우저** | `pnpm web` — react-native-web 으로 빠른 미리보기 |
-
-> **localhost 가 안 보이면**: 시뮬레이터/Expo Go 가 macOS 의 localhost 에 접근 못 할 수 있음. `.env` 의 `EXPO_PUBLIC_BFF_BASE_URL` 을 macOS 의 LAN IP (예: `http://192.168.1.50:3000`) 로 변경.
+cold start: `bootstrapSession()` 가 SecureStore 토큰 존재만 확인 → 첫 API 호출이 refresh/logout 머신 트리거.
 
 ---
 
-## 현재 상태 (IMPL-MOBILE-WORKSPACE-001 시점)
+## 4. 현재 화면 (RootNavigator)
 
-- **화면**: Expo default `App.tsx` ("Open up App.tsx to start working on your app!")
-- **monorepo 통합**: `metro.config.js` 가 workspace root + per-package `node_modules` 를 둘 다 검색
-- **ESLint 가드**: `eslint.config.mjs` 의 `apps/mobile/**` override 가 `@celebbase/service-core` / `@celebbase/ui-kit` import 를 차단 (CHORE-MOBILE-001 / PR #47)
-- **CI**: `.github/workflows/mobile-ci.yml` — push/PR 시 자동 lint/typecheck/test
-- **scripts** (`package.json`):
-  - `start` / `ios` / `android` / `web` — Expo dev server
-  - `typecheck` — `tsc --noEmit`
-  - `lint` — `eslint "**/*.{ts,tsx}" --max-warnings=0`
-  - `test` — placeholder (동료 M0 에서 jest 셋업)
+| 탭/스택 | 화면 | 상태 |
+|---------|------|------|
+| Auth | Login, Signup | 구현 완료 |
+| Celebrities | CelebritiesGrid, CelebrityDetail, ClaimDetail | Grid 는 mock-data (실 `GET /api/celebrities` 미연결 — TODO) |
+| Plan | MealPlan | day[0] 만 표시 (day-picker TODO) |
+| News | NewsFeed | 100% mock (백엔드 endpoint 없음 — deferred) |
+| SettingsTab | Settings | tier 표시 OK, email/계정삭제 와이어링 TODO |
+| modal | Onboarding (6-step), Paywall | 구현 완료 (persona slug 저장 + RevenueCat) |
 
----
-
-## Plan v5 §M0~M5 흐름 (동료 Dohyun 작업 영역)
-
-| 단계 | 내용 |
-|------|------|
-| M0 Scaffold | EAS 설정, Metro `resolveRequest` throw 추가, jest 셋업, design-tokens RN 익스포트 연동 |
-| M0.5 | Apple App Privacy / Google Play Data Safety 매핑 |
-| M1 | 인증: Amplify SRP → BFF `/api/auth/mobile/{signup,login}` → SecureStore 토큰 저장 |
-| M2 | API client + refresh 상태머신 (5종 enum: `REFRESH_EXPIRED_OR_MISSING` / `TOKEN_REUSE_DETECTED` / `REFRESH_REVOKED` / `MALFORMED` / `ACCOUNT_DELETED`) |
-| M3 | Claim feed (셀러브리티 정보 화면) |
-| M4 | Onboarding + bio-profile (PHI 입력) |
-| M5 | RevenueCat IAP + Inspired plan, BFF `/api/subscriptions/sync` 호출 |
+상세 와이어링 TODO + 백엔드 deferred 목록 → `docs/FE-WIRING-TODO.md`.
 
 ---
 
-## 주의사항
+## 5. 스크립트
 
-- **service-core / ui-kit import 금지**: ESLint + Metro (M0 추가) 가 차단. RN 컴포넌트는 `apps/mobile/src/components/` 에 RN primitive 로 직접 구현. design system 은 `packages/design-tokens/` 의 RN 익스포트만 사용.
-- **EAS 비용 정책**: 빌드 횟수 / 시뮬레이터 외 실기기 빌드 — 동료 M0 진입 시 결정.
-- **multi-session.md §1**: 본 디렉토리 owner = Dohyun. JUNWON 은 scaffold 외 변경 시 Dohyun 합의 필수.
+- `pnpm --filter mobile typecheck` — `tsc --noEmit`
+- `pnpm --filter mobile lint` — `eslint --max-warnings=0`
+- `pnpm --filter mobile test` — jest
+- `npx expo run:ios` / `run:android` — dev build
+- CI: `.github/workflows/mobile-ci.yml` (push/PR lint+typecheck+test)
 
----
+## 6. 주의
+
+- **service-core / ui-kit import 금지** — ESLint + Metro 가 차단. RN primitive (`View`/`Text`/`Pressable`) + `@celebbase/design-tokens` RN 익스포트만.
+- shared-types 변경 시 `pnpm --filter @celebbase/shared-types build` 후 mobile typecheck.
 
 ## 참고
-
-- `docs/MOBILE-ROADMAP.md` — Plan v5 north-star
-- `docs/SPEC-PIVOT-PLAN.md` — IMPL-MOBILE-* task ↔ spec.md 매핑
-- `spec.md §11` — Project Structure / Mobile auth ingress / BFF subscription sync
+- `docs/FE-WIRING-TODO.md` — FE 와이어링 TODO + 백엔드 deferred 레지스트리 (FE-readiness audit 2026-05-20)
+- `docs/MOBILE-ROADMAP.md` — track 인덱스
+- `docs/PROD-DEPLOY-ROADMAP.md` — 4-Gate 출시 트랙
+- `.claude/rules/multi-session.md §7.1` — dev build vs Expo Go

@@ -4,6 +4,33 @@
 > CelebBase mobile-first B2C wellness 앱의 prod 출시 트랙 정형화.
 > 사용자 의도: **5주 aggressive launch + 사용자 < 1000명까지 over-engineering 회피** (Y Combinator "do things that don't scale").
 
+## Progress Log — 2026-05-20 (FE-readiness + hardening session)
+
+> v1 작성(2026-05-14) 이후 누적 진전. 본 로그는 Gate 항목 대비 완료/검증 상태만 갱신 (calendar estimate 는 그대로).
+
+**G3 (Prod Infra) 진전**:
+- ✅ `CHORE-STAGING-BE-DEPLOY-001` — 4 BE (content/commerce/meal-plan/analytics) staging 배포 완료 (현재 5 BE 전부 staging healthy)
+- ✅ `CHORE-STAGING-MIGRATION-PIPELINE-001` — CD migration auto-apply + sanity defaults
+- ✅ staging `.env.staging` vestigial Cognito/JWKS 라인 cleanup (CHORE-MINOR-FINDINGS-CLEANUP-001)
+
+**인증 트랙 (G1/G3 기반) 진전**:
+- ✅ RS256 internal token 서명 cutover (Phase 2b, CHORE-AUTH-ASYMMETRIC-SIGNING-001) — staging JWKS 서빙 확인
+- ✅ staging `AUTH_PROVIDER=dev→cognito` flip + bypass 차단 확인 (CHORE-AUTH-MIGRATION-STATUS-001). residual: real SRP 로그인 positive 신호는 FE 의존
+- ⏳ Phase 3 (HS256 verify 제거) — 4조건 게이트 defer (로컬 RS256 + FE SRP 로그인)
+
+**결제/구독 (G1 기반) 진전**:
+- ✅ tier-sync wire 경로 라이브 검증 (RevenueCat→commerce→user-service updateTier, CHORE-TIER-SYNC-WIRE-VERIFY-001) — 직접 DB UPDATE 우회 해소
+- ✅ BFF subscription 502 + sync 응답 스키마 shared-types 일원화
+
+**FE-readiness (G4 beta 준비 기반)**:
+- ✅ 모바일이 호출하는 전 BFF 엔드포인트 라이브 audit + 잠복 버그 fix (daily-logs 500, bio-profile 502, **PATCH /users/me 500** off-by-one, BFF validation details)
+- ✅ `DELETE /api/users/me` BFF 추가 (Apple 5.1.1), claims seed (50 claims), bio-profile 전체 온보딩 payload 검증
+- 📋 FE 와이어링 TODO + 백엔드 deferred 레지스트리 → `docs/FE-WIRING-TODO.md`
+
+**다음 (출시 트랙 잔여)**: G1 (Apple Dev/Google Play/RevenueCat live + IAP) 는 사용자 manual 시작 대기 · G2 (PHI 제거/Privacy/App Privacy) · G3 (prod EC2 + Cognito prod pool + backup) · G4 (EAS prod build + Store). FE UI 와이어링은 `docs/FE-WIRING-TODO.md §B` 참조.
+
+---
+
 ## Context
 
 **왜 이 문서가 필요한가**:
