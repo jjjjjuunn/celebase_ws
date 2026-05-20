@@ -18,8 +18,11 @@ const start = async (): Promise<void> => {
   const pool = createPool(env.DATABASE_URL);
   const app = await createApp({ serviceName: 'content-service' });
 
-  // /admin/* 는 user JWT 검증에서 제외 (admin 토큰 가드가 별도로 보호)
-  registerJwtAuth(app, { publicPaths: ['/admin/*'] });
+  // /admin/* 는 user JWT 검증에서 제외 (admin 토큰 가드가 별도로 보호).
+  // /celebrities* 는 public catalog 읽기 — BFF `/api/celebrities*` 가
+  // createPublicRoute (토큰 미forward) 로 호출하고 spec §S2 가 "public route"
+  // 로 명시. JWKS 모드 (production) 에서만 표출되던 401 계약 불일치 해소.
+  registerJwtAuth(app, { publicPaths: ['/admin/*', '/celebrities', '/celebrities/*'] });
   registerAdminAuth(app);
 
   await app.register(celebrityRoutes, { pool });
