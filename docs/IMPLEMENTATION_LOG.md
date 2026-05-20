@@ -6461,7 +6461,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-ENV-VESTIGIAL-COGNITO-JWKS-001
-commit_sha: PENDING
+commit_sha: f4a3690
 files_changed:
   - services/commerce-service/src/env.ts
   - services/analytics-service/src/env.ts
