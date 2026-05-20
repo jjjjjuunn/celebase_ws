@@ -6701,7 +6701,7 @@ verified_by: claude-opus-4-7 (typecheck shared/web/mobile + web jest 178 + ÎùºÏù
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: DOCS-FE-READINESS-DEPLOY-SYNC-001
-commit_sha: PENDING
+commit_sha: 431711a
 files_changed:
   - docs/FE-WIRING-TODO.md
   - apps/mobile/README.md
