@@ -22,7 +22,10 @@ const start = async (): Promise<void> => {
   // /celebrities* 는 public catalog 읽기 — BFF `/api/celebrities*` 가
   // createPublicRoute (토큰 미forward) 로 호출하고 spec §S2 가 "public route"
   // 로 명시. JWKS 모드 (production) 에서만 표출되던 401 계약 불일치 해소.
-  registerJwtAuth(app, { publicPaths: ['/admin/*', '/celebrities', '/celebrities/*'] });
+  registerJwtAuth(app, {
+    mode: 'internal',
+    publicPaths: ['/admin/*', '/celebrities', '/celebrities/*'],
+  });
   registerAdminAuth(app);
 
   await app.register(celebrityRoutes, { pool });

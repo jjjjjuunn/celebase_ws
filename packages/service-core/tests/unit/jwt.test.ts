@@ -7,13 +7,14 @@
  */
 import { jest, describe, it, expect, beforeAll, beforeEach, afterAll } from '@jest/globals';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { SignJWT } from 'jose';
 
 type HookFn = (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 // Dynamic import to work with ESM
 let registerJwtAuth: (
   app: FastifyInstance,
-  opts?: { publicPaths?: readonly string[] },
+  opts?: { publicPaths?: readonly string[]; mode?: 'internal' | 'jwks' | 'stub' },
 ) => void;
 
 beforeAll(async () => {
@@ -212,5 +213,141 @@ describe('registerJwtAuth — JWKS mode', () => {
     await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(
       'Missing or malformed Authorization header',
     );
+  });
+});
+
+// CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001 — internal HS256 mode. Verifies the
+// internal access token issued by user-service (mirrors meal-plan-engine's
+// PyJWT contract: HS256, require sub/exp/token_use, token_use === 'access').
+describe('registerJwtAuth — internal HS256 mode', () => {
+  const originalEnv = process.env;
+  const SECRET = 'test-internal-secret-32-bytes-minimum-xx';
+  const secretBytes = new TextEncoder().encode(SECRET);
+
+  async function makeInternalToken(opts: {
+    sub?: string;
+    tokenUse?: string;
+    expSecondsFromNow?: number;
+  }): Promise<string> {
+    const now = Math.floor(Date.now() / 1000);
+    const claims: Record<string, unknown> = {};
+    if (opts.tokenUse !== undefined) claims['token_use'] = opts.tokenUse;
+    const jwt = new SignJWT(claims)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt(now)
+      .setIssuer('celebbase-user-service')
+      .setExpirationTime(now + (opts.expSecondsFromNow ?? 900));
+    if (opts.sub !== undefined) jwt.setSubject(opts.sub);
+    return jwt.sign(secretBytes);
+  }
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    process.env['INTERNAL_JWT_SECRET'] = SECRET;
+    delete process.env['JWKS_URI'];
+    delete process.env['JWT_ISSUER'];
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  it('accepts a valid internal access token and sets userId to sub', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeInternalToken({ sub: 'user-123', tokenUse: 'access' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await getFirstHook(app)(request, mockReply);
+
+    expect((request as FastifyRequest & { userId: string }).userId).toBe('user-123');
+  });
+
+  it('rejects a refresh token (token_use !== access)', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeInternalToken({ sub: 'user-123', tokenUse: 'refresh' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(/token_use/);
+  });
+
+  it('rejects an expired token', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeInternalToken({
+      sub: 'user-123',
+      tokenUse: 'access',
+      expSecondsFromNow: -60,
+    });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
+  });
+
+  it('rejects a token missing required claims (no token_use)', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const token = await makeInternalToken({ sub: 'user-123' });
+    const request = createMockRequest({ headers: { authorization: `Bearer ${token}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
+  });
+
+  it('rejects a token signed with the wrong secret', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const wrong = await new SignJWT({ token_use: 'access' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setSubject('user-123')
+      .setExpirationTime('15m')
+      .sign(new TextEncoder().encode('a-different-secret-value-padding-xx'));
+    const request = createMockRequest({ headers: { authorization: `Bearer ${wrong}` } });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
+  });
+
+  it('throws when no Authorization header', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    const request = createMockRequest({ headers: {} });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(
+      'Missing or malformed Authorization header',
+    );
+  });
+
+  it('skips verification for public paths', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal', publicPaths: ['/celebrities', '/celebrities/*'] });
+
+    for (const url of ['/health', '/celebrities', '/celebrities/ariana-grande']) {
+      const request = createMockRequest({ url, headers: {} });
+      await getFirstHook(app)(request, mockReply);
+    }
+  });
+
+  it('falls back to stub in non-production when INTERNAL_JWT_SECRET is unset', () => {
+    delete process.env['INTERNAL_JWT_SECRET'];
+    process.env['NODE_ENV'] = 'test';
+
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    expect(app.log.warn).toHaveBeenCalledWith(expect.stringContaining('STUB mode'));
+  });
+
+  it('exits in production when INTERNAL_JWT_SECRET is unset', () => {
+    delete process.env['INTERNAL_JWT_SECRET'];
+    process.env['NODE_ENV'] = 'production';
+
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    const app = createMockApp();
+    registerJwtAuth(app, { mode: 'internal' });
+
+    expect(app.log.fatal).toHaveBeenCalledWith(expect.stringContaining('INTERNAL_JWT_SECRET'));
+    expect(mockExit).toHaveBeenCalledWith(1);
+    mockExit.mockRestore();
   });
 });

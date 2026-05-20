@@ -2255,6 +2255,18 @@ User selects celebrity diet
 5. **Timing oracle 차단**: cookie 분기·bearer 분기·검증 성공/실패 모든 exit 가 `padToMinLatency(handlerStart)` (100ms anchor) 를 통과한다. 공격자가 응답 시간 차이로 cookie/bearer 존재·검증 결과를 구분하는 oracle 차단.
 6. **`/auth/refresh` 예외**: BFF 의 `/api/auth/refresh` 는 cookie-shaped(JSON 토큰 미반환) 이므로 mobile 은 user-service `/auth/refresh` 를 BFF 우회 직접 호출한다. 모든 다른 mobile path 는 BFF 경유 (path confusion 회피).
 
+#### Cross-service token verification — internal HS256 *(CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001)*
+
+user-service 는 dev/cognito provider 무관하게 **internal HS256 access token** 을 발급한다 (`issueInternalTokens`; Cognito id_token 은 signup/login 시 신원확인용으로만 verify, 이후 토큰은 user-service 가 자체 서명). claims: `{ sub: <internal user.id>, email, cognito_sub, token_use: 'access'|'refresh', iss: $INTERNAL_JWT_ISSUER, exp }`, alg HS256, secret `$INTERNAL_JWT_SECRET`. BFF (`verifyAccessToken`) 가 이 토큰을 검증하고 `raw_token` 을 downstream 으로 그대로 forward한다.
+
+따라서 BFF 가 mobile 토큰을 forward하는 **모든 BE 서비스는 internal HS256 토큰을 검증**해야 한다 — Cognito JWKS(RS256) 가 아니다. 단일 출처:
+
+- **검증 계약** (meal-plan-engine PyJWT 와 TS service-core 가 동일): alg `HS256`, require `sub`/`exp`/`token_use`, `token_use === 'access'`, `sub` → `userId`. issuer 검증은 현재 미적용 — `INTERNAL_JWT_ISSUER` 기본값이 `auth.service.ts`(`celebbase-internal`) 와 `env.ts`(`celebbase-user-service`) 에서 갈리는 latent mismatch 가 있어 secret 을 신뢰 경계로 둔다 (issuer binding 은 default 정합 후속 작업).
+- **TS 서비스 적용**: `service-core/registerJwtAuth(app, { mode: 'internal' })` 명시 opt-in. user-service / content-service / commerce-service / analytics-service 모두 `mode: 'internal'`. env 존재로 암묵 전환하지 않는다 (공유 `.env` 가 서비스 검증 전략을 silent flip 하는 사고 방지).
+- **Python 서비스**: meal-plan-engine `_verify_jwt_payload` (PyJWT, 동일 계약).
+- **JWKS(RS256) 모드**는 web-first 시대 잔재로 deprecated — mobile 토큰은 RS256 이 아니므로 user-facing 서비스에서 사용 금지. (Cognito 토큰 직접 검증이 필요한 미래 요구가 생기면 별도 재도입.)
+- **보안 한계**: HS256 대칭키는 전 서비스 공유 — 신뢰된 internal mesh 전제. 비대칭 서명(user-service private key + 서비스 public key/JWKS) 전환은 별도 hardening chore. stub mode(검증 없이 sub 추출)는 dev/test 한정, production 진입 시 `process.exit`.
+
 #### user-service `/auth/*` Rate Limits *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-002b)*
 
 `services/user-service/src/routes/auth.routes.ts` 의 per-route rate-limit 한도. mobile-pivot baseline — 모바일 SRP 흐름의 짧은 burst 와 background refresh 빈도를 흡수하면서 brute-force / abuse 는 차단한다. 모두 `@fastify/rate-limit` v10 사용, `NODE_ENV=test` 에서는 `allowList` 콜백으로 bypass.

@@ -6285,3 +6285,32 @@ verified_by: claude-opus-4-7
 - **Review tier**: L3 (인증 boundary 변경 — public/protected 경계). adversarial: `/recipes/*` 노출 위험 → `/recipes/:id/personalized` 는 별도 prefix 아니므로 `/celebrities/*` 만 추가 (recipes 전체 public 화는 후속). caddy/SG 는 무관 (BFF 경유만).
 ### 미완료: PR merge → CD build → 수동 deploy (CD silent-exit bug, CHORE-CD-DEPLOY-SILENT-EXIT-001) → staging `/api/celebrities` 200 검증. 후속: 전체 catalog (recipes/claims) public 화 + isPublicPath prefix 예외 처리, L6 user-service prod mode, L7 caddy public 도달.
 ### 연관 파일: services/content-service/src/index.ts, packages/service-core/src/middleware/jwt.ts, apps/web/src/app/api/celebrities/route.ts, apps/web/src/app/api/_lib/bff-fetch.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/middleware/jwt.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+  - services/user-service/src/index.ts
+  - services/content-service/src/index.ts
+  - services/commerce-service/src/index.ts
+  - services/analytics-service/src/index.ts
+  - spec.md
+verified_by: claude-opus-4-7
+---
+### 완료: cross-service 토큰 검증을 internal HS256 로 통일 (Model A 완성)
+- **문제**: user-service 는 dev/cognito 무관 internal HS256 access token 발급 (`issueInternalTokens`), BFF (`verifyAccessToken`) 가 이를 검증·forward. meal-plan-engine 은 PyJWT HS256 로 검증. 그러나 content/commerce/analytics 는 service-core `registerJwtAuth` 의 JWKS(RS256) mode → mobile internal 토큰을 "Unsupported alg" 로 거부. cross-service 토큰 검증 불일치 = mobile 이 daily-logs(analytics)/subscriptions(commerce) 접근 시 401. (CHORE-STAGING-BE-DEPLOY-001 검증 중 L10-b 로 발견.)
+- **결정 (Model A)**: 시스템이 이미 internal-token 중심으로 투자됨 (issueInternalTokens 양 provider 호출 + refresh rotation/jti blacklist IMPL-010-f + meal-plan-engine HS256 + mobile expo-secure-store + BFF verifyAccessToken). content/commerce/analytics 의 JWKS 는 web-first 잔재. → 전 user-facing 서비스가 internal HS256 검증으로 통일.
+- **구현**:
+  - `service-core/registerJwtAuth` 에 명시적 `mode: 'internal'|'jwks'|'stub'` 추가. internal = HS256(`INTERNAL_JWT_SECRET`) 검증, require sub/exp/token_use, `token_use==='access'`, sub→userId. **env 존재 기반 암묵 전환 금지** (공유 .env 가 서비스 전략 silent flip 방지, advisor 권고). issuer 미검증 (INTERNAL_JWT_ISSUER default mismatch landmine — meal-plan-engine 과 동일하게 secret 을 신뢰 경계로). 기존 jwks/stub mode 동작 보존.
+  - user/content/commerce/analytics index.ts `registerJwtAuth(app, { mode: 'internal', ... })` opt-in.
+  - jwt.test.ts internal mode 테스트 9건 (valid round-trip, refresh 거부, expired, missing claims, wrong secret, no header, public path bypass, no-secret stub fallback, prod exit).
+- **검증**: service-core 38 tests pass (coverage 81.98%), user 154 / content 89 / commerce 83 / analytics 19 tests pass (회귀 0). typecheck/lint 5 packages clean.
+- **deploy 부수효과**: staging 의 user-service `JWKS_URI: ""` override 임시방편 제거 가능 (mode:'internal' 이 JWKS_URI 무시) — finalize 단계에서 정리.
+- **Review tier**: L3 (인증 검증 boundary 전 서비스 변경). adversarial: (1) silent prod 전환 위험 → 명시적 mode opt-in 으로 차단, (2) issuer default mismatch → 미검증으로 우회 + 후속 명시, (3) HS256 대칭키 공유 → internal mesh 전제 + 비대칭 전환은 별도 hardening.
+- **spec sync**: spec.md §9.3 "Cross-service token verification — internal HS256" subsection 추가.
+### 미완료: PR merge → CD build → 수동 recreate 4 svc (CD silent-exit) → JWKS_URI override 제거 → daily-logs/subscriptions internal token end-to-end 검증. 후속: CHORE-AUTH-ISSUER-DEFAULT-ALIGN-001 (INTERNAL_JWT_ISSUER default 정합 + issuer binding), CHORE-AUTH-ASYMMETRIC-SIGNING-001 (HS256→비대칭 hardening), commerce/analytics env schema 의 vestigial JWKS_URI 요구 제거.
+### 연관 파일: packages/service-core/src/middleware/jwt.ts, services/{user,content,commerce,analytics}-service/src/index.ts, services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts

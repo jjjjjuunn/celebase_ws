@@ -31,6 +31,10 @@ const start = async (): Promise<void> => {
   // before the plugin-scope rate-limit hook and verify junk tokens on every
   // request without incrementing the bucket.
   registerJwtAuth(app, {
+    // Internal HS256 token (issued by this service) is what the BFF forwards.
+    // CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001 — verify it directly instead of
+    // JWKS/stub. Replaces the staging compose `JWKS_URI: ""` stub workaround.
+    mode: 'internal',
     publicPaths: [
       '/auth/signup',
       '/auth/login',

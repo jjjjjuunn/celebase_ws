@@ -11,7 +11,7 @@ const start = async (): Promise<void> => {
   const pool = createPool(env.DATABASE_URL);
   const app = await createApp({ serviceName: 'analytics-service' });
 
-  registerJwtAuth(app, { publicPaths: [...PUBLIC_PATHS] });
+  registerJwtAuth(app, { mode: 'internal', publicPaths: [...PUBLIC_PATHS] });
 
   await app.register(dailyLogRoutes, { pool });
   await app.register(reportsRoutes, { pool });
