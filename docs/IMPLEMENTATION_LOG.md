@@ -6422,7 +6422,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-CD-DEPLOY-SILENT-EXIT-001
-commit_sha: PENDING
+commit_sha: c2c92b6
 files_changed:
   - .github/workflows/cd.yml
 verified_by: claude-opus-4-7
