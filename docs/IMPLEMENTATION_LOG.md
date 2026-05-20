@@ -6417,3 +6417,21 @@ verified_by: claude-opus-4-7
 - **Review tier**: L3. adversarial: alg-confusion → 키 분리; refresh 토큰을 user-service 가 자기 public key 로 검증(self-contained, JWKS round-trip 불필요).
 ### 미완료: Phase 2b — `INTERNAL_JWT_PRIVATE_KEY`+`INTERNAL_JWKS_URI` staging 설정 + user-service 서명 RS256(kid) 전환 (배포 순서: 전 verifier 먼저, signer 마지막). **선행 필수**: CHORE-CD-DEPLOY-SILENT-EXIT-001 (순차 배포 안전성). 그 후 Phase 3 (HS256 제거) + #4.
 ### 연관 파일: services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/lib/internal-signing-key.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-CD-DEPLOY-SILENT-EXIT-001
+commit_sha: PENDING
+files_changed:
+  - .github/workflows/cd.yml
+verified_by: claude-opus-4-7
+---
+### 완료: CD deploy step silent-exit 수정 (CHORE-CD-DEPLOY-SILENT-EXIT-001)
+- **증상**: CD `Deploy via SSH` step 이 migration 적용 직후 종료 — compose pull/up/healthcheck 미실행인데 step conclusion=success. 이번 세션 전 배포(#111, #115, #119 등) 마다 staging 컨테이너가 stale image 로 남아 Claude 가 매번 수동 `docker compose pull/up` 으로 복구해야 했다. (CHORE-BFF-SUBSCRIPTION-SCHEMA-001 의 stale web 이미지, L8 등 다수 증상의 공통 root cause.)
+- **근본 원인**: deploy step 은 `ssh ... bash -s <<'ENDSSH'` 로 스크립트를 **stdin** 으로 원격 셸에 전달한다. heredoc 중간의 `docker compose run --rm db-migrate` 가 `-T`/stdin 리다이렉트 없이 실행되면 db-migrate 컨테이너가 stdin 에 attach 되어 **heredoc 의 나머지 줄(sanity check + compose pull/up + healthcheck)을 컨테이너 stdin 으로 소비**한다. 셸은 즉시 EOF → exit 0 → "성공" 처럼 보이나 recreate 는 skip.
+- **수정**: `docker compose run --rm -T db-migrate </dev/null` — `-T` 로 TTY 비할당 + `</dev/null` 로 stdin 격리. heredoc 나머지가 셸 명령으로 정상 실행됨.
+- **영향**: 다음 배포부터 deploy step 이 migration → sanity → compose pull/up → healthcheck 까지 완주. 수동 recreate 불필요. **Phase 2b(asymmetric cutover)의 순차 멀티서비스 배포 안전성 선행조건 충족.**
+- **Review tier**: L1 (CI script 1-line fix). 검증: heredoc stdin 소비 메커니즘 분석 + `docker compose run` 단독 발생 확인(pull/up 은 stdin 미attach). 실제 검증은 다음 CD 실행에서.
+### 미완료: 다음 CD 실행 시 deploy step 이 healthcheck 까지 완주하는지 확인 (수동 recreate 불필요 검증).
+### 연관 파일: .github/workflows/cd.yml
