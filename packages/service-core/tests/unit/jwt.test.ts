@@ -11,7 +11,10 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 type HookFn = (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 // Dynamic import to work with ESM
-let registerJwtAuth: (app: FastifyInstance) => void;
+let registerJwtAuth: (
+  app: FastifyInstance,
+  opts?: { publicPaths?: readonly string[] },
+) => void;
 
 beforeAll(async () => {
   const mod = await import('../../src/middleware/jwt.js');
@@ -171,5 +174,43 @@ describe('registerJwtAuth — JWKS mode', () => {
 
     // jose will throw because the token is invalid
     await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow();
+  });
+
+  // Regression: content-service catalog (GET /celebrities*) is public per
+  // spec §S2. Before the publicPaths patch, JWKS mode forced 401 on these
+  // (BFF calls them token-less via createPublicRoute) — staging-only because
+  // tests run in stub mode. These assertions lock the wildcard contract.
+  it('skips verification for exact public path /celebrities', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { publicPaths: ['/celebrities', '/celebrities/*'] });
+
+    const request = createMockRequest({ url: '/celebrities', headers: {} });
+    // No Authorization header — must NOT throw because path is public.
+    await getFirstHook(app)(request, mockReply);
+  });
+
+  it('skips verification for wildcard public path /celebrities/:slug', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { publicPaths: ['/celebrities', '/celebrities/*'] });
+
+    for (const url of [
+      '/celebrities/ariana-grande',
+      '/celebrities/ariana-grande/diets',
+      '/celebrities/by-id/abc-123',
+      '/celebrities?cursor=x',
+    ]) {
+      const request = createMockRequest({ url, headers: {} });
+      await getFirstHook(app)(request, mockReply);
+    }
+  });
+
+  it('still enforces auth on non-public paths when /celebrities/* is public', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { publicPaths: ['/celebrities', '/celebrities/*'] });
+
+    const request = createMockRequest({ url: '/recipes/abc/personalized', headers: {} });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(
+      'Missing or malformed Authorization header',
+    );
   });
 });

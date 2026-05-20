@@ -6263,3 +6263,25 @@ verified_by: claude-opus-4-7
 - **Review tier**: L2 (CD workflow + 4 BE 영향, 단순 user-service 패턴 복제 + 1 source bug fix)
 ### 미완료: 사용자 prerequisites 완료 → PR push + merge → CD watch → smoke test. 후속: CHORE-STAGING-BE-MONITORING-001, CHORE-DEV-STAGING-SERVICE-NAME-HARMONIZE, CHORE-PG-UUIDV7-EXTENSION-001.
 ### 연관 파일: .github/workflows/cd.yml, services/commerce-service/src/env.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: FIX-STAGING-CATALOG-PUBLIC-001
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/index.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+verified_by: claude-opus-4-7
+---
+### 완료: content-service catalog GET 을 public 으로 — FE "Couldn't load celebrities" (FIX-STAGING-CLAIMS-LOAD-001) 근본 해소
+- **문제 (staging-only, 테스트 미검출)**: BFF `/api/celebrities*` 는 `createPublicRoute` 로 토큰 미forward 호출 (spec §S2 line 1915 "public route"), 그러나 content-service 가 `registerJwtAuth(publicPaths: ['/admin/*'])` 로 catalog GET 전체에 JWT 강제 → **항상 401**. integration test 는 content-service 를 STUB mode (JWKS_URI 미설정) 로 돌려 우회 → JWKS 모드 (staging/production) 에서만 표출. 팀 보고 "504 UPSTREAM_TIMEOUT" 은 content-service 미배포 (CHORE-STAGING-BE-DEPLOY-001 로 해소) 였고, 배포 후엔 본 401 이 동일 UI 증상으로 잔존.
+- **근본 원인 chain** (CHORE-STAGING-BE-DEPLOY-001 검증 중 발견): L2 미배포(504) → L4 DB empty(seed) → **L5 catalog auth 계약 불일치(401, 본 fix)**.
+- **수정** (최소 범위, 사용자 confirm):
+  - `services/content-service/src/index.ts`: `registerJwtAuth(app, { publicPaths: ['/admin/*', '/celebrities', '/celebrities/*'] })`. `/celebrities` (list) + `/celebrities/*` (slug detail/diets/claims) public. `/recipes/:id/personalized` + `/admin/*` 는 protected 유지.
+  - `packages/service-core/tests/unit/jwt.test.ts`: JWKS 모드에서 wildcard publicPaths 회귀 테스트 3건 추가 (exact `/celebrities`, wildcard `/celebrities/:slug` × 4 variants, 비-public path 는 여전히 401).
+- **근거**: spec.md §S2 (line 1899 "M3 authedFetch 재사용", 1915 "public route", 2227 "public claim 엔드포인트"). `.claude/rules/domain/content.md` Genre-Agnostic Selection — 셀럽 catalog 는 공개 읽기.
+- **검증**: service-core 29 tests pass (신규 3건 포함), content-service + service-core typecheck/lint clean. staging end-to-end 검증은 배포 후 별도.
+- **Review tier**: L3 (인증 boundary 변경 — public/protected 경계). adversarial: `/recipes/*` 노출 위험 → `/recipes/:id/personalized` 는 별도 prefix 아니므로 `/celebrities/*` 만 추가 (recipes 전체 public 화는 후속). caddy/SG 는 무관 (BFF 경유만).
+### 미완료: PR merge → CD build → 수동 deploy (CD silent-exit bug, CHORE-CD-DEPLOY-SILENT-EXIT-001) → staging `/api/celebrities` 200 검증. 후속: 전체 catalog (recipes/claims) public 화 + isPublicPath prefix 예외 처리, L6 user-service prod mode, L7 caddy public 도달.
+### 연관 파일: services/content-service/src/index.ts, packages/service-core/src/middleware/jwt.ts, apps/web/src/app/api/celebrities/route.ts, apps/web/src/app/api/_lib/bff-fetch.ts
