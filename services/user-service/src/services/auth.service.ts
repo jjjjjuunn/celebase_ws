@@ -98,20 +98,34 @@ export async function issueInternalTokens(
     cognito_sub: subject.cognito_sub,
   };
 
-  const accessToken = await new SignJWT({ ...baseClaims, token_use: 'access' })
-    .setProtectedHeader({ alg: 'HS256' })
+  // Sign RS256 once a stable signing key is provisioned (INTERNAL_JWT_PRIVATE_KEY),
+  // otherwise HS256 (local dev / CI, where no key is configured). Verifiers
+  // dual-verify both algorithms by inspecting the JWT header `alg`, so this flip
+  // is transparent to them (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2b). The
+  // signal mirrors internal-signing-key.ts's imported-vs-ephemeral branch.
+  const privateKeyPem = process.env['INTERNAL_JWT_PRIVATE_KEY'];
+  const useRs256 = privateKeyPem !== undefined && privateKeyPem !== '';
+
+  const accessBuilder = new SignJWT({ ...baseClaims, token_use: 'access' })
     .setIssuedAt(now)
     .setExpirationTime('15m')
-    .setIssuer(INTERNAL_ISSUER)
-    .sign(INTERNAL_SECRET);
-
-  const refreshToken = await new SignJWT({ ...baseClaims, token_use: 'refresh' })
-    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuer(INTERNAL_ISSUER);
+  const refreshBuilder = new SignJWT({ ...baseClaims, token_use: 'refresh' })
     .setIssuedAt(now)
     .setExpirationTime('30d')
     .setIssuer(INTERNAL_ISSUER)
-    .setJti(jti)
-    .sign(INTERNAL_SECRET);
+    .setJti(jti);
+
+  let accessToken: string;
+  let refreshToken: string;
+  if (useRs256) {
+    const { privateKey, kid } = await getInternalSigningKey();
+    accessToken = await accessBuilder.setProtectedHeader({ alg: 'RS256', kid }).sign(privateKey);
+    refreshToken = await refreshBuilder.setProtectedHeader({ alg: 'RS256', kid }).sign(privateKey);
+  } else {
+    accessToken = await accessBuilder.setProtectedHeader({ alg: 'HS256' }).sign(INTERNAL_SECRET);
+    refreshToken = await refreshBuilder.setProtectedHeader({ alg: 'HS256' }).sign(INTERNAL_SECRET);
+  }
 
   await refreshTokenRepo.insert(client, { jti, userId: subject.sub, expiresAt });
 

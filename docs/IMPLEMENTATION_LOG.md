@@ -6435,3 +6435,24 @@ verified_by: claude-opus-4-7
 - **Review tier**: L1 (CI script 1-line fix). 검증: heredoc stdin 소비 메커니즘 분석 + `docker compose run` 단독 발생 확인(pull/up 은 stdin 미attach). 실제 검증은 다음 CD 실행에서.
 ### 미완료: 다음 CD 실행 시 deploy step 이 healthcheck 까지 완주하는지 확인 (수동 recreate 불필요 검증).
 ### 연관 파일: .github/workflows/cd.yml
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/unit/internal-token-rs256.test.ts
+verified_by: claude-opus-4-7
+---
+### 완료: Phase 2b — 내부 토큰 서명 RS256 cutover (CHORE-AUTH-ASYMMETRIC-SIGNING-001)
+- **코드**: `issueInternalTokens` 가 `INTERNAL_JWT_PRIVATE_KEY` 존재 여부로 분기 — 설정 시 RS256(header `kid`=JWKS thumbprint, `getInternalSigningKey()`), 미설정 시 기존 HS256. 신호는 `internal-signing-key.ts` 의 imported-vs-ephemeral 분기(line 34)와 동일. flag 신설 없이 키 provisioning 자체가 토글.
+- **verifier 무변경**: Phase 2a 의 dual-verify(alg 별 키 라우팅)가 이미 RS256 을 처리하므로 signer flip 은 verifier 에 투명. CI/로컬 dev 는 키 미설정 → HS256 유지(기존 테스트 그대로 통과).
+- **staging 인프라 선설정** (배포 전, host env only — repo 무관): user-service 에 `INTERNAL_JWT_PRIVATE_KEY`(RSA-2048 PKCS8, kid `HYiSADjQc3nhDTl7zfQmkKon1vnkiyRSr74HUK5KjQg`) 주입 → JWKS 가 stable kid 서빙(이전 ephemeral `DgPBDPq6...` 대체). 5개 verifier(content/commerce/analytics/meal-plan-engine/web) + user-service 에 `INTERNAL_JWKS_URI=http://user-service:3001/.well-known/jwks.json` 추가 후 recreate. **Guardrail 1**: 전 verifier 컨테이너에서 JWKS 도달 + kid 일치 확인 완료.
+- **배포 순서**: verifier(JWKS_URI) 먼저 → signer(코드) 마지막. 선행 CHORE-CD-DEPLOY-SILENT-EXIT-001(순차배포 안전성) 충족.
+- **검증**: user-service 160 test 통과(신규 RS256 서명 2건 — alg/kid header + claims). typecheck/lint clean. 로컬 PEM thumbprint == staging JWKS kid 일치 확인.
+- **prod 주의**: staging 은 throwaway 키를 공유 `.env.staging` 에 둠(다른 backend 컨테이너 env 에도 노출되나 user-service 만 사용). prod 는 user-service 전용 secret(ASM/ECS task secret)으로 격리 주입할 것.
+- **Review tier**: L3 (인증 토큰 서명 형상 변경). adversarial: alg-confusion 은 verifier 가 alg 별 키 라우팅으로 차단(Phase 2a). signer 가 RS256 only 서명 → HS256 위조 토큰은 verifier 의 RS256 경로 미통과.
+### 미완료: PR merge → CD 배포(signer flip) → **Guardrail 2**(로그인 후 토큰 header decode → alg:RS256 + kid 일치) → daily-logs/subscriptions end-to-end 재검증. 그 후 별도 PR 로 Phase 3(HS256 verify 경로 제거, 24h 안정 후) + #4(vestigial JWKS_URI repoint).
+### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/src/lib/internal-signing-key.ts, services/user-service/src/routes/jwks.routes.ts
