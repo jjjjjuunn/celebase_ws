@@ -2651,6 +2651,9 @@ celebbase-wellness/
 - **계정 충돌 정책 (no auto-link)**: 기존 email/password 사용자가 같은 이메일로 소셜 로그인하면 Cognito 가 **다른 sub** 를 발급한다 (federation 은 auto-link 안 함). lazy-provision 경로가 이를 감지 (`create` UNIQUE 위반 + email incumbent 의 cognito_sub 불일치) 하여 **`409 ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER`** 반환 — `users.email` UNIQUE 불변식을 보호하고 사용자를 원래 로그인 방식으로 안내한다. `auth.account.provider_collision` 감사 이벤트 emit (emit-before-throw, `hashId` 만). 자동 연결(PreSignUp Lambda)은 후속 과제로 분리.
 - **범위**: 본 task 는 mobile-only UI. BFF Hosted UI PKCE 라우트(`/api/auth/authorize-url`)는 IdP 추가 시 web 에서도 동작 가능하나 web SSR frozen 정책상 UI 미추가.
 
+환경변수(`EXPO_PUBLIC_COGNITO_HOSTED_UI_DOMAIN`, `EXPO_PUBLIC_SOCIAL_PROVIDERS`) 또는 Terraform 자격증명이 부재하면 federation 은 비활성 상태로 유지되고 앱은 기존 SRP 경로로만 동작한다 (dormant ship — 자격증명 없이 머지/배포해도 안전).
+실 활성화 절차(Google Cloud / Apple Developer 자격증명 발급 → Terraform apply → EAS dev build → 기기 E2E)는 `docs/runbooks/SOCIAL-LOGIN-SETUP.md` 에 단계별로 정리한다.
+
 ### 11.2 Mobile CI / ESLint Guard *(PIVOT-MOBILE-2026-05)*
 
 `apps/mobile` (Expo / React Native) 패키지가 **존재하기 전부터** mobile 도메인 위반을 차단하는 가드 두 종을 JUNWON 이 사전 배치한다 (CHORE-MOBILE-001).
