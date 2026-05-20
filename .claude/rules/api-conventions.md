@@ -37,6 +37,21 @@ paths:
 - 날짜/시간: ISO 8601 UTC
 - 단일 응답 최대 1MB, 기본 페이지 20건, 최대 100건
 
+### List 응답 envelope (canonical + 허용 예외)
+
+> **canonical**: top-level paginated list 는 `{ items: T[], has_next: boolean, next_cursor?: string }` (= `packages/shared-types/src/api/common.ts` `PaginatedResponse<T>`).
+> 신규 list 엔드포인트는 반드시 `items` 키를 사용한다. 이미 `items` 인 엔드포인트: `GET /celebrities`, `GET /meal-plans`, `GET /recipes`.
+
+**허용 예외** (의도적 — 새로 `items` 로 바꾸지 않는다):
+
+| 엔드포인트 | envelope 키 | 사유 |
+|-----------|------------|------|
+| `GET /daily-logs` | `data` + `has_next` (no `next_cursor`) | FE 가 `data[last].log_date` 로 cursor 직접 산출 (`schemas/daily-logs.ts` 주석). `next_cursor` 미제공이 의도. |
+| `GET /celebrities/:slug/diets` | `diets` | nested non-paginated 서브리소스 — top-level paginated list 아님. `items` 로 명명하면 "items of what" 가독성 저하. |
+| lifestyle-claims list | `claims` | legacy 단일 divergence. breaking rename 은 mobile consumer 와 lockstep 일 때 opportunistic 처리 (단독 가치 낮음). |
+
+마이그레이션 원칙: envelope 키 변경은 BE Pydantic + shared-types Zod + BFF + mobile consumer 를 한 PR 에서 lockstep 으로만. 단독 "consistency" rename 은 pre-FE 에 금지 (회귀 risk > 가치).
+
 ## Error Response Standard
 
 ```typescript

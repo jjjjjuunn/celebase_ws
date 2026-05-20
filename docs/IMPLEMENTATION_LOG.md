@@ -6630,3 +6630,25 @@ verified_by: claude-opus-4-7 (live local E2E BFF→commerce→user-service, mock
 - **Review tier**: L3 (결제/구독 데이터 + 내부 auth) — advisor + claude-direct live E2E 판정. Stripe webhook signature 경로는 본 세션 범위 외 (양 경로 모두 `userClient.syncTier` 공유 링크로 수렴 → pull-sync 검증으로 공유 링크 커버).
 ### 미완료: (backlog CHORE-USER-SVC-INTERNAL-TIER-TEST-001) user-service provider `/internal/users/:id/tier` 직접 통합 테스트 부재 — 라이브 E2E 로 today 동작은 입증했으나 회귀 보호용 provider 테스트 추가 필요. Stripe webhook signature 검증 라이브 테스트는 별도.
 ### 연관 파일: services/commerce-service/src/services/revenuecat-sync.service.ts, services/commerce-service/src/services/user-service.client.ts, services/user-service/src/routes/internal.routes.ts, services/user-service/src/services/tier-sync.service.ts, apps/web/src/app/api/subscriptions/sync/route.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: CHORE-MINOR-FINDINGS-CLEANUP-001
+commit_sha: PENDING
+files_changed:
+  - .claude/rules/api-conventions.md
+  - docs/IMPLEMENTATION_LOG.md
+verified_by: claude-opus-4-7 (envelope grep map + staging env reader analysis + analytics recreate health)
+---
+### 완료: #27 마이너 findings 정리 — list envelope 컨벤션 문서화 + staging vestigial env 제거 (CHORE-MINOR-FINDINGS-CLEANUP-001)
+- **(a) list envelope 불일치 — DOCUMENT (코드 변경 없음)**:
+  - 매핑 결과: 다수(`GET /celebrities`·`/meal-plans`·`/recipes`)는 이미 canonical `items` (`PaginatedResponse<T>`). 아웃라이어 3: `daily-logs` (`data`, FE 가 row 에서 cursor 산출 — 의도적), `/celebrities/:slug/diets` (`diets`, nested non-paginated), lifestyle-claims (`claims`, legacy single divergence).
+  - 판정: breaking 다중서비스 rename 은 risk > value (pre-FE). `.claude/rules/api-conventions.md` "API Design" 에 canonical envelope + 허용 예외 표 + lockstep 마이그레이션 원칙 명문화. 단독 consistency rename 금지 규칙 추가.
+- **(b) staging `.env.staging` vestigial env 제거**:
+  - reader 분석: `COGNITO_APP_CLIENT_ID`·`COGNITO_REGION` = 0 readers (PR #128 가 analytics env.ts 에서 제거; user-service 는 `COGNITO_CLIENT_ID` 별개 키 사용). `JWKS_URI`·`JWT_ISSUER` 는 `service-core/jwt.ts:49-50` ('jwks' 모드) 가 읽음 → 유지.
+  - CD source-of-truth 확인: cd.yml 은 `/app/.env.staging` (값) 을 scp/덮어쓰지 않음 (preflight scripts·`.env.staging.required` manifest·Caddyfile·migrations 만 sync). preflight manifest 8키에 두 키 미포함 → 제거해도 preflight 통과. SSH 편집 영구 유지.
+  - 실행: backup (`/app/.env.staging.bak-pre-vestigial-cleanup-<ts>`) → sed 로 2키 삭제 (49→47 lines) → analytics-service `--force-recreate` → `/health` ok 확인. trimmed env 로 정상 기동.
+- **Review tier**: L1~L2 (문서 + 저위험 staging ops). advisor + claude-direct 판정.
+### 미완료: lifestyle-claims `claims`→`items` rename 은 mobile consumer lockstep 시점에 opportunistic. (a) 는 문서화로 종결, code rename 없음.
+### 연관 파일: .claude/rules/api-conventions.md, /app/.env.staging (staging ops), packages/shared-types/src/api/common.ts
