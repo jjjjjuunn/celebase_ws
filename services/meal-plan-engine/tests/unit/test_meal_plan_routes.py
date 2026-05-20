@@ -278,7 +278,11 @@ async def test_wrong_issuer_returns_401(client):
 async def test_missing_token_use_returns_401(client):
     """A token without token_use claim should be rejected."""
     token = pyjwt.encode(
-        {"sub": "u1", "exp": int(time.time()) + 3600, "iss": settings.INTERNAL_JWT_ISSUER},
+        {
+            "sub": "u1",
+            "exp": int(time.time()) + 3600,
+            "iss": settings.INTERNAL_JWT_ISSUER,
+        },
         settings.INTERNAL_JWT_SECRET,
         algorithm="HS256",
     )
