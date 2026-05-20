@@ -6290,7 +6290,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001
-commit_sha: PENDING
+commit_sha: 8318a14
 files_changed:
   - packages/service-core/src/middleware/jwt.ts
   - packages/service-core/tests/unit/jwt.test.ts
