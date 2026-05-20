@@ -6559,7 +6559,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: CHORE-BFF-VALIDATION-DETAILS-FORWARD-001
-commit_sha: PENDING
+commit_sha: cbad01d
 files_changed:
   - apps/web/src/app/api/_lib/bff-error.ts
   - apps/web/src/app/api/_lib/bff-fetch.ts
