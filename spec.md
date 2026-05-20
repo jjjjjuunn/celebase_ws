@@ -2265,7 +2265,11 @@ user-service 는 dev/cognito provider 무관하게 **internal HS256 access token
 - **TS 서비스 적용**: `service-core/registerJwtAuth(app, { mode: 'internal' })` 명시 opt-in. user-service / content-service / commerce-service / analytics-service 모두 `mode: 'internal'`. env 존재로 암묵 전환하지 않는다 (공유 `.env` 가 서비스 검증 전략을 silent flip 하는 사고 방지).
 - **Python 서비스**: meal-plan-engine `_verify_jwt_payload` (PyJWT, 동일 계약).
 - **JWKS(RS256) 모드**는 web-first 시대 잔재로 deprecated — mobile 토큰은 RS256 이 아니므로 user-facing 서비스에서 사용 금지. (Cognito 토큰 직접 검증이 필요한 미래 요구가 생기면 별도 재도입.)
-- **보안 한계**: HS256 대칭키는 전 서비스 공유 — 신뢰된 internal mesh 전제. 비대칭 서명(user-service private key + 서비스 public key/JWKS) 전환은 별도 hardening chore. stub mode(검증 없이 sub 추출)는 dev/test 한정, production 진입 시 `process.exit`.
+- **보안 한계 + 비대칭 마이그레이션 (CHORE-AUTH-ASYMMETRIC-SIGNING-001)**: HS256 대칭키는 전 서비스 공유 — 신뢰된 internal mesh 전제이나, 침해된 read-only 서비스가 임의 사용자 토큰을 위조할 수 있다. 이를 닫기 위해 **RS256 비대칭 + JWKS** 로 phased 전환 중: user-service 가 IdP 화 (RS256 private key 서명 + `GET /.well-known/jwks.json` 으로 public key 서빙), 전 서비스는 service-core JWKS mode (`createRemoteJWKSet`) 로 검증.
+  - **Phase 1 (완료)**: user-service `/.well-known/jwks.json` endpoint + 키 인프라(`lib/internal-signing-key.ts`, RS256, kid=RFC7638 thumbprint, prod 는 `INTERNAL_JWT_PRIVATE_KEY` PEM / dev·test 는 ephemeral). 서명은 아직 HS256 — endpoint 는 dormant.
+  - **Phase 2 (예정)**: 전 verifier 가 RS256(JWKS)+HS256 dual-verify (token alg 분기). 그 후 user-service 서명을 RS256(kid header)으로 전환. 기존 HS256 토큰은 TTL(access 15m/refresh 30d) 동안 fallback 으로 verify.
+  - **Phase 3 (예정)**: refresh TTL 경과 후 HS256 fallback 제거 → 순수 RS256. 검증 모드가 JWKS 하나로 통일되어 #4 의 "vestigial JWKS_URI" 는 제거가 아니라 **user-service JWKS 로 repoint** 로 귀결.
+  - stub mode(검증 없이 sub 추출)는 dev/test 한정, production 진입 시 `process.exit`.
 
 #### user-service `/auth/*` Rate Limits *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-AUTH-002b)*
 
