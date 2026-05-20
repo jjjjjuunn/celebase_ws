@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { schemas } from '@celebbase/shared-types';
 import { fetchBff } from '../_lib/bff-fetch.js';
 import { createProtectedRoute, readEnv, type Session } from '../_lib/session.js';
-import { toBffErrorResponse } from '../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../_lib/bff-error.js';
 
 // BE (`services/user-service/src/routes/ws-ticket.routes.ts`) returns
 // `{ ticket, expires_in_sec }`. The BFF composes the full
@@ -23,19 +23,7 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
   const rawBody: unknown = await req.json().catch(() => ({}));
   const parsedBody = schemas.WsTicketRequestSchema.safeParse(rawBody);
   if (!parsedBody.success) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid ws-ticket request body',
-          requestId,
-        },
-      }),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
-      },
-    );
+    return zodErrorResponse(parsedBody.error, requestId, 'Invalid ws-ticket request body');
   }
 
   const result = await fetchBff('user', '/ws/ticket', {

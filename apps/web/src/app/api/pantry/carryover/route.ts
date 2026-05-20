@@ -8,7 +8,7 @@ import {
 } from '@celebbase/shared-types';
 import { fetchBff } from '../../_lib/bff-fetch.js';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
-import { toBffErrorResponse } from '../../_lib/bff-error.js';
+import { toBffErrorResponse, zodErrorResponse } from '../../_lib/bff-error.js';
 
 // Plan 22 · Phase C2 — pantry carryover fire-and-forget endpoint.
 // Frontend calls this after the 4s undo window closes on a silent-skip.
@@ -28,19 +28,7 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
   const rawBody: unknown = await req.json().catch(() => ({}));
   const parsed = CarryoverRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid pantry carryover payload',
-          requestId,
-        },
-      }),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
-      },
-    );
+    return zodErrorResponse(parsed.error, requestId, 'Invalid pantry carryover payload');
   }
 
   // Fetch current preferences so we can append (merge-patch replaces arrays atomically).
@@ -77,11 +65,8 @@ export const POST = createProtectedRoute(async (req: NextRequest, session: Sessi
     return toBffErrorResponse(result.error, requestId);
   }
 
-  return new Response(
-    JSON.stringify({ pantry: result.data.preferences?.pantry ?? [] }),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
-    },
-  );
+  return new Response(JSON.stringify({ pantry: result.data.preferences?.pantry ?? [] }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
+  });
 });

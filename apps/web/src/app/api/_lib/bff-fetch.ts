@@ -2,6 +2,7 @@ import type { ZodType } from 'zod';
 import {
   createLogger,
   type BffError,
+  type BffErrorDetail,
 } from './bff-error.js';
 import { readEnv } from './env.js';
 
@@ -110,11 +111,35 @@ function mergeHeaders(
   return headers;
 }
 
+// Defensively parse upstream `error.details` into BffErrorDetail[]. Each item
+// must carry a string `issue`; `field` (string) and `meta` (plain object) are
+// optional. Malformed items are dropped; an empty result yields undefined so we
+// never attach an empty `details` array. PHI inside `meta` is redacted later by
+// filterBffError before the response reaches the client.
+function parseUpstreamDetails(value: unknown): BffErrorDetail[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const parsed: BffErrorDetail[] = [];
+  for (const item of value) {
+    if (typeof item !== 'object' || item === null) continue;
+    const record = item as Record<string, unknown>;
+    if (typeof record['issue'] !== 'string') continue;
+    const detail: BffErrorDetail = { issue: record['issue'] };
+    if (typeof record['field'] === 'string') detail.field = record['field'];
+    const meta = record['meta'];
+    if (typeof meta === 'object' && meta !== null && !Array.isArray(meta)) {
+      detail.meta = meta as Record<string, unknown>;
+    }
+    parsed.push(detail);
+  }
+  return parsed.length > 0 ? parsed : undefined;
+}
+
 function pickUpstreamError(body: unknown): {
   code: string;
   message: string;
   retryable?: boolean;
   retry_after?: number;
+  details?: BffErrorDetail[];
 } {
   const fallback = { code: 'UPSTREAM_ERROR', message: 'Upstream error' };
   if (typeof body !== 'object' || body === null) return fallback;
@@ -127,6 +152,7 @@ function pickUpstreamError(body: unknown): {
     message: string;
     retryable?: boolean;
     retry_after?: number;
+    details?: BffErrorDetail[];
   } = {
     code: typeof inner['code'] === 'string' ? inner['code'] : fallback.code,
     message:
@@ -139,6 +165,10 @@ function pickUpstreamError(body: unknown): {
   }
   if (typeof inner['retry_after'] === 'number') {
     result.retry_after = inner['retry_after'];
+  }
+  const details = parseUpstreamDetails(inner['details']);
+  if (details !== undefined) {
+    result.details = details;
   }
   return result;
 }
@@ -275,6 +305,7 @@ export async function fetchBff<T>(
         ...(picked.retry_after !== undefined
           ? { retry_after: picked.retry_after }
           : {}),
+        ...(picked.details !== undefined ? { details: picked.details } : {}),
       },
     };
   }

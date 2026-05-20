@@ -182,3 +182,30 @@ export function toBffErrorResponse(err: unknown, requestId: string): Response {
     requestId,
   );
 }
+
+// Build a 400 VALIDATION_ERROR response from a Zod failure on a BFF-local
+// request-body parse. Surfaces per-field issues as `details` so the client can
+// render field-level form errors instead of a bare "Invalid input". Routes that
+// safeParse the body before forwarding should return this on failure. `message`
+// is overridable so routes can keep their existing human-facing summary.
+export function zodErrorResponse(
+  err: ZodError,
+  requestId: string,
+  message = 'Invalid input',
+): Response {
+  const details: BffErrorDetail[] = err.issues.map((issue) => {
+    const detail: BffErrorDetail = { issue: issue.message };
+    if (issue.path.length > 0) detail.field = issue.path.join('.');
+    return detail;
+  });
+  return toBffErrorResponse(
+    {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message,
+      requestId,
+      details,
+    },
+    requestId,
+  );
+}

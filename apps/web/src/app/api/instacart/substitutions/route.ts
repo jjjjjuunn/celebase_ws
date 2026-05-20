@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createProtectedRoute, type Session } from '../../_lib/session.js';
+import { zodErrorResponse } from '../../_lib/bff-error.js';
 
 const SubstitutionDecisionSchema = z
   .object({
@@ -39,22 +40,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const rawBody: unknown = await innerReq.json().catch(() => ({}));
       const parsed = SubstitutionDecisionSchema.safeParse(rawBody);
       if (!parsed.success) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Invalid substitution decision payload',
-              requestId,
-            },
-          }),
-          {
-            status: 400,
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Request-Id': requestId,
-            },
-          },
-        );
+        return zodErrorResponse(parsed.error, requestId, 'Invalid substitution decision payload');
       }
 
       return new Response(
