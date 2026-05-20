@@ -18,6 +18,8 @@ jest.mock('jose', () => {
   }
   return {
     jwtVerify: jest.fn(),
+    decodeProtectedHeader: jest.fn(() => ({ alg: 'HS256' })),
+    createRemoteJWKSet: jest.fn(() => 'mock-jwks'),
     errors: { JWTExpired, JWSSignatureVerificationFailed },
   };
 });

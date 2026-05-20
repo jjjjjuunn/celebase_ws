@@ -1,6 +1,15 @@
 import type pg from 'pg';
 import type { User } from '@celebbase/shared-types';
-import { SignJWT, jwtVerify, decodeJwt, errors as joseErrors } from 'jose';
+import {
+  SignJWT,
+  jwtVerify,
+  decodeJwt,
+  decodeProtectedHeader,
+  importJWK,
+  errors as joseErrors,
+  type JWTPayload,
+} from 'jose';
+import { getInternalSigningKey } from '../lib/internal-signing-key.js';
 import { randomUUID } from 'node:crypto';
 import { uuidv7 } from 'uuidv7';
 import {
@@ -113,11 +122,26 @@ export async function verifyInternalRefresh(
   refreshToken: string,
 ): Promise<AuthTokenSubject & { jti: string }> {
   try {
-    const { payload } = await jwtVerify(refreshToken, INTERNAL_SECRET, {
-      algorithms: ['HS256'],
-      issuer: INTERNAL_ISSUER,
-      clockTolerance: 2,
-    });
+    // Dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a): RS256 refresh
+    // tokens verify against this service's own public key; HS256 against the
+    // shared secret. Header alg dispatches — different key per alg, no confusion.
+    const { alg } = decodeProtectedHeader(refreshToken);
+    let payload: JWTPayload;
+    if (alg === 'RS256') {
+      const { publicJwk } = await getInternalSigningKey();
+      const publicKey = await importJWK(publicJwk, 'RS256');
+      ({ payload } = await jwtVerify(refreshToken, publicKey, {
+        algorithms: ['RS256'],
+        issuer: INTERNAL_ISSUER,
+        clockTolerance: 2,
+      }));
+    } else {
+      ({ payload } = await jwtVerify(refreshToken, INTERNAL_SECRET, {
+        algorithms: ['HS256'],
+        issuer: INTERNAL_ISSUER,
+        clockTolerance: 2,
+      }));
+    }
     if (payload['token_use'] !== 'refresh') {
       throw new UnauthorizedError('Invalid token: expected refresh token');
     }

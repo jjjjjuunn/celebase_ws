@@ -6391,3 +6391,29 @@ verified_by: claude-opus-4-7
 - **Review tier**: L3. adversarial: alg-confusion(RS256 토큰을 HS256 키로 검증) → alg 별 키 분리 + jose algorithms pin 으로 차단; 헤더 alg 가 attacker-controlled 이나 잘못된 alg 는 해당 키 검증 실패.
 ### 미완료 (Phase 2a 나머지): meal-plan-engine dual-verify (PyJWKClient), BFF session.ts dual-verify, user-service verifyInternalRefresh dual-verify. 그 후 Phase 2b (서명 RS256 전환 + INTERNAL_JWT_PRIVATE_KEY/INTERNAL_JWKS_URI staging 설정), Phase 3 (HS256 제거) + #4.
 ### 연관 파일: packages/service-core/src/middleware/jwt.ts, services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts, services/user-service/src/services/auth.service.ts
+
+---
+date: 2026-05-19
+agent: claude-opus-4-7
+task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/config.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+  - apps/web/src/app/api/_lib/session.ts
+  - apps/web/src/app/api/_lib/__tests__/session.test.ts
+  - services/user-service/src/services/auth.service.ts
+verified_by: claude-opus-4-7
+---
+### 완료: Phase 2a 나머지 — meal-plan-engine/BFF/user-refresh RS256 dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001)
+- **Phase 2a 완성** (service-core 는 PR #121). 나머지 3개 verifier 에 RS256(JWKS)+HS256 dual-verify 추가, 전부 additive·dormant (토큰 아직 HS256).
+- **meal-plan-engine** (`meal_plans.py`): `_verify_jwt_payload` 가 header alg 로 분기 — RS256 → `PyJWKClient(INTERNAL_JWKS_URI).get_signing_key_from_jwt`, HS256 → secret. `PyJWKClientError` 를 401 catch 에 추가. config `INTERNAL_JWKS_URI` 추가.
+- **BFF** (`session.ts` `verifyAccessToken`): alg 분기 — RS256 → `createRemoteJWKSet(INTERNAL_JWKS_URI)`, HS256 → 기존 NEXT/CURRENT rotation loop 보존. `toSession` 헬퍼로 매핑 통일.
+- **user-service** (`auth.service.ts` `verifyInternalRefresh`): RS256 refresh 토큰은 **자신의 public key**(`getInternalSigningKey().publicJwk` → `importJWK`)로 검증, HS256 은 secret. (signer 라 JWKS fetch 불필요.)
+- **algorithm-confusion 차단**: 세 곳 모두 alg 별 다른 키로 라우팅 + jose/pyjwt `algorithms` pin.
+- **검증**: meal-plan-engine 28 unit (RS256 dual 2건: JWKS 검증 / 미설정 거부), BFF web 117 (session 32 포함), user-service 158, service-core 43. typecheck/lint/ruff clean.
+- **test mock 보강**: jose 를 mock 하는 5개 BFF 테스트 파일(session/meal-plans/subscriptions/sync/users)에 `decodeProtectedHeader`(기본 HS256)+`createRemoteJWKSet` mock 추가 — 신규 alg 분기로 인한 회귀 차단.
+- **Review tier**: L3. adversarial: alg-confusion → 키 분리; refresh 토큰을 user-service 가 자기 public key 로 검증(self-contained, JWKS round-trip 불필요).
+### 미완료: Phase 2b — `INTERNAL_JWT_PRIVATE_KEY`+`INTERNAL_JWKS_URI` staging 설정 + user-service 서명 RS256(kid) 전환 (배포 순서: 전 verifier 먼저, signer 마지막). **선행 필수**: CHORE-CD-DEPLOY-SILENT-EXIT-001 (순차 배포 안전성). 그 후 Phase 3 (HS256 제거) + #4.
+### 연관 파일: services/meal-plan-engine/src/routes/meal_plans.py, apps/web/src/app/api/_lib/session.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/lib/internal-signing-key.ts
