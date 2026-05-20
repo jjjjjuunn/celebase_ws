@@ -47,7 +47,7 @@
 | B9 | **subscriptions/sync 로컬 스키마** | (해결됨 PR #138) | shared-types `SyncSubscriptionResponseSchema` 로 이전 완료 |
 | B10 | 탭 아이콘 emoji | `src/navigation/MainTabsNavigator.tsx:24-29` | SVG 아이콘 세트 (CHORE-MOBILE-TAB-ICONS-001) |
 | B11 | Paywall legal URL 하드코딩 | `src/screens/PaywallScreen.tsx:51` | `celebbase.com` stub → 실 Privacy/Terms (CHORE-MOBILE-LEGAL-001 + PROD G2) |
-| B12 | orphan 파일/dead types 정리 | `navigation/{Discover,Profile}Navigator.tsx`, `navigation/types.ts:34-35,68-75` | B2/B3 마운트 후 결정 |
+| B12 | 미참조 nav 타입 정리 | `navigation/types.ts:34-35,68-75` | B2/B3 가 `{Discover,Profile}Navigator` 를 탭에 마운트한 뒤, 실제 쓰이는 param 타입만 남기고 미참조 타입 제거. **navigator 파일 자체는 삭제 아님 — B2/B3 의 마운트 대상**이다 |
 
 ---
 

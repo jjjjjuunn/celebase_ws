@@ -48,6 +48,11 @@ npx expo run:ios       # 첫 빌드 ~10분 (Pods), 이후 JS 변경은 hot reloa
 > UI 미리보기만 필요하면 `EXPO_PUBLIC_DEV_SKIP_AUTH=1` 로 cold-start 화면 확인 가능.
 > 실제 로그인/결제 흐름은 **dev build (`npx expo run:ios`)** 필수 (`.claude/rules/multi-session.md §7.1`).
 
+> **로컬 `/api/subscriptions/sync` 404 함정**: commerce-service 는 로컬에서 기본 `REVENUECAT_ENABLED=false` 라
+> `/internal/subscriptions/refresh-from-revenuecat` 라우트가 미등록 → BFF sync 가 404 를 반환한다 (버그 아님).
+> tier sync 를 로컬에서 실제로 돌리려면 mock RevenueCat + `REVENUECAT_ENABLED=true` 로 commerce 재기동 필요 —
+> 절차는 `docs/IMPLEMENTATION_LOG.md` 의 `CHORE-TIER-SYNC-WIRE-VERIFY-001` 엔트리 참조. wire 경로 자체는 검증됨.
+
 ---
 
 ## 2. 환경 변수 (`apps/mobile/.env`)
