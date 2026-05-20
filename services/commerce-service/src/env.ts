@@ -42,11 +42,6 @@ export const EnvSchema = z
     // Internal service communication
     INTERNAL_JWT_SECRET: z.string().optional(),
     USER_SERVICE_URL: z.string().url().default('http://localhost:3001'),
-
-    // Cognito JWKS for external JWT verification
-    JWKS_URI: z.string().optional(),
-    JWT_ISSUER: z.string().optional(),
-    JWT_AUDIENCE: z.string().optional(),
   })
   .superRefine((env, ctx) => {
     const DEFAULT_SECRET = 'dev-secret-not-for-prod';
@@ -57,13 +52,6 @@ export const EnvSchema = z
           code: z.ZodIssueCode.custom,
           message: 'INTERNAL_JWT_SECRET must be set to a non-default value in production',
           path: ['INTERNAL_JWT_SECRET'],
-        });
-      }
-      if (!env.JWKS_URI || !env.JWT_ISSUER) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'JWKS_URI and JWT_ISSUER are required in production',
-          path: ['JWKS_URI'],
         });
       }
     }
