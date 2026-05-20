@@ -6738,6 +6738,29 @@ verified_by: claude-opus-4-7 (staging ops backlog audit + IMPL_LOG grep open-sta
 ---
 date: 2026-05-20
 agent: claude-opus-4-7
+task_id: FIX-STAGING-MPE-SQS-CREDS-001
+commit_sha: 14395ff
+files_changed:
+  - docs/PROD-DEPLOY-ROADMAP.md
+verified_by: claude-opus-4-7 (staging live — in-container boto3 cred_method=iam-role + assumed-role STS identity + consumer NoCredentialsError 0건/2분)
+---
+### 완료: staging meal-plan-engine SQS "Queue unavailable" 해소 — EC2 인스턴스 롤 (FIX-STAGING-MPE-SQS-CREDS-001)
+- **증상**: staging 식단 생성이 503 `"Queue unavailable. Plan marked failed — please retry."` 로 실패. `routes/meal_plans.py:315-325` 가 `enqueue_plan_job` 의 모든 예외를 503 으로 변환.
+- **근본 원인**: `botocore.exceptions.NoCredentialsError: Unable to locate credentials` (consumer 로그 30회 반복). 큐·리전·엔드포인트·큐URL 은 **전부 정상**이었음 — 큐 `celebase-staging-meal-plan-jobs` 는 us-west-2 에 실재(0 msg), 컨테이너 env `AWS_REGION=us-west-2` ✅ / `SQS_QUEUE_URL` us-west-2 ✅ / `AWS_ENDPOINT_URL` 미설정(=real AWS, localstack 누수 없음) ✅. **유일 문제는 자격증명 부재**: 컨테이너 env 에 AWS 키 미주입 + EC2 인스턴스 롤 미연결 → boto3 인증 불가.
+- **결정**: 정적 키 대신 **EC2 인스턴스 IAM 롤** (사용자 선택). 정적 시크릿 0, prod 방향(G3c-3 IAM role) 정합. boto3 사용 서비스는 meal-plan-engine 단독이라 인스턴스 롤 상속의 실사용 범위도 엔진 한정.
+- **적용 (수동 AWS — terraform 미반영, `INFRA-MOBILE-SQS-TERRAFORM-001` 로 import 예정)**:
+  - IAM role `celebase-staging-mpe-sqs` (EC2 trust) + 인라인 정책 `mpe-sqs-access` — `sqs:SendMessage`/`ReceiveMessage`/`DeleteMessage`, resource = 큐 ARN 한정 (`arn:aws:sqs:us-west-2:192969248931:celebase-staging-meal-plan-jobs`, least-privilege).
+  - instance profile `celebase-staging-mpe-sqs` → staging EC2 `i-03cebf092c900627d` 연결 (assoc `iip-assoc-0ead4dc314c6c25e1`).
+  - **EC2 metadata hop limit 1→2** (`modify-instance-metadata-options`) — Docker 브리지 컨테이너가 IMDS 도달하려면 필수. hop limit 1 이면 컨테이너→호스트→IMDS 가 2홉이라 차단되어 롤을 붙여도 `NoCredentialsError` 잔존.
+  - meal-plan-engine 컨테이너 restart → boto3 가 IMDS 롤로 자격증명 재해결 (consumer 클라이언트는 boot 시 1회 생성이라 restart 필수).
+- **검증 (staging live)**: 컨테이너 내부 boto3 `cred_method=iam-role` + STS `arn:aws:sts::192969248931:assumed-role/celebase-staging-mpe-sqs/i-03cebf092c900627d`. consumer `NoCredentialsError` 2분간 **0건** (이전 30건). send 인가는 동일 creds·동일 resource + 정책에 SendMessage 포함으로 결정적 (consumer receive 성공이 IMDS+큐 도달+권한을 입증).
+- **잔여**: 인스턴스 교체(terraform/ASG) 시 profile 재연결 필요 → INFRA-MOBILE-SQS-TERRAFORM-001 이 queue+role+profile+association+hop-limit 전부 capture. 정적 키 미사용이라 CHORE-STAGING-ENV-MANAGEMENT-001(.env→SSM) 와 무관. 전체 publisher E2E(실 meal-plan POST) 는 인증 토큰 필요로 본 fix 범위 밖 — credential 경로는 위로 확정.
+- **Review tier**: L2 (staging 인프라/IAM 변경, 코드 변경 0; least-privilege 큐 ARN 한정 + EC2 trust 만, PHI·auth 토큰 형상 무관).
+### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
 task_id: FEAT-MOBILE-TRIAL-MEALPLAN-001
 commit_sha: 23466a4
 files_changed:
