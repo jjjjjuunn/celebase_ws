@@ -44,6 +44,11 @@ class SubscriptionResponse(BaseModel):
     tier: str = "free"
     status: str | None = None
     quota_override: QuotaOverrideModel | None = QuotaOverrideModel()
+    # Post-onboarding free-trial flag (FEAT-MOBILE-TRIAL-MEALPLAN-001). Set by
+    # user-service GET /subscriptions/me from bio_profiles.created_at. During the
+    # trial window a free-tier user is granted Premium-equivalent quota. Absent
+    # on older user-service builds → defaults False (no trial).
+    trial_active: bool = False
     model_config = ConfigDict(extra="ignore")
 
 
@@ -67,26 +72,34 @@ def validate_subscription(raw: dict[str, Any]) -> SubscriptionResponse:
 def compute_effective_limit(
     tier: str,
     quota_override: QuotaOverrideModel | None,
+    trial_active: bool = False,
 ) -> int | None:
     """Return the effective monthly plan limit.
 
     - ``None`` means unlimited.
-    - ``0`` means feature disabled (Free tier).
+    - ``0`` means feature disabled (Free tier, no trial).
     - Positive int is the cap.
 
-    ``quota_override.max_plans_per_month`` takes precedence when present:
-    explicitly ``None`` (JSON null) → unlimited regardless of tier.
+    ``quota_override.max_plans_per_month`` takes precedence when present
+    (admin-set, honored regardless of trial): explicitly ``None`` (JSON null) →
+    unlimited regardless of tier.
+
+    When no explicit override applies and the tier default is 0 (Free) but
+    ``trial_active`` is True, the user is within their post-onboarding trial and
+    is granted the Premium-equivalent quota.
     """
-    if quota_override is None:
-        return TIER_LIMITS.get(tier, 0)
-    override = quota_override.max_plans_per_month
-    # The field is Optional[int] with default None.  We need to distinguish
-    # "key absent / not set" (use tier default) from "explicitly None" (unlimited).
-    # Pydantic sets the field to None for both cases, but the raw JSON
-    # distinguishes them.  We re-check via model_fields_set.
-    if "max_plans_per_month" in quota_override.model_fields_set:
-        return override  # could be None (unlimited) or an int
-    return TIER_LIMITS.get(tier, 0)
+    # Explicit admin override wins, regardless of trial state.
+    if (
+        quota_override is not None
+        and "max_plans_per_month" in quota_override.model_fields_set
+    ):
+        return quota_override.max_plans_per_month  # could be None (unlimited) or an int
+
+    tier_limit = TIER_LIMITS.get(tier, 0)
+    # Post-onboarding trial grant: Free-tier user gets Premium-equivalent quota.
+    if tier_limit == 0 and trial_active:
+        return TIER_LIMITS["premium"]
+    return tier_limit
 
 
 def seconds_until_next_month(now_utc: datetime) -> int:

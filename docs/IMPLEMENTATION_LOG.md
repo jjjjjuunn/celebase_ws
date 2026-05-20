@@ -6757,3 +6757,31 @@ verified_by: claude-opus-4-7 (staging live — in-container boto3 cred_method=ia
 - **잔여**: 인스턴스 교체(terraform/ASG) 시 profile 재연결 필요 → INFRA-MOBILE-SQS-TERRAFORM-001 이 queue+role+profile+association+hop-limit 전부 capture. 정적 키 미사용이라 CHORE-STAGING-ENV-MANAGEMENT-001(.env→SSM) 와 무관. 전체 publisher E2E(실 meal-plan POST) 는 인증 토큰 필요로 본 fix 범위 밖 — credential 경로는 위로 확정.
 - **Review tier**: L2 (staging 인프라/IAM 변경, 코드 변경 0; least-privilege 큐 ARN 한정 + EC2 trust 만, PHI·auth 토큰 형상 무관).
 ### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FEAT-MOBILE-TRIAL-MEALPLAN-001
+commit_sha: 23466a4
+files_changed:
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - services/user-service/src/lib/trial.ts
+  - services/user-service/src/repositories/subscription.repository.ts
+  - services/user-service/src/routes/subscription.routes.ts
+  - services/user-service/tests/unit/trial.test.ts
+  - services/user-service/tests/unit/subscription.repository.test.ts
+  - services/user-service/tests/integration/subscription.routes.test.ts
+  - services/meal-plan-engine/src/services/quota_service.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_quota_service.py
+verified_by: claude-opus-4-7 (user-service 175 tests pass + web/BFF typecheck + engine quota trial-logic direct-verify; full meal-plan-engine pytest deferred to CI py3.12)
+---
+### 완료: 서버측 trial 인식 → 온보딩 직후 free-tier 사용자도 meal-plan 생성 허용 (BE only)
+- **문제**: 온보딩은 bio-profile 저장만 하고 생성 트리거가 없었고(모바일 트랙), 설령 트리거해도 "무료 체험"은 FE-local 개념이라 서버 tier=`free` → `POST /meal-plans/generate` 가 403 `SUBSCRIPTION_REQUIRED`.
+- **shared-types**: `GetMySubscriptionResponseSchema` 에 `trial_active`/`trial_ends_at` 추가 (optional+default → 배포 윈도우 하위호환, strict 아님이라 구버전 user-service `{tier}` 응답도 BFF 파싱 OK).
+- **user-service**: `GET /subscriptions/me` 가 `bio_profiles.created_at`(기존 컬럼, **migration 불필요**) 기준으로 trial 계산(`computeTrialState`, free tier + 3일 윈도우). `findSubscriptionStateByUserId` 추가(`findTierByUserId` 보존).
+- **meal-plan-engine**: `SubscriptionResponse.trial_active` + `compute_effective_limit(tier, override, trial_active)` — free+trial 이면 premium 상당 한도 부여, 명시적 admin override 는 우선. 호출부(`generate_meal_plan`)가 `sub.trial_active` 전달.
+- **trial 윈도우**: 3일 (`apps/mobile/src/lib/use-access-policy.ts` TRIAL_DURATION_MS 와 정합).
+- **Review tier**: L3 (auth/subscription 경계 + 다중 서비스). 검증: user-service jest 175 통과(변경 파일 100% cov), web typecheck, engine quota 로직 직접 검증(전체 pytest 는 CI Docker py3.12).
+### 미완료: 모바일 트랙(온보딩 후 생성 트리거 + Plan "생성중" 폴링 UI)은 `apps/mobile` 작업트리에 구현 완료됐으나 진행 중인 auth/온보딩 리팩터 WIP 와 commingle 되어 본 BE PR 과 분리(별도 커밋). staging 배포(이 PR 머지) 후 시뮬레이터 검증.
+### 연관 파일: services/user-service/src/lib/trial.ts, services/meal-plan-engine/src/services/quota_service.py, packages/shared-types/src/schemas/subscriptions.ts
