@@ -6268,7 +6268,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: FIX-STAGING-CATALOG-PUBLIC-001
-commit_sha: PENDING
+commit_sha: 868a6c0
 files_changed:
   - services/content-service/src/index.ts
   - packages/service-core/tests/unit/jwt.test.ts
