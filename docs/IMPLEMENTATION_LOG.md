@@ -6652,3 +6652,23 @@ verified_by: claude-opus-4-7 (envelope grep map + staging env reader analysis + 
 - **Review tier**: L1~L2 (문서 + 저위험 staging ops). advisor + claude-direct 판정.
 ### 미완료: lifestyle-claims `claims`→`items` rename 은 mobile consumer lockstep 시점에 opportunistic. (a) 는 문서화로 종결, code rename 없음.
 ### 연관 파일: .claude/rules/api-conventions.md, /app/.env.staging (staging ops), packages/shared-types/src/api/common.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-USER-PATCH-PARAM-INDEX-001
+commit_sha: e410476
+files_changed:
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/tests/unit/user.repository.test.ts
+verified_by: claude-opus-4-7 (user-service jest 164 + 라이브 PATCH E2E 200 + 영속 확인)
+---
+### 완료: PATCH /users/me 500 수정 — updateUser 파라미터 인덱스 off-by-one (FIX-USER-PATCH-PARAM-INDEX-001)
+- **증상**: `PATCH /api/users/me` 가 모든 필드(`preferred_celebrity_slug`·`display_name` 무관)에서 500. FE-readiness 라이브 audit 중 발견 — 온보딩 persona 저장 + 프로필 수정이 **작성 이래 한 번도 작동 안 함**.
+- **근본 원인**: `user.repository.ts:updateUser` 의 동적 UPDATE 쿼리 파라미터 번호가 off-by-one. SET 절은 `$${idx+2}` (첫 필드→`$2`), WHERE 는 `$${len+2}` (1필드→`$3`) 였으나 values 는 `[fieldValue, id]` (`$1`,`$2`만 존재) → `$1` 미참조 + WHERE out-of-range → PG 42P18 "could not determine data type of parameter $1".
+- **수정**: SET 절 `$${idx+1}`, WHERE `$${len+1}` 로 정정. 1필드: `SET col=$1 ... WHERE id=$2`, 다필드: `$1..$N` contiguous + id 마지막.
+- **누락 원인**: 기존 테스트가 repository 를 mock (`updateMe` 만 검증) → 실제 SQL 바인딩 미검증. 회귀 보호로 `user.repository.test.ts` 에 capturing pool 단위 테스트 4개 추가 — placeholder 번호가 `1..values.length` contiguous 인지 invariant 검증 (single/multi/null/unknown-column).
+- **검증**: user-service jest 164 PASS. 라이브: PATCH `{preferred_celebrity_slug:'ariana-grande'}` → 200 + 영속, `{display_name:'NewName'}` → 200 + 영속 (slug 보존). 컨테이너 `--build` 재기동 후 확인.
+- **Review tier**: L2 (단일 서비스 버그 수정, DB/스키마/auth 형상 변경 없음).
+### 미완료: 없음.
+### 연관 파일: services/user-service/src/repositories/user.repository.ts, services/user-service/tests/unit/user.repository.test.ts
