@@ -223,6 +223,40 @@ describe('registerJwtAuth — JWKS mode', () => {
       'Missing or malformed Authorization header',
     );
   });
+
+  // Regression: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001 — base_diets is the same
+  // content-service catalog tier as celebrities. meal-plan-engine's content_client
+  // and BFF /api/base-diets/:id both call token-less. FIX-STAGING-CATALOG-PUBLIC-001
+  // added /celebrities* but missed /base-diets* → internal/JWKS mode (staging) 401'd
+  // the base-diets fetch and meal-plan generation failed. Locks the wildcard for
+  // /base-diets/:id and /base-diets/:id/recipes.
+  it('skips verification for public catalog path /base-diets and /base-diets/*', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, { publicPaths: ['/base-diets', '/base-diets/*'] });
+
+    for (const url of [
+      '/base-diets',
+      '/base-diets/09d4aa19-5f90-45c1-b9a8-6f1075bef459',
+      '/base-diets/09d4aa19-5f90-45c1-b9a8-6f1075bef459/recipes',
+      '/base-diets/abc/recipes?limit=100',
+    ]) {
+      const request = createMockRequest({ url, headers: {} });
+      // No Authorization header — must NOT throw because path is public.
+      await getFirstHook(app)(request, mockReply);
+    }
+  });
+
+  it('still enforces auth on /recipes/:id/personalized when /base-diets/* is public', async () => {
+    const app = createMockApp();
+    registerJwtAuth(app, {
+      publicPaths: ['/celebrities', '/celebrities/*', '/base-diets', '/base-diets/*'],
+    });
+
+    const request = createMockRequest({ url: '/recipes/abc/personalized', headers: {} });
+    await expect(getFirstHook(app)(request, mockReply)).rejects.toThrow(
+      'Missing or malformed Authorization header',
+    );
+  });
 });
 
 // CHORE-MOBILE-AUTH-TOKEN-STRATEGY-001 — internal HS256 mode. Verifies the
