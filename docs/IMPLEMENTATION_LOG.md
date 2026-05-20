@@ -6739,7 +6739,7 @@ verified_by: claude-opus-4-7 (staging ops backlog audit + IMPL_LOG grep open-sta
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: FEAT-MOBILE-TRIAL-MEALPLAN-001
-commit_sha: PENDING
+commit_sha: 23466a4
 files_changed:
   - packages/shared-types/src/schemas/subscriptions.ts
   - services/user-service/src/lib/trial.ts
