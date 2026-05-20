@@ -6440,7 +6440,7 @@ verified_by: claude-opus-4-7
 date: 2026-05-19
 agent: claude-opus-4-7
 task_id: CHORE-AUTH-ASYMMETRIC-SIGNING-001
-commit_sha: PENDING
+commit_sha: e42ee08
 files_changed:
   - services/user-service/src/services/auth.service.ts
   - services/user-service/tests/unit/internal-token-rs256.test.ts
