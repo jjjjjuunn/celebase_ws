@@ -53,3 +53,17 @@ export async function saveBioProfile(
   });
   return schemas.BioProfileResponseSchema.parse(raw);
 }
+
+/**
+ * bio-profile 조회. 온보딩 완료 여부의 서버 진실(source of truth) —
+ * 식단 생성 게이트(3-state)가 이 결과로 "온보딩 완료 vs 미완료" 를 판정한다.
+ *
+ * 프로필이 없으면 BE 가 NotFoundError → 404 → ApiError(404) throw.
+ * 호출자(게이트)는 404 를 "미온보딩" 신호로 catch 한다.
+ *
+ * @throws ApiError 404 (프로필 부재 = 미온보딩) / 그 외 4xx·5xx
+ */
+export async function getBioProfile(): Promise<schemas.BioProfileResponse> {
+  const raw = await authedFetch<unknown>('/api/users/me/bio-profile');
+  return schemas.BioProfileResponseSchema.parse(raw);
+}

@@ -58,3 +58,34 @@ export async function listCelebrityClaims(
   );
   return schemas.LifestyleClaimListResponseSchema.parse(raw);
 }
+
+/**
+ * 셀럽의 base_diet 목록 — 식단 생성 시 "셀럽 선택 → 그 셀럽 base_diet_id" 로컬 조인.
+ * 현재 seed 는 셀럽당 base_diet 1개라 첫 row 를 사용 (다중 diet 선택은 post-launch).
+ * 데이터 소유는 content-service (rule #10: meal-plan-engine 직접 조인 금지).
+ *
+ * @throws ApiError BFF 4xx/5xx
+ */
+export async function getCelebrityDiets(
+  slug: string,
+): Promise<schemas.CelebrityDietsResponse> {
+  const raw = await authedFetch<unknown>(
+    `/api/celebrities/${encodeURIComponent(slug)}/diets`,
+  );
+  return schemas.CelebrityDietsResponseSchema.parse(raw);
+}
+
+/**
+ * 단일 base_diet 조회 — plan 캘린더에서 base_diet_id → 셀럽명 역방향 조인용
+ * (BaseDietWire.celebrity_id + name). content-service 소유.
+ *
+ * @throws ApiError BFF 4xx/5xx
+ */
+export async function getBaseDiet(
+  id: string,
+): Promise<schemas.BaseDietDetailResponse> {
+  const raw = await authedFetch<unknown>(
+    `/api/base-diets/${encodeURIComponent(id)}`,
+  );
+  return schemas.BaseDietDetailResponseSchema.parse(raw);
+}
