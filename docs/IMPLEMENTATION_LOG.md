@@ -6774,3 +6774,45 @@ verified_by: claude-opus-4-7 (typecheck + lint + unit tests green; terraform fmt
 - **Review tier**: L3 (인증·토큰·federation) — Codex/Gemini CLI fallback 적용, claude-self-adversarial 1회 (10 threat 점검, 신규 CRITICAL/HIGH 0). pipeline-log 미경유 단일 오너 lockstep PR.
 ### 미완료: 실 활성화 (Google Cloud / Apple Developer 자격증명 발급 + Terraform apply + EAS dev build + 기기 E2E) — 사용자 작업, `docs/runbooks/SOCIAL-LOGIN-SETUP.md` 참조. 후속 백로그: PreSignUp Lambda auto-link, iOS 네이티브 Apple 버튼, provider 로고 에셋, `LoginRequestSchema` email optional.
 ### 연관 파일: infra/cognito/{main,variables,outputs}.tf, packages/service-core/src/errors.ts, services/user-service/src/services/auth.service.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/components/SocialAuthButtons.tsx, docs/runbooks/SOCIAL-LOGIN-SETUP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7 (1M) + advisor (design + Google aud reconcile) + WebSearch/WebFetch (SDK API)
+task_id: IMPL-MOBILE-SOCIAL-NATIVE-001
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/errors.ts
+  - packages/service-core/src/index.ts
+  - packages/shared-types/src/schemas/auth.ts
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/services/social-auth.provider.ts
+  - services/user-service/tests/unit/social-auth.provider.test.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - services/user-service/tests/integration/auth.cognito.integration.test.ts
+  - apps/mobile/app.config.js
+  - apps/mobile/package.json
+  - apps/mobile/jest.setup.js
+  - apps/mobile/src/lib/social-config.ts
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/components/SocialAuthButtons.tsx
+  - apps/mobile/.env.example
+  - apps/mobile/__tests__/services/social-auth.test.ts
+  - spec.md
+  - docs/SPEC-PIVOT-PLAN.md
+  - docs/runbooks/SOCIAL-LOGIN-SETUP.md
+verified_by: claude-opus-4-7 (BE 184/184 + mobile 149/149 unit green; typecheck + lint clean; expo config 검증; claude-self-adversarial L3)
+---
+### 완료: 네이티브 Apple/Google 소셜 로그인 — Cognito 페더레이션 폐기 (IMPL-MOBILE-SOCIAL-NATIVE-001)
+- **PIVOT 사유**: 기기 테스트에서 (1) Google 재로그인 `user.email: Attribute cannot be updated` (Cognito 가 immutable pool 의 매핑 email 재기록 실패), (2) Hosted-UI 웹 다이얼로그가 네이티브 UX 아님. → IMPL-MOBILE-SOCIAL-001 의 Hosted-UI federation 을 **네이티브 provider id_token 직접 검증**으로 전환. 두 문제 동시 해결. email/password 는 그대로 Cognito SRP.
+- **BE (user-service + service-core + shared-types)**: `social-auth.provider.ts` 신규 — `AppleAuthProvider` (RS256 + iss `appleid.apple.com` + aud=bundle ID 단일 + exp), `GoogleAuthProvider` (RS256 + iss 양쪽 표기 + aud=GOOGLE_CLIENT_IDS allowlist any-match + exp). provider `sub` 을 `apple:`/`google:` prefix 로 `users.cognito_sub` 에 저장 (스키마 변경 0, lazy-provision 재사용). `auth.routes.ts` 가 body `provider` 로 dispatch (신뢰 안 함 — strict verifier 가 fail-close), 미설정 → `400 SOCIAL_PROVIDER_NOT_CONFIGURED` (no fallback). `LoginRequest` 에 `provider?` + `email` optional. Apple 최초 로그인 email 부재 → `400 APPLE_EMAIL_REQUIRED` (빈 email INSERT 방지). `env.ts` `APPLE_BUNDLE_ID`/`GOOGLE_CLIENT_IDS` (부팅 시 `.apps.googleusercontent.com` 형식 검증). 기존 409 충돌 정책 유지.
+- **Mobile (apps/mobile)**: `social-auth.ts` 재작성 — `expo-apple-authentication` (`signInAsync` → identityToken) + `@react-native-google-signin@16` (`signIn` → idToken, `webClientId` 가 aud). `app.config.js` 신규 — Apple plugin 항상, Google plugin 은 `EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME` 있을 때만 (env 부재 시도 빌드됨, Apple 동작 = runs-anywhere). `cognito.ts` 의 `loginWith.oauth` 제거 (SRP-only). `social-config.ts` per-provider 게이팅 (Apple iOS-only). `@aws-amplify/rtn-web-browser` 제거.
+- **보안 (advisor reconcile)**: Google aud 는 라이브러리(@react-native-google-signin)가 webClientId 로 발급 → BE 는 env allowlist 로 검증 (특정 client 타입 가정 X, 1차 출처 Google backend-auth 문서와 일치). Apple aud 는 deterministic single bundle ID. cross-provider fallback 없음 — forgery 차단막은 per-verifier strict iss+aud+sig+exp.
+- **테스트**: BE 22 신규 (provider verify matrix incl. 위조/allowlist/Apple no-email/route dispatch + fail-close), 전 184 green / coverage 87%. mobile social-auth 재작성 (Apple/Google success·no-email·cancel·missing-config·409), 전 149 green. typecheck + lint clean (BE + mobile). `expo config` 로 plugin resolve 양쪽 env 검증.
+- **Review tier**: L3 — Gemini CLI 도구 부재로 claude-self-adversarial 1회 (10 threat, 신규 CRITICAL/HIGH 0, runbook §12). advisor 2회 (설계 승인 + Google aud reconcile). 단일 오너 lockstep PR.
+### 미완료: 실 활성화 (Google iOS+Web OAuth client / Apple "Sign in with Apple" capability + mobile·BE env 주입 + EAS dev build + 기존 federated 테스트 계정 정리 + 기기 E2E) — 사용자 작업, `docs/runbooks/SOCIAL-LOGIN-SETUP.md`. 후속 백로그: `CHORE-COGNITO-IDP-DEPRECATE-001` (vestigial Cognito Hosted-UI IdP + mobile client OAuth flow 제거), PreSignUp/verified-email auto-link, provider 로고 에셋.
+### 연관 파일: services/user-service/src/services/social-auth.provider.ts, services/user-service/src/routes/auth.routes.ts, packages/shared-types/src/schemas/auth.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/app.config.js, docs/runbooks/SOCIAL-LOGIN-SETUP.md

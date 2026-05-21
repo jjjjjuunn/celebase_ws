@@ -41,7 +41,8 @@
 | IMPL-MOBILE-PAY-001c | backlog | §3 schema (`stripe_event_id` drop) | contract phase 별도 진행 |
 | IMPL-MOBILE-SUB-SYNC-001 | ✅ merged (PR #41) — **부분 ship** (webhook + adapter + sync helper 만, internal route 미구현) | §4.2 Subscriptions Internal (`POST /internal/subscriptions/refresh-from-revenuecat` + 캐시 정책 source=purchase 우회 / source=app_open 60s) | ✅ `SPEC-SYNC-SUB-001` 완료 — §3 행 참조. 실제 internal route 는 IMPL-MOBILE-SUB-SYNC-001b 에서 backfill. |
 | IMPL-MOBILE-SUB-SYNC-001b | 🟡 in-progress (PR pending) | §4.2 Subscriptions Internal — 본 PR 이 실제 route 신설 (request/response shape, idempotencyKey, 캐시 X 명시). Internal JWT audience = `commerce-service:internal` 추가 | finalize patch — spec line 1150 cache 정책 정정 (cache 없음 + CHORE-SUB-CACHE-001 backlog 명시) |
-| IMPL-MOBILE-SOCIAL-001 | 🟡 local (PR pending) — 풀스택 lockstep (INFRA Terraform IdP + BE 409 collision + Mobile Hosted-UI UI) | §11.1.1 신규 (Social Federation Google/Apple — Hosted UI 페더레이션, count-gated IdP, mobile client OAuth code+PKCE, 409 충돌 정책 no-auto-link), §10 MVP Auth 행 갱신 | finalize patch 완료 — 실 활성화는 Google/Apple 자격증명 주입 대기 (`docs/runbooks/SOCIAL-LOGIN-SETUP.md`) |
+| IMPL-MOBILE-SOCIAL-001 | ⏭️ superseded by IMPL-MOBILE-SOCIAL-NATIVE-001 (Hosted-UI federation 폐기) | §11.1.1 (구 Hosted-UI 버전 — NATIVE 로 대체) | — |
+| IMPL-MOBILE-SOCIAL-NATIVE-001 | 🟡 local (PR pending) — 풀스택 lockstep (BE native verifier + provider dispatch + Mobile native SDK). BE 184 / mobile 149 unit pass | §11.1.1 재작성 (Native Social — provider id_token 직접 검증, Apple aud=bundleID / Google aud=GOOGLE_CLIENT_IDS allowlist, provider dispatch + 400 fail-close + APPLE_EMAIL_REQUIRED + 409 충돌), §10 MVP Auth 행 갱신 | 실 활성화는 Google iOS+Web client / Apple capability + mobile·BE env + EAS dev build 대기 (`docs/runbooks/SOCIAL-LOGIN-SETUP.md`). Terraform IdP 정리는 `CHORE-COGNITO-IDP-DEPRECATE-001` backlog |
 
 ### Session C — BFF + CI
 
