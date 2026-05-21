@@ -149,13 +149,18 @@ resource "aws_cognito_user_pool_client" "smoke" {
 # staging.auto.tfvars or -var (see docs/runbooks/SOCIAL-LOGIN-SETUP.md).
 
 locals {
-  google_enabled = var.google_oauth_client_id != "" && var.google_oauth_client_secret != ""
+  # Gate on the NON-sensitive identifier only. Referencing the sensitive
+  # secret/key here (google_oauth_client_secret / apple_private_key) would
+  # propagate sensitivity into mobile_identity_providers and break the
+  # social_providers_enabled output ("Output refers to sensitive values").
+  # The secret's presence is enforced by a lifecycle.precondition on each IdP
+  # resource below — so a half-filled config still fails fast and clearly.
+  google_enabled = var.google_oauth_client_id != ""
 
   apple_enabled = (
     var.apple_services_id != "" &&
     var.apple_team_id != "" &&
-    var.apple_key_id != "" &&
-    var.apple_private_key != ""
+    var.apple_key_id != ""
   )
 
   # Cognito provider names. NOTE: Cognito names Apple "SignInWithApple" — this
@@ -185,6 +190,13 @@ resource "aws_cognito_identity_provider" "google" {
   attribute_mapping = {
     email = "email"
   }
+
+  lifecycle {
+    precondition {
+      condition     = var.google_oauth_client_secret != ""
+      error_message = "google_oauth_client_secret must be set when google_oauth_client_id is provided."
+    }
+  }
 }
 
 resource "aws_cognito_identity_provider" "apple" {
@@ -207,6 +219,13 @@ resource "aws_cognito_identity_provider" "apple" {
   # write — so re-login works.
   attribute_mapping = {
     email = "email"
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.apple_private_key != ""
+      error_message = "apple_private_key must be set when apple_services_id is provided."
+    }
   }
 }
 
