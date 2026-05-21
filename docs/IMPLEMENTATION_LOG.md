@@ -6910,3 +6910,22 @@ verified_by: claude-opus-4-7 (CI Lint+Tests — celebrities BFF 패턴 정확 �
 - **Review tier**: L2 (단일 BFF 파일 + 테스트; auth·PHI·스키마 형상 무변경, mobile 계약 보존).
 ### 부수 결정 (#3, 사용자 확정 2026-05-20): staging `INTERNAL_JWT_SECRET`(HS256) + `INTERNAL_JWT_PRIVATE_KEY`(RS256, 전 서비스 공유) 가 진단 세션 transcript 에 노출됨 → **staging-only 로 risk 수용** (staging 전용 + 테스트 데이터 + prod 는 별도 pool/키 G3). rotate 안 함 (진행 중 social-login 세션 충돌 + 실위험 낮음). 서비스별 private key 분리는 prod 키 발급 시 `CHORE-AUTH-ASYMMETRIC-SIGNING-001` 잔존 항목으로 처리.
 ### 연관 파일: apps/web/src/app/api/base-diets/[id]/route.ts, apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-SOCIAL-NATIVE-001
+commit_sha: 6a751fd
+files_changed:
+  - docs/IMPLEMENTATION_LOG.md
+  - docs/runbooks/SOCIAL-LOGIN-SETUP.md
+verified_by: claude-opus-4-7 (staging live device E2E — Apple + Google signup success; native apple/google sub rows confirmed; Cognito bypass confirmed)
+---
+### 완료: 네이티브 소셜 로그인 staging 활성화 + 기기 E2E 통과 — closure (IMPL-MOBILE-SOCIAL-NATIVE-001)
+- **배포**: PR #145 (squash `e23690b`) → CD 가 user-service + web(BFF) 재배포 (CI 12 checks green, CD success, deploy 실제 container recreate 확인 — silent-exit 미발생). web 도 재배포되어 BFF 가 새 `provider` 필드를 forward (라이브 확인: BFF `provider:google` → 400 SOCIAL_PROVIDER_NOT_CONFIGURED).
+- **BE env 주입 (staging `/app/.env.staging`, EC2-local)**: `APPLE_BUNDLE_ID=com.celebase.mobile` + `GOOGLE_CLIENT_IDS=<web>,<ios>` (allowlist). 부팅 로그 `Social provider: apple (native)` + `Social provider: google (native)` 확인. AUTH_PROVIDER=cognito 와 독립 동작 확인. 라이브 fail-closed: 미설정 google → 400, 설정 후 junk token → 401.
+- **mobile**: Google iOS+Web OAuth client (Web 는 기존 "Cognito" client 재사용 — 네이티브는 그 ID 를 idToken aud 로만 사용, secret 미사용). Apple "Sign in with Apple" capability. `apps/mobile/.env` 3값 주입, `app.config.js` 가 reversed-scheme 를 plugin 에 주입 (expo config 양쪽 env 검증).
+- **기기 E2E (사용자, `staging.celebase.app`)**: Apple 로그인 성공, Google 로그인 성공 (Google 계정 2 + Apple 1). `users` 테이블에 `apple:001231...` / `google:108264...` / `google:113780...` 행 생성 확인, **Cognito user pool 미경유** 확인 (Cognito 에는 dev seed 만). Google 재로그인 `Attribute cannot be updated` 버그 재현 안 됨 (해소). 409 충돌 UX (옛 동일-email 계정) + 정리 후 정상 가입 라이브 확인.
+- **테스트 계정 정리**: 옛 federated/SRP 충돌 행 3개 + 검증용 native 행 2개 DB hard-delete (child FK 7개 테이블 → users, 단일 tx, `qownsdnjs@gmail.com` 1개 유지).
+### 미완료 (운영/후속, 본 task 범위 밖): 프로덕션 Cognito/Google/Apple 자격증명 + EAS prod build; `CHORE-COGNITO-IDP-DEPRECATE-001` (vestigial Cognito Hosted-UI IdP + mobile client OAuth flow 제거 — ⚠️ 그 과정에서 "Cognito" Google web client 는 네이티브 Google 의 idToken aud 로 쓰이므로 **삭제 금지**); 계정 link 기능 (PreSignUp / verified-email auto-link, 409 UX 대체); staging env 영속화 `CHORE-STAGING-ENV-MANAGEMENT-001` (`/app/.env.staging` EC2-local → SSM).
+### 연관 파일: docs/runbooks/SOCIAL-LOGIN-SETUP.md, docs/IMPLEMENTATION_LOG.md
