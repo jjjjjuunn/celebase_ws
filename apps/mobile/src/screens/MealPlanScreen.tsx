@@ -1,140 +1,400 @@
-// MealPlan — Plan tab 의 root. 사용자의 가장 최근 plan 의 오늘 끼니 + 영양 요약.
+// MealPlan — Plan tab 의 root. 크레딧 기반 식단 생성 게이트 + 날짜별 캘린더.
 //
-// 4 상태:
-//   - loading — 첫 fetch
-//   - empty   — plan 없음 (온보딩 필요 또는 generate 권유)
-//   - error   — 네트워크 / 4xx-5xx
-//   - loaded  — 최신 active plan 의 day[0] 표시
+// 데이터(한 reload 에서 병렬 fetch): bio-profile(온보딩 여부) · credits(잔량) · plans(목록).
+// 3-state 게이트:
+//   1. !bioPresent          → 온보딩 CTA (무료 크레딧 리워드 프레이밍)
+//   2. bioPresent + remaining>0 → credits 헤더 + [식단 만들기] → 생성 시트
+//   3. bioPresent + remaining===0 → credits 헤더 + [업그레이드] → Paywall
+// 캘린더: 모든 non-failed plan 의 daily_plans 를 날짜맵으로(최신 plan 우선) → 날짜 strip +
+//   선택일 상세(셀럽명은 base_diet_id→celebrity 로컬 조인, meal 리스트).
+//
+// 네비게이션은 prop 콜백으로 주입(PlanNavigator) — 화면은 nav 비의존(테스트 용이).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
+import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
+import { ApiError } from '../lib/api-client';
 import { px, resolveToken } from '../lib/tokens';
-import { listMyMealPlans } from '../services/meal-plans';
+import { getBioProfile } from '../services/bio-profile';
+import { getBaseDiet, listCelebrities } from '../services/celebrities';
+import { getMealPlanCredits, listMyMealPlans } from '../services/meal-plans';
 
-type Phase =
-  | { state: 'loading' }
-  | { state: 'empty' }
-  | { state: 'error'; message: string }
-  | { state: 'loaded'; plan: schemas.MealPlanWire };
+interface MealPlanScreenProps {
+  onNavigateOnboarding: () => void;
+  onNavigatePaywall: () => void;
+  /** PlanNavigator focus refresh 트리거 — 값이 바뀌면 전체 reload. */
+  reloadKey?: number;
+}
 
-export function MealPlanScreen(): React.JSX.Element {
+interface ScreenData {
+  bioPresent: boolean;
+  credits: schemas.MealPlanCreditsResponse | null;
+  plans: schemas.MealPlanWire[];
+  celebNameByBaseDiet: Record<string, string>;
+}
+
+type Phase = { state: 'loading' } | { state: 'error' } | { state: 'ready'; data: ScreenData };
+
+type DailyMeal = schemas.MealPlanWire['daily_plans'][number]['meals'][number];
+type DailyTotals = schemas.MealPlanWire['daily_plans'][number]['daily_totals'];
+
+interface CalendarDay {
+  date: string;
+  day: number;
+  celebName: string | null;
+  meals: DailyMeal[];
+  dailyTotals: DailyTotals;
+}
+
+async function loadScreen(): Promise<ScreenData> {
+  // bio: 404 → 미온보딩(absent). 그 외 에러는 throw → 화면 error.
+  const bioPromise = getBioProfile()
+    .then(() => true)
+    .catch((err: unknown) => {
+      if (err instanceof ApiError && err.status === 404) return false;
+      throw err;
+    });
+  // credits: 실패 시 null (fail-closed — 게이트가 잔량 0 으로 취급).
+  const creditsPromise = getMealPlanCredits().catch(() => null);
+  const plansPromise = listMyMealPlans().then((res) => res.items);
+
+  const [bioPresent, credits, plans] = await Promise.all([
+    bioPromise,
+    creditsPromise,
+    plansPromise,
+  ]);
+
+  const celebNameByBaseDiet = await resolveCelebNames(plans);
+  return { bioPresent, credits, plans, celebNameByBaseDiet };
+}
+
+// base_diet_id → 셀럽 display_name 로컬 조인 (rule #10: content-service 소유 데이터).
+// distinct base_diet_id 만 조회(plan 수 기준 bound). best-effort — 실패 시 이름 생략.
+async function resolveCelebNames(
+  plans: schemas.MealPlanWire[],
+): Promise<Record<string, string>> {
+  const baseDietIds = Array.from(new Set(plans.map((p) => p.base_diet_id)));
+  if (baseDietIds.length === 0) return {};
+
+  const [baseDiets, celebs] = await Promise.all([
+    Promise.all(
+      baseDietIds.map((id) =>
+        getBaseDiet(id)
+          .then((res) => res.base_diet)
+          .catch(() => null),
+      ),
+    ),
+    listCelebrities()
+      .then((res) => res.items)
+      .catch(() => [] as schemas.CelebrityWire[]),
+  ]);
+
+  const nameByCelebId = new Map(celebs.map((c) => [c.id, c.display_name]));
+  const map: Record<string, string> = {};
+  for (const bd of baseDiets) {
+    if (bd === null) continue;
+    const name = nameByCelebId.get(bd.celebrity_id);
+    if (name !== undefined) map[bd.id] = name;
+  }
+  return map;
+}
+
+function buildCalendar(
+  plans: schemas.MealPlanWire[],
+  celebNameByBaseDiet: Record<string, string>,
+): CalendarDay[] {
+  // created_at 오름차순으로 채워 최신 plan 이 같은 날짜를 덮어쓰게 한다(최신 우선).
+  const sorted = [...plans]
+    .filter((p) => p.status !== 'failed')
+    .sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+
+  const byDate = new Map<string, CalendarDay>();
+  for (const plan of sorted) {
+    for (const dp of plan.daily_plans) {
+      byDate.set(dp.date, {
+        date: dp.date,
+        day: dp.day,
+        celebName: celebNameByBaseDiet[plan.base_diet_id] ?? null,
+        meals: dp.meals,
+        dailyTotals: dp.daily_totals,
+      });
+    }
+  }
+  return Array.from(byDate.values()).sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
+/** credits 잔량 → 생성 가능 일수. null(fetch 실패)=0, unlimited override=무제한(7). */
+function remainingDays(credits: schemas.MealPlanCreditsResponse | null): number {
+  if (credits === null) return 0;
+  if (credits.credits_remaining === null) return 7; // unlimited override
+  return credits.credits_remaining;
+}
+
+export function MealPlanScreen({
+  onNavigateOnboarding,
+  onNavigatePaywall,
+  reloadKey = 0,
+}: MealPlanScreenProps): React.JSX.Element {
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
+  const [reloadCounter, setReloadCounter] = useState(0);
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setPhase({ state: 'loading' });
-
-    listMyMealPlans()
-      .then((res) => {
+    loadScreen()
+      .then((data) => {
         if (cancelled) return;
-        // 가장 최근 active plan 선택. 없으면 list 첫 항목, 그것도 없으면 empty.
-        if (res.items.length === 0) {
-          setPhase({ state: 'empty' });
-          return;
-        }
-        const activePlan = res.items.find((p) => p.status === 'active') ?? res.items[0];
-        setPhase({ state: 'loaded', plan: activePlan });
+        setPhase({ state: 'ready', data });
       })
-      .catch((err: unknown) => {
+      .catch(() => {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : 'unknown';
-        setPhase({ state: 'error', message });
+        setPhase({ state: 'error' });
       });
-
     return (): void => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey, reloadCounter]);
+
+  const plans = phase.state === 'ready' ? phase.data.plans : EMPTY_PLANS;
+  const celebMap = phase.state === 'ready' ? phase.data.celebNameByBaseDiet : EMPTY_MAP;
+  const calendar = useMemo(() => buildCalendar(plans, celebMap), [plans, celebMap]);
+
+  // 선택 날짜 기본값/유지 — refetch flicker(ready→loading→ready) 동안 선택이 초기화되지
+  // 않도록 ready 일 때만 갱신하고, 기존 선택이 여전히 유효하면 그대로 둔다(default snap-back 방지).
+  useEffect(() => {
+    if (phase.state !== 'ready') return;
+    if (calendar.length === 0) {
+      setSelectedDate(null);
+      return;
+    }
+    setSelectedDate((prev) => {
+      if (prev !== null && calendar.some((d) => d.date === prev)) return prev;
+      const today = new Date().toISOString().slice(0, 10);
+      return calendar.some((d) => d.date === today) ? today : calendar[0].date;
+    });
+  }, [calendar, phase.state]);
+
+  if (phase.state === 'loading') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.screenTitle}>Your Plan</Text>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (phase.state === 'error') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.screenTitle}>Your Plan</Text>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Couldn't load your plan.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const { bioPresent, credits } = phase.data;
+  const remaining = remainingDays(credits);
+
+  // state 1 — 미온보딩: 온보딩 CTA (무료 크레딧 리워드 프레이밍).
+  if (!bioPresent) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.screenTitle}>Your Plan</Text>
+        <View style={styles.centered}>
+          <Text style={styles.emptyEmoji}>🥗</Text>
+          <Text style={styles.emptyTitle}>프로필을 완성하세요</Text>
+          <Text style={styles.emptyBody}>
+            온보딩을 마치면 무료 식단 크레딧 3개를 드려요. 좋아하는 셀럽의 식단으로 시작해보세요.
+          </Text>
+          <TouchableOpacity
+            onPress={onNavigateOnboarding}
+            accessibilityRole="button"
+            accessibilityLabel="Start onboarding"
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>온보딩하고 크레딧 3개 받기</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const selectedDay = calendar.find((d) => d.date === selectedDate) ?? null;
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.screenTitle}>Your Plan</Text>
 
-      {phase.state === 'loading' ? (
-        <View style={styles.centered}>
-          <ActivityIndicator
-            size="large"
-            color={resolveToken('light', '--cb-color-brand')}
-          />
-        </View>
-      ) : phase.state === 'empty' ? (
-        <View style={styles.centered}>
-          <Text style={styles.emptyEmoji}>🥗</Text>
-          <Text style={styles.emptyTitle}>No plan yet</Text>
-          <Text style={styles.emptyBody}>
-            Complete your profile to receive a personalized plan inspired by your favorite celebrities.
-          </Text>
-        </View>
-      ) : phase.state === 'error' ? (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load your plan.</Text>
-        </View>
-      ) : (
-        <LoadedPlan plan={phase.plan} />
-      )}
+      <ScrollView contentContainerStyle={styles.body}>
+        <CreditsHeader credits={credits} remaining={remaining} />
+
+        {remaining > 0 ? (
+          <TouchableOpacity
+            onPress={() => {
+              setSheetVisible(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Open generate sheet"
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>+ 식단 만들기</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={onNavigatePaywall}
+            accessibilityRole="button"
+            accessibilityLabel="Upgrade for credits"
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>크레딧 받기 · 업그레이드</Text>
+          </TouchableOpacity>
+        )}
+
+        {calendar.length === 0 ? (
+          <Text style={styles.bodyText}>아직 식단이 없어요. 위에서 만들어보세요.</Text>
+        ) : (
+          <>
+            <DateStrip
+              days={calendar}
+              selectedDate={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date);
+              }}
+            />
+            {selectedDay !== null ? <DayDetail day={selectedDay} /> : null}
+          </>
+        )}
+      </ScrollView>
+
+      <MealPlanGenerateSheet
+        visible={sheetVisible}
+        maxDays={remaining}
+        onClose={() => {
+          setSheetVisible(false);
+        }}
+        onGenerated={() => {
+          setSheetVisible(false);
+          setReloadCounter((c) => c + 1);
+        }}
+      />
     </SafeAreaView>
   );
 }
 
-interface LoadedPlanProps {
-  plan: schemas.MealPlanWire;
+const EMPTY_PLANS: schemas.MealPlanWire[] = [];
+const EMPTY_MAP: Record<string, string> = {};
+
+interface CreditsHeaderProps {
+  credits: schemas.MealPlanCreditsResponse | null;
+  remaining: number;
 }
 
-function LoadedPlan({ plan }: LoadedPlanProps): React.JSX.Element {
-  // daily_plans 가 비어있는 plan 도 wire 상 valid (BE 생성 중 / 실패). guard.
-  if (plan.daily_plans.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.bodyText}>This plan has no daily meals yet.</Text>
-      </View>
-    );
-  }
-  const today = plan.daily_plans[0]; // 가장 첫 날 표시. 추후 today 매칭 / day 선택 chore.
+function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.Element {
+  const tierLabel = credits?.tier ?? 'free';
+  const unlimited = credits !== null && credits.credits_total === null;
+  const totalLabel = unlimited ? '무제한' : `${String(remaining)} / ${String(credits?.credits_total ?? 0)}`;
+  const resetAt = credits?.credits_reset_at ?? null;
 
   return (
-    <ScrollView contentContainerStyle={styles.body}>
-      <View style={styles.planHeaderCard}>
-        <Text style={styles.planName}>{plan.name ?? 'My Plan'}</Text>
-        <Text style={styles.planDates}>
-          {plan.start_date} — {plan.end_date}
-        </Text>
-        <View style={styles.macrosRow}>
-          <MacroBox label="kcal" value={String(Math.round(today.daily_totals.calories))} />
-          <MacroBox label="P" value={`${String(Math.round(today.daily_totals.protein_g))}g`} />
-          <MacroBox label="C" value={`${String(Math.round(today.daily_totals.carbs_g))}g`} />
-          <MacroBox label="F" value={`${String(Math.round(today.daily_totals.fat_g))}g`} />
-        </View>
+    <View style={styles.creditsCard}>
+      <View style={styles.creditsRow}>
+        <Text style={styles.creditsTier}>{tierLabel.toUpperCase()}</Text>
+        <Text style={styles.creditsValue}>{unlimited ? '무제한' : `${totalLabel} 크레딧`}</Text>
       </View>
-
-      <Text style={styles.sectionTitle}>Today's meals</Text>
-
-      {today.meals.length === 0 ? (
-        <Text style={styles.bodyText}>No meals scheduled.</Text>
+      {resetAt !== null ? (
+        <Text style={styles.creditsReset}>다음 리셋: {resetAt.slice(0, 10)}</Text>
       ) : (
-        today.meals.map((meal, idx) => (
-          <MealCard key={`${meal.meal_type}-${String(idx)}`} meal={meal} />
-        ))
+        <Text style={styles.creditsReset}>온보딩 무료 크레딧 (1회성)</Text>
       )}
+    </View>
+  );
+}
+
+interface DateStripProps {
+  days: CalendarDay[];
+  selectedDate: string | null;
+  onSelect: (date: string) => void;
+}
+
+function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.Element {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.dateStrip}
+    >
+      {days.map((d) => {
+        const isSel = d.date === selectedDate;
+        return (
+          <TouchableOpacity
+            key={d.date}
+            onPress={() => {
+              onSelect(d.date);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`Day ${d.date}`}
+            accessibilityState={{ selected: isSel }}
+            style={[styles.datePill, isSel ? styles.datePillSelected : styles.datePillUnselected]}
+          >
+            <Text style={isSel ? styles.datePillTextSelected : styles.datePillText}>
+              {d.date.slice(5)}
+            </Text>
+            {d.celebName !== null ? (
+              <Text style={styles.datePillCeleb} numberOfLines={1}>
+                {d.celebName}
+              </Text>
+            ) : null}
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
 
-interface MacroBoxProps {
-  label: string;
-  value: string;
+function DayDetail({ day }: { day: CalendarDay }): React.JSX.Element {
+  return (
+    <View style={styles.detail}>
+      <View style={styles.planHeaderCard}>
+        <Text style={styles.planName}>{day.celebName ?? 'My Plan'}</Text>
+        <Text style={styles.planDates}>{day.date}</Text>
+        <View style={styles.macrosRow}>
+          <MacroBox label="kcal" value={String(Math.round(day.dailyTotals.calories))} />
+          <MacroBox label="P" value={`${String(Math.round(day.dailyTotals.protein_g))}g`} />
+          <MacroBox label="C" value={`${String(Math.round(day.dailyTotals.carbs_g))}g`} />
+          <MacroBox label="F" value={`${String(Math.round(day.dailyTotals.fat_g))}g`} />
+        </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>Meals</Text>
+      {day.meals.length === 0 ? (
+        <Text style={styles.bodyText}>No meals scheduled.</Text>
+      ) : (
+        day.meals.map((meal, idx) => (
+          <MealCard key={`${meal.meal_type}-${String(idx)}`} meal={meal} />
+        ))
+      )}
+    </View>
+  );
 }
 
-function MacroBox({ label, value }: MacroBoxProps): React.JSX.Element {
+function MacroBox({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
     <View style={styles.macroBox}>
       <Text style={styles.macroValue}>{value}</Text>
@@ -143,11 +403,7 @@ function MacroBox({ label, value }: MacroBoxProps): React.JSX.Element {
   );
 }
 
-interface MealCardProps {
-  meal: schemas.MealPlanWire['daily_plans'][number]['meals'][number];
-}
-
-function MealCard({ meal }: MealCardProps): React.JSX.Element {
+function MealCard({ meal }: { meal: DailyMeal }): React.JSX.Element {
   const kcal = meal.adjusted_nutrition?.calories;
   return (
     <View style={styles.mealCard}>
@@ -208,8 +464,90 @@ const styles = StyleSheet.create({
     fontSize: px(tokens.light['--cb-body-md']),
     color: resolveToken('light', '--cb-color-error'),
   },
-  planHeaderCard: {
+  primaryButton: {
+    marginHorizontal: px(tokens.light['--cb-space-4']),
+    marginBottom: px(tokens.light['--cb-space-3']),
+    paddingVertical: px(tokens.light['--cb-button-pad-y']),
+    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
+  },
+  primaryButtonText: {
+    fontSize: px(tokens.light['--cb-body-md']),
+    fontWeight: '700',
+    color: resolveToken('light', '--cb-color-on-brand'),
+  },
+  creditsCard: {
     margin: px(tokens.light['--cb-space-4']),
+    padding: px(tokens.light['--cb-space-4']),
+    backgroundColor: resolveToken('light', '--cb-color-surface'),
+    borderRadius: 16,
+    gap: 6,
+  },
+  creditsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  creditsTier: {
+    fontSize: px(tokens.light['--cb-caption']),
+    fontWeight: '700',
+    color: resolveToken('light', '--cb-color-brand'),
+    letterSpacing: 1,
+  },
+  creditsValue: {
+    fontSize: px(tokens.light['--cb-body-md']),
+    fontWeight: '700',
+    color: resolveToken('light', '--cb-color-text'),
+  },
+  creditsReset: {
+    fontSize: px(tokens.light['--cb-caption']),
+    color: resolveToken('light', '--cb-color-text-muted'),
+  },
+  dateStrip: {
+    paddingHorizontal: px(tokens.light['--cb-space-4']),
+    gap: px(tokens.light['--cb-space-2']),
+    paddingBottom: px(tokens.light['--cb-space-3']),
+  },
+  datePill: {
+    minWidth: 64,
+    paddingVertical: px(tokens.light['--cb-space-2']),
+    paddingHorizontal: px(tokens.light['--cb-space-3']),
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    gap: 2,
+  },
+  datePillSelected: {
+    borderColor: resolveToken('light', '--cb-color-brand'),
+    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
+  },
+  datePillUnselected: {
+    borderColor: 'transparent',
+    backgroundColor: resolveToken('light', '--cb-color-surface'),
+  },
+  datePillText: {
+    fontSize: px(tokens.light['--cb-body-sm']),
+    fontWeight: '600',
+    color: resolveToken('light', '--cb-color-text'),
+  },
+  datePillTextSelected: {
+    fontSize: px(tokens.light['--cb-body-sm']),
+    fontWeight: '700',
+    color: resolveToken('light', '--cb-color-brand'),
+  },
+  datePillCeleb: {
+    fontSize: px(tokens.light['--cb-caption']),
+    color: resolveToken('light', '--cb-color-text-muted'),
+    maxWidth: 72,
+  },
+  detail: {
+    paddingTop: px(tokens.light['--cb-space-2']),
+  },
+  planHeaderCard: {
+    marginHorizontal: px(tokens.light['--cb-space-4']),
+    marginBottom: px(tokens.light['--cb-space-3']),
     padding: px(tokens.light['--cb-space-4']),
     backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
     borderRadius: 16,
