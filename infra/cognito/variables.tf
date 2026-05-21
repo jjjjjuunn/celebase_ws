@@ -85,7 +85,7 @@ variable "google_oauth_client_secret" {
 }
 
 variable "apple_services_id" {
-  description = "Apple 'Services ID' (the OAuth client_id, e.g. com.celebbase.mobile.signin). Empty disables Apple."
+  description = "Apple 'Services ID' (the OAuth client_id, e.g. com.celebase.mobile.signin). Empty disables Apple."
   type        = string
   default     = ""
 }
@@ -116,11 +116,11 @@ variable "mobile_callback_urls" {
     app's custom URL scheme (app.json `scheme`), not https.
   EOT
   type        = list(string)
-  default     = ["celebbase://callback/"]
+  default     = ["celebase://callback/"]
 }
 
 variable "mobile_logout_urls" {
   description = "OAuth logout redirect URLs for the mobile client (custom scheme). Must match Amplify `redirectSignOut`."
   type        = list(string)
-  default     = ["celebbase://signout/"]
+  default     = ["celebase://signout/"]
 }

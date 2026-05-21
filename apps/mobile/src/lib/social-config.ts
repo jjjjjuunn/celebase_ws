@@ -11,8 +11,10 @@ export type SocialProvider = 'Google' | 'Apple';
 
 // Custom URL scheme — MUST match app.json `scheme` AND the Terraform
 // `mobile_callback_urls` / `mobile_logout_urls` defaults (infra/cognito).
-// Defined once here so all three stay in lockstep.
-export const OAUTH_SCHEME = 'celebbase';
+// Defined once here so all three stay in lockstep. NOTE: single-b "celebase"
+// is the brand (the Cognito Hosted-UI *domain* stays "celebbase-staging" — a
+// separate, already-deployed identifier; do not conflate the two).
+export const OAUTH_SCHEME = 'celebase';
 export const OAUTH_REDIRECT_SIGN_IN = `${OAUTH_SCHEME}://callback/`;
 export const OAUTH_REDIRECT_SIGN_OUT = `${OAUTH_SCHEME}://signout/`;
 

@@ -36,7 +36,10 @@
 | Region | `us-west-2` |
 | User Pool ID | `us-west-2_GvpQnHLEj` |
 | Cognito IdP response URL (Google/Apple 둘 다) | `https://celebbase-staging.auth.us-west-2.amazoncognito.com/oauth2/idpresponse` |
-| App Bundle ID (iOS/Android) | `com.celebbase.mobile` |
+| App Bundle ID (iOS/Android) | `com.celebase.mobile` (브랜드 single-b) |
+| App URL scheme | `celebase://` |
+
+> 철자 두 갈래 주의: **앱/브랜드 식별자는 single-b `celebase`** (Bundle ID, scheme, 표시이름) / **Cognito Hosted-UI 도메인은 double-b `celebbase-staging`** (이미 배포된 별개 식별자 — 안 바꿈). 둘은 다른 시스템의 식별자라 일치할 필요 없음.
 
 직접 재확인: `cd infra/cognito && terraform output hosted_ui_domain` 또는 AWS Console → Cognito → User Pool `us-west-2_GvpQnHLEj` → App integration → Domain.
 
@@ -68,16 +71,16 @@
 > 결과물: **Services ID** + **Team ID** + **Key ID** + **.p8 Private Key** 4개.
 
 1. https://developer.apple.com/account → **Certificates, Identifiers & Profiles**.
-2. **Identifiers → App IDs**: `com.celebbase.mobile` App ID 에 **Sign In with Apple** 활성화.
-   - 목록에 `com.celebbase.mobile` 이 **없으면 새로 만든다** (기존 `com.example.swimTrainingApp` 같은 다른 앱과 무관 — 별도 생성):
+2. **Identifiers → App IDs**: `com.celebase.mobile` App ID 에 **Sign In with Apple** 활성화. (브랜드 = single-b `celebase`.)
+   - 목록에 `com.celebase.mobile` 이 **없으면 새로 만든다** (기존 `com.example.swimTrainingApp` 같은 다른 앱과 무관 — 별도 생성):
      - "Identifiers" 제목 옆 **파란 ⊕(+) 동그라미** 클릭 → **App IDs** 선택 → Continue → type **App** → Continue.
-     - Description `CelebBase`, Bundle ID = **Explicit** `com.celebbase.mobile`.
+     - Description `Celebase`, Bundle ID = **Explicit** `com.celebase.mobile`.
      - **Capabilities** 목록에서 **Sign In with Apple** 체크 → Continue → Register.
    - (`apple_team_id` 는 developer.apple.com 우상단 이름 옆 10자리 — 예: `L8BU5UCBJA`.)
 3. **Identifiers → ⊕(+) → Services IDs**: 새 Services ID 생성. 이게 OAuth `client_id` 가 된다.
-   - Identifier 예: `com.celebbase.mobile.signin` (App ID 와 달라야 함).
+   - Identifier 예: `com.celebase.mobile.signin` (App ID 와 달라야 함).
    - 생성 후 편집 → **Sign In with Apple → Configure**:
-     - **Primary App ID**: `com.celebbase.mobile`
+     - **Primary App ID**: `com.celebase.mobile`
      - **Domains and Subdomains**:
        ```
        celebbase-staging.auth.us-west-2.amazoncognito.com
@@ -93,7 +96,7 @@
 
 | Terraform 변수 | Apple 값 |
 |----------------|----------|
-| `apple_services_id` | Services ID identifier (예: `com.celebbase.mobile.signin`) |
+| `apple_services_id` | Services ID identifier (예: `com.celebase.mobile.signin`) |
 | `apple_team_id` | 10자리 Team ID |
 | `apple_key_id` | .p8 Key 의 Key ID |
 | `apple_private_key` | .p8 파일 전체 PEM 내용 (`-----BEGIN PRIVATE KEY-----` 포함) |
@@ -111,7 +114,7 @@
    google_oauth_client_id     = "xxxx.apps.googleusercontent.com"
    google_oauth_client_secret = "GOCSPX-xxxx"
 
-   apple_services_id = "com.celebbase.mobile.signin"
+   apple_services_id = "com.celebase.mobile.signin"
    apple_team_id     = "ABCDE12345"
    apple_key_id      = "XYZ123ABC"
    apple_private_key = <<-EOT
@@ -131,7 +134,7 @@
    ```bash
    terraform output hosted_ui_domain        # 모바일 env 에 넣을 값
    terraform output social_providers_enabled # ["COGNITO","Google","SignInWithApple"] 확인
-   terraform output mobile_callback_urls     # ["celebbase://callback/"] — 모바일과 lockstep
+   terraform output mobile_callback_urls     # ["celebase://callback/"] — 모바일과 lockstep
    ```
 
 > 자격증명 일부만 채우면 그 provider 만 켜진다 (예: Google 만 채우면 Google 만). 빈 값이면 federation no-op.
@@ -154,15 +157,17 @@
    ```bash
    pnpm install
    ```
-3. **dev build 재생성 필수** (네이티브 모듈 추가 → Expo Go / 기존 build 로는 안 됨):
+3. **dev build 재생성 필수** (네이티브 모듈 추가 + bundle ID/scheme 변경 → Expo Go / 기존 build 로는 안 됨):
    ```bash
    cd apps/mobile
-   npx expo run:ios          # 로컬 (Xcode 필요)
+   npx expo prebuild --clean   # ⚠️ bundle ID/scheme 가 바뀌었으니 기존 ios/android 재생성 (clean 필수)
+   npx expo run:ios            # 로컬 (Xcode 필요)
    # 또는
    eas build --profile development --platform ios
    eas build --profile development --platform android
    ```
-   - `app.json` 에 `"scheme": "celebbase"` 가 이미 추가되어 있어 리다이렉트 (`celebbase://callback/`) 가 앱으로 돌아온다. prebuild 가 iOS Info.plist `CFBundleURLTypes` / Android intent-filter 를 자동 생성한다.
+   - `app.json` 의 `"scheme": "celebase"` 로 리다이렉트 (`celebase://callback/`) 가 앱으로 돌아온다. prebuild 가 iOS Info.plist `CFBundleURLTypes` / Android intent-filter 를 자동 생성한다.
+   - ⚠️ 이전에 `com.celebbase.mobile` 로 한 번이라도 `expo run:ios` 했다면, `apps/mobile/ios` (gitignore 대상) 가 옛 bundle ID 로 남아있다 → `--clean` 으로 반드시 재생성. 시뮬레이터/기기의 옛 앱도 삭제.
 
 ---
 
@@ -171,7 +176,7 @@
 - **Apple Guideline 4.8**: 타사 소셜 로그인(Google)을 제공하면 "Sign in with Apple" 도 제공해야 한다 → 본 구현이 Apple 을 함께 제공하므로 충족. **단** Hosted UI 는 네이티브 Apple 시트가 아니라 웹 리다이렉트라, 드물게 심사에서 네이티브 버튼을 요구할 수 있다. 반려 시 옵션: (a) 심사 노트로 Hosted UI federation 임을 설명, (b) iOS 만 네이티브 `expo-apple-authentication` 으로 후속 전환 (별도 task).
 - **Apple "Hide My Email"**: 사용자가 이메일 가리기를 선택하면 `xxx@privaterelay.appleid.com` relay 주소가 영구 식별자로 저장된다. 이는 정상 동작 — 그 주소가 그 사용자의 이메일이다.
 - **Apple email 1회성**: Apple 은 **최초 동의 시에만** email 을 반환한다. Cognito 가 immutable `email` 속성에 영속화하므로 재로그인 시에도 유지된다 (별도 처리 불필요). 만약 테스트 중 Apple 연결을 끊었다 다시 하려면, Apple ID 설정 → "Apps Using Apple ID" 에서 앱을 제거해야 email 이 다시 온다.
-- **OAuth 리다이렉트 보안**: mobile client 는 `generate_secret=false` + PKCE 로 보호된다. custom scheme(`celebbase://`) 은 이론상 동일 기기의 악성 앱이 가로챌 수 있으나 PKCE 가 code 교환을 막는다 (알려진 모바일 OAuth 위협 모델). prod 출시 전 인지만 하면 됨.
+- **OAuth 리다이렉트 보안**: mobile client 는 `generate_secret=false` + PKCE 로 보호된다. custom scheme(`celebase://`) 은 이론상 동일 기기의 악성 앱이 가로챌 수 있으나 PKCE 가 code 교환을 막는다 (알려진 모바일 OAuth 위협 모델). prod 출시 전 인지만 하면 됨.
 
 ---
 
@@ -226,8 +231,26 @@
 | 3 | **재방문 소셜 사용자 오탐 409** | `findByCognitoSub` 가 먼저 매칭 → 충돌 분기 미도달. 회귀 테스트 존재. |
 | 4 | **동시 첫 로그인 race 오탐 409** | create null 후 sub 재조회가 winner row (동일 sub) 매칭 → `incumbent.cognito_sub !== payload.sub` 거짓 → 충돌 분기 미도달. 테스트 존재. |
 | 5 | **Hub listener 누수/교차오염** | one-shot listener + `finally` cleanup + 3분 timeout. 버튼은 flight 중 disabled. user-cancel cleanup 테스트 존재. |
-| 6 | **custom scheme 가로채기** | 동일 기기 악성 앱이 `celebbase://` 가로채도 PKCE (`generate_secret=false` + code_verifier) 가 code 교환 차단. |
+| 6 | **custom scheme 가로채기** | 동일 기기 악성 앱이 `celebase://` 가로채도 PKCE (`generate_secret=false` + code_verifier) 가 code 교환 차단. |
 | 7 | **시크릿 노출** | mobile 에 client secret 없음 (`generate_secret=false`). Google/Apple secret 은 gitignored tfvars → Cognito 만 보유, 클라이언트 미전달. |
 | 8 | **로그 PII 누출** | `auth.account.provider_collision` 은 `hashId(email/sub)` 만 emit (Rule #8), emit-before-throw 보장. token/raw email 미기록. |
 | 9 | **email claim 부재 처리** | id_token 에 email 없으면 BFF 호출 **전에** throw + `amplifySignOut` → malformed 요청 미발생. |
 | 10 | **비활성 시 공격면** | env/자격증명 부재 시 oauth config 미적용 + 버튼 숨김 → 소셜 경로 자체가 비활성, 추가 공격면 0 (dormant). |
+
+---
+
+## 12. 네이밍 메모 — `celebase`(single-b) vs `celebbase`(double-b)
+
+> 브랜드는 single-b **`celebase`** 다. 코드에 번진 double-b `celebbase` 중 **사용자/외부 노출 + 출시 후 영구 고정되는 식별자만** single-b 로 정리했다 (IMPL-MOBILE-SOCIAL-001). 나머지 double-b 는 **의도적으로 유지** — 안 보이고, 바꾸면 위험만 크다. 향후 "celebbase 싹 정리" PR 이 아래를 **무심코 건드리지 않도록** 명시한다.
+
+| 항목 | 표기 | 왜 안 바꾸나 |
+|------|------|--------------|
+| `@celebbase/*` npm 스코프 (183 파일) | double-b 유지 | 비공개 workspace, npm 미게시 — 사용자에게 안 보임. 바꾸면 전 import 갱신(순수 churn). |
+| JWT issuer `celebbase-user-service` (48곳) | **double-b 유지 (위험)** | BFF / user-service / docker-compose(2) / `auth.service.ts` `DEFAULT_INTERNAL_ISSUER` / shared-types 가 **lockstep 일치**해야 함. 하나라도 어긋나면 **401 cascade 무음 인증 실패** (CLAUDE.md "JWT issuer 정렬" 교훈). 바꾸려면 위 전부 동시 변경 필수. |
+| Cognito Hosted-UI 도메인 `celebbase-staging` | double-b 유지 | **이미 배포됨** + globally-unique. 바꾸려면 `aws_cognito_user_pool_domain` destroy/recreate(Hosted UI 다운타임) + prefix 전역 가용 확인 + Google/Apple redirect URI lockstep 갱신. |
+| S3 `celebbase-terraform-state` / DynamoDB `celebbase-terraform-locks` | double-b 유지 | 배포된 state 백엔드 — 이름 변경 = state 마이그레이션. 내부, 안 보임. |
+| Bundle ID / scheme / 표시이름 | **single-b 로 변경됨** | App Store 출시 후 영구 고정 + 사용자 노출 → 지금(출시 전) 정리. |
+
+**prod 배포 시 free win**: prod Cognito 를 만들 때 `hosted_ui_prefix = "celebase"` 로 시작하면 prod 도메인이 처음부터 `celebase-prod.auth.us-west-2.amazoncognito.com` (single-b) 가 된다 — staging 의 오타를 물려받지 않는다. (staging 은 그대로 둔다.)
+
+**로그인 중 도메인 노출이 신경 쓰이면**: Cognito custom domain (`auth.celebase.app` + ACM cert) 으로 Hosted-UI 도메인 자체를 브랜드화 가능 — 별도 인프라 task (지금 범위 밖).

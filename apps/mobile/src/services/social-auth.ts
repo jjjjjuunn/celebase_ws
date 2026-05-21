@@ -6,7 +6,7 @@
 //        ASWebAuthenticationSession (iOS) / Chrome Custom Tabs (Android) via
 //        the @aws-amplify/rtn-web-browser native module
 //        ↓
-//   provider auth → redirect back to celebbase://callback/
+//   provider auth → redirect back to celebase://callback/
 //        ↓
 //   Amplify exchanges the auth code for Cognito tokens, then emits the
 //   'signInWithRedirect' event on the Hub 'auth' channel

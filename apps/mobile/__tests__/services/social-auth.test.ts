@@ -52,6 +52,7 @@ import { __resetAuthEvents } from '../../src/lib/auth-events';
 const signInWithRedirectMock = signInWithRedirect as jest.MockedFunction<typeof signInWithRedirect>;
 const fetchAuthSessionMock = fetchAuthSession as jest.MockedFunction<typeof fetchAuthSession>;
 const amplifySignOutMock = amplifySignOut as jest.MockedFunction<typeof amplifySignOut>;
+// eslint-disable-next-line @typescript-eslint/unbound-method -- Hub.listen is a jest.fn() mock (no `this`), safe to reference unbound
 const hubListenMock = Hub.listen as unknown as jest.Mock;
 const resetSecureStore = (SecureStore as unknown as { __resetMemory: () => void }).__resetMemory;
 
