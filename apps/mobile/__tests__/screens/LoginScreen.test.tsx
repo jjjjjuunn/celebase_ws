@@ -22,9 +22,15 @@ describe('LoginScreen', () => {
   it('타이틀 / 입력 필드 / 로그인 버튼을 렌더한다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
+    render(
+      <LoginScreen
+        onSuccess={onSuccess}
+        onSignupRequest={onSignupRequest}
+        onForgotPasswordRequest={jest.fn()}
+      />,
+    );
 
-    expect(screen.getByText('Sign in to continue to Celebase')).toBeTruthy();
+    expect(screen.getByText('Sign in to continue to CelebBase')).toBeTruthy();
     expect(screen.getByLabelText('Email')).toBeTruthy();
     expect(screen.getByLabelText('Password')).toBeTruthy();
     expect(screen.getByLabelText('Sign in')).toBeTruthy();
@@ -33,19 +39,32 @@ describe('LoginScreen', () => {
   it('빈 이메일로 제출 시 validation 에러 메시지가 표시되고 onSuccess 는 호출되지 않는다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
+    render(
+      <LoginScreen
+        onSuccess={onSuccess}
+        onSignupRequest={onSignupRequest}
+        onForgotPasswordRequest={jest.fn()}
+      />,
+    );
 
     fireEvent.press(screen.getByLabelText('Sign in'));
 
-    // Zod 가 첫 에러 (email invalid) 메시지를 노출
-    expect(screen.getByText(/email/i)).toBeTruthy();
+    // Zod 가 첫 에러 (email invalid) 메시지를 노출.
+    // /email/i 는 FormField 의 "Email" 라벨과도 매칭되어 ambiguous → 에러 메시지 전용 매처 사용.
+    expect(screen.getByText(/valid email/i)).toBeTruthy();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
   it('invalid email 입력 시 validation 에러를 표시한다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
+    render(
+      <LoginScreen
+        onSuccess={onSuccess}
+        onSignupRequest={onSignupRequest}
+        onForgotPasswordRequest={jest.fn()}
+      />,
+    );
 
     fireEvent.changeText(screen.getByLabelText('Email'), 'not-an-email');
     fireEvent.changeText(screen.getByLabelText('Password'), 'pw');

@@ -5,24 +5,28 @@
 //   step 'confirm': 6자리 코드 입력 → confirmSignUpAndLogin 호출
 //                   → BFF /signup → SecureStore → onSuccess 콜백
 //
-// password 는 step 1 에서 보관 후 step 2 에서 signIn 에 재사용 (Cognito 흐름상
-// confirmation 후 별도 로그인 필요).
+// 디자인: 웹 `apps/web/src/app/(auth)/signup/page.tsx` 의 카드 + label 위 input
+// 패턴 적용. PasswordRequirements 가 카드 내 password input 바로 아래.
 
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
 
 import { tokens } from '@celebbase/design-tokens';
 
+import { AuthCardLayout } from '../components/AuthCardLayout';
+import { FormErrorBox } from '../components/FormErrorBox';
+import { FormField } from '../components/FormField';
+import { PasswordRequirements } from '../components/PasswordRequirements';
 import { ApiError } from '../lib/api-client';
+import { PasswordSchema, isPasswordValid } from '../lib/password-policy';
 import { confirmSignUpAndLogin, signUp } from '../services/auth';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { px, resolveToken } from '../lib/tokens';
 
 const SignupFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.').max(255),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
+  password: PasswordSchema,
   display_name: z.string().min(1, 'Please enter your name.').max(100),
 });
 
@@ -42,12 +46,9 @@ type Step = 'form' | 'confirm';
 export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): React.JSX.Element {
   const [step, setStep] = useState<Step>('form');
 
-  // form step
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-
-  // confirm step
   const [code, setCode] = useState('');
 
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +69,8 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
         display_name: parsed.data.display_name,
       });
       if (result.nextStep === 'DONE') {
-        // Cognito 가 자동 가입 — 별도 confirmation 불필요. 바로 confirmSignUpAndLogin 으로
-        // BFF /signup 호출 (코드는 무시 — Cognito 가 통과시킬 것).
+        // Cognito 가 자동 가입 — 별도 confirmation 불필요. 바로 confirmSignUpAndLogin
+        // 으로 BFF /signup 호출 (코드는 무시 — Cognito 가 통과시킬 것).
         await runConfirm('');
       } else {
         setStep('confirm');
@@ -109,135 +110,143 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
   }
 
   if (step === 'form') {
+    const passwordValid = isPasswordValid(password);
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Get started with Celebase</Text>
-
-        <TextInput
-          accessibilityLabel="Email"
-          autoCapitalize="none"
-          autoComplete="email"
-          autoCorrect={false}
-          editable={!submitting}
-          keyboardType="email-address"
-          onChangeText={setEmail}
-          placeholder="Email"
-          placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-          style={styles.input}
-          textContentType="emailAddress"
-          value={email}
-        />
-        <TextInput
-          accessibilityLabel="Name"
-          autoCapitalize="words"
-          editable={!submitting}
-          onChangeText={setDisplayName}
-          placeholder="Your name"
-          placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-          style={styles.input}
-          textContentType="name"
-          value={displayName}
-        />
-        <TextInput
-          accessibilityLabel="Password"
-          autoCapitalize="none"
-          autoComplete="password-new"
-          autoCorrect={false}
-          editable={!submitting}
-          onChangeText={setPassword}
-          placeholder="Password (at least 8 characters)"
-          placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-          secureTextEntry
-          style={styles.input}
-          textContentType="newPassword"
-          value={password}
-        />
-
-        {error !== null && (
-          <Text accessibilityRole="alert" style={styles.error}>
-            {error}
+      <AuthCardLayout>
+        <View style={styles.intro}>
+          <Text accessibilityRole="header" style={styles.title}>
+            Create account
           </Text>
-        )}
+          <Text style={styles.subtitle}>Get started with CelebBase</Text>
+        </View>
 
-        <TouchableOpacity
-          accessibilityLabel="Sign up"
-          testID="signup-submit"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: submitting }}
-          disabled={submitting}
-          onPress={() => {
-            void handleSignup();
-          }}
-          style={[styles.button, submitting && styles.buttonDisabled]}
-        >
-          {submitting ? (
-            <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
-          ) : (
-            <Text style={styles.buttonText}>Sign up</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.form}>
+          <FormErrorBox message={error} />
 
-        <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+          <FormField
+            id="signup-name"
+            label="Display name"
+            autoCapitalize="words"
+            editable={!submitting}
+            onChangeText={setDisplayName}
+            placeholder="Your name"
+            textContentType="name"
+            value={displayName}
+          />
 
-        <TouchableOpacity
-          accessibilityLabel="Back to sign in"
-          accessibilityRole="link"
-          disabled={submitting}
-          onPress={onBackToLogin}
-          style={styles.linkButton}
-        >
-          <Text style={styles.linkText}>Already have an account? Sign in</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+          <FormField
+            id="signup-email"
+            label="Email"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect={false}
+            editable={!submitting}
+            keyboardType="email-address"
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            textContentType="emailAddress"
+            value={email}
+          />
+
+          <FormField
+            id="signup-password"
+            label="Password"
+            autoCapitalize="none"
+            autoComplete="password-new"
+            autoCorrect={false}
+            editable={!submitting}
+            onChangeText={setPassword}
+            placeholder=""
+            secureTextEntry
+            textContentType="newPassword"
+            value={password}
+          />
+
+          <PasswordRequirements password={password} />
+
+          <TouchableOpacity
+            accessibilityLabel="Sign up"
+            testID="signup-submit"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: submitting || !passwordValid }}
+            disabled={submitting || !passwordValid}
+            onPress={() => {
+              void handleSignup();
+            }}
+            style={[
+              styles.submit,
+              (submitting || !passwordValid) && styles.submitDisabled,
+            ]}
+          >
+            {submitting ? (
+              <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
+            ) : (
+              <Text style={styles.submitText}>Sign up</Text>
+            )}
+          </TouchableOpacity>
+
+          <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+        </View>
+
+        <View style={styles.switchRow}>
+          <Text style={styles.switchText}>Already have an account? </Text>
+          <TouchableOpacity
+            accessibilityLabel="Back to sign in"
+            accessibilityRole="link"
+            disabled={submitting}
+            onPress={onBackToLogin}
+          >
+            <Text style={styles.switchLink}>Sign in</Text>
+          </TouchableOpacity>
+        </View>
+      </AuthCardLayout>
     );
   }
 
   // step === 'confirm'
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Verify your email</Text>
-      <Text style={styles.subtitle}>
-        Enter the 6-digit code sent to {email}.
-      </Text>
-
-      <TextInput
-        accessibilityLabel="Verification code"
-        autoCapitalize="none"
-        editable={!submitting}
-        keyboardType="number-pad"
-        maxLength={6}
-        onChangeText={setCode}
-        placeholder="123456"
-        placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-        style={styles.input}
-        textContentType="oneTimeCode"
-        value={code}
-      />
-
-      {error !== null && (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {error}
+    <AuthCardLayout>
+      <View style={styles.intro}>
+        <Text accessibilityRole="header" style={styles.title}>
+          Verify your email
         </Text>
-      )}
+        <Text style={styles.subtitle}>Enter the 6-digit code sent to {email}.</Text>
+      </View>
 
-      <TouchableOpacity
-        accessibilityLabel="Verify code"
-        accessibilityRole="button"
-        accessibilityState={{ disabled: submitting }}
-        disabled={submitting}
-        onPress={() => {
-          void handleConfirm();
-        }}
-        style={[styles.button, submitting && styles.buttonDisabled]}
-      >
-        {submitting ? (
-          <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
-        ) : (
-          <Text style={styles.buttonText}>Verify</Text>
-        )}
-      </TouchableOpacity>
-    </SafeAreaView>
+      <View style={styles.form}>
+        <FormErrorBox message={error} />
+
+        <FormField
+          id="signup-code"
+          label="Verification code"
+          autoCapitalize="none"
+          editable={!submitting}
+          keyboardType="number-pad"
+          maxLength={6}
+          onChangeText={setCode}
+          placeholder="123456"
+          textContentType="oneTimeCode"
+          value={code}
+        />
+
+        <TouchableOpacity
+          accessibilityLabel="Verify code"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: submitting }}
+          disabled={submitting}
+          onPress={() => {
+            void handleConfirm();
+          }}
+          style={[styles.submit, submitting && styles.submitDisabled]}
+        >
+          {submitting ? (
+            <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
+          ) : (
+            <Text style={styles.submitText}>Verify</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </AuthCardLayout>
   );
 }
 
@@ -253,10 +262,9 @@ function mapErrorToMessage(err: unknown): string {
     }
   }
   if (err instanceof Error) {
-    // Cognito 표준 에러 — `err.name` 으로 분기
     if (err.name === 'UsernameExistsException') return 'This email is already registered.';
     if (err.name === 'InvalidPasswordException') {
-      return 'Password must include uppercase, lowercase, number, and special character.';
+      return 'Password must be at least 12 characters and include uppercase, lowercase, and a number.';
     }
     if (err.name === 'CodeMismatchException') return 'The code is incorrect.';
     if (err.name === 'ExpiredCodeException') return 'The code has expired. Please sign up again.';
@@ -266,63 +274,51 @@ function mapErrorToMessage(err: unknown): string {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
+  intro: {
+    gap: px(tokens.light['--cb-space-2']),
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    marginBottom: px(tokens.light['--cb-space-2']),
+    fontSize: px(tokens.light['--cb-font-size-xl']),
+    fontWeight: '600',
+    color: resolveToken('light', '--cb-color-text'),
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: px(tokens.light['--cb-body-md']),
+    fontSize: px(tokens.light['--cb-font-size-sm']),
     color: resolveToken('light', '--cb-color-text-muted'),
-    marginBottom: px(tokens.light['--cb-space-5']),
     textAlign: 'center',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-    borderRadius: 8,
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
+  form: {
+    gap: px(tokens.light['--cb-space-3']),
   },
-  error: {
-    color: resolveToken('light', '--cb-color-error'),
-    fontSize: px(tokens.light['--cb-body-sm']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
+  submit: {
     paddingVertical: px(tokens.light['--cb-space-3']),
-    borderRadius: 8,
+    paddingHorizontal: px(tokens.light['--cb-space-4']),
+    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
+    borderRadius: px(tokens.light['--cb-radius-md']),
     alignItems: 'center',
     marginTop: px(tokens.light['--cb-space-2']),
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  submitDisabled: {
+    opacity: 0.55,
   },
-  buttonText: {
-    color: resolveToken('light', '--cb-color-bg'),
-    fontSize: px(tokens.light['--cb-body-md']),
+  submitText: {
+    color: resolveToken('light', '--cb-cta-text'),
+    fontSize: px(tokens.light['--cb-font-size-md']),
     fontWeight: '600',
   },
-  linkButton: {
-    marginTop: px(tokens.light['--cb-space-3']),
-    alignItems: 'center',
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'baseline',
   },
-  linkText: {
+  switchText: {
+    fontSize: px(tokens.light['--cb-font-size-sm']),
+    color: resolveToken('light', '--cb-color-text-muted'),
+  },
+  switchLink: {
+    fontSize: px(tokens.light['--cb-font-size-sm']),
+    fontWeight: '600',
     color: resolveToken('light', '--cb-color-brand'),
-    fontSize: px(tokens.light['--cb-body-sm']),
   },
 });

@@ -1,18 +1,19 @@
 // 로그인 화면 — email + password 입력 + signIn 호출.
 //
-// M1 의 사용자 가시 진입점. 회원가입 (signUp + confirmSignUp) 흐름은 M1-F backlog
-// 로 분리 — Cognito confirmation 코드 입력 단계 + resend 등이 UI 복잡도 증가.
+// 디자인: 웹 `apps/web/src/app/(auth)/login/page.tsx` 의 카드 + label-above-input
+// + 시각적 에러 박스 패턴 적용. AuthCardLayout 으로 중앙 카드 + 브랜드 상단.
 //
 // validation: Zod inline (RHF 의존성 추가 회피 — 2 필드 폼에 oversized).
-// error 표면화: signIn 의 ApiError.code (BFF envelope code) 와 일반 Error 모두 처리.
 
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
 
 import { tokens } from '@celebbase/design-tokens';
 
+import { AuthCardLayout } from '../components/AuthCardLayout';
+import { FormErrorBox } from '../components/FormErrorBox';
+import { FormField } from '../components/FormField';
 import { ApiError } from '../lib/api-client';
 import { signIn } from '../services/auth';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
@@ -28,9 +29,15 @@ interface LoginScreenProps {
   onSuccess: () => void;
   /** "계정 만들기" 링크 탭 시 호출 — 호출자가 SignupScreen 으로 전환. */
   onSignupRequest: () => void;
+  /** "비밀번호 찾기" 링크 탭 시 호출 — 호출자가 ForgotPasswordScreen 으로 전환. */
+  onForgotPasswordRequest: () => void;
 }
 
-export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): React.JSX.Element {
+export function LoginScreen({
+  onSuccess,
+  onSignupRequest,
+  onForgotPasswordRequest,
+}: LoginScreenProps): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -57,85 +64,97 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Welcome back</Text>
-      <Text style={styles.subtitle}>Sign in to continue to Celebase</Text>
-
-      <TextInput
-        accessibilityLabel="Email"
-        testID="login-email"
-        autoCapitalize="none"
-        autoComplete="email"
-        autoCorrect={false}
-        editable={!submitting}
-        keyboardType="email-address"
-        onChangeText={setEmail}
-        placeholder="Email"
-        placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-        style={styles.input}
-        textContentType="emailAddress"
-        value={email}
-      />
-
-      <TextInput
-        accessibilityLabel="Password"
-        testID="login-password"
-        autoCapitalize="none"
-        autoComplete="password"
-        autoCorrect={false}
-        editable={!submitting}
-        onChangeText={setPassword}
-        placeholder="Password"
-        placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
-        secureTextEntry
-        style={styles.input}
-        textContentType="password"
-        value={password}
-      />
-
-      {error !== null && (
-        <Text accessibilityRole="alert" style={styles.error}>
-          {error}
+    <AuthCardLayout>
+      <View style={styles.intro}>
+        <Text accessibilityRole="header" style={styles.title}>
+          Welcome back
         </Text>
-      )}
+        <Text style={styles.subtitle}>Sign in to continue to CelebBase</Text>
+      </View>
 
-      <TouchableOpacity
-        accessibilityLabel="Sign in"
-        testID="login-submit"
-        accessibilityRole="button"
-        accessibilityState={{ disabled: submitting }}
-        disabled={submitting}
-        onPress={() => {
-          void handleSubmit();
-        }}
-        style={[styles.button, submitting && styles.buttonDisabled]}
-      >
-        {submitting ? (
-          <ActivityIndicator color={resolveToken('light', '--cb-color-bg')} />
-        ) : (
-          <Text style={styles.buttonText}>Sign in</Text>
-        )}
-      </TouchableOpacity>
+      <View style={styles.form}>
+        <FormErrorBox message={error} />
 
-      <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+        <FormField
+          id="login-email"
+          label="Email"
+          testID="login-email"
+          autoCapitalize="none"
+          autoComplete="email"
+          autoCorrect={false}
+          editable={!submitting}
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          textContentType="emailAddress"
+          value={email}
+        />
 
-      <TouchableOpacity
-        accessibilityLabel="Create account"
-        testID="login-signup-link"
-        accessibilityRole="link"
-        disabled={submitting}
-        onPress={onSignupRequest}
-        style={styles.linkButton}
-      >
-        <Text style={styles.linkText}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <FormField
+          id="login-password"
+          label="Password"
+          testID="login-password"
+          autoCapitalize="none"
+          autoComplete="password"
+          autoCorrect={false}
+          editable={!submitting}
+          onChangeText={setPassword}
+          placeholder=""
+          secureTextEntry
+          textContentType="password"
+          value={password}
+        />
+
+        <TouchableOpacity
+          accessibilityLabel="Forgot password"
+          testID="login-forgot-link"
+          accessibilityRole="link"
+          disabled={submitting}
+          onPress={onForgotPasswordRequest}
+          style={styles.forgotLink}
+        >
+          <Text style={styles.forgotLinkText}>Forgot password?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          accessibilityLabel="Sign in"
+          testID="login-submit"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: submitting }}
+          disabled={submitting}
+          onPress={() => {
+            void handleSubmit();
+          }}
+          style={[styles.submit, submitting && styles.submitDisabled]}
+        >
+          {submitting ? (
+            <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
+          ) : (
+            <Text style={styles.submitText}>Sign in</Text>
+          )}
+        </TouchableOpacity>
+
+        <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+      </View>
+
+      <View style={styles.switchRow}>
+        <Text style={styles.switchText}>Don't have an account? </Text>
+        <TouchableOpacity
+          accessibilityLabel="Create account"
+          testID="login-signup-link"
+          accessibilityRole="link"
+          disabled={submitting}
+          onPress={onSignupRequest}
+        >
+          <Text style={styles.switchLink}>Sign up</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthCardLayout>
   );
 }
 
 function mapErrorToMessage(err: unknown): string {
   if (err instanceof ApiError) {
-    // BFF envelope code 별 사용자 친화 메시지. 5종 enum 외 케이스는 일반 메시지.
     switch (err.code) {
       case 'INVALID_CREDENTIALS':
         return 'Incorrect email or password.';
@@ -154,63 +173,60 @@ function mapErrorToMessage(err: unknown): string {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
+  intro: {
+    gap: px(tokens.light['--cb-space-2']),
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    marginBottom: px(tokens.light['--cb-space-2']),
+    fontSize: px(tokens.light['--cb-font-size-xl']),
+    fontWeight: '600',
+    color: resolveToken('light', '--cb-color-text'),
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: px(tokens.light['--cb-body-md']),
+    fontSize: px(tokens.light['--cb-font-size-sm']),
     color: resolveToken('light', '--cb-color-text-muted'),
-    marginBottom: px(tokens.light['--cb-space-5']),
     textAlign: 'center',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-    borderRadius: 8,
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
+  form: {
+    gap: px(tokens.light['--cb-space-3']),
   },
-  error: {
-    color: resolveToken('light', '--cb-color-error'),
-    fontSize: px(tokens.light['--cb-body-sm']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    textAlign: 'center',
+  forgotLink: {
+    alignSelf: 'flex-end',
+    paddingVertical: 2,
   },
-  button: {
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
+  forgotLinkText: {
+    color: resolveToken('light', '--cb-color-brand'),
+    fontSize: px(tokens.light['--cb-font-size-sm']),
+    fontWeight: '600',
+  },
+  submit: {
     paddingVertical: px(tokens.light['--cb-space-3']),
-    borderRadius: 8,
+    paddingHorizontal: px(tokens.light['--cb-space-4']),
+    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
+    borderRadius: px(tokens.light['--cb-radius-md']),
     alignItems: 'center',
     marginTop: px(tokens.light['--cb-space-2']),
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  submitDisabled: {
+    opacity: 0.55,
   },
-  buttonText: {
-    color: resolveToken('light', '--cb-color-bg'),
-    fontSize: px(tokens.light['--cb-body-md']),
+  submitText: {
+    color: resolveToken('light', '--cb-cta-text'),
+    fontSize: px(tokens.light['--cb-font-size-md']),
     fontWeight: '600',
   },
-  linkButton: {
-    marginTop: px(tokens.light['--cb-space-3']),
-    alignItems: 'center',
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'baseline',
   },
-  linkText: {
+  switchText: {
+    fontSize: px(tokens.light['--cb-font-size-sm']),
+    color: resolveToken('light', '--cb-color-text-muted'),
+  },
+  switchLink: {
+    fontSize: px(tokens.light['--cb-font-size-sm']),
+    fontWeight: '600',
     color: resolveToken('light', '--cb-color-brand'),
-    fontSize: px(tokens.light['--cb-body-sm']),
   },
 });
