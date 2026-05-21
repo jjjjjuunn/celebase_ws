@@ -6,6 +6,7 @@
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignupScreen } from '../screens/SignupScreen';
 import type { AuthStackParamList, AuthStackScreenProps } from './types';
@@ -22,6 +23,9 @@ function LoginRoute({ navigation }: AuthStackScreenProps<'Login'>): React.JSX.El
       }}
       onSignupRequest={() => {
         navigation.navigate('Signup');
+      }}
+      onForgotPasswordRequest={() => {
+        navigation.navigate('ForgotPassword');
       }}
     />
   );
@@ -41,11 +45,28 @@ function SignupRoute({ navigation }: AuthStackScreenProps<'Signup'>): React.JSX.
   );
 }
 
+function ForgotPasswordRoute({
+  navigation,
+}: AuthStackScreenProps<'ForgotPassword'>): React.JSX.Element {
+  return (
+    <ForgotPasswordScreen
+      // 재설정 완료 후 Login 으로 복귀 — 새 비밀번호로 사용자가 명시적으로 로그인.
+      onSuccess={() => {
+        navigation.navigate('Login');
+      }}
+      onBackToLogin={() => {
+        navigation.navigate('Login');
+      }}
+    />
+  );
+}
+
 export function AuthNavigator(): React.JSX.Element {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginRoute} />
       <Stack.Screen name="Signup" component={SignupRoute} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordRoute} />
     </Stack.Navigator>
   );
 }

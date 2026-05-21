@@ -17,8 +17,10 @@
 // 와 강결합 — 코드 입력 화면 필요).
 
 import {
+  confirmResetPassword as amplifyConfirmResetPassword,
   confirmSignUp as amplifyConfirmSignUp,
   fetchAuthSession,
+  resetPassword as amplifyResetPassword,
   signIn as amplifySignIn,
   signOut as amplifySignOut,
   signUp as amplifySignUp,
@@ -174,6 +176,47 @@ export async function confirmSignUpAndLogin(params: {
   });
   signalLogin('signup');
   return tokens;
+}
+
+/**
+ * 비밀번호 재설정 1단계: Cognito 가 사용자의 verified email 로 6자리 코드 발송.
+ *
+ * Cognito User Pool 의 `account_recovery_setting` 이 `verified_email` priority=1
+ * 로 설정되어 있어야 동작 (확인: `infra/cognito/main.tf`).
+ *
+ * 보안: 존재하지 않는 email 에 대해서도 Cognito 는 동일한 응답 코드를 반환할 수
+ * 있으나 일부 케이스에서 `UserNotFoundException` 을 노출한다. 호출자(UI)는 이
+ * exception 을 사용자에게 명시적으로 노출하지 말고 generic 메시지("If an account
+ * exists, a code has been sent") 로 처리해 user enumeration 을 회피한다.
+ *
+ * @throws Error Cognito 에러 — `err.name` 으로 분기 (`LimitExceededException`,
+ *               `InvalidParameterException`, `UserNotFoundException` 등)
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await clearStaleSession();
+  await amplifyResetPassword({ username: email });
+}
+
+/**
+ * 비밀번호 재설정 2단계: 코드 + 새 비밀번호 검증 + Cognito 저장.
+ *
+ * 호출 후 사용자는 새 비밀번호로 명시적으로 다시 로그인해야 한다 (자동 signIn
+ * 안 한다 — 코드 입력 화면에서 곧바로 main 진입은 UX 혼동 + 보안 의도성 약화).
+ *
+ * @throws Error Cognito 에러 (`CodeMismatchException`, `ExpiredCodeException`,
+ *               `InvalidPasswordException` 등)
+ */
+export async function confirmPasswordReset(params: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<void> {
+  const { email, code, newPassword } = params;
+  await amplifyConfirmResetPassword({
+    username: email,
+    confirmationCode: code,
+    newPassword,
+  });
 }
 
 /**

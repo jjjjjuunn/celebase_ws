@@ -28,6 +28,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: undefined;
 };
 
 // ── Discover stack (claims feed + detail + celeb detail) ────
