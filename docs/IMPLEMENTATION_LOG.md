@@ -30,6 +30,27 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-20
 agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-b1
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - packages/shared-types/src/schemas/meal-plans.ts
+  - apps/web/src/app/api/meal-plans/credits/route.ts
+  - apps/web/src/app/api/meal-plans/__tests__/meal-plans-bff.integration.test.ts
+verified_by: claude-opus-4-7 + claude-direct (web typecheck/lint/jest 36)
+---
+### 완료: 크레딧 계약 + BFF credits 라우트 (Phase B1) — IMPL-MEAL-CREDIT-001-b1
+- **배경**: Phase A(#147)가 BE에 `GET /meal-plans/credits` + 크레딧 모델을 도입. B1은 그 wire 계약을 shared-types에 반영하고 BFF 게이트웨이 라우트를 추가.
+- **shared-types**: `GetMySubscriptionResponseSchema`에서 `trial_active`/`trial_ends_at` 제거 → `{tier}`. 비파괴 확인: non-strict + optional 필드였고, FE/BFF/mobile 실소비처 0건(grep). 신규 `MealPlanCreditsResponseSchema = {tier, credits_remaining: int≥0|null, credits_total: int≥0|null, credits_reset_at: IsoDateTime|null}` (null은 unlimited admin override 한정). `export *`라 index.ts 자동 export.
+- **BFF**: `apps/web/src/app/api/meal-plans/credits/route.ts` — `createProtectedRoute` + `fetchBff('meal-plan','/meal-plans/credits', schema: MealPlanCreditsResponseSchema)`. static segment라 `[id]` 동적 라우트보다 우선 매칭.
+- **검증**: shared-types build + web typecheck + lint + jest(trial 필드 제거 회귀 0).
+### 미완료: Phase B2(user-service trial.ts 제거), Phase C(모바일). spec.md 크레딧 모델 sync 후속.
+### 연관 파일: packages/shared-types/src/schemas/subscriptions.ts, packages/shared-types/src/schemas/meal-plans.ts, apps/web/src/app/api/meal-plans/credits/route.ts
+
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-a
 commit_sha: a6a1237
 files_changed:

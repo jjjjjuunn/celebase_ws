@@ -58,18 +58,13 @@ export type CreateSubscriptionResponse = z.infer<typeof CreateSubscriptionRespon
 // (IMPL-MOBILE-SUB-SCHEMA-001). `SubscriptionWireSchema` is preserved for
 // cancel/checkout endpoints that still surface the full row.
 //
-// Trial fields (FEAT-MOBILE-TRIAL-MEALPLAN-001): the post-onboarding free trial
-// is server-anchored on `bio_profiles.created_at` (+ TRIAL_DURATION). During the
-// trial window a free-tier user is granted Premium-equivalent meal-plan
-// generation quota (meal-plan-engine honors `trial_active`). Both fields are
-// optional+defaulted so the BFF/mobile keep parsing during the deploy window
-// when user-service has not yet been updated (returns `{ tier }` only).
-//   - trial_active : within the trial window AND tier === 'free'.
-//   - trial_ends_at: ISO 8601 UTC instant the trial expires, else null.
+// The time-boxed free trial (FEAT-MOBILE-TRIAL-MEALPLAN-001) was replaced by the
+// credit model (IMPL-MEAL-CREDIT-001): a free user now gets a one-time lifetime
+// grant of meal-plan credits instead of a 3-day Premium-equivalent window. The
+// `trial_active` / `trial_ends_at` fields are removed here; meal-plan credit
+// state is exposed by `MealPlanCreditsResponseSchema` (see meal-plans.ts).
 export const GetMySubscriptionResponseSchema = z.object({
   tier: SubscriptionTier,
-  trial_active: z.boolean().optional().default(false),
-  trial_ends_at: IsoDateTime.nullable().optional().default(null),
 });
 export type GetMySubscriptionResponse = z.infer<typeof GetMySubscriptionResponseSchema>;
 

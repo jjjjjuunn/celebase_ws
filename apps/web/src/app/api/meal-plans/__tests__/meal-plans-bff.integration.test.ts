@@ -32,6 +32,7 @@ import {
   VALID_SESSION_PAYLOAD,
 } from '../../_lib/__tests__/test-helpers';
 import { GET as mealPlansGET, POST as mealPlansPOST } from '../route';
+import { GET as creditsGET } from '../credits/route';
 
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
 
@@ -160,6 +161,64 @@ describe('BFF integration — POST /api/meal-plans', () => {
     const res = await mealPlansPOST(req);
 
     expect(res.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+const CREDITS_PAYLOAD = {
+  tier: 'premium',
+  credits_remaining: 14,
+  credits_total: 15,
+  credits_reset_at: '2026-06-01T00:00:00.000Z',
+};
+
+describe('BFF integration — GET /api/meal-plans/credits', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetRateLimitBucketsForTest();
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('200 — forwards to meal-plan-service /meal-plans/credits', async () => {
+    validSession();
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(CREDITS_PAYLOAD, 200));
+    const req = makeRequest({ cookie: 'valid-access' });
+    const res = await creditsGET(req);
+
+    expect(res.status).toBe(200);
+    const calledUrl = fetchSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toBe('http://localhost:3003/meal-plans/credits');
+    const body = (await res.json()) as { credits_total: number; credits_remaining: number };
+    expect(body.credits_total).toBe(15);
+    expect(body.credits_remaining).toBe(14);
+  });
+
+  it('200 — free tier with null reset (lifetime grant)', async () => {
+    validSession();
+    fetchSpy.mockResolvedValueOnce(
+      upstreamResponse(
+        { tier: 'free', credits_remaining: 3, credits_total: 3, credits_reset_at: null },
+        200,
+      ),
+    );
+    const req = makeRequest({ cookie: 'valid-access' });
+    const res = await creditsGET(req);
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { credits_reset_at: string | null };
+    expect(body.credits_reset_at).toBeNull();
+  });
+
+  it('401 UNAUTHORIZED when cb_access missing', async () => {
+    const req = makeRequest();
+    const res = await creditsGET(req);
+
+    expect(res.status).toBe(401);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
