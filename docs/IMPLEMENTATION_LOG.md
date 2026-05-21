@@ -30,6 +30,28 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-21
 agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-c3b
+commit_sha: c1115cd
+files_changed:
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/src/navigation/PlanNavigator.tsx
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash + codex (mobile typecheck/lint/jest)
+---
+### 완료: MealPlanScreen 재작성 — 3-state 게이트 + 캘린더 + 시트 통합 (Phase C3b) — IMPL-MEAL-CREDIT-001-c3b
+- **배경**: 크레딧 모델 모바일 트랙 최종. MealPlanScreen 을 `daily_plans[0]` 정적 표시에서 크레딧 게이트 + 날짜별 캘린더로 재작성. C1 데이터 + C2 CelebrityPicker + C3a GenerateSheet 통합.
+- **변경**:
+  - `screens/MealPlanScreen.tsx`: `loadScreen()` 단일 reload 에서 bio-profile(404=미온보딩)·credits·plans 병렬 fetch. 3-state 게이트 — (1)!bio→온보딩 CTA, (2)remaining>0→credits 헤더+[식단 만들기]→시트, (3)remaining===0→[업그레이드]→Paywall. fail-closed: bio non-404=화면 error, credits 실패=null(잔량 0 취급), plans 실패=error. `remainingDays`: null=0, unlimited override=7. 캘린더: non-failed plan 의 daily_plans 를 날짜맵(최신 plan 우선)으로 → 날짜 strip + 선택일 상세. base_diet_id→셀럽명 로컬 조인(rule #10). selectedDate 는 refetch flicker 동안 유효 선택 보존. 생성 완료→`reloadCounter`로 refetch.
+  - `navigation/PlanNavigator.tsx`: MealPlanRoute 래퍼 — rootNav 콜백(Onboarding/Paywall) 주입 + `useFocusEffect`로 focus 시 `reloadKey` 증가(최초 skip). 결제 후 복귀 시 stale "업그레이드" CTA 제거.
+- **3-pass 리뷰**: advisor(selectedDate snap-back 보존 + 내부 reloadCounter 메터링 테스트 누락 → 둘 다 반영), gemini-2.5-flash(buildCalendar created_at 정렬 — 이미 구현됨 확인), codex(검토). 전부 PASS.
+- **검증**: mobile `tsc --noEmit` 0 에러, `eslint --max-warnings=0` 0 경고, jest 28 suites/174 PASS(MealPlanScreen 6 재작성: 3 게이트 상태 + 시트 오픈 + 생성→credits 14→13 메터링 + reloadKey focus refresh, 회귀 0). 런타임은 디바이스/시뮬레이터 검증 필요(본 환경 미지원).
+### 미완료: spec.md 크레딧 모델 sync 후속(SPEC-SYNC-MEAL-CREDIT). 디바이스 E2E(생성→캘린더→celebrity-hopping).
+### 연관 파일: apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/navigation/PlanNavigator.tsx, apps/mobile/src/components/MealPlanGenerateSheet.tsx
+
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-c3a
 commit_sha: 6742eab
 files_changed:
