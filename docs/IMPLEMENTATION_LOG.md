@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-a
-commit_sha: PENDING
+commit_sha: a6a1237
 files_changed:
   - db/migrations/0022_meal_plans_credits_consumed.sql
   - services/meal-plan-engine/src/services/quota_service.py
