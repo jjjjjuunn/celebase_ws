@@ -21,10 +21,24 @@
 
 ## 1. 사전 조건 (이미 되어 있어야 하는 것)
 
-- [x] Cognito User Pool + Hosted UI 도메인 (`infra/cognito`, 이미 존재 — `celebbase-<env>.auth.<region>.amazoncognito.com`).
+- [x] Cognito User Pool + Hosted UI 도메인 (`infra/cognito`, 이미 staging 에 배포됨).
 - [x] 모바일 dev build 환경 (Expo Go 아님 — `@aws-amplify/rtn-web-browser` 네이티브 모듈 필요). `npx expo run:ios` 또는 EAS dev build. (`.claude/rules/multi-session.md §7.1` 참고.)
 - [x] Apple Developer Program 멤버십 (유료, $99/yr) — Apple 로그인에 필수.
 - [x] Google Cloud 프로젝트 1개 (무료).
+
+### 확정값 (staging) — 아래 단계에서 그대로 복붙
+
+> Terraform state 에서 확인한 **실제 배포 값**. 예시가 아니라 확정값이다 (`com.example.*` 등 다른 프로젝트 값과 헷갈리지 말 것). 철자 주의: `celebbase` = **b 두 개** (폴더명 `celebase` 와 다름).
+
+| 키 | 값 |
+|----|----|
+| Hosted UI 도메인 | `celebbase-staging.auth.us-west-2.amazoncognito.com` |
+| Region | `us-west-2` |
+| User Pool ID | `us-west-2_GvpQnHLEj` |
+| Cognito IdP response URL (Google/Apple 둘 다) | `https://celebbase-staging.auth.us-west-2.amazoncognito.com/oauth2/idpresponse` |
+| App Bundle ID (iOS/Android) | `com.celebbase.mobile` |
+
+직접 재확인: `cd infra/cognito && terraform output hosted_ui_domain` 또는 AWS Console → Cognito → User Pool `us-west-2_GvpQnHLEj` → App integration → Domain.
 
 ---
 
@@ -40,11 +54,11 @@
      ```
      https://celebbase-staging.auth.us-west-2.amazoncognito.com
      ```
-   - **Authorized redirect URIs**:
+   - **Authorized redirect URIs** (반드시 `/oauth2/idpresponse` 까지 전부 — `/oauth2` 에서 자르지 말 것):
      ```
      https://celebbase-staging.auth.us-west-2.amazoncognito.com/oauth2/idpresponse
      ```
-   - (도메인·리전은 `terraform output hosted_ui_domain` 값으로 교체. prod 는 `-prod` 도메인으로 별도 client 1개 더 만든다.)
+   - 위 두 값은 staging 확정값이다 (위 "확정값" 표) — **그대로** 입력. **나중에 prod 배포 시** 도메인이 `celebbase-prod.auth.us-west-2.amazoncognito.com` 으로 바뀌므로, 그때 prod 용 Google client 를 **하나 더** 만든다 (지금은 불필요).
 4. 생성된 **Client ID** 와 **Client Secret** 을 안전한 곳에 복사 (다음 단계 tfvars 에 사용).
 
 ---
@@ -54,8 +68,13 @@
 > 결과물: **Services ID** + **Team ID** + **Key ID** + **.p8 Private Key** 4개.
 
 1. https://developer.apple.com/account → **Certificates, Identifiers & Profiles**.
-2. **Identifiers → App IDs**: 앱 ID `com.celebbase.mobile` 에 **Sign In with Apple** capability 활성화 (없으면 생성).
-3. **Identifiers → Services IDs → (+)**: 새 Services ID 생성. 이게 OAuth `client_id` 가 된다.
+2. **Identifiers → App IDs**: `com.celebbase.mobile` App ID 에 **Sign In with Apple** 활성화.
+   - 목록에 `com.celebbase.mobile` 이 **없으면 새로 만든다** (기존 `com.example.swimTrainingApp` 같은 다른 앱과 무관 — 별도 생성):
+     - "Identifiers" 제목 옆 **파란 ⊕(+) 동그라미** 클릭 → **App IDs** 선택 → Continue → type **App** → Continue.
+     - Description `CelebBase`, Bundle ID = **Explicit** `com.celebbase.mobile`.
+     - **Capabilities** 목록에서 **Sign In with Apple** 체크 → Continue → Register.
+   - (`apple_team_id` 는 developer.apple.com 우상단 이름 옆 10자리 — 예: `L8BU5UCBJA`.)
+3. **Identifiers → ⊕(+) → Services IDs**: 새 Services ID 생성. 이게 OAuth `client_id` 가 된다.
    - Identifier 예: `com.celebbase.mobile.signin` (App ID 와 달라야 함).
    - 생성 후 편집 → **Sign In with Apple → Configure**:
      - **Primary App ID**: `com.celebbase.mobile`
