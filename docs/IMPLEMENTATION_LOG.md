@@ -30,6 +30,28 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-21
 agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-c2
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/components/CelebrityPicker.tsx
+  - apps/mobile/src/onboarding/PersonaSelectStep.tsx
+  - apps/mobile/__tests__/components/CelebrityPicker.test.tsx
+verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash + codex (mobile typecheck/lint/jest)
+---
+### 완료: CelebrityPicker 추출 (Phase C2) — IMPL-MEAL-CREDIT-001-c2
+- **배경**: 식단 생성 시트(C3)가 셀럽 그리드를 재사용하도록, 온보딩 S2(PersonaSelectStep)에 인라인돼 있던 그리드를 공용 컴포넌트로 추출. behavior-preserving 리팩터.
+- **변경**:
+  - `components/CelebrityPicker.tsx`(신규): listCelebrities 로드 + loading/error/loaded 상태머신 + 2-column 그리드 + CelebrityCard. props `{ selectedSlug?, onSelect(celebrity) }` — 선택 상태는 호출자 소유, picker 는 표시+통지만. FlatList `flex:1` 명시(원본은 implicit content-size → scroll 정합 개선).
+  - `onboarding/PersonaSelectStep.tsx`: 그리드/fetch/PageState/CelebrityCard/grid 스타일 제거 → `<CelebrityPicker>` 사용. header/intro/footer + Continue 게이트 + selectedSlug 동작 무변경.
+- **3-pass 리뷰**: advisor(layout flex:1 디바이스 검증 노트 → PR body 반영), gemini-2.5-flash(이슈 0), codex(origin/main PersonaSelectStep 대조 — material 0: 선택 소유권·onSelect 계약·a11y 라벨/state·FlatList 레이아웃·fetch 취소 모두 보존). 전부 PASS.
+- **검증**: mobile `tsc --noEmit` 0 에러, `eslint --max-warnings=0` 0 경고, jest 27 suites/167 PASS(신규 CelebrityPicker 4 test + OnboardingFlow 통합 10 회귀 0).
+### 미완료: C3(MealPlanGenerateSheet + MealPlanScreen 캘린더 + 3-state 게이트). spec.md 크레딧 모델 sync 후속.
+### 연관 파일: apps/mobile/src/components/CelebrityPicker.tsx, apps/mobile/src/onboarding/PersonaSelectStep.tsx
+
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-c1
 commit_sha: 523805f
 files_changed:

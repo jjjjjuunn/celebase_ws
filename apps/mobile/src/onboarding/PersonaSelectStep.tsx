@@ -1,24 +1,17 @@
 // S2 — Persona Select. 셀럽 그리드에서 하나를 선택해 onNext 호출.
 //
-// 데이터: GET /api/celebrities (public, M3 `authedFetch` 재사용).
+// 데이터/그리드는 공용 CelebrityPicker (식단 생성 시트와 공유) 가 담당한다.
+// 본 스텝은 온보딩 chrome (header/intro/footer + Continue 게이트) 만 책임진다.
 // 본 task scope 는 selection 만 — PATCH /api/users/me { preferred_celebrity_slug }
 // 호출은 S7 최종 confirm 시점 (후속 sub-task) 에 묶음.
 
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { tokens } from '@celebbase/design-tokens';
-import type { schemas } from '@celebbase/shared-types';
 
-import { listCelebrities } from '../services/celebrities';
+import { CelebrityPicker } from '../components/CelebrityPicker';
 import { px, resolveToken } from '../lib/tokens';
 import type { PersonaDraft } from './types';
 
@@ -28,40 +21,14 @@ interface PersonaSelectStepProps {
   onClose: () => void;
 }
 
-type PageState =
-  | { phase: 'loading' }
-  | { phase: 'error'; message: string }
-  | { phase: 'loaded'; items: schemas.CelebrityWire[] };
-
 export function PersonaSelectStep({
   initial,
   onNext,
   onClose,
 }: PersonaSelectStepProps): React.JSX.Element {
-  const [state, setState] = useState<PageState>({ phase: 'loading' });
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>(
     initial?.preferred_celebrity_slug,
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ phase: 'loading' });
-
-    listCelebrities()
-      .then((res) => {
-        if (cancelled) return;
-        setState({ phase: 'loaded', items: res.items });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : 'unknown';
-        setState({ phase: 'error', message });
-      });
-
-    return (): void => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,32 +50,14 @@ export function PersonaSelectStep({
         </Text>
       </View>
 
-      {state.phase === 'loading' ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
-        </View>
-      ) : state.phase === 'error' ? (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load celebrities.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={state.items}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.grid}
-          columnWrapperStyle={styles.row}
-          renderItem={({ item }) => (
-            <CelebrityCard
-              item={item}
-              selected={item.slug === selectedSlug}
-              onPress={() => {
-                setSelectedSlug(item.slug);
-              }}
-            />
-          )}
+      <View style={styles.pickerArea}>
+        <CelebrityPicker
+          selectedSlug={selectedSlug}
+          onSelect={(celebrity) => {
+            setSelectedSlug(celebrity.slug);
+          }}
         />
-      )}
+      </View>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -139,30 +88,6 @@ export function PersonaSelectStep({
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  );
-}
-
-interface CelebrityCardProps {
-  item: schemas.CelebrityWire;
-  selected: boolean;
-  onPress: () => void;
-}
-
-function CelebrityCard({ item, selected, onPress }: CelebrityCardProps): React.JSX.Element {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`Select ${item.display_name}`}
-      accessibilityState={{ selected }}
-      style={[styles.card, selected ? styles.cardSelected : styles.cardUnselected]}
-    >
-      <View style={styles.avatarPlaceholder}>
-        <Text style={styles.avatarInitial}>{item.display_name.slice(0, 1)}</Text>
-      </View>
-      <Text style={styles.cardName} numberOfLines={1}>{item.display_name}</Text>
-      <Text style={styles.cardCategory}>{item.category}</Text>
-    </TouchableOpacity>
   );
 }
 
@@ -202,62 +127,8 @@ const styles = StyleSheet.create({
     color: resolveToken('light', '--cb-color-text-muted'),
     lineHeight: px(tokens.light['--cb-body-md']) + 6,
   },
-  centered: {
+  pickerArea: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  grid: {
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingBottom: px(tokens.light['--cb-space-4']),
-  },
-  row: {
-    gap: px(tokens.light['--cb-space-3']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-  },
-  card: {
-    flex: 1,
-    padding: px(tokens.light['--cb-space-3']),
-    borderRadius: 12,
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 2,
-  },
-  cardSelected: {
-    borderColor: resolveToken('light', '--cb-color-brand'),
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-  },
-  cardUnselected: {
-    borderColor: 'transparent',
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  cardName: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  cardCategory: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
   },
   footer: {
     padding: px(tokens.light['--cb-space-4']),
