@@ -30,6 +30,29 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-20
 agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-b2
+commit_sha: PENDING
+files_changed:
+  - services/user-service/src/routes/subscription.routes.ts
+  - services/user-service/src/repositories/subscription.repository.ts
+  - services/user-service/src/lib/trial.ts
+  - services/user-service/tests/unit/trial.test.ts
+  - services/user-service/tests/integration/subscription.routes.test.ts
+  - services/user-service/tests/unit/subscription.repository.test.ts
+verified_by: claude-opus-4-7 + claude-direct (user-service typecheck/lint/jest 184)
+---
+### 완료: user-service trial 로직 제거 (Phase B2) — IMPL-MEAL-CREDIT-001-b2
+- **배경**: 크레딧 모델(IMPL-MEAL-CREDIT-001)이 시간박스 trial(#141)을 대체. user-service가 `GET /subscriptions/me`에서 노출하던 trial 상태 제거.
+- **변경**: `lib/trial.ts`(computeTrialState/TRIAL_DURATION_MS) + `tests/unit/trial.test.ts` **삭제**. `subscription.routes.ts`: `findSubscriptionStateByUserId`+`computeTrialState` → `findTierByUserId`로 복귀, `{tier}`만 반환. `subscription.repository.ts`: `findSubscriptionStateByUserId` 삭제. 관련 테스트에서 trial/findSubscriptionState 케이스 제거.
+- **비파괴 확인**: B1(shared-types trial 필드 제거)과 독립·머지 순서 무관. user-service가 `{tier}`만 반환해도 (B1 전) shared-types optional 필드는 default로 파싱, (B1 후) `{tier}` 스키마와 정합.
+- **검증**: user-service typecheck + lint + jest 184/184 PASS(16 suites, trial 회귀 0).
+### 미완료: Phase C(모바일 — generate sheet + 캘린더 + 3-state 게이트). spec.md 크레딧 모델 sync 후속.
+### 연관 파일: services/user-service/src/routes/subscription.routes.ts, services/user-service/src/repositories/subscription.repository.ts, services/user-service/tests/integration/subscription.routes.test.ts, services/user-service/tests/unit/subscription.repository.test.ts
+
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-a
 commit_sha: a6a1237
 files_changed:
