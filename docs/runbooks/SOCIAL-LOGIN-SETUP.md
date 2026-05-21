@@ -34,6 +34,20 @@ mobile (네이티브 시트/피커)
 
 ---
 
+## ⚠️ 재테스트 순서 (이 순서 그대로 — 1번이 먼저)
+
+> **순서를 어기면 "네이티브 전환이 더 안 되네"로 보인다.** 현재 staging BE 는 아직 옛 스키마(이 브랜치 미배포)라, mobile 만 새로 빌드해서 테스트하면 새 mobile 요청(`provider` 필드 / Apple 재로그인 email 생략)을 옛 BE 가 거부 → 400/401 혼란.
+
+1. **BE 먼저**: 이 브랜치(`feat/IMPL-MOBILE-SOCIAL-001-apple-google-login`)를 **staging user-service 에 배포** + `APPLE_BUNDLE_ID` / `GOOGLE_CLIENT_IDS` env 주입 + 재시작 (§5).
+2. Google iOS+Web client / Apple "Sign in with Apple" capability 발급 (§2~§3).
+3. mobile `.env` 채우기 + `npx expo prebuild --clean && npx expo run:ios` (§4).
+4. **옛 federated 테스트 계정 정리** (DB + Cognito) — §6.
+5. 기기 E2E (§7).
+
+> 2·3 은 병행 가능하지만 **1(BE 배포)은 mobile 테스트보다 반드시 먼저**.
+
+---
+
 ## 1. 사전 조건
 
 - [x] 모바일 dev build 환경 (Expo Go 아님 — 네이티브 모듈 필요). `npx expo run:ios` 또는 EAS dev build. (`.claude/rules/multi-session.md §7.1`.)
