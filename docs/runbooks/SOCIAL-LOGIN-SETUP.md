@@ -4,11 +4,9 @@
 >
 > **방식 전환**: Cognito Hosted-UI federation → **네이티브 SDK 검증**. 이전 Hosted-UI 런북은 본 문서로 대체됨.
 >
-> **현재 상태**: 코드(BE + 모바일) **전부 구현 완료 + 로컬 검증(typecheck·lint·184 BE / 149 mobile unit) 통과 + 커밋됨**.
-> 단, **Apple Developer / Google Cloud 자격증명이 없으면 실제로 켤 수 없다** — 그건 너의 계정으로만 발급 가능하다.
-> 이 문서는 **네가 직접 해야 할 일만** 순서대로 정리한 것이다. 아래를 끝내면 네이티브 소셜 로그인이 켜진다.
+> **상태 (2026-05-21)**: ✅ **STAGING 활성화 + 기기 E2E 통과**. Apple + Google 네이티브 로그인 성공 (Google 계정 2 + Apple 1), `users` 테이블에 `apple:`/`google:` prefix 행 생성 확인, **Cognito 미경유** 확인, Google 재로그인 버그(`Attribute cannot be updated`) 해소 확인. 코드 main 머지 (PR #145 / `e23690b`) + staging 배포 + BE·mobile env 주입 완료.
 >
-> 자격증명을 주입하기 전까지 앱은 **기존 이메일/비밀번호(SRP) 로그인 그대로** 동작한다 (소셜 버튼 자동 숨김). 즉 지금 머지해도 안전하다.
+> 본 문서는 이후 **셋업 절차(prereq) 레퍼런스**로 유지 — 프로덕션 활성화 / 신규 환경 셋업 시 동일 단계를 따른다. 자격증명 미주입 환경에선 앱이 SRP-only 로 동작 (소셜 버튼 자동 숨김 — runs anywhere).
 
 ---
 
