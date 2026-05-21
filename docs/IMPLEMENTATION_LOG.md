@@ -30,6 +30,27 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-21
 agent: claude-opus-4-7
+task_id: SPEC-SYNC-MEAL-CREDIT-001
+commit_sha: 64dcb4f
+files_changed:
+  - spec.md
+verified_by: claude-opus-4-7 + advisor (spec-vs-code accuracy)
+---
+### 완료: spec.md 크레딧 모델 sync — §4.3 재작성 + credits 엔드포인트 (SPEC-SYNC-MEAL-CREDIT-001)
+- **배경**: 크레딧 모델 BE/BFF/모바일 구현(IMPL-MEAL-CREDIT-001 A/B1/B2/C1-C3b, PR #145~#153) 완료 후 spec.md 본문이 web-first plan-count + 시간박스 trial 시점에 머물러 drift. `.claude/rules/spec-dod.md` MOBILE PIVOT sync 의무에 따라 §4.3 을 shipped 코드 기준으로 정렬.
+- **변경** (spec.md only, 27 insertions / 11 deletions):
+  - §4.3 제목 → "Subscription Quota Rules (크레딧 모델 — IMPL-MEAL-CREDIT-001)" + 2026-05-21 전환 배경 노트(plan-count 월 할당량 + `#141` 시간박스 trial → 크레딧=day 모델).
+  - 티어 크레딧 표 추가: free 3 (온보딩 1회성 grant, lifetime) / premium 15·월 / elite 30·월(캡). 단위 `1 credit = 1 day`, `meal_plans.credits_consumed` write-once 명시.
+  - 계산 규칙 표 재작성: 소비량 `SUM(credits_consumed) WHERE status<>'failed'`(free lifetime / paid month-window), 삭제=환불없음(deleted_at 미필터), 실패=환불, advisory-lock `consumed+new>limit` reject, regenerate 무과금, override=일수(크레딧) 캡, dedup 무과금, 429(paid Retry-After / free soft gate).
+  - meal-plans 엔드포인트 표에 `GET /meal-plans/credits` 행 추가 + 잔량 응답 형상(`{tier, credits_remaining, credits_total, credits_reset_at}`) 문서화.
+  - `quota_override` DDL 주석(line ~649) `max_plans_per_month` 을 "월 일수(크레딧) 캡, null=unlimited" 로 갱신.
+- **검증**: advisor spec-vs-code accuracy 패스 ("Spec sync is accurate against the shipped code... all PASS"). docs-only 변경(L1) — Gemini/Codex 사이클 불필요(advisor 가이드: docs 는 advisor review 만). spec_sync gate 는 SPEC-SYNC-* task ID 매칭 → spec.md ≥3 line 변경으로 충족.
+### 미완료: trial/recap vestigial cleanup — frozen web `apps/web/src/app/api/trial/recap/route.ts` + `Day5RecapCard.tsx` 의 "trial day N" 프레이밍이 시간박스 trial 폐지 후 무의미. crash 아님(인라인 `computeTrialDay(created_at)` 자족) → 후속 cleanup CHORE 로 defer (회귀 아님, Plan Open items #4).
+### 연관 파일: spec.md, .claude/rules/spec-dod.md, docs/SPEC-PIVOT-PLAN.md
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-c3b
 commit_sha: c1115cd
 files_changed:

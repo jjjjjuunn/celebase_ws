@@ -646,7 +646,7 @@ CREATE TABLE subscriptions (
     /*
       quota_override schema (빈 객체 = 기본 티어 한도 적용):
       {
-        "max_plans_per_month": 10,    -- 기본값 오버라이드
+        "max_plans_per_month": 10,    -- 크레딧 모델(§4.3): 월 일수(크레딧) 캡으로 해석. null = unlimited
         "max_diet_views_per_month": null  -- null = 무제한
       }
     */
@@ -1044,7 +1044,8 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| POST | `/meal-plans/generate` | AI 개인화 식단 생성 | JWT |
+| POST | `/meal-plans/generate` | AI 개인화 식단 생성 (N일 = N 크레딧 소비, §4.3) | JWT |
+| GET | `/meal-plans/credits` | 생성 크레딧 잔량 (`{tier, credits_remaining, credits_total, credits_reset_at}`, §4.3) | JWT |
 | GET | `/meal-plans` | 내 식단 목록 | JWT |
 | GET | `/meal-plans/:id` | 식단 상세 (일별 계획 포함) | JWT |
 | PATCH | `/meal-plans/:id` | 식단 수정 (수동 조정) | JWT |
@@ -1146,19 +1147,34 @@ CREATE UNIQUE INDEX uq_claim_sources_primary
 - 사용자 재시도: `failed` 상태에서 `POST /meal-plans/{id}/regenerate` 호출 (할당량 차감 없음)
 - DLQ: 2회 연속 실패 시 Dead Letter Queue로 이동, 운영팀 알림
 
-#### 4.3 Subscription Quota Rules
+#### 4.3 Subscription Quota Rules (크레딧 모델 — IMPL-MEAL-CREDIT-001)
 
-구독 티어별 사용량 제한의 정확한 계산 규칙:
+> **2026-05-21 전환**: plan-count 월 할당량 + 시간박스 무료 trial(`#141 FEAT-MOBILE-TRIAL-MEALPLAN-001`) 을 **크레딧 모델**로 대체했다. 식단은 한 번 생성하면 따라 먹는 durable artifact 라 "월 N개 plan" / "3일 체험" 기준이 제품과 맞지 않았다. 크레딧 = day 단위로 LLM 생성 비용과 정렬한다.
+
+**단위**: **1 credit = 1 day**. N일 plan 생성 = N 크레딧 소비 (`meal_plans.credits_consumed` write-once 컬럼 = `duration_days`, INSERT 시 1회 기록 후 불변).
+
+**티어별 크레딧**:
+
+| Tier | 크레딧 | 윈도우 |
+|------|--------|--------|
+| `free` | **3** (온보딩 1회성 grant) | **lifetime** — 리셋 없음 |
+| `premium` | **15 / 월** | 매월 1일 00:00:00 UTC 리셋 |
+| `elite` | **30 / 월** (캡) | 매월 1일 00:00:00 UTC 리셋 |
+
+**정확한 계산 규칙**:
 
 | Rule | Detail |
 |------|--------|
-| **카운팅 기준** | `meal_plans.created_at` 기준 (생성 요청 시점) |
-| **기간 경계** | 매월 1일 00:00:00 UTC 리셋 (사용자 로컬 시간 아님) |
-| **부분 실패 처리** | `status = 'failed'`인 플랜은 할당량에서 **차감하지 않음** |
-| **재생성(regenerate)** | 기존 플랜의 재생성은 할당량에서 **차감하지 않음** (동일 plan_id) |
-| **관리자 오버라이드** | `subscriptions.quota_override JSONB` 필드로 개별 사용자 한도 조정 가능 |
-| **멱등성** | 동일 `user_id + base_diet_id + duration_days + normalized_preferences` 조합의 중복 요청은 5분 내 멱등 처리 (기존 plan 반환) |
-| **한도 초과 응답** | `429 PLAN_LIMIT_REACHED` + `Retry-After` 헤더 (다음 리셋까지 남은 초) |
+| **소비량 계산** | `SUM(meal_plans.credits_consumed) WHERE user_id=$1 AND status <> 'failed'`. free 는 날짜 필터 없음(lifetime), paid 는 `created_at >= DATE_TRUNC('month', NOW()) AND < +1 month` (월 스코프). |
+| **삭제 = 환불 없음** | `deleted_at` 은 **필터하지 않는다**. 삭제된 plan 도 크레딧 소비 유지 → generate→delete→regenerate gaming 차단 (크레딧 모델 표준). |
+| **실패 = 환불** | `status = 'failed'` 만 제외 → 생성 실패 시 사용자 미과금. worker 가 stuck plan 을 failed 마킹하면 자동 환불. (expired/archived 는 카운트 — LLM 토큰 이미 소비.) |
+| **원자성** | `pg_advisory_xact_lock(hash(user_id))` 트랜잭션 내에서 `consumed_days + new_days > limit` 면 reject (`>` — exact-hit 허용). |
+| **재생성(regenerate)** | 새 INSERT 없음(동일 plan_id) → 추가 과금 없음. |
+| **관리자 오버라이드** | `subscriptions.quota_override.max_plans_per_month` 는 크레딧 모델에서 **월 일수(크레딧) 캡**으로 해석된다 (필드명은 lean 위해 유지, 리네임은 post-launch). `null` = unlimited. |
+| **멱등성** | 동일 `user_id + base_diet_id + duration_days + normalized_preferences` 조합의 중복 요청은 5분 내 멱등 처리 (기존 plan 반환). dedup 이 quota check 보다 먼저 실행 → 재시도 추가 과금 없음. |
+| **한도 초과 응답** | `429 PLAN_LIMIT_REACHED`. paid 는 `Retry-After` 헤더(다음 월 리셋까지 남은 초). free 는 lifetime grant 라 reset 없음 → `Retry-After` 미포함, 모바일이 구독 유도(soft gate). |
+
+**크레딧 잔량 조회**: `GET /meal-plans/credits` → `{ tier, credits_remaining, credits_total, credits_reset_at }`. `credits_remaining`/`credits_total` 은 unlimited override 일 때만 `null`(일반 티어는 유한). `credits_reset_at` 은 paid 의 다음 월 리셋(UTC), free 는 `null`(lifetime). 모바일 3-state 게이트(미온보딩 / 잔량>0 / 소진) 의 신호.
 
 #### Commerce (Instacart)
 
