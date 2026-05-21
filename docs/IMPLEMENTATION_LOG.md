@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-b2
-commit_sha: PENDING
+commit_sha: a172340
 files_changed:
   - services/user-service/src/routes/subscription.routes.ts
   - services/user-service/src/repositories/subscription.repository.ts
