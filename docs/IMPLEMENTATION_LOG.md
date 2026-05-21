@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-21
 agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-c1
-commit_sha: PENDING
+commit_sha: 523805f
 files_changed:
   - apps/mobile/src/services/meal-plans.ts
   - apps/mobile/src/services/celebrities.ts
