@@ -43,6 +43,24 @@ export const EnvSchema = z
     COGNITO_LIVE_JWKS: z.enum(['1', 'true']).optional(),
     COGNITO_ENVIRONMENT: z.string().optional(),
 
+    // Native social sign-in (IMPL-MOBILE-SOCIAL-NATIVE-001). Each provider is
+    // wired ONLY when its var is present + valid — otherwise the route fails
+    // closed with SOCIAL_PROVIDER_NOT_CONFIGURED (no silent fallback). These
+    // are independent of AUTH_PROVIDER: Cognito stays the email+password path
+    // while Apple/Google verify provider id_tokens directly via per-provider
+    // JWKS. They are intentionally allowed alongside AUTH_PROVIDER=dev for
+    // local device testing against real Apple/Google tokens.
+    //
+    // APPLE_BUNDLE_ID: the iOS bundle identifier registered with Sign in with
+    //   Apple — becomes the SINGLE expected `aud` of Apple identityTokens.
+    // GOOGLE_CLIENT_IDS: comma-separated allowlist of OUR Google OAuth client
+    //   IDs (web and/or iOS). @react-native-google-signin mints the idToken
+    //   for the configured webClientId, so the web client ID is the typical
+    //   entry; an allowlist survives library/version differences. Each entry
+    //   must end with '.apps.googleusercontent.com' (boot-time guard below).
+    APPLE_BUNDLE_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_IDS: z.string().min(1).optional(),
+
     // Per-route rate-limit overrides (Plan v5 §58, IMPL-MOBILE-AUTH-002b
     // DECISION §3). Defaults reflect the post-mobile-pivot baseline:
     // signup 3/min (unchanged), login 10/min (5→10 — mobile SRP needs
@@ -114,6 +132,25 @@ export const EnvSchema = z
           code: z.ZodIssueCode.custom,
           message: 'INTERNAL_JWT_SECRET must be at least 32 characters in production',
           path: ['INTERNAL_JWT_SECRET'],
+        });
+      }
+    }
+
+    // Google client-ID allowlist format guard (IMPL-MOBILE-SOCIAL-NATIVE-001,
+    // advisor invariant #4). Reject malformed entries at boot rather than
+    // silently accepting a typo'd / blank audience that would never match a
+    // real token (or, worse, match an attacker-influenced empty string).
+    if (env.GOOGLE_CLIENT_IDS) {
+      const entries = env.GOOGLE_CLIENT_IDS.split(',').map((s) => s.trim());
+      const allValid =
+        entries.length > 0 &&
+        entries.every((e) => e.length > 0 && e.endsWith('.apps.googleusercontent.com'));
+      if (!allValid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            'GOOGLE_CLIENT_IDS must be a comma-separated list of non-empty Google OAuth client IDs, each ending with ".apps.googleusercontent.com"',
+          path: ['GOOGLE_CLIENT_IDS'],
         });
       }
     }

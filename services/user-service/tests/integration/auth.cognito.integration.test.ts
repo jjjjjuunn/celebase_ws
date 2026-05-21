@@ -137,6 +137,37 @@ async function buildApp(provider: AuthProvider): Promise<FastifyInstance> {
   return app;
 }
 
+async function buildAppWithSocial(
+  provider: AuthProvider,
+  socialProviders: Partial<Record<'apple' | 'google', AuthProvider>>,
+): Promise<FastifyInstance> {
+  const captured: CapturedLog[] = [];
+  const app = Fastify({
+    loggerInstance: makeCaptureLogger(captured),
+    disableRequestLogging: true,
+  });
+  await app.register(rateLimit, { global: false });
+  await app.register(authRoutes, {
+    pool: {} as pg.Pool,
+    authProvider: provider,
+    socialProviders,
+  });
+  return app;
+}
+
+// Stand-in for AppleAuthProvider: trusts any token, returns a namespaced sub.
+// The dispatch test only cares that the request routes to THIS verifier.
+class FakeAppleProvider implements AuthProvider {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async verifyIdToken(): Promise<IdTokenPayload> {
+    return { sub: 'apple:fake-sub', email: 'apple@example.com' };
+  }
+  async issueTokens(client: pg.Pool | pg.PoolClient, subject: AuthTokenSubject): Promise<AuthTokens> {
+    const { issueInternalTokens } = await import('../../src/services/auth.service.js');
+    return issueInternalTokens(client as pg.Pool, subject);
+  }
+}
+
 async function mintIdToken(overrides: {
   kid?: string;
   issuer?: string;
@@ -320,5 +351,66 @@ describe('Cognito AuthProvider Integration', () => {
       payload: { email: 'test@example.com', id_token: token },
     });
     expect(res.statusCode).toBe(401);
+  });
+});
+
+// IMPL-MOBILE-SOCIAL-NATIVE-001 — login provider dispatch by `provider` field.
+describe('Social provider dispatch', () => {
+  let app: FastifyInstance;
+  beforeAll(async () => {
+    // apple wired, google intentionally NOT wired (fail-closed target).
+    app = await buildAppWithSocial(new LocalCognitoTestProvider(), {
+      apple: new FakeAppleProvider(),
+    });
+    await app.ready();
+  });
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('provider:"google" → 400 when google verifier is not configured (fail closed)', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { id_token: 'anything', provider: 'google' },
+    });
+    // SocialProviderNotConfiguredError carries statusCode 400; no fallback.
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('provider:"apple" → routes to the apple verifier and logs in (200)', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce({
+      id: 'u-apple',
+      email: 'apple@example.com',
+      cognito_sub: 'apple:fake-sub',
+      display_name: 'Apple User',
+      deleted_at: null,
+    });
+    mockInsert.mockResolvedValueOnce(undefined);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { id_token: 'native-apple-token', provider: 'apple' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toHaveProperty('access_token');
+  });
+
+  it('absent provider → falls through to the cognito verifier (200)', async () => {
+    const token = await mintIdToken();
+    mockFindByCognitoSub.mockResolvedValueOnce({
+      id: 'u-cognito',
+      email: 'test@example.com',
+      cognito_sub: 'cognito-sub-real-123',
+      display_name: 'Test',
+      deleted_at: null,
+    });
+    mockInsert.mockResolvedValueOnce(undefined);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'test@example.com', id_token: token },
+    });
+    expect(res.statusCode).toBe(200);
   });
 });

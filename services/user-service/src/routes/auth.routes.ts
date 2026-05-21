@@ -2,7 +2,11 @@ import { createHash } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type pg from 'pg';
 import { z } from 'zod';
-import { ValidationError, UnauthorizedError } from '@celebbase/service-core';
+import {
+  ValidationError,
+  UnauthorizedError,
+  SocialProviderNotConfiguredError,
+} from '@celebbase/service-core';
 import type { AuthProvider } from '../services/auth.service.js';
 import * as authService from '../services/auth.service.js';
 import * as refreshTokenRepo from '../repositories/refresh-token.repository.js';
@@ -15,8 +19,14 @@ const SignupSchema = z.object({
 });
 
 const LoginSchema = z.object({
-  email: z.string().email().max(255),
+  // Optional — the dev stub uses it; id_token flows derive email from the
+  // verified token (native Apple may omit it on re-sign-in).
+  email: z.string().email().max(255).optional(),
   id_token: z.string().optional(),
+  // Selects the verifier. Absent / 'cognito' → the injected authProvider
+  // (Cognito in prod, dev stub locally). 'apple' / 'google' → the matching
+  // native social verifier, or SOCIAL_PROVIDER_NOT_CONFIGURED if unwired.
+  provider: z.enum(['cognito', 'apple', 'google']).optional(),
 });
 
 const RefreshSchema = z.object({
@@ -54,14 +64,31 @@ export async function authRoutes(
   options: {
     pool: pg.Pool;
     authProvider: AuthProvider;
+    // Native social verifiers, wired only when their env is configured. Absent
+    // keys fail closed via SOCIAL_PROVIDER_NOT_CONFIGURED (no fallback).
+    socialProviders?: Partial<Record<'apple' | 'google', AuthProvider>>;
     rateLimits?: Partial<AuthRateLimits>;
   },
 ): Promise<void> {
   const { pool, authProvider } = options;
+  const socialProviders = options.socialProviders ?? {};
   const rateLimits: AuthRateLimits = {
     ...DEFAULT_RATE_LIMITS,
     ...(options.rateLimits ?? {}),
   };
+
+  // Dispatch the login verifier by the client-supplied `provider`. The field
+  // is untrusted for identity — each provider's verifyIdToken fails closed on
+  // iss/aud/exp, so a forged `provider` only chooses which strict verifier
+  // rejects the token. No cross-provider fallback.
+  function pickLoginProvider(kind: 'cognito' | 'apple' | 'google' | undefined): AuthProvider {
+    if (kind === 'apple' || kind === 'google') {
+      const sp = socialProviders[kind];
+      if (!sp) throw new SocialProviderNotConfiguredError(kind);
+      return sp;
+    }
+    return authProvider;
+  }
 
   app.post(
     '/auth/signup',
@@ -110,15 +137,17 @@ export async function authRoutes(
           issue: e.message,
         })));
       }
+      const provider = pickLoginProvider(parsed.data.provider);
       const result = await authService.login(
         pool,
-        authProvider,
+        provider,
         parsed.data,
         request.log,
         request.id,
       );
       emitAuthLog(request.log, 'auth.internal_token.issued', {
         flow: 'login',
+        provider: parsed.data.provider ?? 'cognito',
         requestId: request.id,
       });
       return result;

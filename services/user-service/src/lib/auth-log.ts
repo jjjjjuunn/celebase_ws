@@ -30,6 +30,10 @@ export interface CognitoVerifyFields {
 
 export interface InternalTokenIssuedFields {
   flow: 'login' | 'signup' | 'refresh';
+  // Which verifier issued the login (IMPL-MOBILE-SOCIAL-NATIVE-001). Defaults
+  // to 'cognito' for the email+password / web path; 'apple' / 'google' for
+  // native social sign-in.
+  provider?: 'cognito' | 'apple' | 'google';
   requestId: string;
 }
 

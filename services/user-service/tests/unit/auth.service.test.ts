@@ -455,6 +455,37 @@ describe('authService.login lazy provisioning', () => {
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
+  // IMPL-MOBILE-SOCIAL-NATIVE-001 — native Apple may withhold email on a
+  // first-ever sign-in (user previously deleted the app without revoking it in
+  // iOS settings). We must NOT insert a blank email (users.email NOT NULL
+  // UNIQUE); fail closed with the actionable APPLE_EMAIL_REQUIRED guidance.
+  it('throws ValidationError (APPLE_EMAIL_REQUIRED) on first social sign-in without email', async () => {
+    class AppleNoEmailProvider {
+      async verifyIdToken(): Promise<{ sub: string; email: string }> {
+        return Promise.resolve({ sub: 'apple:001.no-email', email: '' });
+      }
+      async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+        return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+      }
+    }
+    mockFindByCognitoSub.mockResolvedValueOnce(null); // no prior user by sub
+    mockFindAndUpdateCognitoSubByEmail.mockResolvedValueOnce(null); // not a dev-seeded row
+
+    await expect(
+      login(
+        mockPool,
+        new AppleNoEmailProvider(),
+        { id_token: 'fake.id.token' },
+        makeMockLog(),
+        'req-apple-no-email',
+      ),
+    ).rejects.toThrow(ValidationError);
+
+    // Must fail before any INSERT — no blank-email user is attempted.
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
   it('regression: existing cognito_sub match does NOT trigger lazy provisioning', async () => {
     mockFindByCognitoSub.mockResolvedValueOnce({
       ...baseUser,
