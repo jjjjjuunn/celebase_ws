@@ -28,6 +28,33 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-a
+commit_sha: a6a1237
+files_changed:
+  - db/migrations/0022_meal_plans_credits_consumed.sql
+  - services/meal-plan-engine/src/services/quota_service.py
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_quota_service.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash-adversarial + claude-direct-pytest(186)
+---
+### 완료: 크레딧 모델 BE 코어 (Phase A) — IMPL-MEAL-CREDIT-001-a
+- **배경**: 식단 생성은 LLM 토큰 비용 작업인데 기존 게이트는 시간박스 trial(#141, 온보딩 후 3일). 식단은 durable artifact라 3일에 7일치 한 번 뽑으면 끝 → 크레딧 모델로 전환(크레딧=1일, N일 plan=N크레딧).
+- **회계 모델**: 별도 ledger 없이 meal_plans 행에 `credits_consumed` 컬럼(write-once=duration_days) + SUM. 소비 = `SUM(credits_consumed) WHERE status<>'failed'`. deleted_at 미필터(삭제=환불없음, anti-gaming), failed만 제외(실패=환불). free=lifetime, paid=current-month.
+- **TIER_LIMITS**: free 3(lifetime grant) / premium 15(월) / elite 30(월, 캡). 기존 0/4/None 대체. `trial_active` 파라미터·분기 + `SubscriptionResponse.trial_active` 제거.
+- **원자성**: 기존 pg_advisory_xact_lock 패턴 유지. check_quota_atomic에 tier 추가 → free면 sum_credits_lifetime, paid면 sum_credits_this_month. 비교 `consumed+new_days>limit` reject(exact-hit 허용).
+- **신규 엔드포인트**: `GET /meal-plans/credits` → {tier, credits_remaining, credits_total, credits_reset_at}(paid는 UTC 다음달 1일, seconds_until_next_month 재사용; free reset_at=null; unlimited override는 total/remaining=null). `/{plan_id}` 앞에 등록(literal 우선).
+- **마이그레이션 0022**: ADD COLUMN credits_consumed NOT NULL DEFAULT 1 CHECK>=0, 백필 end_date-start_date+1(NULL 가드), CREATE INDEX CONCURRENTLY idx_meal_plans_credits WHERE status<>'failed', DROP INDEX CONCURRENTLY idx_meal_plans_quota_count(유일 소비자 count_plans_this_month 삭제). 0006/0017 autocommit 패턴.
+- **검증**: 186/186 pytest PASS(quota day-sum at/over/exact·lifetime vs month·free grant/exhausted, route free 201/disabled override 403/premium·elite 429). ruff check + format PASS.
+- **리뷰**: advisor(blocking 3 + 중요 2 반영) + gemini-2.5-flash adversarial(HIGH 2: credits_consumed 불변성·슬라이더 clamp) + Codex CLI 2h 무응답 → claude-direct self-adversarial(6: 백필 NULL 가드·check_quota_atomic 시그니처·403 가드 유지·dedup 무이중과금·override 의미변화·reset UTC).
+### 미완료: Phase B1(shared-types trial 필드 제거 + MealPlanCreditsResponse + BFF credits route), B2(user-service trial.ts 제거), Phase C(모바일 generate sheet + 캘린더 + 3-state 게이트). 라이브 마이그레이션 smoke는 CI E2E. spec.md 크레딧 모델 sync는 후속.
+### 연관 파일: db/migrations/0022_meal_plans_credits_consumed.sql, services/meal-plan-engine/src/services/quota_service.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, services/meal-plan-engine/src/routes/meal_plans.py, services/meal-plan-engine/tests/unit/test_quota_service.py, services/meal-plan-engine/tests/unit/test_meal_plan_routes.py
+
+
+---
 date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1) + gemini-2.5-pro-via-cli-0.42 (r1)
 task_id: CHORE-MEAL-AGGRESSIVE-PROTEIN-001

@@ -21,13 +21,21 @@ from src.repositories import meal_plan_repository as repo
 _logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Tier limits (spec §8)
+# Tier credit limits (IMPL-MEAL-CREDIT-001 — credit = 1 day)
 # ---------------------------------------------------------------------------
+#
+# A meal plan of N days consumes N credits. The limit is interpreted per-window:
+#   - free:    one-time LIFETIME grant of 3 credits (granted at onboarding;
+#              never resets). Replaces the legacy time-boxed 3-day trial.
+#   - premium: 15 credits per calendar month (UTC).
+#   - elite:   30 credits per calendar month (UTC) — capped (≈ a full month of
+#              1-day plans) to bound LLM token cost; was previously unlimited.
+# Unlimited is still reachable per-user via an admin quota_override of null.
 
 TIER_LIMITS: dict[str, int | None] = {
-    "free": 0,  # feature disabled
-    "premium": 4,
-    "elite": None,  # unlimited
+    "free": 3,
+    "premium": 15,
+    "elite": 30,
 }
 
 # ---------------------------------------------------------------------------
@@ -44,11 +52,6 @@ class SubscriptionResponse(BaseModel):
     tier: str = "free"
     status: str | None = None
     quota_override: QuotaOverrideModel | None = QuotaOverrideModel()
-    # Post-onboarding free-trial flag (FEAT-MOBILE-TRIAL-MEALPLAN-001). Set by
-    # user-service GET /subscriptions/me from bio_profiles.created_at. During the
-    # trial window a free-tier user is granted Premium-equivalent quota. Absent
-    # on older user-service builds → defaults False (no trial).
-    trial_active: bool = False
     model_config = ConfigDict(extra="ignore")
 
 
@@ -72,34 +75,32 @@ def validate_subscription(raw: dict[str, Any]) -> SubscriptionResponse:
 def compute_effective_limit(
     tier: str,
     quota_override: QuotaOverrideModel | None,
-    trial_active: bool = False,
 ) -> int | None:
-    """Return the effective monthly plan limit.
+    """Return the effective credit limit for the tier's window.
 
     - ``None`` means unlimited.
-    - ``0`` means feature disabled (Free tier, no trial).
-    - Positive int is the cap.
+    - ``0`` means feature disabled (only via an explicit admin override).
+    - Positive int is the credit cap (days) for the tier's window
+      (lifetime for free, calendar month for premium/elite).
 
     ``quota_override.max_plans_per_month`` takes precedence when present
-    (admin-set, honored regardless of trial): explicitly ``None`` (JSON null) →
-    unlimited regardless of tier.
-
-    When no explicit override applies and the tier default is 0 (Free) but
-    ``trial_active`` is True, the user is within their post-onboarding trial and
-    is granted the Premium-equivalent quota.
+    (admin-set): explicitly ``None`` (JSON null) → unlimited regardless of tier.
+    NOTE: under the credit model this override caps DAYS (credits), not the
+    number of plans; the field name is retained to avoid a schema migration.
     """
-    # Explicit admin override wins, regardless of trial state.
+    # Explicit admin override wins.
     if (
         quota_override is not None
         and "max_plans_per_month" in quota_override.model_fields_set
     ):
         return quota_override.max_plans_per_month  # could be None (unlimited) or an int
 
-    tier_limit = TIER_LIMITS.get(tier, 0)
-    # Post-onboarding trial grant: Free-tier user gets Premium-equivalent quota.
-    if tier_limit == 0 and trial_active:
-        return TIER_LIMITS["premium"]
-    return tier_limit
+    return TIER_LIMITS.get(tier, 0)
+
+
+def is_lifetime_window(tier: str) -> bool:
+    """Free tier's credit grant is lifetime; paid tiers reset each calendar month."""
+    return tier == "free"
 
 
 def seconds_until_next_month(now_utc: datetime) -> int:
@@ -153,21 +154,27 @@ def _advisory_lock_key(user_id: str) -> int:
 async def check_quota_atomic(
     pool: asyncpg.Pool,
     user_id: str,
+    tier: str,
     effective_limit: int | None,
     base_diet_id: str,
     duration_days: int,
     preferences: dict[str, Any],
     idempotency_key: str,
 ) -> tuple[bool, int, Optional[dict[str, Any]]]:
-    """Atomically check quota and insert a new plan if under limit.
+    """Atomically check the credit balance and insert a new plan if it fits.
 
-    Uses ``pg_advisory_xact_lock`` to serialise concurrent requests for
-    the same user (Codex F1 + AR-01).
+    A plan of ``duration_days`` consumes ``duration_days`` credits. The already
+    consumed total is summed over the tier's window (lifetime for free, the
+    current calendar month for paid tiers) and the request is allowed only when
+    ``consumed + duration_days <= effective_limit``.
 
-    Returns ``(allowed, current_count, new_row_or_none)``.
+    Uses ``pg_advisory_xact_lock`` to serialise concurrent requests for the same
+    user so the read-sum-then-insert is race-free (Codex F1 + AR-01).
+
+    Returns ``(allowed, consumed_credits, new_row_or_none)``.
     """
     if effective_limit is None:
-        # Unlimited — skip advisory lock, insert directly
+        # Unlimited — skip advisory lock, insert directly.
         row = await repo.create_meal_plan(
             pool,
             user_id,
@@ -181,15 +188,20 @@ async def check_quota_atomic(
     if effective_limit == 0:
         return (False, 0, None)
 
+    lifetime = is_lifetime_window(tier)
+
     async with pool.acquire() as conn:
         async with conn.transaction():
             await conn.execute(
                 "SELECT pg_advisory_xact_lock($1)",
                 _advisory_lock_key(user_id),
             )
-            count = await repo.count_plans_this_month(conn, user_id)
-            if count >= effective_limit:
-                return (False, count, None)
+            if lifetime:
+                consumed = await repo.sum_credits_lifetime(conn, user_id)
+            else:
+                consumed = await repo.sum_credits_this_month(conn, user_id)
+            if consumed + duration_days > effective_limit:
+                return (False, consumed, None)
             row = await repo.create_meal_plan(
                 conn,
                 user_id,
@@ -198,4 +210,4 @@ async def check_quota_atomic(
                 preferences,
                 idempotency_key,
             )
-            return (True, count, row)
+            return (True, consumed, row)

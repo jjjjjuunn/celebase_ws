@@ -112,11 +112,11 @@ def _sub_patch(path: str):
 @pytest.mark.asyncio
 @patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
 async def test_generate_success(
-    mock_dedup, mock_sub, mock_count, mock_create, mock_enqueue, client
+    mock_dedup, mock_sub, mock_sum, mock_create, mock_enqueue, client
 ):  # type: ignore[missing-type-doc]
     """POST /meal-plans/generate returns 201 with queued status."""
 
@@ -127,7 +127,7 @@ async def test_generate_success(
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 0
+    mock_sum.return_value = 0
     mock_create.return_value = {"id": plan_id}
 
     resp = await client.post(
@@ -313,10 +313,14 @@ async def test_health_check(client):
 @pytest.mark.asyncio
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_free_tier_403(mock_dedup, mock_sub, client):
-    """Free tier (limit=0) returns 403 SUBSCRIPTION_REQUIRED."""
+async def test_generate_disabled_override_403(mock_dedup, mock_sub, client):
+    """An admin override of 0 (feature disabled) returns 403 SUBSCRIPTION_REQUIRED."""
     mock_dedup.return_value = None
-    mock_sub.return_value = {"tier": "free", "status": None, "quota_override": {}}
+    mock_sub.return_value = {
+        "tier": "free",
+        "status": None,
+        "quota_override": {"max_plans_per_month": 0},
+    }
 
     resp = await client.post(
         "/meal-plans/generate",
@@ -330,11 +334,58 @@ async def test_generate_free_tier_403(mock_dedup, mock_sub, client):
 @pytest.mark.asyncio
 @patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_lifetime")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_free_tier_within_grant_201(
+    mock_dedup, mock_sub, mock_sum, mock_create, mock_enqueue, client
+):
+    """Free tier uses its lifetime grant: a 2-day plan with 0 used → 201."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "free", "status": None, "quota_override": {}}
+    mock_sum.return_value = 0
+    plan_id = str(uuid4())
+    mock_create.return_value = {"id": plan_id}
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 2, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 201
+    assert resp.json()["status"] == "queued"
+
+
+@pytest.mark.asyncio
+@repo_patch("sum_credits_lifetime")
+@_sub_patch("src.clients.user_client.get_subscription")
+@repo_patch("find_recent_duplicate")
+async def test_generate_free_tier_exhausted_429_no_retry(
+    mock_dedup, mock_sub, mock_sum, client
+):
+    """Free lifetime grant exhausted (3/3) → 429 with NO Retry-After (no reset)."""
+    mock_dedup.return_value = None
+    mock_sub.return_value = {"tier": "free", "status": None, "quota_override": {}}
+    mock_sum.return_value = 3  # lifetime grant fully used
+
+    resp = await client.post(
+        "/meal-plans/generate",
+        json={"base_diet_id": str(uuid4()), "duration_days": 1, "preferences": {}},
+        headers=_auth_header(),
+    )
+    assert resp.status_code == 429
+    assert resp.json()["error"]["code"] == "PLAN_LIMIT_REACHED"
+    assert "retry-after" not in resp.headers  # lifetime grant never resets
+
+
+@pytest.mark.asyncio
+@patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
+@repo_patch("create_meal_plan")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
 async def test_generate_premium_under_limit_201(
-    mock_dedup, mock_sub, mock_count, mock_create, mock_enqueue, client
+    mock_dedup, mock_sub, mock_sum, mock_create, mock_enqueue, client
 ):
     """Premium user under limit gets 201."""
     mock_dedup.return_value = None
@@ -343,7 +394,7 @@ async def test_generate_premium_under_limit_201(
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 3
+    mock_sum.return_value = 3
     plan_id = str(uuid4())
     mock_create.return_value = {"id": plan_id}
 
@@ -357,18 +408,18 @@ async def test_generate_premium_under_limit_201(
 
 
 @pytest.mark.asyncio
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_premium_at_limit_429(mock_dedup, mock_sub, mock_count, client):
-    """Premium at 4/4 gets 429 PLAN_LIMIT_REACHED with Retry-After."""
+async def test_generate_premium_at_limit_429(mock_dedup, mock_sub, mock_sum, client):
+    """Premium at 15/15 credits gets 429 PLAN_LIMIT_REACHED with Retry-After."""
     mock_dedup.return_value = None
     mock_sub.return_value = {
         "tier": "premium",
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 4
+    mock_sum.return_value = 15
 
     resp = await client.post(
         "/meal-plans/generate",
@@ -383,14 +434,16 @@ async def test_generate_premium_at_limit_429(mock_dedup, mock_sub, mock_count, c
 @pytest.mark.asyncio
 @patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_generate_elite_201_no_count(
-    mock_dedup, mock_sub, mock_create, mock_enqueue, client
+async def test_generate_elite_under_monthly_cap_201(
+    mock_dedup, mock_sub, mock_sum, mock_create, mock_enqueue, client
 ):
-    """Elite tier gets 201 without count query."""
+    """Elite tier (30/month cap) under its credit cap gets 201."""
     mock_dedup.return_value = None
     mock_sub.return_value = {"tier": "elite", "status": "active", "quota_override": {}}
+    mock_sum.return_value = 0
     plan_id = str(uuid4())
     mock_create.return_value = {"id": plan_id}
 
@@ -462,10 +515,10 @@ async def test_generate_quota_override_null(
 
 
 @pytest.mark.asyncio
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
-async def test_retry_after_positive_int(mock_dedup, mock_sub, mock_count, client):
+async def test_retry_after_positive_int(mock_dedup, mock_sub, mock_sum, client):
     """429 response has a positive integer Retry-After header."""
     mock_dedup.return_value = None
     mock_sub.return_value = {
@@ -473,7 +526,7 @@ async def test_retry_after_positive_int(mock_dedup, mock_sub, mock_count, client
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 4
+    mock_sum.return_value = 15
 
     resp = await client.post(
         "/meal-plans/generate",
@@ -544,13 +597,13 @@ async def test_plan_generation_message_envelope_required_fields():
 @pytest.mark.asyncio
 @patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("create_meal_plan")
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
 async def test_generate_enqueues_to_sqs(
     mock_dedup,
     mock_sub,
-    mock_count,
+    mock_sum,
     mock_create,
     mock_enqueue,
     client,
@@ -563,7 +616,7 @@ async def test_generate_enqueues_to_sqs(
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 0
+    mock_sum.return_value = 0
     mock_create.return_value = {"id": plan_id}
 
     resp = await client.post(
@@ -583,13 +636,13 @@ async def test_generate_enqueues_to_sqs(
 @patch("src.routes.meal_plans.enqueue_plan_job", new_callable=AsyncMock)
 @repo_patch("update_meal_plan")
 @repo_patch("create_meal_plan")
-@repo_patch("count_plans_this_month")
+@repo_patch("sum_credits_this_month")
 @_sub_patch("src.clients.user_client.get_subscription")
 @repo_patch("find_recent_duplicate")
 async def test_generate_enqueue_failure_returns_503_and_marks_failed(
     mock_dedup,
     mock_sub,
-    mock_count,
+    mock_sum,
     mock_create,
     mock_update,
     mock_enqueue,
@@ -602,7 +655,7 @@ async def test_generate_enqueue_failure_returns_503_and_marks_failed(
         "status": "active",
         "quota_override": {},
     }
-    mock_count.return_value = 0
+    mock_sum.return_value = 0
     mock_create.return_value = {"id": str(uuid4())}
     mock_enqueue.side_effect = RuntimeError("boto connection refused")
 

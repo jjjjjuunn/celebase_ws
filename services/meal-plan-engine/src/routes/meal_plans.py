@@ -8,7 +8,7 @@ tests.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, NamedTuple, Optional
 from uuid import UUID, uuid4
 
@@ -250,27 +250,28 @@ async def generate_meal_plan(
             headers={"Retry-After": "5"},
         )
 
-    # Step 3: Validate & compute limit. A free-tier user inside the
-    # post-onboarding trial window (sub.trial_active, set by user-service from
-    # bio_profiles.created_at) is granted Premium-equivalent quota.
+    # Step 3: Validate subscription & compute the tier's credit limit.
     sub = quota_service.validate_subscription(raw_sub)
     effective_limit = quota_service.compute_effective_limit(
-        sub.tier, sub.quota_override, sub.trial_active
+        sub.tier, sub.quota_override
     )
 
-    # Step 4: Free tier (no active trial) → 403
+    # Step 4: Feature disabled (admin override of 0) → 403. Under the credit
+    # model the free tier carries a positive grant, so a normal free user no
+    # longer hits this path; exhausting credits returns 429 below.
     if effective_limit == 0:
         return _error_response(
             "SUBSCRIPTION_REQUIRED",
-            "Meal plan generation requires a Premium or Elite subscription",
+            "Meal plan generation is not available on this account",
             request_id,
             403,
         )
 
-    # Step 5: Atomic quota check + insert
-    allowed, count, row = await quota_service.check_quota_atomic(
+    # Step 5: Atomic credit check + insert (a plan consumes duration_days credits).
+    allowed, consumed, row = await quota_service.check_quota_atomic(
         pool,
         auth.user_id,
+        sub.tier,
         effective_limit,
         str(body.base_diet_id),
         body.duration_days,
@@ -279,17 +280,29 @@ async def generate_meal_plan(
     )
 
     if not allowed:
-        retry_after = quota_service.seconds_until_next_month(datetime.now(timezone.utc))
+        lifetime = quota_service.is_lifetime_window(sub.tier)
+        window = "lifetime free" if lifetime else "monthly"
+        headers: Dict[str, str] = {}
+        if not lifetime:
+            # Free credits are a one-time lifetime grant — they do not reset, so
+            # only paid tiers get a Retry-After pointing at the monthly rollover.
+            headers["Retry-After"] = str(
+                quota_service.seconds_until_next_month(datetime.now(timezone.utc))
+            )
         return JSONResponse(
             status_code=429,
             content={
                 "error": {
                     "code": "PLAN_LIMIT_REACHED",
-                    "message": f"Monthly limit of {effective_limit} plans reached ({count}/{effective_limit})",
+                    "message": (
+                        f"Credit limit reached: {consumed}/{effective_limit} "
+                        f"{window} credits used — a {body.duration_days}-day plan "
+                        f"needs {body.duration_days}"
+                    ),
                     "requestId": request_id,
                 }
             },
-            headers={"Retry-After": str(retry_after)},
+            headers=headers,
         )
 
     if not row or "id" not in row:
@@ -356,6 +369,75 @@ async def list_meal_plans(
     next_cursor = str(items[-1]["id"]) if has_next else None
 
     return {"items": items, "has_next": has_next, "next_cursor": next_cursor}
+
+
+# GET /meal-plans/credits -----------------------------------------------------
+# IMPORTANT: registered before GET /{plan_id} so the literal "credits" path is
+# matched first (otherwise FastAPI routes it into the {plan_id} param).
+
+
+@router.get("/credits", status_code=status.HTTP_200_OK)
+async def get_meal_plan_credits(
+    request: Request,
+    auth: AuthInfo = Depends(get_auth_info),
+):
+    """Return the user's credit balance for their tier's window.
+
+    free → lifetime grant (credits_reset_at null); premium/elite → monthly
+    (credits_reset_at = next month 00:00 UTC). Unlimited admin overrides report
+    null total/remaining. IMPL-MEAL-CREDIT-001.
+    """
+    request_id = await get_request_id(request)
+    pool = await get_pool()
+
+    raw_sub = await user_client.get_subscription(auth.raw_token)
+    if raw_sub is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "SERVICE_UNAVAILABLE",
+                    "message": "Unable to verify subscription. Please retry.",
+                    "requestId": request_id,
+                }
+            },
+            headers={"Retry-After": "5"},
+        )
+
+    sub = quota_service.validate_subscription(raw_sub)
+    effective_limit = quota_service.compute_effective_limit(
+        sub.tier, sub.quota_override
+    )
+    lifetime = quota_service.is_lifetime_window(sub.tier)
+
+    if lifetime:
+        consumed = await repo.sum_credits_lifetime(pool, auth.user_id)
+    else:
+        consumed = await repo.sum_credits_this_month(pool, auth.user_id)
+
+    if effective_limit is None:
+        # Unlimited (admin override) — no finite balance to report.
+        credits_total: Optional[int] = None
+        credits_remaining: Optional[int] = None
+    else:
+        credits_total = effective_limit
+        credits_remaining = max(0, effective_limit - consumed)
+
+    now_utc = datetime.now(timezone.utc)
+    credits_reset_at = (
+        None
+        if lifetime
+        else (
+            now_utc + timedelta(seconds=quota_service.seconds_until_next_month(now_utc))
+        ).isoformat()
+    )
+
+    return {
+        "tier": sub.tier,
+        "credits_remaining": credits_remaining,
+        "credits_total": credits_total,
+        "credits_reset_at": credits_reset_at,
+    }
 
 
 # GET /meal-plans/{plan_id} ----------------------------------------------------

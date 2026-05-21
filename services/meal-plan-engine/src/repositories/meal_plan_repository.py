@@ -27,9 +27,12 @@ async def create_meal_plan(
 ) -> Dict[str, Any]:
     """Insert a new meal plan with status ``queued``.
 
-    ``duration_days`` is not stored — ``start_date`` and ``end_date`` are
-    computed from it.  ``daily_plans`` defaults to an empty JSON array for
-    the initial *queued* state (the AI engine fills it later).
+    ``start_date`` and ``end_date`` are computed from ``duration_days``, which is
+    also stored as ``credits_consumed`` (1 credit = 1 day). ``credits_consumed``
+    is write-once: it is never updated afterward, so the per-row value is the
+    source of truth for credit accounting (IMPL-MEAL-CREDIT-001).
+    ``daily_plans`` defaults to an empty JSON array for the initial *queued*
+    state (the AI engine fills it later).
 
     Accepts either a Pool or a Connection (for use within transactions).
     """
@@ -41,8 +44,8 @@ async def create_meal_plan(
         """
         INSERT INTO meal_plans
             (user_id, base_diet_id, status, preferences, start_date, end_date,
-             daily_plans, idempotency_key)
-        VALUES ($1, $2, 'queued', $3::jsonb, $4, $5, '[]'::jsonb, $6)
+             daily_plans, idempotency_key, credits_consumed)
+        VALUES ($1, $2, 'queued', $3::jsonb, $4, $5, '[]'::jsonb, $6, $7)
         RETURNING *
         """,
         user_id,
@@ -51,29 +54,57 @@ async def create_meal_plan(
         start_date,
         end_date,
         idempotency_key or None,
+        duration_days,
     )
     return dict(row) if row else {}
 
 
-async def count_plans_this_month(
+async def sum_credits_lifetime(
     conn: asyncpg.Pool | asyncpg.Connection,
     user_id: str,
 ) -> int:
-    """Count non-failed, non-deleted plans for *user_id* in the current UTC month."""
+    """Sum lifetime credits consumed by *user_id* (free tier's one-time grant).
+
+    Counts every non-failed plan regardless of ``deleted_at`` — deleting a plan
+    does NOT refund its credits (anti-gaming). Only ``status = 'failed'`` plans
+    are excluded (a failed generation is refunded). IMPL-MEAL-CREDIT-001.
+    """
 
     val = await conn.fetchval(
         """
-        SELECT COUNT(*)
+        SELECT COALESCE(SUM(credits_consumed), 0)
         FROM meal_plans
         WHERE user_id = $1
           AND status <> 'failed'
-          AND deleted_at IS NULL
+        """,
+        user_id,
+    )
+    return int(val or 0)
+
+
+async def sum_credits_this_month(
+    conn: asyncpg.Pool | asyncpg.Connection,
+    user_id: str,
+) -> int:
+    """Sum credits consumed by *user_id* in the current UTC calendar month.
+
+    Same accounting rule as ``sum_credits_lifetime`` (deleted_at not filtered;
+    only ``status = 'failed'`` excluded), scoped to the current month for paid
+    tiers whose grant resets monthly. IMPL-MEAL-CREDIT-001.
+    """
+
+    val = await conn.fetchval(
+        """
+        SELECT COALESCE(SUM(credits_consumed), 0)
+        FROM meal_plans
+        WHERE user_id = $1
+          AND status <> 'failed'
           AND created_at >= DATE_TRUNC('month', NOW())
           AND created_at <  DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
         """,
         user_id,
     )
-    return val or 0
+    return int(val or 0)
 
 
 async def find_recent_duplicate(
