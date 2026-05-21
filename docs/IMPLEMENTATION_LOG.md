@@ -28,6 +28,35 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-21
+agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-c1
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/services/meal-plans.ts
+  - apps/mobile/src/services/celebrities.ts
+  - apps/mobile/src/services/bio-profile.ts
+  - apps/mobile/src/lib/use-meal-plan-credits.ts
+  - apps/mobile/__tests__/services/meal-plans.test.ts
+  - apps/mobile/__tests__/services/celebrities.test.ts
+  - apps/mobile/__tests__/services/bio-profile.test.ts
+  - apps/mobile/__tests__/lib/use-meal-plan-credits.test.ts
+verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash + codex (mobile typecheck/lint/jest)
+---
+### 완료: 모바일 크레딧 데이터 레이어 (Phase C1) — IMPL-MEAL-CREDIT-001-c1
+- **배경**: 크레딧 모델(IMPL-MEAL-CREDIT-001)의 모바일 FE를 위한 데이터 레이어. UI/화면(C3)·CelebrityPicker(C2)에 앞선 저위험 services + hook + 단위 테스트.
+- **변경**:
+  - `services/meal-plans.ts`: `generateMealPlan`(POST /api/meal-plans → BFF가 /generate 매핑), `getMealPlanCredits`(GET /api/meal-plans/credits), `pollMealPlanUntilReady`(detail 폴링 — draft/completed/active=완료, failed/expired/archived=`MealPlanPollError('failed')`, maxAttempts 소진=`MealPlanPollError('timeout')`; 종료 규칙은 웹 `useMealPlanStream`과 동일).
+  - `services/celebrities.ts`: `getCelebrityDiets`(셀럽→base_diet 로컬 조인), `getBaseDiet`(base_diet_id→셀럽 역조인). rule #10 준수(content-service 소유, mpe 직접 조인 X).
+  - `services/bio-profile.ts`: `getBioProfile`(404=미온보딩 신호 → 게이트가 catch).
+  - `lib/use-meal-plan-credits.ts`: `useMealPlanCredits` 훅 — use-current-tier 패턴 미러, fail-closed(fetch 실패 시 credits=null → 게이트가 잔량 0 취급), `refresh()` 로 생성/구독 후 재fetch.
+- **3-pass 리뷰**: advisor(refresh() 테스트 누락 1건 지적 → 추가), gemini-2.5-flash(material 0 — getMealPlan "미정의"는 diff 일부만 본 오탐, 404 throw는 컨벤션 정합 설계), codex(findings 0). 전부 PASS.
+- **검증**: mobile `tsc --noEmit` 0 에러, `eslint --max-warnings=0` 0 경고, jest 전체 PASS(신규 C1 14 test 포함, 회귀 0).
+### 미완료: C2(CelebrityPicker 추출), C3(GenerateSheet + MealPlanScreen 캘린더 + 3-state 게이트). spec.md 크레딧 모델 sync 후속(SPEC-SYNC-MEAL-CREDIT, gate 미매칭이라 별도).
+### 연관 파일: apps/mobile/src/services/meal-plans.ts, apps/mobile/src/services/celebrities.ts, apps/mobile/src/services/bio-profile.ts, apps/mobile/src/lib/use-meal-plan-credits.ts
+
+
+---
 date: 2026-05-20
 agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-b2
