@@ -6779,7 +6779,7 @@ verified_by: claude-opus-4-7 (typecheck + lint + unit tests green; terraform fmt
 date: 2026-05-20
 agent: claude-opus-4-7 (1M) + advisor (design + Google aud reconcile) + WebSearch/WebFetch (SDK API)
 task_id: IMPL-MOBILE-SOCIAL-NATIVE-001
-commit_sha: PENDING
+commit_sha: d7299a9
 files_changed:
   - packages/service-core/src/errors.ts
   - packages/service-core/src/index.ts
