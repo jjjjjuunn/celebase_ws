@@ -1,7 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type pg from 'pg';
 import * as subscriptionRepo from '../repositories/subscription.repository.js';
-import { computeTrialState } from '../lib/trial.js';
 
 export function subscriptionRoutes(
   app: FastifyInstance,
@@ -9,17 +8,12 @@ export function subscriptionRoutes(
 ): void {
   const { pool } = options;
 
-  // GET /subscriptions/me — reads users.subscription_tier (commerce-service owns
-  // full subscription details) plus the post-onboarding trial state derived from
-  // bio_profiles.created_at. During the trial window the meal-plan-engine grants
-  // a free-tier user Premium-equivalent generation quota (it reads trial_active).
+  // GET /subscriptions/me — returns the user's tier only. commerce-service owns
+  // full subscription details; meal-plan generation entitlement moved to the
+  // credit model (meal-plan-engine GET /meal-plans/credits, IMPL-MEAL-CREDIT-001),
+  // so the post-onboarding time-boxed trial state is no longer surfaced here.
   app.get('/subscriptions/me', async (request: FastifyRequest) => {
-    const { tier, bioCreatedAt } = await subscriptionRepo.findSubscriptionStateByUserId(
-      pool,
-      request.userId,
-    );
-    const { trial_active, trial_ends_at } = computeTrialState(tier, bioCreatedAt);
-    return { tier, trial_active, trial_ends_at };
+    const { tier } = await subscriptionRepo.findTierByUserId(pool, request.userId);
+    return { tier };
   });
 }
-
