@@ -30,6 +30,35 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-21
 agent: claude-opus-4-7
+task_id: FEAT-MOBILE-AUTH-FORM-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/components/AuthCardLayout.tsx
+  - apps/mobile/src/components/FormField.tsx
+  - apps/mobile/src/components/FormErrorBox.tsx
+  - apps/mobile/src/components/PasswordRequirements.tsx
+  - apps/mobile/src/lib/password-policy.ts
+  - apps/mobile/src/screens/ForgotPasswordScreen.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/navigation/AuthNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/__tests__/screens/LoginScreen.test.tsx
+  - apps/mobile/__tests__/screens/SignupScreen.test.tsx
+verified_by: claude-opus-4-7 (tsc --noEmit 0건, jest 175/175 통과)
+---
+### 완료: 모바일 인증/폼 UX 개편 + 비밀번호 찾기 플로우 (FEAT-MOBILE-AUTH-FORM-001)
+- **배경**: `git pull` 충돌(merged 크레딧 모델 IMPL-MEAL-CREDIT-001 vs 로컬 미커밋 작업) 정리 중, 크레딧 모델과 겹치지 않는 인증/폼 작업만 분리해 salvage. 충돌 7파일은 모두 ②③(trial/온보딩) 영역이라 본 PR 범위 밖.
+- **신규**: 공용 폼 프리미티브 `AuthCardLayout`/`FormField`/`FormErrorBox`/`PasswordRequirements` + `lib/password-policy.ts`(Cognito staging password_policy 와 동기 — min 12자/대·소문자/숫자, Zod 스키마 + 라이브 규칙 평가) + `screens/ForgotPasswordScreen.tsx`(Cognito 코드 기반 2단계 재설정).
+- **수정**: `LoginScreen`/`SignupScreen` 을 새 프리미티브 기반 재구성, `AuthNavigator`+`types.ts` 에 `ForgotPassword` 라우트 추가, `services/auth.ts` 에 `requestPasswordReset`/`confirmPasswordReset`(Amplify resetPassword/confirmResetPassword 래핑, user-enumeration 회피 주석).
+- **테스트**: `LoginScreen.test` 의 `/email/i` 매처가 새 "Email" 라벨과 충돌 → 에러메시지 전용 `/valid email/i` 로 보정. `SignupScreen.test` 를 새 UI(Display name 라벨, password-gate disabled 버튼)에 맞춰 재작성. `tsc --noEmit` 0건, `jest` 175/175 통과.
+### 미완료: ②③ trial/온보딩 게이팅(`use-access-policy`/`PremiumGate`/`onboarding-storage`/`initial-meal-plan`/`OnboardingGateScreen` 등)은 `wip/mobile-trial-onboarding` 브랜치에 보존 — 크레딧 모델로 대체 여부 판단 후 처리.
+### 연관 파일: apps/mobile/src/components/AuthCardLayout.tsx, apps/mobile/src/components/FormField.tsx, apps/mobile/src/components/FormErrorBox.tsx, apps/mobile/src/components/PasswordRequirements.tsx, apps/mobile/src/lib/password-policy.ts, apps/mobile/src/screens/ForgotPasswordScreen.tsx, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/navigation/AuthNavigator.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/src/services/auth.ts, apps/mobile/__tests__/screens/LoginScreen.test.tsx, apps/mobile/__tests__/screens/SignupScreen.test.tsx
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7
 task_id: SPEC-SYNC-MEAL-CREDIT-001
 commit_sha: 64dcb4f
 files_changed:
