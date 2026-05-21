@@ -30,6 +30,28 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-21
 agent: claude-opus-4-7
+task_id: IMPL-MEAL-CREDIT-001-c3a
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/components/MealPlanGenerateSheet.tsx
+  - apps/mobile/__tests__/components/MealPlanGenerateSheet.test.tsx
+verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash + codex (mobile typecheck/lint/jest)
+---
+### 완료: MealPlanGenerateSheet (Phase C3a) — IMPL-MEAL-CREDIT-001-c3a
+- **배경**: 크레딧 모델 모바일 생성 UI. 화면 내 RN Modal(bottom-sheet 라이브러리 없음)로 셀럽 선택→기간(1~maxDays 일)→생성→폴링. 1 credit = 1 day. C2 CelebrityPicker + C1 데이터 레이어 재사용.
+- **변경**: `components/MealPlanGenerateSheet.tsx`(신규) + 테스트.
+  - 흐름: CelebrityPicker 선택 → 1~maxDays pill(슬라이더 대신 — `@react-native-community/slider` 네이티브 의존성 회피, 이산 1~7 동등) → `getCelebrityDiets(slug)`로 base_diet_id 해석 → `generateMealPlan(POST)` → `pollMealPlanUntilReady` → `onGenerated(planId)`.
+  - 에러 분류(`toGenerateErrorMessage`): poll failed(환불 안내)·timeout(목록 확인)·ApiError 429(크레딧 부족)·기타 ApiError·ZodError(응답 형식 오류)·generic.
+  - in-flight 가드(`runIdRef`): 생성 중 닫기/재오픈/빠른 더블탭 시 stale `setState`/`onGenerated` 무효화. `effectiveMax = clamp(maxDays,1,7)` + maxDays 축소 시 days clamp(초과 생성 방지, 서버 429와 별개 클라 안전장치).
+- **3-pass 리뷰**: advisor(in-flight 가드 테스트 누락 → 추가), gemini-2.5-flash(MEDIUM: 더블탭 race → runId 시작 시 증가로 하드닝), codex(MEDIUM: maxDays 축소 시 days clamp → useEffect clamp 추가 / LOW: ZodError 명시 브랜치 추가). 모두 반영, 전부 PASS.
+- **검증**: mobile `tsc --noEmit` 0 에러, `eslint --max-warnings=0` 0 경고, jest 28 suites/174 PASS(신규 sheet 7 test: happy/429/poll-failed/no-diets/pill-render/days-clamp/in-flight-cancel, 회귀 0).
+### 미완료: C3b(MealPlanScreen 재작성 — 3-state 게이트 + 캘린더 + 본 시트 통합 + Paywall/Onboarding 네비). spec.md 크레딧 모델 sync 후속.
+### 연관 파일: apps/mobile/src/components/MealPlanGenerateSheet.tsx, apps/mobile/src/components/CelebrityPicker.tsx, apps/mobile/src/services/meal-plans.ts
+
+
+---
+date: 2026-05-21
+agent: claude-opus-4-7
 task_id: IMPL-MEAL-CREDIT-001-c2
 commit_sha: c74fa6f
 files_changed:
