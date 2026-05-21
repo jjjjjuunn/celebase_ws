@@ -57,8 +57,10 @@ describe('BFF integration — POST /api/auth/login', () => {
     expect(body.user.email).toBe('bob@example.com');
   });
 
-  it('400 VALIDATION_ERROR when email missing', async () => {
-    const req = makeRequest({ body: { not_email: 'x' } });
+  // email is optional since IMPL-MOBILE-SOCIAL-NATIVE-001, but format is still
+  // validated when present — a malformed email 400s before any upstream call.
+  it('400 VALIDATION_ERROR when email is malformed', async () => {
+    const req = makeRequest({ body: { email: 'not-an-email', id_token: 't' } });
     const res = await loginPOST(req);
 
     expect(res.status).toBe(400);
