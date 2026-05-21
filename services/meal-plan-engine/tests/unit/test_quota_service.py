@@ -14,6 +14,7 @@ from src.services.quota_service import (
     build_idempotency_key,
     check_quota_atomic,
     compute_effective_limit,
+    is_lifetime_window,
     seconds_until_next_month,
     validate_subscription,
 )
@@ -53,14 +54,13 @@ class TestValidateSubscription:
         assert result.tier == "premium"
         assert result.quota_override is None
 
-    def test_trial_active_defaults_false_when_absent(self) -> None:
-        # Older user-service builds omit trial_active → must default False.
-        result = validate_subscription({"tier": "free"})
-        assert result.trial_active is False
-
-    def test_trial_active_parsed_when_present(self) -> None:
-        result = validate_subscription({"tier": "free", "trial_active": True})
-        assert result.trial_active is True
+    def test_unknown_extra_fields_ignored(self) -> None:
+        # extra='ignore' → legacy trial fields on the wire are silently dropped.
+        result = validate_subscription(
+            {"tier": "free", "trial_active": True, "trial_ends_at": "2026-01-01"}
+        )
+        assert result.tier == "free"
+        assert not hasattr(result, "trial_active")
 
 
 # ---------------------------------------------------------------------------
@@ -69,14 +69,14 @@ class TestValidateSubscription:
 
 
 class TestComputeEffectiveLimit:
-    def test_free_tier_limit_is_zero(self) -> None:
-        assert compute_effective_limit("free", QuotaOverrideModel()) == 0
+    def test_free_tier_lifetime_grant_is_3(self) -> None:
+        assert compute_effective_limit("free", QuotaOverrideModel()) == 3
 
-    def test_premium_tier_limit_is_4(self) -> None:
-        assert compute_effective_limit("premium", QuotaOverrideModel()) == 4
+    def test_premium_tier_limit_is_15(self) -> None:
+        assert compute_effective_limit("premium", QuotaOverrideModel()) == 15
 
-    def test_elite_tier_limit_is_none(self) -> None:
-        assert compute_effective_limit("elite", QuotaOverrideModel()) is None
+    def test_elite_tier_limit_is_30(self) -> None:
+        assert compute_effective_limit("elite", QuotaOverrideModel()) == 30
 
     def test_unknown_tier_defaults_to_zero(self) -> None:
         assert compute_effective_limit("unknown_tier", QuotaOverrideModel()) == 0
@@ -94,26 +94,17 @@ class TestComputeEffectiveLimit:
         assert compute_effective_limit("elite", override) == 0
 
     def test_none_override_uses_tier_default(self) -> None:
-        assert compute_effective_limit("premium", None) == 4
-        assert compute_effective_limit("elite", None) is None
+        assert compute_effective_limit("premium", None) == 15
+        assert compute_effective_limit("elite", None) == 30
 
-    # Post-onboarding trial grant (FEAT-MOBILE-TRIAL-MEALPLAN-001)
 
-    def test_trial_active_grants_free_user_premium_limit(self) -> None:
-        assert compute_effective_limit("free", QuotaOverrideModel(), True) == 4
-        assert compute_effective_limit("free", None, True) == 4
+class TestIsLifetimeWindow:
+    def test_free_is_lifetime(self) -> None:
+        assert is_lifetime_window("free") is True
 
-    def test_trial_inactive_keeps_free_disabled(self) -> None:
-        assert compute_effective_limit("free", QuotaOverrideModel(), False) == 0
-
-    def test_trial_does_not_downgrade_elite(self) -> None:
-        # Trial only lifts a 0 (free) limit; elite stays unlimited.
-        assert compute_effective_limit("elite", QuotaOverrideModel(), True) is None
-
-    def test_explicit_override_wins_over_trial(self) -> None:
-        # Admin-set override of 0 (disabled) is honored even during a trial.
-        override = QuotaOverrideModel.model_validate({"max_plans_per_month": 0})
-        assert compute_effective_limit("free", override, True) == 0
+    def test_paid_tiers_are_monthly(self) -> None:
+        assert is_lifetime_window("premium") is False
+        assert is_lifetime_window("elite") is False
 
 
 # ---------------------------------------------------------------------------
@@ -204,107 +195,133 @@ def _make_pool_with_conn(mock_conn: AsyncMock) -> MagicMock:
 class TestCheckQuotaAtomic:
     @pytest.mark.asyncio
     @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
-    async def test_elite_skips_db_count(self, mock_create: AsyncMock) -> None:
+    async def test_unlimited_skips_db_sum(self, mock_create: AsyncMock) -> None:
+        # effective_limit None (admin override) → insert directly, no sum query.
         mock_create.return_value = {"id": "plan-1"}
         pool = MagicMock()
 
-        allowed, count, row = await check_quota_atomic(
-            pool,
-            "u1",
-            None,
-            "d1",
-            7,
-            {},
-            "key1",
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "elite", None, "d1", 7, {}, "key1"
         )
 
         assert allowed is True
-        assert count == 0
+        assert consumed == 0
         assert row == {"id": "plan-1"}
 
     @pytest.mark.asyncio
-    async def test_free_skips_db(self) -> None:
+    async def test_disabled_limit_skips_db(self) -> None:
+        # effective_limit 0 (disabled override) → reject without touching the DB.
         pool = MagicMock()
-        allowed, count, row = await check_quota_atomic(
-            pool,
-            "u1",
-            0,
-            "d1",
-            7,
-            {},
-            "key1",
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "free", 0, "d1", 7, {}, "key1"
         )
         assert allowed is False
-        assert count == 0
+        assert consumed == 0
         assert row is None
 
     @pytest.mark.asyncio
     @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
     @patch(
-        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+        "src.services.quota_service.repo.sum_credits_this_month", new_callable=AsyncMock
     )
-    async def test_under_limit(
-        self, mock_count: AsyncMock, mock_create: AsyncMock
+    async def test_paid_under_limit(
+        self, mock_sum: AsyncMock, mock_create: AsyncMock
     ) -> None:
-        mock_count.return_value = 3
+        # premium: 5 used + 7-day plan = 12 <= 15 → allowed.
+        mock_sum.return_value = 5
         mock_create.return_value = {"id": "plan-new"}
 
-        mock_conn = _make_mock_conn()
-        pool = _make_pool_with_conn(mock_conn)
-
-        allowed, count, row = await check_quota_atomic(
-            pool,
-            "u1",
-            4,
-            "d1",
-            7,
-            {},
-            "key1",
+        pool = _make_pool_with_conn(_make_mock_conn())
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "premium", 15, "d1", 7, {}, "key1"
         )
         assert allowed is True
-        assert count == 3
+        assert consumed == 5
+        mock_create.assert_awaited_once()
 
     @pytest.mark.asyncio
+    @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
     @patch(
-        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+        "src.services.quota_service.repo.sum_credits_this_month", new_callable=AsyncMock
     )
-    async def test_at_limit(self, mock_count: AsyncMock) -> None:
-        mock_count.return_value = 4
+    async def test_paid_exact_limit_allowed(
+        self, mock_sum: AsyncMock, mock_create: AsyncMock
+    ) -> None:
+        # Hitting the limit exactly is allowed (reject is strictly > limit).
+        mock_sum.return_value = 8
+        mock_create.return_value = {"id": "plan-new"}
 
-        mock_conn = _make_mock_conn()
-        pool = _make_pool_with_conn(mock_conn)
+        pool = _make_pool_with_conn(_make_mock_conn())
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "premium", 15, "d1", 7, {}, "key1"
+        )
+        assert allowed is True  # 8 + 7 == 15
+        assert consumed == 8
+        mock_create.assert_awaited_once()
 
-        allowed, count, row = await check_quota_atomic(
-            pool,
-            "u1",
-            4,
-            "d1",
-            7,
-            {},
-            "key1",
+    @pytest.mark.asyncio
+    @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
+    @patch(
+        "src.services.quota_service.repo.sum_credits_this_month", new_callable=AsyncMock
+    )
+    async def test_paid_over_limit_rejected(
+        self, mock_sum: AsyncMock, mock_create: AsyncMock
+    ) -> None:
+        # 10 used + 7-day plan = 17 > 15 → rejected, no insert.
+        mock_sum.return_value = 10
+
+        pool = _make_pool_with_conn(_make_mock_conn())
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "premium", 15, "d1", 7, {}, "key1"
         )
         assert allowed is False
-        assert count == 4
+        assert consumed == 10
         assert row is None
+        mock_create.assert_not_awaited()
 
     @pytest.mark.asyncio
+    @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
     @patch(
-        "src.services.quota_service.repo.count_plans_this_month", new_callable=AsyncMock
+        "src.services.quota_service.repo.sum_credits_lifetime", new_callable=AsyncMock
     )
-    async def test_over_limit(self, mock_count: AsyncMock) -> None:
-        mock_count.return_value = 5
+    @patch(
+        "src.services.quota_service.repo.sum_credits_this_month", new_callable=AsyncMock
+    )
+    async def test_free_uses_lifetime_window(
+        self,
+        mock_month: AsyncMock,
+        mock_lifetime: AsyncMock,
+        mock_create: AsyncMock,
+    ) -> None:
+        # free tier sums LIFETIME credits, never the monthly window.
+        mock_lifetime.return_value = 1
+        mock_create.return_value = {"id": "plan-free"}
 
-        mock_conn = _make_mock_conn()
-        pool = _make_pool_with_conn(mock_conn)
+        pool = _make_pool_with_conn(_make_mock_conn())
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "free", 3, "d1", 1, {}, "key1"
+        )
+        assert allowed is True  # 1 + 1 <= 3
+        assert consumed == 1
+        mock_lifetime.assert_awaited_once()
+        mock_month.assert_not_awaited()
 
-        allowed, count, row = await check_quota_atomic(
-            pool,
-            "u1",
-            4,
-            "d1",
-            7,
-            {},
-            "key1",
+    @pytest.mark.asyncio
+    @patch("src.services.quota_service.repo.create_meal_plan", new_callable=AsyncMock)
+    @patch(
+        "src.services.quota_service.repo.sum_credits_lifetime", new_callable=AsyncMock
+    )
+    async def test_free_over_lifetime_rejected(
+        self, mock_lifetime: AsyncMock, mock_create: AsyncMock
+    ) -> None:
+        # free with 3 lifetime credits used → a further 1-day plan is rejected.
+        mock_lifetime.return_value = 3
+
+        pool = _make_pool_with_conn(_make_mock_conn())
+        allowed, consumed, row = await check_quota_atomic(
+            pool, "u1", "free", 3, "d1", 1, {}, "key1"
         )
         assert allowed is False
-        assert count == 5
+        assert consumed == 3
+        assert row is None
+        mock_create.assert_not_awaited()
