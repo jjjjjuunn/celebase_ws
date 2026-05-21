@@ -93,3 +93,34 @@ export class AccountDeletedError extends AppError {
     super(message, 401, 'ACCOUNT_DELETED');
   }
 }
+
+// 409 — a verified identity tried to sign in with an email that already
+// belongs to a DIFFERENT Cognito identity (e.g. user signed up with
+// email/password, then taps "Continue with Google"). Cognito federation does
+// not auto-link, so we surface a structured conflict rather than violating the
+// users.email UNIQUE invariant. The mobile client maps this code to guidance:
+// "sign in with your original method, then link the provider in Settings."
+// (IMPL-MOBILE-SOCIAL-001 — decision: 409, no auto-link.)
+export class AccountExistsError extends AppError {
+  public constructor(
+    message = 'An account with this email already exists with a different sign-in method',
+  ) {
+    super(message, 409, 'ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER');
+  }
+}
+
+// 400 — a request named a social provider (apple / google) whose verifier was
+// not configured at boot (missing APPLE_BUNDLE_ID / GOOGLE_CLIENT_IDS). The
+// router fails closed here instead of silently 500-ing or, worse, falling back
+// to a different provider's verifier. The mobile client surfaces a generic
+// "sign-in unavailable" message; operators read the structured code in logs.
+// (IMPL-MOBILE-SOCIAL-NATIVE-001 — native provider dispatch.)
+export class SocialProviderNotConfiguredError extends AppError {
+  public constructor(provider: string) {
+    super(
+      `Social sign-in provider "${provider}" is not configured on this server`,
+      400,
+      'SOCIAL_PROVIDER_NOT_CONFIGURED',
+    );
+  }
+}

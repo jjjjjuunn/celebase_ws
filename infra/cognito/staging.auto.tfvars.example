@@ -1,0 +1,28 @@
+# Social federation credentials for staging — IMPL-MOBILE-SOCIAL-001.
+#
+# USAGE:
+#   cp staging.auto.tfvars.example staging.auto.tfvars
+#   # then fill in the real values below (staging.auto.tfvars is gitignored)
+#
+# ⚠️ NEVER commit staging.auto.tfvars — it holds OAuth secrets + Apple .p8 key.
+#    See docs/runbooks/SOCIAL-LOGIN-SETUP.md §2/§3 for how to obtain each value.
+#
+# Leave any provider's values as "" to disable it (federation no-op for that
+# provider). Both fields of a provider must be set for it to activate.
+
+environment = "staging"
+
+# ── Google (from Google Cloud Console → Credentials → OAuth client ID "Web") ──
+google_oauth_client_id     = ""  # e.g. "1234567890-abc.apps.googleusercontent.com"
+google_oauth_client_secret = ""  # e.g. "GOCSPX-xxxxxxxx"
+
+# ── Apple (from developer.apple.com) ──────────────────────────────────────────
+apple_services_id = ""  # Services ID identifier, e.g. "com.celebase.mobile.signin"
+apple_team_id     = ""  # 10-char Team ID (top-right of developer.apple.com)
+apple_key_id      = ""  # Key ID of the Sign-in-with-Apple .p8 key
+apple_private_key = ""  # Full PEM contents of the .p8 file:
+#   apple_private_key = <<-EOT
+#     -----BEGIN PRIVATE KEY-----
+#     MIGT...(p8 전체)...
+#     -----END PRIVATE KEY-----
+#   EOT

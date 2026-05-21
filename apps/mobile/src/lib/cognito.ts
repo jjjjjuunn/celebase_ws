@@ -70,6 +70,11 @@ export function configureCognito(): void {
   }
 
   const { userPoolId, userPoolClientId } = readCognitoEnv();
+
+  // Cognito is configured for SRP (email/password) ONLY. Social sign-in
+  // (Apple/Google) no longer flows through Cognito Hosted-UI federation — it
+  // is verified natively by user-service (IMPL-MOBILE-SOCIAL-NATIVE-001), so
+  // there is no `loginWith.oauth` block here anymore.
   Amplify.configure({
     Auth: {
       Cognito: {

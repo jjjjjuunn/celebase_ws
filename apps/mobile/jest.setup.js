@@ -26,6 +26,27 @@ jest.mock('react-native-purchases', () => ({
   LOG_LEVEL: { VERBOSE: 0, DEBUG: 1, INFO: 2, WARN: 3, ERROR: 4 },
 }));
 
+// Native social sign-in modules (IMPL-MOBILE-SOCIAL-NATIVE-001) — SocialAuthButtons
+// statically imports services/social-auth, which imports these native binaries.
+// Stub them globally so screen tests load without native modules present. The
+// dedicated social-auth test overrides these with its own jest.mock.
+jest.mock('expo-apple-authentication', () => ({
+  AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
+  signInAsync: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn().mockResolvedValue(true),
+    signIn: jest.fn(),
+  },
+  isSuccessResponse: jest.fn(() => false),
+  isErrorWithCode: jest.fn(() => false),
+  statusCodes: { SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED' },
+}));
+
 // react-native-safe-area-context — jest 환경에선 native UIManager 부재라 RNCSafeAreaProvider
 // placeholder 만 렌더되어 children 이 표시되지 않는다. Provider/View 모두 children 통과.
 jest.mock('react-native-safe-area-context', () => {

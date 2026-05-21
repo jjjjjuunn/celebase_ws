@@ -1,0 +1,5 @@
+# Terraform variable files may contain secrets (Google/Apple OAuth creds,
+# Apple .p8 private key). NEVER commit. Copy staging.auto.tfvars.example →
+# staging.auto.tfvars and fill in real values locally.
+*.tfvars
+!*.tfvars.example

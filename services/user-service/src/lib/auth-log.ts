@@ -30,6 +30,10 @@ export interface CognitoVerifyFields {
 
 export interface InternalTokenIssuedFields {
   flow: 'login' | 'signup' | 'refresh';
+  // Which verifier issued the login (IMPL-MOBILE-SOCIAL-NATIVE-001). Defaults
+  // to 'cognito' for the email+password / web path; 'apple' / 'google' for
+  // native social sign-in.
+  provider?: 'cognito' | 'apple' | 'google';
   requestId: string;
 }
 
@@ -77,11 +81,23 @@ export interface LazyProvisionedFields {
   requestId: string;
 }
 
+// IMPL-MOBILE-SOCIAL-001 — emitted when /auth/login receives a verified
+// id_token whose email already belongs to a DIFFERENT cognito_sub (federated
+// collision: e.g. password user taps "Continue with Google"). Rejected with
+// 409 ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER; hashes only (Rule #8).
+export interface ProviderCollisionFields {
+  email_hash: string;
+  incoming_cognito_sub_hash: string;
+  existing_cognito_sub_hash: string;
+  requestId: string;
+}
+
 export interface AuthLogFieldMap {
   'auth.cognito.verify': CognitoVerifyFields;
   'auth.internal_token.issued': InternalTokenIssuedFields;
   'auth.email_bridge.applied': EmailBridgeFields;
   'auth.user.lazy_provisioned': LazyProvisionedFields;
+  'auth.account.provider_collision': ProviderCollisionFields;
   'auth.logout': LogoutFields;
   'auth.refresh.rotated': RefreshRotatedFields;
   'auth.refresh.expired_or_missing': RefreshExpiredOrMissingFields;

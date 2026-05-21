@@ -69,14 +69,28 @@ describe('BFF integration — POST /api/auth/mobile/login', () => {
     expect(body.refresh_token).toBe('refresh-xyz');
   });
 
-  it('400 VALIDATION_ERROR when email missing — no upstream call', async () => {
-    const req = makeRequest({ body: { not_email: 'x' } });
+  // email is optional since IMPL-MOBILE-SOCIAL-NATIVE-001 (native Apple omits
+  // it on re-sign-in), but the BFF still validates FORMAT when present — a
+  // malformed email is rejected before any upstream call.
+  it('400 VALIDATION_ERROR when email is malformed — no upstream call', async () => {
+    const req = makeRequest({ body: { email: 'not-an-email', id_token: 't' } });
     const res = await mobileLoginPOST(req);
 
     expect(res.status).toBe(400);
     expect(fetchSpy).not.toHaveBeenCalled();
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  // Native social contract: no email + id_token + provider is VALID and forwards.
+  it('forwards a native social login (id_token + provider, no email) upstream', async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(TOKEN_PAYLOAD, 200));
+    const req = makeRequest({ body: { id_token: 'apple.jwt', provider: 'apple' } });
+    const res = await mobileLoginPOST(req);
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 

@@ -12,6 +12,8 @@ export {
   RefreshRevokedError,
   MalformedRefreshError,
   AccountDeletedError,
+  AccountExistsError,
+  SocialProviderNotConfiguredError,
 } from './errors.js';
 export { BaseConfigSchema, type BaseConfig } from './config.js';
 export { createLogger } from './logger.js';

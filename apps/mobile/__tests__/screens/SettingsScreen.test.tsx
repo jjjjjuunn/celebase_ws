@@ -22,6 +22,7 @@ import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import * as authService from '../../src/services/auth';
 import * as authEvents from '../../src/lib/auth-events';
 import * as tierHook from '../../src/lib/use-current-tier';
+import * as usersService from '../../src/services/users';
 
 describe('<SettingsScreen />', () => {
   let alertSpy: jest.SpyInstance;
@@ -38,6 +39,11 @@ describe('<SettingsScreen />', () => {
       loading: false,
       refresh: jest.fn(),
     });
+    jest
+      .spyOn(usersService, 'getCurrentUser')
+      .mockResolvedValue({ user: { email: 'me@example.com' } } as unknown as Awaited<
+        ReturnType<typeof usersService.getCurrentUser>
+      >);
   });
 
   afterEach(() => {

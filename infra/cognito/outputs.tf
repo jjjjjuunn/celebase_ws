@@ -52,3 +52,14 @@ output "cognito_mobile_client_id" {
   description = "Mobile public app client ID (EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID)"
   value       = aws_cognito_user_pool_client.mobile.id
 }
+
+# Social federation (IMPL-MOBILE-SOCIAL-001)
+output "mobile_callback_urls" {
+  description = "Mobile OAuth callback URLs — must EXACTLY match Amplify redirectSignIn"
+  value       = var.mobile_callback_urls
+}
+
+output "social_providers_enabled" {
+  description = "IdPs active on the mobile client (COGNITO + any supplied via creds)"
+  value       = local.mobile_identity_providers
+}

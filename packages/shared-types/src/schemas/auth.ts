@@ -14,9 +14,27 @@ export const SignupRequestSchema = z.object({
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
 
+/**
+ * Sign-in source. Absent / 'cognito' = email+password (Cognito SRP) or web —
+ * the BE selects the CognitoAuthProvider. 'apple' / 'google' = native social
+ * sign-in (expo-apple-authentication / @react-native-google-signin); the BE
+ * dispatches to the matching provider's verifier (per-provider JWKS + strict
+ * iss/aud). The discriminator is client-supplied but NOT trusted for identity —
+ * each provider's verifyIdToken fails closed on iss/aud/exp, so a forged
+ * `provider` only selects which strict verifier rejects the token.
+ * (IMPL-MOBILE-SOCIAL-NATIVE-001.)
+ */
+export const AuthProviderKindSchema = z.enum(['cognito', 'apple', 'google']);
+export type AuthProviderKind = z.infer<typeof AuthProviderKindSchema>;
+
 export const LoginRequestSchema = z.object({
-  email: z.string().email().max(255),
+  // Optional: only the email+password (dev/Cognito) path supplies it as a hint.
+  // For id_token flows the verified token's email claim is authoritative, and
+  // native Apple re-sign-in may omit email entirely (resolved server-side by
+  // looking the user up by provider sub).
+  email: z.string().email().max(255).optional(),
   id_token: z.string().optional(),
+  provider: AuthProviderKindSchema.optional(),
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 

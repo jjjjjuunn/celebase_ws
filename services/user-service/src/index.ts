@@ -14,6 +14,11 @@ import { registerInternalJwtAuth } from './middleware/internal-jwt.js';
 import type { AuthProvider } from './services/auth.service.js';
 import { DevAuthProvider } from './services/auth.service.js';
 import { CognitoAuthProvider } from './services/cognito-auth.provider.js';
+import {
+  AppleAuthProvider,
+  GoogleAuthProvider,
+  parseGoogleClientIds,
+} from './services/social-auth.provider.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -88,9 +93,32 @@ const start = async (): Promise<void> => {
     authProvider = new DevAuthProvider();
     app.log.info('Auth provider: dev');
   }
+
+  // Native social verifiers (IMPL-MOBILE-SOCIAL-NATIVE-001). Wired only when
+  // their env is present + valid (env.ts validated GOOGLE_CLIENT_IDS format at
+  // boot). Unwired providers stay absent → /auth/login fails closed with
+  // SOCIAL_PROVIDER_NOT_CONFIGURED. Independent of AUTH_PROVIDER.
+  const socialProviders: Partial<Record<'apple' | 'google', AuthProvider>> = {};
+  if (env.APPLE_BUNDLE_ID) {
+    socialProviders.apple = new AppleAuthProvider({
+      bundleId: env.APPLE_BUNDLE_ID,
+      log: app.log,
+    });
+    app.log.info('Social provider: apple (native)');
+  }
+  const googleClientIds = parseGoogleClientIds(env.GOOGLE_CLIENT_IDS);
+  if (googleClientIds) {
+    socialProviders.google = new GoogleAuthProvider({
+      allowedClientIds: googleClientIds,
+      log: app.log,
+    });
+    app.log.info('Social provider: google (native)');
+  }
+
   await app.register(authRoutes, {
     pool,
     authProvider,
+    socialProviders,
     rateLimits: {
       signup: env.AUTH_RATE_LIMIT_SIGNUP,
       login: env.AUTH_RATE_LIMIT_LOGIN,

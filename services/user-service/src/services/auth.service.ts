@@ -16,6 +16,7 @@ import {
   UnauthorizedError,
   ValidationError,
   AccountDeletedError,
+  AccountExistsError,
   MalformedRefreshError,
   RefreshExpiredOrMissingError,
   RefreshRevokedError,
@@ -273,7 +274,9 @@ export async function signup(
 }
 
 interface LoginInput {
-  email: string;
+  // Optional: only the dev-stub path consumes it. id_token flows derive email
+  // from the verified token (native Apple may omit it entirely on re-sign-in).
+  email?: string | undefined;
   id_token?: string | undefined;
 }
 
@@ -310,12 +313,27 @@ export async function login(
     if (!user) {
       // Lazy provisioning — IMPL-AUTH-LAZY-PROVISION-001.
       // SECURITY: trust on payload.sub/email derives from the provider's
-      // verifyIdToken contract — CognitoAuthProvider.verifyIdToken validates
-      // RS256 signature against JWKS + issuer + audience array + exp +
-      // token_use==='id'. Cognito pool config locks email as immutable
-      // (infra/cognito/main.tf: email schema mutable=false +
-      // auto_verified_attributes=["email"]). Any future AuthProvider must
-      // preserve these guarantees or this branch becomes a forgery vector.
+      // verifyIdToken contract — CognitoAuthProvider validates RS256 + issuer +
+      // audience array + exp + token_use==='id' (Cognito pool locks email
+      // immutable: infra/cognito/main.tf). The native social verifiers
+      // (Apple/GoogleAuthProvider, IMPL-MOBILE-SOCIAL-NATIVE-001) preserve the
+      // same barrier: RS256 against the provider JWKS + exact issuer + STRICT
+      // audience (Apple bundle ID / Google client-ID allowlist) + exp. Any
+      // future AuthProvider must keep these or this branch becomes a forgery
+      // vector.
+      //
+      // First-time provisioning needs a real email (users.email is NOT NULL
+      // UNIQUE). Native Apple omits `email` on re-sign-in but THAT path is
+      // resolved earlier by findByCognitoSub; reaching here with no email means
+      // a genuine first sign-in where Apple withheld it (user revoked the app).
+      // Fail closed with actionable guidance rather than inserting a blank
+      // email (IMPL-MOBILE-SOCIAL-NATIVE-001, advisor invariant #9).
+      if (!payload.email) {
+        throw new ValidationError(
+          'We could not get your email from the sign-in provider. On iOS, open Settings → Apple ID → Sign in with Apple, remove Celebase, then try again.',
+          [{ field: 'email', issue: 'APPLE_EMAIL_REQUIRED' }],
+        );
+      }
       const displayName = payload.email.split('@')[0] || 'User';
       const created = await userRepo.create(pool, {
         cognito_sub: payload.sub,
@@ -332,14 +350,46 @@ export async function login(
           requestId,
         });
       } else {
-        // Race with concurrent signup — another tx committed first.
-        // Re-read by sub to attach to the winning row.
+        // create returned null → a UNIQUE violation. Two distinct causes:
+        //  (1) a concurrent signup committed first with the SAME cognito_sub —
+        //      re-read by sub attaches us to the winning row.
+        //  (2) a DIFFERENT identity already owns this email: the federated
+        //      collision (IMPL-MOBILE-SOCIAL-001). The user signed up with
+        //      email/password (or another provider), now arrives via a new
+        //      Cognito sub (e.g. "Continue with Google"). Cognito federation
+        //      does NOT auto-link, so re-read by sub stays null while
+        //      findByEmail finds the incumbent. Surface a structured 409 (no
+        //      auto-link — product decision) so the client can route the user
+        //      to their original sign-in method instead of 500-ing on the
+        //      users.email UNIQUE constraint.
         user = await userRepo.findByCognitoSub(pool, payload.sub);
+        if (!user) {
+          const incumbent = await userRepo.findByEmail(pool, payload.email);
+          if (incumbent && incumbent.cognito_sub !== payload.sub) {
+            emitAuthLog(
+              log,
+              'auth.account.provider_collision',
+              {
+                email_hash: hashId(payload.email),
+                incoming_cognito_sub_hash: hashId(payload.sub),
+                existing_cognito_sub_hash: hashId(incumbent.cognito_sub),
+                requestId,
+              },
+              'warn',
+            );
+            throw new AccountExistsError();
+          }
+        }
       }
     }
   } else {
     // Dev stub: find by email
     if (provider instanceof DevAuthProvider) {
+      if (!input.email) {
+        throw new ValidationError('email is required', [
+          { field: 'email', issue: 'Required for dev-stub login without id_token' },
+        ]);
+      }
       user = await userRepo.findByEmail(pool, input.email);
     } else {
       throw new ValidationError('id_token is required', [

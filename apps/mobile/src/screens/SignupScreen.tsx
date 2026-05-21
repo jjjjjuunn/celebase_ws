@@ -17,6 +17,7 @@ import { tokens } from '@celebbase/design-tokens';
 
 import { ApiError } from '../lib/api-client';
 import { confirmSignUpAndLogin, signUp } from '../services/auth';
+import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { px, resolveToken } from '../lib/tokens';
 
 const SignupFormSchema = z.object({
@@ -111,7 +112,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Get started with CelebBase</Text>
+        <Text style={styles.subtitle}>Get started with Celebase</Text>
 
         <TextInput
           accessibilityLabel="Email"
@@ -176,6 +177,8 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
             <Text style={styles.buttonText}>Sign up</Text>
           )}
         </TouchableOpacity>
+
+        <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
 
         <TouchableOpacity
           accessibilityLabel="Back to sign in"

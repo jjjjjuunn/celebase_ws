@@ -145,7 +145,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>Unlock CelebBase Pro</Text>
+        <Text style={styles.title}>Unlock Celebase Pro</Text>
         <Text style={styles.subtitle}>
           Personalized wellness plans inspired by your favorite celebrities.
         </Text>

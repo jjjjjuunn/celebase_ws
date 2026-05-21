@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "CelebBase",
+    "name": "Celebase",
     "slug": "celebbase-mobile",
     "version": "1.0.0",
+    "scheme": "celebase",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.celebbase.mobile"
+      "bundleIdentifier": "com.celebase.mobile"
     },
     "android": {
-      "package": "com.celebbase.mobile",
+      "package": "com.celebase.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
