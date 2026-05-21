@@ -24,7 +24,7 @@ describe('LoginScreen', () => {
     const onSignupRequest = jest.fn();
     render(<LoginScreen onSuccess={onSuccess} onSignupRequest={onSignupRequest} />);
 
-    expect(screen.getByText('Sign in to continue to CelebBase')).toBeTruthy();
+    expect(screen.getByText('Sign in to continue to Celebase')).toBeTruthy();
     expect(screen.getByLabelText('Email')).toBeTruthy();
     expect(screen.getByLabelText('Password')).toBeTruthy();
     expect(screen.getByLabelText('Sign in')).toBeTruthy();

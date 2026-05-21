@@ -59,7 +59,7 @@ export function LoginScreen({ onSuccess, onSignupRequest }: LoginScreenProps): R
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Welcome back</Text>
-      <Text style={styles.subtitle}>Sign in to continue to CelebBase</Text>
+      <Text style={styles.subtitle}>Sign in to continue to Celebase</Text>
 
       <TextInput
         accessibilityLabel="Email"

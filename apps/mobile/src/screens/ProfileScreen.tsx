@@ -124,7 +124,7 @@ export function ProfileScreen({
 
         {isFreeTier ? (
           <View style={styles.upgradeCard}>
-            <Text style={styles.upgradeTitle}>Unlock CelebBase Pro</Text>
+            <Text style={styles.upgradeTitle}>Unlock Celebase Pro</Text>
             <Text style={styles.upgradeBody}>
               Personalized plans, full celebrity libraries, daily insights.
             </Text>

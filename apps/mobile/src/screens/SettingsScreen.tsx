@@ -11,7 +11,7 @@
 // 메시지로 placeholder. Apple 심사용으로는 UI 흐름 존재만으로 충분 (실제 처리는
 // 7일 grace period 안에 manual 가능).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -26,6 +26,7 @@ import { tokens } from '@celebbase/design-tokens';
 
 import { px, resolveToken } from '../lib/tokens';
 import { signOut } from '../services/auth';
+import { getCurrentUser } from '../services/users';
 import { signalLogout } from '../lib/auth-events';
 import { useCurrentTier } from '../lib/use-current-tier';
 
@@ -44,6 +45,28 @@ void _PLAY_SUBSCRIPTIONS_URL;
 export function SettingsScreen(): React.JSX.Element {
   const { tier } = useCurrentTier();
   const [signingOut, setSigningOut] = useState(false);
+
+  // Account email — GET /api/users/me. This screen only renders when signed in
+  // (RootNavigator gates auth), so a fetch failure shows "Unavailable", not a
+  // misleading "Not signed in".
+  const [email, setEmail] = useState<string | null>(null);
+  const [emailFailed, setEmailFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentUser()
+      .then((res) => {
+        if (!cancelled) setEmail(res.user.email);
+      })
+      .catch(() => {
+        if (!cancelled) setEmailFailed(true);
+      });
+    return (): void => {
+      cancelled = true;
+    };
+  }, []);
+
+  const emailValue = email ?? (emailFailed ? 'Unavailable' : 'Loading…');
 
   async function handleSignOut(): Promise<void> {
     setSigningOut(true);
@@ -98,7 +121,7 @@ export function SettingsScreen(): React.JSX.Element {
         <Text style={styles.screenTitle}>Settings</Text>
 
         <Section title="Account">
-          <Row label="Email" value="Not signed in" />
+          <Row label="Email" value={emailValue} />
           <PressableRow
             label="Delete account"
             destructive
@@ -157,7 +180,7 @@ export function SettingsScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.versionText}>CelebBase · v1.0.0</Text>
+        <Text style={styles.versionText}>Celebase · v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );

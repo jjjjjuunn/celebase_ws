@@ -112,7 +112,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Get started with CelebBase</Text>
+        <Text style={styles.subtitle}>Get started with Celebase</Text>
 
         <TextInput
           accessibilityLabel="Email"
