@@ -6,7 +6,7 @@
 // a lightweight `{id, status, estimated_completion_sec, poll_url, ws_channel}` payload.
 
 import { z } from 'zod';
-import { MealPlanStatus } from '../enums.js';
+import { MealPlanStatus, SubscriptionTier } from '../enums.js';
 import type { MealPlan } from '../entities.js';
 import { IsoDateTime, UuidV7 } from './_utils.js';
 import { DailyMealSchema, DailyPlanSchema, DailyTotalsSchema } from '../jsonb/index.js';
@@ -121,6 +121,20 @@ export const RegenerateMealPlanResponseSchema = z.object({
   status: MealPlanStatus,
 });
 export type RegenerateMealPlanResponse = z.infer<typeof RegenerateMealPlanResponseSchema>;
+
+// GET /meal-plans/credits — meal-plan generation credit balance (IMPL-MEAL-CREDIT-001).
+// 1 credit = 1 day; an N-day plan costs N credits.
+//   - credits_total / credits_remaining: null only for an unlimited admin override
+//     (a normal free/premium/elite tier always reports a finite cap).
+//   - credits_reset_at: next monthly reset instant (UTC) for paid tiers; null for
+//     free, whose grant is a one-time lifetime allotment that never resets.
+export const MealPlanCreditsResponseSchema = z.object({
+  tier: SubscriptionTier,
+  credits_remaining: z.number().int().min(0).nullable(),
+  credits_total: z.number().int().min(0).nullable(),
+  credits_reset_at: IsoDateTime.nullable(),
+});
+export type MealPlanCreditsResponse = z.infer<typeof MealPlanCreditsResponseSchema>;
 
 // WebSocket ticket exchange.
 export const WsTicketRequestSchema = z.object({
