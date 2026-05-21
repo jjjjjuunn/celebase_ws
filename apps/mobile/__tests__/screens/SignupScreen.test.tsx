@@ -47,13 +47,11 @@ describe('SignupScreen', () => {
     fireEvent.changeText(screen.getByLabelText('Email'), 'a@b.co');
     fireEvent.changeText(screen.getByLabelText('Password'), 'short');
 
-    const submit = screen.getByLabelText('Sign up');
-    // 정책 미달 → 버튼 disabled → press 해도 onSuccess 미호출.
-    expect(submit.props.accessibilityState.disabled).toBe(true);
-    fireEvent.press(submit);
-    expect(onSuccess).not.toHaveBeenCalled();
+    // 정책 미달 → Sign up 버튼 disabled (서버 round-trip 전 차단).
+    expect(screen.getByLabelText('Sign up')).toBeDisabled();
     // PasswordRequirements 가 미충족 규칙을 노출.
     expect(screen.getByText('At least 12 characters')).toBeTruthy();
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 
   it('유효 비밀번호 + invalid email 제출 시 email validation 에러, onSuccess 미호출', () => {
