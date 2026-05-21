@@ -19,12 +19,16 @@ const start = async (): Promise<void> => {
   const app = await createApp({ serviceName: 'content-service' });
 
   // /admin/* 는 user JWT 검증에서 제외 (admin 토큰 가드가 별도로 보호).
-  // /celebrities* 는 public catalog 읽기 — BFF `/api/celebrities*` 가
-  // createPublicRoute (토큰 미forward) 로 호출하고 spec §S2 가 "public route"
-  // 로 명시. JWKS 모드 (production) 에서만 표출되던 401 계약 불일치 해소.
+  // /celebrities* + /base-diets* 는 public catalog 읽기 — BFF (`/api/celebrities*`,
+  // `/api/base-diets/:id`) 가 createPublicRoute (토큰 미forward) 로 호출하고,
+  // meal-plan-engine 의 server-side content_client 도 토큰 없이 catalog 를 fetch 한다.
+  // base_diets / recipes 는 celebrities 와 동일한 content-service catalog 테이블
+  // (api-conventions.md 서비스 경계표) 이고 핸들러가 userId 를 쓰지 않는다.
+  // FIX-STAGING-CATALOG-PUBLIC-001 이 /celebrities* 만 추가하고 /base-diets* 를
+  // 누락 → JWKS/internal 모드 (staging) 에서 meal-plan 생성이 base-diets 401 로 실패.
   registerJwtAuth(app, {
     mode: 'internal',
-    publicPaths: ['/admin/*', '/celebrities', '/celebrities/*'],
+    publicPaths: ['/admin/*', '/celebrities', '/celebrities/*', '/base-diets', '/base-diets/*'],
   });
   registerAdminAuth(app);
 

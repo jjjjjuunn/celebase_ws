@@ -255,7 +255,7 @@
 
 | Task ID | 내용 | 우선순위 | 비고 |
 |---------|------|---------|------|
-| **INFRA-MOBILE-SQS-TERRAFORM-001** | `celebase-staging-meal-plan-jobs` SQS queue 가 BE 배포 중 수동 생성됨. `infra/terraform/staging/sqs.tf` 로 import (prod EC2 G3c 재현성). meal-plan-engine `SQS_QUEUE_URL` import-time guard 의존 | MEDIUM | terraform 미반영 = prod 재구축 시 누락 위험 |
+| **INFRA-MOBILE-SQS-TERRAFORM-001** | 수동 생성된 SQS+IAM 스택 전부 `infra/terraform/staging/` 로 import (prod EC2 G3c 재현성). 대상: ① SQS queue `celebase-staging-meal-plan-jobs` ② IAM role `celebase-staging-mpe-sqs` + 인라인 정책 `mpe-sqs-access` (Send/Receive/Delete, 큐 ARN 한정) ③ instance profile `celebase-staging-mpe-sqs` ④ EC2 `i-03cebf092c900627d` association ⑤ **metadata hop limit 2** (컨테이너 IMDS 필수). meal-plan-engine `SQS_QUEUE_URL` import-time guard 의존 | MEDIUM | terraform 미반영 = 인스턴스 교체 시 role/association/hop-limit 소실 → SQS `NoCredentialsError` 재발 (FIX-STAGING-MPE-SQS-CREDS-001 에서 발생·해소) |
 | **CHORE-STAGING-ENV-MANAGEMENT-001** | `/app/.env.staging` + `/app/apps/web/.env.staging` 가 EC2 위에서만 갱신 (git/SSM 미추적). web BE URL 교정·user-service env override 등 staging-local 변경이 재provision 시 소실. SSM Parameter Store / Secrets Manager 로 이관 | MEDIUM | G3c-3 prod secrets injection 과 통합 가능 |
 | **CHORE-STAGING-MPE-HEALTHCHECK-001** | meal-plan-engine (python:3.12-slim) 에 wget/curl 부재 → healthcheck 항상 fail → "unhealthy" 라벨 (서비스 `/health` 200 정상, cosmetic). healthcheck 를 `python3 -c "import urllib.request; urllib.request.urlopen(...)"` 로 교체 (cd.yml 4be 템플릿 + staging compose) | LOW | orchestration 라벨만, 기능 정상 |
 

@@ -6816,3 +6816,97 @@ verified_by: claude-opus-4-7 (BE 184/184 + mobile 149/149 unit green; typecheck 
 - **Review tier**: L3 — Gemini CLI 도구 부재로 claude-self-adversarial 1회 (10 threat, 신규 CRITICAL/HIGH 0, runbook §12). advisor 2회 (설계 승인 + Google aud reconcile). 단일 오너 lockstep PR.
 ### 미완료: 실 활성화 (Google iOS+Web OAuth client / Apple "Sign in with Apple" capability + mobile·BE env 주입 + EAS dev build + 기존 federated 테스트 계정 정리 + 기기 E2E) — 사용자 작업, `docs/runbooks/SOCIAL-LOGIN-SETUP.md`. 후속 백로그: `CHORE-COGNITO-IDP-DEPRECATE-001` (vestigial Cognito Hosted-UI IdP + mobile client OAuth flow 제거), PreSignUp/verified-email auto-link, provider 로고 에셋.
 ### 연관 파일: services/user-service/src/services/social-auth.provider.ts, services/user-service/src/routes/auth.routes.ts, packages/shared-types/src/schemas/auth.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/app.config.js, docs/runbooks/SOCIAL-LOGIN-SETUP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-STAGING-MPE-SQS-CREDS-001
+commit_sha: 14395ff
+files_changed:
+  - docs/PROD-DEPLOY-ROADMAP.md
+verified_by: claude-opus-4-7 (staging live — in-container boto3 cred_method=iam-role + assumed-role STS identity + consumer NoCredentialsError 0건/2분)
+---
+### 완료: staging meal-plan-engine SQS "Queue unavailable" 해소 — EC2 인스턴스 롤 (FIX-STAGING-MPE-SQS-CREDS-001)
+- **증상**: staging 식단 생성이 503 `"Queue unavailable. Plan marked failed — please retry."` 로 실패. `routes/meal_plans.py:315-325` 가 `enqueue_plan_job` 의 모든 예외를 503 으로 변환.
+- **근본 원인**: `botocore.exceptions.NoCredentialsError: Unable to locate credentials` (consumer 로그 30회 반복). 큐·리전·엔드포인트·큐URL 은 **전부 정상**이었음 — 큐 `celebase-staging-meal-plan-jobs` 는 us-west-2 에 실재(0 msg), 컨테이너 env `AWS_REGION=us-west-2` ✅ / `SQS_QUEUE_URL` us-west-2 ✅ / `AWS_ENDPOINT_URL` 미설정(=real AWS, localstack 누수 없음) ✅. **유일 문제는 자격증명 부재**: 컨테이너 env 에 AWS 키 미주입 + EC2 인스턴스 롤 미연결 → boto3 인증 불가.
+- **결정**: 정적 키 대신 **EC2 인스턴스 IAM 롤** (사용자 선택). 정적 시크릿 0, prod 방향(G3c-3 IAM role) 정합. boto3 사용 서비스는 meal-plan-engine 단독이라 인스턴스 롤 상속의 실사용 범위도 엔진 한정.
+- **적용 (수동 AWS — terraform 미반영, `INFRA-MOBILE-SQS-TERRAFORM-001` 로 import 예정)**:
+  - IAM role `celebase-staging-mpe-sqs` (EC2 trust) + 인라인 정책 `mpe-sqs-access` — `sqs:SendMessage`/`ReceiveMessage`/`DeleteMessage`, resource = 큐 ARN 한정 (`arn:aws:sqs:us-west-2:192969248931:celebase-staging-meal-plan-jobs`, least-privilege).
+  - instance profile `celebase-staging-mpe-sqs` → staging EC2 `i-03cebf092c900627d` 연결 (assoc `iip-assoc-0ead4dc314c6c25e1`).
+  - **EC2 metadata hop limit 1→2** (`modify-instance-metadata-options`) — Docker 브리지 컨테이너가 IMDS 도달하려면 필수. hop limit 1 이면 컨테이너→호스트→IMDS 가 2홉이라 차단되어 롤을 붙여도 `NoCredentialsError` 잔존.
+  - meal-plan-engine 컨테이너 restart → boto3 가 IMDS 롤로 자격증명 재해결 (consumer 클라이언트는 boot 시 1회 생성이라 restart 필수).
+- **검증 (staging live)**: 컨테이너 내부 boto3 `cred_method=iam-role` + STS `arn:aws:sts::192969248931:assumed-role/celebase-staging-mpe-sqs/i-03cebf092c900627d`. consumer `NoCredentialsError` 2분간 **0건** (이전 30건). send 인가는 동일 creds·동일 resource + 정책에 SendMessage 포함으로 결정적 (consumer receive 성공이 IMDS+큐 도달+권한을 입증).
+- **잔여**: 인스턴스 교체(terraform/ASG) 시 profile 재연결 필요 → INFRA-MOBILE-SQS-TERRAFORM-001 이 queue+role+profile+association+hop-limit 전부 capture. 정적 키 미사용이라 CHORE-STAGING-ENV-MANAGEMENT-001(.env→SSM) 와 무관. 전체 publisher E2E(실 meal-plan POST) 는 인증 토큰 필요로 본 fix 범위 밖 — credential 경로는 위로 확정.
+- **Review tier**: L2 (staging 인프라/IAM 변경, 코드 변경 0; least-privilege 큐 ARN 한정 + EC2 trust 만, PHI·auth 토큰 형상 무관).
+### 연관 파일: docs/PROD-DEPLOY-ROADMAP.md
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FEAT-MOBILE-TRIAL-MEALPLAN-001
+commit_sha: 23466a4
+files_changed:
+  - packages/shared-types/src/schemas/subscriptions.ts
+  - services/user-service/src/lib/trial.ts
+  - services/user-service/src/repositories/subscription.repository.ts
+  - services/user-service/src/routes/subscription.routes.ts
+  - services/user-service/tests/unit/trial.test.ts
+  - services/user-service/tests/unit/subscription.repository.test.ts
+  - services/user-service/tests/integration/subscription.routes.test.ts
+  - services/meal-plan-engine/src/services/quota_service.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_quota_service.py
+verified_by: claude-opus-4-7 (user-service 175 tests pass + web/BFF typecheck + engine quota trial-logic direct-verify; full meal-plan-engine pytest deferred to CI py3.12)
+---
+### 완료: 서버측 trial 인식 → 온보딩 직후 free-tier 사용자도 meal-plan 생성 허용 (BE only)
+- **문제**: 온보딩은 bio-profile 저장만 하고 생성 트리거가 없었고(모바일 트랙), 설령 트리거해도 "무료 체험"은 FE-local 개념이라 서버 tier=`free` → `POST /meal-plans/generate` 가 403 `SUBSCRIPTION_REQUIRED`.
+- **shared-types**: `GetMySubscriptionResponseSchema` 에 `trial_active`/`trial_ends_at` 추가 (optional+default → 배포 윈도우 하위호환, strict 아님이라 구버전 user-service `{tier}` 응답도 BFF 파싱 OK).
+- **user-service**: `GET /subscriptions/me` 가 `bio_profiles.created_at`(기존 컬럼, **migration 불필요**) 기준으로 trial 계산(`computeTrialState`, free tier + 3일 윈도우). `findSubscriptionStateByUserId` 추가(`findTierByUserId` 보존).
+- **meal-plan-engine**: `SubscriptionResponse.trial_active` + `compute_effective_limit(tier, override, trial_active)` — free+trial 이면 premium 상당 한도 부여, 명시적 admin override 는 우선. 호출부(`generate_meal_plan`)가 `sub.trial_active` 전달.
+- **trial 윈도우**: 3일 (`apps/mobile/src/lib/use-access-policy.ts` TRIAL_DURATION_MS 와 정합).
+- **Review tier**: L3 (auth/subscription 경계 + 다중 서비스). 검증: user-service jest 175 통과(변경 파일 100% cov), web typecheck, engine quota 로직 직접 검증(전체 pytest 는 CI Docker py3.12).
+### 미완료: 모바일 트랙(온보딩 후 생성 트리거 + Plan "생성중" 폴링 UI)은 `apps/mobile` 작업트리에 구현 완료됐으나 진행 중인 auth/온보딩 리팩터 WIP 와 commingle 되어 본 BE PR 과 분리(별도 커밋). staging 배포(이 PR 머지) 후 시뮬레이터 검증.
+### 연관 파일: services/user-service/src/lib/trial.ts, services/meal-plan-engine/src/services/quota_service.py, packages/shared-types/src/schemas/subscriptions.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001
+commit_sha: 0afd14d
+files_changed:
+  - services/content-service/src/index.ts
+  - packages/service-core/tests/unit/jwt.test.ts
+verified_by: claude-opus-4-7 (staging 로그 근본원인 + service-core jwt 회귀 테스트, CI Tests; staging E2E 는 CD 배포 후 재검증)
+---
+### 완료: staging meal-plan 생성 실패 (base-diets 401) → content-service base-diets catalog public 화 (FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001)
+- **증상 (팀원 보고)**: staging 식단 생성 실패. SQS 자격증명(FIX-STAGING-MPE-SQS-CREDS-001) 해소 후, consumer 가 메시지 수신은 하나 처리 중 `httpx.HTTPStatusError: 401 Unauthorized for content-service:3002/base-diets/{id}` (로그 24회 재시도). `enqueue` 는 정상(201), 실패는 pipeline 의 catalog fetch 단계.
+- **근본 원인**: `meal-plan-engine` 의 `content_client.get_base_diet/get_recipes_for_diet` 가 토큰 없이 호출 + content-service `publicPaths` 에 `/base-diets*` 누락. content-service 는 staging 에서 internal 모드(PR #115) 라 보호 라우트에 토큰 요구. `FIX-STAGING-CATALOG-PUBLIC-001` 이 `/celebrities*` 만 public 화하고 `/base-diets*` 를 빠뜨림. **로컬은 content-service stub 모드라 토큰 없이 통과 → staging-only 회귀** (로컬 meal-plan E2E 가 못 잡은 이유).
+- **결정**: token-forward 가 아닌 **catalog public 화** (Option A). 근거: ① `base_diets`/`recipes` 는 `celebrities` 와 동일 content-service catalog 테이블(api-conventions.md 경계표) ② 핸들러(`/base-diets/:id`, `/base-diets/:id/recipes`)가 `userId` 미사용 ③ BFF `/api/base-diets/[id]` 가 `createPublicRoute` (토큰 미forward) → **원 설계 의도가 public catalog**. token-forward 는 엔진만 고치고 BFF/mobile base-diet 상세 경로(동일하게 staging 잠복 401)를 방치.
+- **수정**: `content-service/src/index.ts` publicPaths 에 `'/base-diets'`, `'/base-diets/*'` 추가 (1줄). `service-core/src/middleware/jwt.ts` `isPublicPath` prefix wildcard 가 `/base-diets/:id` + `/base-diets/:id/recipes` 둘 다 매칭(`/recipes/:id/personalized` 는 `/recipes/*` prefix 라 영향 없음 — 보호 유지).
+- **부수 효과 (의도)**: BFF/mobile `/api/base-diets/:id` 의 잠복 401(로그인 사용자가 base-diet 상세 진입 시 발생할) 도 동시 해소.
+- **테스트**: `service-core/tests/unit/jwt.test.ts` 에 base-diets 회귀 2건 추가 (FIX-STAGING-CATALOG-PUBLIC-001 celebrities 패턴 미러) — `/base-diets`+`/base-diets/*` 가 `:id`/`:id/recipes` skip + `/recipes/:id/personalized` 인증 강제 유지.
+- **검증**: 근본원인은 staging 로그로 확정, 수정은 wildcard 회귀 테스트로 락. **staging E2E (실 meal-plan POST → base-diets 200 + plan completed) 는 CD 가 content-service 재배포 후 재검증** (코드 머지로는 미완 — 배포 루프 필요).
+- **engine `content_client` 는 tokenless 유지**: public catalog 를 fetch 하므로 토큰 불필요. 토큰을 끼우면 향후 publicPaths drift 시 깨끗한 401 신호를 가려 오히려 해롭다.
+- **Review tier**: L3 (auth 경계 — publicPaths 변경 + 다중 서비스 영향). 보안 검토: catalog 데이터(celebrities 와 동일 tier)만 public, PHI·user 데이터 무관, `/recipes/*` personalized 보호 유지 확인.
+### 연관 파일: services/content-service/src/index.ts, packages/service-core/tests/unit/jwt.test.ts
+
+---
+date: 2026-05-20
+agent: claude-opus-4-7
+task_id: FIX-BFF-BASE-DIET-SCHEMA-DRIFT-001
+commit_sha: 988f952
+files_changed:
+  - apps/web/src/app/api/base-diets/[id]/route.ts
+  - apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts
+verified_by: claude-opus-4-7 (CI Lint+Tests — celebrities BFF 패턴 정확 미러; post-deploy staging curl 로 200 재검증 예정)
+---
+### 완료: BFF /api/base-diets/:id 502 BFF_CONTRACT_VIOLATION 해소 — wrap 계약 정렬 (FIX-BFF-BASE-DIET-SCHEMA-DRIFT-001)
+- **증상**: FIX-STAGING-CONTENT-BASEDIETS-PUBLIC-001 로 401 은 사라졌으나 BFF `/api/base-diets/:id` 가 **502 `BFF_CONTRACT_VIOLATION`** ("Upstream response failed schema validation"). 식단 생성(engine content_client 경로)과는 무관 — mobile base-diet 상세 화면 경로.
+- **근본 원인**: content-service 는 base-diet row 를 **unwrapped** 로 반환(`getBaseDiet` 직접; `/celebrities/:slug` 도 동일 unwrapped). 그러나 BFF 라우트가 이를 **wrapped `BaseDietDetailResponseSchema`(`{base_diet: ...}`)** 로 검증 → 항상 실패. (`/celebrities/[slug]` 라우트는 올바르게 `CelebrityWireSchema` 로 검증 후 `{celebrity: ...}` 로 BFF 가 wrap.)
+- **수정**: `apps/web/src/app/api/base-diets/[id]/route.ts` 가 `BaseDietWireSchema`(unwrapped) 로 검증 후 `{ base_diet: result.data }` 로 wrap — `/celebrities/[slug]` 패턴 정확 미러. content-service·engine·shared-types 스키마 무변경 (mobile 계약 `BaseDietDetailResponseSchema` 는 그대로 최종 응답 형태).
+- **테스트**: `base-diets-bff.integration.test.ts` 신규 (celebrities-bff 패턴 미러) — unwrapped upstream → 200 + `{base_diet}` wrap (수정 전 502 케이스 락), 404 propagate, 502 network error.
+- **engine 영향 없음**: consumer 의 `content_client.get_base_diet` 는 unwrapped 를 직접 쓰므로(방금 staging E2E 로 plan completed 확인) content-service 무변경이 정답 — BFF 만 잘못된 스키마로 검증하던 것.
+- **검증**: CI Lint+Tests (worktree 라 로컬 node_modules 부재). post-deploy `curl https://staging.celebase.app/api/base-diets/<id>` → 200 재확인 예정.
+- **Review tier**: L2 (단일 BFF 파일 + 테스트; auth·PHI·스키마 형상 무변경, mobile 계약 보존).
+### 부수 결정 (#3, 사용자 확정 2026-05-20): staging `INTERNAL_JWT_SECRET`(HS256) + `INTERNAL_JWT_PRIVATE_KEY`(RS256, 전 서비스 공유) 가 진단 세션 transcript 에 노출됨 → **staging-only 로 risk 수용** (staging 전용 + 테스트 데이터 + prod 는 별도 pool/키 G3). rotate 안 함 (진행 중 social-login 세션 충돌 + 실위험 낮음). 서비스별 private key 분리는 prod 키 발급 시 `CHORE-AUTH-ASYMMETRIC-SIGNING-001` 잔존 항목으로 처리.
+### 연관 파일: apps/web/src/app/api/base-diets/[id]/route.ts, apps/web/src/app/api/base-diets/__tests__/base-diets-bff.integration.test.ts

@@ -12,16 +12,21 @@ export async function GET(
   return createPublicRoute(async (innerReq: NextRequest) => {
     const requestId = innerReq.headers.get('x-request-id') ?? crypto.randomUUID();
     const forwardedFor = innerReq.headers.get('x-forwarded-for') ?? undefined;
+    // content-service returns the base-diet row UNWRAPPED (like /celebrities/:slug).
+    // Validate against the wire schema, then wrap as { base_diet } to match the
+    // mobile contract (BaseDietDetailResponseSchema). Validating the unwrapped
+    // upstream response against the wrapped schema was the BFF_CONTRACT_VIOLATION
+    // (502) — mirrors the /celebrities/[slug] route pattern.
     const result = await fetchBff('content', `/base-diets/${encodeURIComponent(id)}`, {
       method: 'GET',
-      schema: schemas.BaseDietDetailResponseSchema,
+      schema: schemas.BaseDietWireSchema,
       requestId,
       forwardedFor,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
     }
-    return new Response(JSON.stringify(result.data), {
+    return new Response(JSON.stringify({ base_diet: result.data }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
     });

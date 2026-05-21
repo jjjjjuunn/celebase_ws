@@ -250,13 +250,15 @@ async def generate_meal_plan(
             headers={"Retry-After": "5"},
         )
 
-    # Step 3: Validate & compute limit
+    # Step 3: Validate & compute limit. A free-tier user inside the
+    # post-onboarding trial window (sub.trial_active, set by user-service from
+    # bio_profiles.created_at) is granted Premium-equivalent quota.
     sub = quota_service.validate_subscription(raw_sub)
     effective_limit = quota_service.compute_effective_limit(
-        sub.tier, sub.quota_override
+        sub.tier, sub.quota_override, sub.trial_active
     )
 
-    # Step 4: Free tier → 403
+    # Step 4: Free tier (no active trial) → 403
     if effective_limit == 0:
         return _error_response(
             "SUBSCRIPTION_REQUIRED",

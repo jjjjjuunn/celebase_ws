@@ -53,6 +53,15 @@ class TestValidateSubscription:
         assert result.tier == "premium"
         assert result.quota_override is None
 
+    def test_trial_active_defaults_false_when_absent(self) -> None:
+        # Older user-service builds omit trial_active → must default False.
+        result = validate_subscription({"tier": "free"})
+        assert result.trial_active is False
+
+    def test_trial_active_parsed_when_present(self) -> None:
+        result = validate_subscription({"tier": "free", "trial_active": True})
+        assert result.trial_active is True
+
 
 # ---------------------------------------------------------------------------
 # compute_effective_limit
@@ -87,6 +96,24 @@ class TestComputeEffectiveLimit:
     def test_none_override_uses_tier_default(self) -> None:
         assert compute_effective_limit("premium", None) == 4
         assert compute_effective_limit("elite", None) is None
+
+    # Post-onboarding trial grant (FEAT-MOBILE-TRIAL-MEALPLAN-001)
+
+    def test_trial_active_grants_free_user_premium_limit(self) -> None:
+        assert compute_effective_limit("free", QuotaOverrideModel(), True) == 4
+        assert compute_effective_limit("free", None, True) == 4
+
+    def test_trial_inactive_keeps_free_disabled(self) -> None:
+        assert compute_effective_limit("free", QuotaOverrideModel(), False) == 0
+
+    def test_trial_does_not_downgrade_elite(self) -> None:
+        # Trial only lifts a 0 (free) limit; elite stays unlimited.
+        assert compute_effective_limit("elite", QuotaOverrideModel(), True) is None
+
+    def test_explicit_override_wins_over_trial(self) -> None:
+        # Admin-set override of 0 (disabled) is honored even during a trial.
+        override = QuotaOverrideModel.model_validate({"max_plans_per_month": 0})
+        assert compute_effective_limit("free", override, True) == 0
 
 
 # ---------------------------------------------------------------------------
