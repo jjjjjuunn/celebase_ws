@@ -1,21 +1,30 @@
-// Social sign-in buttons (Google / Apple) — IMPL-MOBILE-SOCIAL-001.
+// Social sign-in buttons (Google / Apple) — IMPL-MOBILE-SOCIAL-NATIVE-001.
 //
-// Rendered on Login + Signup screens. Returns null unless social federation is
-// configured (EXPO_PUBLIC_COGNITO_HOSTED_UI_DOMAIN + EXPO_PUBLIC_SOCIAL_PROVIDERS),
-// so the screens look exactly as before when social login is not set up — the
-// feature ships dormant until the env is populated (runs anywhere).
+// Rendered on Login + Signup screens. Each button shows only when its provider
+// is configured — Apple when listed in EXPO_PUBLIC_SOCIAL_PROVIDERS and running
+// on iOS; Google when listed AND the native client IDs are present. When
+// nothing is configured the block returns null and the screens look exactly as
+// before (email/password only) — the feature ships dormant (runs anywhere).
 //
 // Apple is listed first per App Store HIG ("Sign in with Apple" prominence).
-// Text-only buttons (no provider glyphs) — adding logo assets is a polish
-// follow-up; Hosted-UI federation does not require the native provider button.
+// Sign-in uses the NATIVE sheet/picker (expo-apple-authentication /
+// @react-native-google-signin), not Cognito Hosted UI.
 
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { tokens } from '@celebbase/design-tokens';
 
 import { ApiError } from '../lib/api-client';
-import { isSocialAuthEnabled, readSocialProviders, type SocialProvider } from '../lib/social-config';
+import { isAppleConfigured, isGoogleConfigured, type SocialProvider } from '../lib/social-config';
+import { signInWithSocial } from '../services/social-auth';
 import { px, resolveToken } from '../lib/tokens';
 
 interface SocialAuthButtonsProps {
@@ -42,20 +51,17 @@ export function SocialAuthButtons({
 }: SocialAuthButtonsProps): React.JSX.Element | null {
   const [pending, setPending] = useState<SocialProvider | null>(null);
 
-  if (!isSocialAuthEnabled()) return null;
-
-  const configured = readSocialProviders();
-  const providers = PROVIDER_ORDER.filter((p) => configured.includes(p));
+  // Apple is iOS-only (native sheet); Google needs its client IDs. Filtering
+  // here means the divider + buttons appear only when ≥1 provider is usable.
+  const providers = PROVIDER_ORDER.filter((p) =>
+    p === 'Apple' ? isAppleConfigured() && Platform.OS === 'ios' : isGoogleConfigured(),
+  );
   if (providers.length === 0) return null;
 
   async function handlePress(provider: SocialProvider): Promise<void> {
     onError('');
     setPending(provider);
     try {
-      // Lazy-import so this screen's module-load never pulls the aws-amplify
-      // barrel (RN .ts source is outside jest's transform scope). The button is
-      // only ever pressed on-device where the native modules are present.
-      const { signInWithSocial } = await import('../services/social-auth');
       await signInWithSocial(provider);
       onSuccess();
     } catch (err) {
@@ -123,8 +129,15 @@ function mapSocialError(err: unknown): string | null {
     return err.message;
   }
   if (err instanceof Error) {
-    // ASWebAuthenticationSession / Custom Tabs dismissal → not an error.
-    if (/cancel/i.test(err.name) || /cancel/i.test(err.message)) return null;
+    // Native sheet/picker dismissal → not an error (SocialCancelledError, or a
+    // provider SDK cancel surfaced by name/message).
+    if (
+      err.name === 'SocialCancelledError' ||
+      /cancel/i.test(err.name) ||
+      /cancel/i.test(err.message)
+    ) {
+      return null;
+    }
     return err.message;
   }
   return 'Social sign-in failed. Please try again.';
