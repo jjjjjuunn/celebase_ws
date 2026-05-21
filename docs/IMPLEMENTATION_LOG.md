@@ -6915,7 +6915,7 @@ verified_by: claude-opus-4-7 (CI Lint+Tests — celebrities BFF 패턴 정확 �
 date: 2026-05-21
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-SOCIAL-NATIVE-001
-commit_sha: PENDING
+commit_sha: 6a751fd
 files_changed:
   - docs/IMPLEMENTATION_LOG.md
   - docs/runbooks/SOCIAL-LOGIN-SETUP.md
