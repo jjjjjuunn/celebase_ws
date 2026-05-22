@@ -17,12 +17,19 @@ jest.mock('expo-secure-store', () => ({
 
 import { Alert, Linking } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import * as authService from '../../src/services/auth';
 import * as authEvents from '../../src/lib/auth-events';
 import * as tierHook from '../../src/lib/use-current-tier';
 import * as usersService from '../../src/services/users';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen consumes useTheme() — wrap every render in ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 describe('<SettingsScreen />', () => {
   let alertSpy: jest.SpyInstance;
@@ -52,7 +59,7 @@ describe('<SettingsScreen />', () => {
   });
 
   it('필수 UI 섹션 + Apple 5.1.1(v) 항목 모두 노출', () => {
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
     expect(screen.getByText('Account')).toBeTruthy();
     expect(screen.getByText('Subscription')).toBeTruthy();
     expect(screen.getByText('Legal')).toBeTruthy();
@@ -74,7 +81,7 @@ describe('<SettingsScreen />', () => {
       signOutBtn?.onPress?.();
     });
 
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
     fireEvent.press(screen.getByTestId('settings-signout'));
 
     await waitFor(() => {
@@ -84,7 +91,7 @@ describe('<SettingsScreen />', () => {
   });
 
   it('Delete account 탭 → 첫 confirm prompt 발사', () => {
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
     fireEvent.press(screen.getByTestId('settings-delete-account'));
     expect(alertSpy).toHaveBeenCalledWith(
       'Delete account',
@@ -94,7 +101,7 @@ describe('<SettingsScreen />', () => {
   });
 
   it('Terms / Privacy / Support 탭 → Linking.openURL 호출', () => {
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
 
     fireEvent.press(screen.getByTestId('settings-terms'));
     expect(linkingSpy).toHaveBeenCalledWith('https://celebbase.com/terms');
@@ -112,13 +119,13 @@ describe('<SettingsScreen />', () => {
       loading: false,
       refresh: jest.fn(),
     });
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
     fireEvent.press(screen.getByTestId('settings-manage-subscription'));
     expect(linkingSpy).toHaveBeenCalledWith('https://apps.apple.com/account/subscriptions');
   });
 
   it('free tier → Manage subscription 미노출', () => {
-    render(<SettingsScreen />);
+    renderScreen(<SettingsScreen />);
     expect(screen.queryByTestId('settings-manage-subscription')).toBeNull();
   });
 });

@@ -10,29 +10,19 @@
 //
 // Apple Guideline 3.1.1: Restore Purchases 버튼 + Terms / Privacy 링크 필수.
 
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
-import { tokens } from '@celebbase/design-tokens';
-
 import { ApiError } from '../lib/api-client';
-import { px, resolveToken } from '../lib/tokens';
 import {
   getCurrentOffering,
   purchasePackage,
   restorePurchases,
   type PurchaseResult,
 } from '../services/subscriptions';
+import { Button, Text, useTheme, type Theme } from '../ui';
 
 interface PaywallScreenProps {
   /** 구매 성공 또는 사용자 닫기 시 호출. tier 정보를 호출자에게 전달. */
@@ -53,6 +43,8 @@ const TERMS_URL = 'https://celebbase.com/terms';
 const PRIVACY_URL = 'https://celebbase.com/privacy';
 
 export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
 
   useEffect(() => {
@@ -72,8 +64,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         }
         setPhase({
           state: 'no_offer',
-          reason:
-            'Subscriptions are not available right now. Please try again later.',
+          reason: 'Subscriptions are not available right now. Please try again later.',
         });
         return;
       }
@@ -96,11 +87,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         setPhase({ state: 'ready', offering, selected: pkg.identifier });
         return;
       }
-      setPhase({
-        state: 'error',
-        message: mapErrorToMessage(err),
-        offering,
-      });
+      setPhase({ state: 'error', message: mapErrorToMessage(err), offering });
     }
   }
 
@@ -117,16 +104,9 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         });
         return;
       }
-      setPhase({
-        state: 'success',
-        result: { tier: synced.tier, receipt: synced },
-      });
+      setPhase({ state: 'success', result: { tier: synced.tier, receipt: synced } });
     } catch (err) {
-      setPhase({
-        state: 'error',
-        message: mapErrorToMessage(err),
-        offering: null,
-      });
+      setPhase({ state: 'error', message: mapErrorToMessage(err), offering: null });
     }
   }
 
@@ -140,13 +120,17 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
           accessibilityRole="button"
           accessibilityLabel="Close"
         >
-          <Text style={styles.closeButton}>✕</Text>
+          <Text tone="muted" style={styles.closeButton}>
+            ✕
+          </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>Unlock Celebase Pro</Text>
-        <Text style={styles.subtitle}>
+        <Text variant="h1" tone="brand" center>
+          Unlock Celebase Pro
+        </Text>
+        <Text variant="body" tone="muted" center style={styles.subtitle}>
           Personalized wellness plans inspired by your favorite celebrities.
         </Text>
 
@@ -159,27 +143,32 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
 
         {phase.state === 'loading' ? (
           <View style={styles.centered}>
-            <ActivityIndicator
-              size="large"
-              color={resolveToken('light', '--cb-color-brand')}
-            />
+            <ActivityIndicator size="large" color={theme.color.brand} />
           </View>
         ) : null}
 
         {phase.state === 'no_offer' ? (
           <View style={styles.centered}>
-            <Text style={styles.errorText}>{phase.reason}</Text>
+            <Text variant="body" tone="error" center>
+              {phase.reason}
+            </Text>
           </View>
         ) : null}
 
         {phase.state === 'dev_preview' ? (
           <View style={styles.packageList}>
             <View style={styles.packageCard}>
-              <Text style={styles.packagePrice}>$34.99</Text>
-              <Text style={styles.packagePeriod}>per month</Text>
-              <Text style={styles.packageCta}>Subscribe</Text>
+              <Text tone="onBrand" style={styles.packagePrice}>
+                $34.99
+              </Text>
+              <Text variant="body" tone="onBrand" style={styles.packagePeriod}>
+                per month
+              </Text>
+              <Text variant="body" tone="onBrand" style={styles.packageCta}>
+                Subscribe
+              </Text>
             </View>
-            <Text style={styles.devPreviewNote}>
+            <Text variant="caption" tone="muted" center style={styles.devPreviewNote}>
               (Preview — real purchase available in production build)
             </Text>
           </View>
@@ -208,40 +197,41 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         {phase.state === 'success' ? (
           <View style={styles.successCard}>
             <Text style={styles.successEmoji}>🎉</Text>
-            <Text style={styles.successTitle}>You're now {phase.result.tier}!</Text>
-            <Text style={styles.successBody}>
+            <Text variant="h2" tone="brand" center style={styles.successTitle}>
+              You&apos;re now {phase.result.tier}!
+            </Text>
+            <Text variant="body" center>
               Your premium content is unlocked. Enjoy!
             </Text>
-            <TouchableOpacity
-              onPress={() => {
-                onClose(phase.result);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Continue"
-              style={styles.primaryButton}
-            >
-              <Text style={styles.primaryButtonText}>Continue</Text>
-            </TouchableOpacity>
+            <View style={styles.successCta}>
+              <Button
+                label="Continue"
+                onPress={() => {
+                  onClose(phase.result);
+                }}
+              />
+            </View>
           </View>
         ) : null}
 
         {phase.state === 'error' ? (
           <View style={styles.centered}>
-            <Text style={styles.errorText}>{phase.message}</Text>
-            <TouchableOpacity
-              onPress={() => {
-                if (phase.offering !== null) {
-                  setPhase({ state: 'ready', offering: phase.offering, selected: null });
-                } else {
-                  onClose(null);
-                }
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Try again"
-              style={styles.secondaryButton}
-            >
-              <Text style={styles.secondaryButtonText}>Try again</Text>
-            </TouchableOpacity>
+            <Text variant="body" tone="error" center>
+              {phase.message}
+            </Text>
+            <View style={styles.errorCta}>
+              <Button
+                label="Try again"
+                variant="secondary"
+                onPress={() => {
+                  if (phase.offering !== null) {
+                    setPhase({ state: 'ready', offering: phase.offering, selected: null });
+                  } else {
+                    onClose(null);
+                  }
+                }}
+              />
+            </View>
           </View>
         ) : null}
 
@@ -254,30 +244,42 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
             accessibilityLabel="Restore purchases"
             disabled={phase.state === 'loading' || phase.state === 'purchasing'}
           >
-            <Text style={styles.legalLink}>Restore purchases</Text>
+            <Text variant="bodySm" tone="brand" style={styles.legalLink}>
+              Restore purchases
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.legalSeparator}>·</Text>
+          <Text variant="bodySm" tone="muted">
+            ·
+          </Text>
           <TouchableOpacity
             onPress={() => {
               void Linking.openURL(TERMS_URL);
             }}
             accessibilityRole="link"
           >
-            <Text style={styles.legalLink}>Terms</Text>
+            <Text variant="bodySm" tone="brand" style={styles.legalLink}>
+              Terms
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.legalSeparator}>·</Text>
+          <Text variant="bodySm" tone="muted">
+            ·
+          </Text>
           <TouchableOpacity
             onPress={() => {
               void Linking.openURL(PRIVACY_URL);
             }}
             accessibilityRole="link"
           >
-            <Text style={styles.legalLink}>Privacy</Text>
+            <Text variant="bodySm" tone="brand" style={styles.legalLink}>
+              Privacy
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.legalDisclaimer}>
-          Payment will be charged to your App Store / Play Store account. Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your store account settings.
+        <Text variant="caption" tone="muted" center style={styles.legalDisclaimer}>
+          Payment will be charged to your App Store / Play Store account. Subscriptions auto-renew
+          unless cancelled at least 24 hours before the end of the current period. You can manage and
+          cancel subscriptions in your store account settings.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -292,6 +294,8 @@ interface PackageCardProps {
 }
 
 function PackageCard({ pkg, active, busy, onPress }: PackageCardProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const product = pkg.product;
   const showBusy = busy && active;
 
@@ -304,15 +308,18 @@ function PackageCard({ pkg, active, busy, onPress }: PackageCardProps): React.JS
       accessibilityState={{ selected: active, disabled: busy }}
       style={[styles.packageCard, active ? styles.packageCardActive : null]}
     >
-      <Text style={styles.packagePrice}>{product.priceString}</Text>
-      <Text style={styles.packagePeriod}>per month</Text>
+      <Text tone="onBrand" style={styles.packagePrice}>
+        {product.priceString}
+      </Text>
+      <Text variant="body" tone="onBrand" style={styles.packagePeriod}>
+        per month
+      </Text>
       {showBusy ? (
-        <ActivityIndicator
-          color={resolveToken('light', '--cb-color-on-brand')}
-          style={styles.packageBusy}
-        />
+        <ActivityIndicator color={theme.color.onBrand} style={styles.packageBusy} />
       ) : (
-        <Text style={styles.packageCta}>Subscribe</Text>
+        <Text variant="body" tone="onBrand" style={styles.packageCta}>
+          Subscribe
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -323,10 +330,16 @@ interface BenefitRowProps {
 }
 
 function BenefitRow({ text }: BenefitRowProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.benefitRow}>
-      <Text style={styles.benefitCheck}>✓</Text>
-      <Text style={styles.benefitText}>{text}</Text>
+      <Text variant="body" tone="brand" style={styles.benefitCheck}>
+        ✓
+      </Text>
+      <Text variant="body" style={styles.benefitText}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -352,173 +365,54 @@ function mapErrorToMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  closeButton: {
-    fontSize: 24,
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  body: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-5']),
-    gap: px(tokens.light['--cb-space-4']),
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-brand'),
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-    lineHeight: px(tokens.light['--cb-body-md']) + 6,
-  },
-  benefits: {
-    gap: px(tokens.light['--cb-space-2']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  benefitCheck: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-brand'),
-    fontWeight: '700',
-  },
-  benefitText: {
-    flex: 1,
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    lineHeight: px(tokens.light['--cb-body-md']) + 6,
-  },
-  packageList: {
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  packageCard: {
-    padding: px(tokens.light['--cb-space-5']),
-    borderRadius: 16,
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
-    alignItems: 'center',
-    gap: 4,
-  },
-  packageCardActive: {
-    opacity: 0.85,
-  },
-  packagePrice: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  packagePeriod: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '500',
-    color: resolveToken('light', '--cb-color-on-brand'),
-    opacity: 0.85,
-    marginBottom: px(tokens.light['--cb-space-3']),
-  },
-  packageCta: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  packageBusy: {
-    marginTop: px(tokens.light['--cb-space-2']),
-  },
-  devPreviewNote: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-    fontStyle: 'italic',
-  },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-    textAlign: 'center',
-  },
-  successCard: {
-    alignItems: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  successEmoji: { fontSize: 64 },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-brand'),
-    textTransform: 'capitalize',
-  },
-  successBody: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  primaryButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
-    minWidth: 200,
-  },
-  primaryButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  secondaryButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  secondaryButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  legal: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: px(tokens.light['--cb-space-2']),
-    paddingTop: px(tokens.light['--cb-space-3']),
-  },
-  legalLink: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-brand'),
-    fontWeight: '600',
-  },
-  legalSeparator: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  legalDisclaimer: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-    lineHeight: px(tokens.light['--cb-caption']) + 6,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+    },
+    closeButton: { fontSize: 24 },
+    body: {
+      paddingHorizontal: theme.space(4),
+      paddingBottom: theme.space(5),
+      gap: theme.space(4),
+    },
+    subtitle: { lineHeight: theme.type.body + 6 },
+    benefits: { gap: theme.space(2), paddingVertical: theme.space(3) },
+    benefitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(2) },
+    benefitCheck: { fontWeight: theme.weight.bold },
+    benefitText: { flex: 1, lineHeight: theme.type.body + 6 },
+    packageList: { gap: theme.space(3) },
+    packageCard: {
+      padding: theme.space(5),
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.color.brand,
+      alignItems: 'center',
+      gap: 4,
+    },
+    packageCardActive: { opacity: 0.85 },
+    packagePrice: { fontSize: 40, fontWeight: '800' },
+    packagePeriod: { opacity: 0.85, marginBottom: theme.space(3) },
+    packageCta: { fontWeight: theme.weight.bold, textTransform: 'uppercase', letterSpacing: 1 },
+    packageBusy: { marginTop: theme.space(2) },
+    devPreviewNote: { marginTop: theme.space(2), fontStyle: 'italic' },
+    centered: { alignItems: 'center', justifyContent: 'center', padding: theme.space(4), gap: theme.space(3) },
+    successCard: { alignItems: 'center', padding: theme.space(4), gap: theme.space(3) },
+    successEmoji: { fontSize: 64 },
+    successTitle: { textTransform: 'capitalize' },
+    successCta: { alignSelf: 'stretch', paddingHorizontal: theme.space(6) },
+    errorCta: { alignSelf: 'stretch', paddingHorizontal: theme.space(6) },
+    legal: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: theme.space(2),
+      paddingTop: theme.space(3),
+    },
+    legalLink: { fontWeight: theme.weight.semibold },
+    legalDisclaimer: { lineHeight: theme.type.caption + 6 },
+  });
+}
