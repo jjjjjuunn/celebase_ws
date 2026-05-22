@@ -1,12 +1,12 @@
 // Wellness claims feed 의 카테고리 필터 — 가로 스크롤 chip group.
 // 'all' + ClaimType 7종 = 8 탭. spec.md §7.2 Tab 1 Discover 의 카테고리 정의와 정합.
 
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useMemo } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { tokens } from '@celebbase/design-tokens';
 import type { ClaimType } from '@celebbase/shared-types';
 
-import { px, resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 
 export type CategoryFilter = ClaimType | 'all';
 
@@ -28,6 +28,8 @@ const TABS: ReadonlyArray<{ key: CategoryFilter; label: string }> = [
 ];
 
 export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <ScrollView
       horizontal
@@ -47,7 +49,7 @@ export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.J
             }}
             style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
           >
-            <Text style={[styles.label, active ? styles.labelActive : styles.labelInactive]}>
+            <Text variant="bodySm" tone={active ? 'onBrand' : 'default'} style={styles.label}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -57,37 +59,23 @@ export function CategoryTabs({ selected, onSelect }: CategoryTabsProps): React.J
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
-  container: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    gap: px(tokens.light['--cb-space-2']),
-    alignItems: 'center',
-  },
-  chip: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  chipActive: {
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  chipInactive: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  label: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-  },
-  labelActive: {
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  labelInactive: {
-    color: resolveToken('light', '--cb-color-text'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    scroll: { flexGrow: 0, flexShrink: 0 },
+    container: {
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(2),
+      gap: theme.space(2),
+      alignItems: 'center',
+    },
+    chip: {
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(2),
+      borderRadius: theme.radius.pill,
+      alignSelf: 'center',
+    },
+    chipActive: { backgroundColor: theme.color.brandBg },
+    chipInactive: { backgroundColor: theme.color.surface },
+    label: { fontWeight: theme.weight.semibold },
+  });
+}

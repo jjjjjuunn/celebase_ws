@@ -70,11 +70,14 @@ export interface Theme {
     duration: { fast: number; base: number; slow: number };
     easing: { standard: Bezier; emphasized: Bezier };
   };
+  /** Trust grade signal colors (A best → E lowest). Theme-invariant signal palette. */
+  trust: Record<TrustGradeKey, { bg: string; fg: string }>;
 }
 
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 export type TextWeight = '400' | '500' | '600' | '700' | '800';
 export type Bezier = readonly [number, number, number, number];
+export type TrustGradeKey = 'A' | 'B' | 'C' | 'D' | 'E';
 
 // design-tokens stores font-family as a CSS stack ("'Fraunces', 'Georgia', serif").
 // RN's fontFamily takes a single family name, so extract the first quoted family.
@@ -167,6 +170,13 @@ function buildTheme(mode: ThemeMode): Theme {
         standard: bezier(mode, '--cb-ease-standard'),
         emphasized: bezier(mode, '--cb-ease-emphasized'),
       },
+    },
+    trust: {
+      A: { bg: resolveToken(mode, '--cb-color-trust-a-bg'), fg: resolveToken(mode, '--cb-color-trust-a-fg') },
+      B: { bg: resolveToken(mode, '--cb-color-trust-b-bg'), fg: resolveToken(mode, '--cb-color-trust-b-fg') },
+      C: { bg: resolveToken(mode, '--cb-color-trust-c-bg'), fg: resolveToken(mode, '--cb-color-trust-c-fg') },
+      D: { bg: resolveToken(mode, '--cb-color-trust-d-bg'), fg: resolveToken(mode, '--cb-color-trust-d-fg') },
+      E: { bg: resolveToken(mode, '--cb-color-trust-e-bg'), fg: resolveToken(mode, '--cb-color-trust-e-fg') },
     },
   };
 }

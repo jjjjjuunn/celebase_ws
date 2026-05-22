@@ -1,25 +1,17 @@
 // Wellness claims feed — mobile 의 첫 콘텐츠 화면.
 // spec.md §7.2 Tab 1 Discover. cursor pagination + 카테고리 필터.
 
-import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { tokens } from '@celebbase/design-tokens';
 import type { ClaimType, schemas } from '@celebbase/shared-types';
 
-import { ClaimCard } from '../components/ClaimCard';
 import { CategoryTabs, type CategoryFilter } from '../components/CategoryTabs';
-import { px, resolveToken } from '../lib/tokens';
-import { listClaims } from '../services/claims';
+import { ClaimCard } from '../components/ClaimCard';
 import { isClaimLocked, useCurrentTier } from '../lib/use-current-tier';
+import { listClaims } from '../services/claims';
+import { EmptyState, Text, useTheme, type Theme } from '../ui';
 
 interface ClaimsFeedScreenProps {
   onClaimPress: (id: string) => void;
@@ -52,6 +44,8 @@ export function ClaimsFeedScreen({
   onOnboardingPress,
   onUpgradePress,
 }: ClaimsFeedScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [state, setState] = useState<FeedState>(INITIAL_STATE);
   const { tier } = useCurrentTier();
@@ -147,9 +141,11 @@ export function ClaimsFeedScreen({
               accessibilityRole="button"
               accessibilityLabel="Set up profile"
               testID="claims-onboarding-cta"
-              style={styles.onboardingLink}
+              style={styles.topLink}
             >
-              <Text style={styles.onboardingLinkText}>📋 Set up your profile</Text>
+              <Text variant="bodySm" tone="brand" style={styles.topLinkText}>
+                📋 Set up your profile
+              </Text>
             </TouchableOpacity>
           ) : null}
           {onUpgradePress !== undefined ? (
@@ -158,9 +154,11 @@ export function ClaimsFeedScreen({
               accessibilityRole="button"
               accessibilityLabel="Upgrade"
               testID="claims-upgrade"
-              style={styles.upgradeLink}
+              style={styles.topLink}
             >
-              <Text style={styles.upgradeLinkText}>⭐ Upgrade</Text>
+              <Text variant="bodySm" tone="brand" style={styles.topLinkBold}>
+                ⭐ Upgrade
+              </Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -168,18 +166,20 @@ export function ClaimsFeedScreen({
       <CategoryTabs selected={filter} onSelect={setFilter} />
       {state.loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
+          <ActivityIndicator size="large" color={theme.color.brand} />
         </View>
       ) : state.error !== null ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load claims.</Text>
-          <TouchableOpacity onPress={retry} style={styles.retryButton} accessibilityRole="button">
-            <Text style={styles.retryButtonText}>Try again</Text>
-          </TouchableOpacity>
+          <EmptyState
+            glyph="⚠️"
+            title="Couldn't load claims."
+            ctaLabel="Try again"
+            onPressCta={retry}
+          />
         </View>
       ) : state.claims.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>No claims yet.</Text>
+          <EmptyState glyph="📭" title="No claims yet." body="새 클레임이 곧 추가됩니다." />
         </View>
       ) : (
         <FlatList
@@ -206,7 +206,7 @@ export function ClaimsFeedScreen({
           ListFooterComponent={
             state.loadingMore ? (
               <View style={styles.footer}>
-                <ActivityIndicator color={resolveToken('light', '--cb-color-brand')} />
+                <ActivityIndicator color={theme.color.brand} />
               </View>
             ) : null
           }
@@ -216,62 +216,19 @@ export function ClaimsFeedScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingTop: px(tokens.light['--cb-space-2']),
-  },
-  onboardingLink: {
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-  },
-  onboardingLinkText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-brand'),
-    fontWeight: '600',
-  },
-  upgradeLink: {
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-  },
-  upgradeLinkText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-brand'),
-    fontWeight: '700',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  emptyText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  retryButton: {
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: resolveToken('light', '--cb-color-on-brand'),
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-  },
-  footer: {
-    padding: px(tokens.light['--cb-space-4']),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: theme.space(4),
+      paddingTop: theme.space(2),
+    },
+    topLink: { paddingVertical: theme.space(2), paddingHorizontal: theme.space(3) },
+    topLinkText: { fontWeight: theme.weight.semibold },
+    topLinkBold: { fontWeight: theme.weight.bold },
+    centered: { flex: 1, justifyContent: 'center' },
+    footer: { padding: theme.space(4) },
+  });
+}
