@@ -11,25 +11,17 @@
 // 네비게이션은 prop 콜백으로 주입(PlanNavigator) — 화면은 nav 비의존(테스트 용이).
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
 import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
 import { ApiError } from '../lib/api-client';
-import { px, resolveToken } from '../lib/tokens';
 import { getBioProfile } from '../services/bio-profile';
 import { getBaseDiet, listCelebrities } from '../services/celebrities';
 import { getMealPlanCredits, listMyMealPlans } from '../services/meal-plans';
 import { getRecipesByIds } from '../services/recipes';
+import { Badge, Button, Card, EmptyState, Text, useTheme, type Theme } from '../ui';
 
 interface MealPlanScreenProps {
   onNavigateOnboarding: () => void;
@@ -175,6 +167,8 @@ export function MealPlanScreen({
   onNavigatePaywall,
   reloadKey = 0,
 }: MealPlanScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
   const [reloadCounter, setReloadCounter] = useState(0);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -218,10 +212,12 @@ export function MealPlanScreen({
 
   if (phase.state === 'loading') {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.screenTitle}>Your Plan</Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text variant="h1" style={styles.screenTitle}>
+          Your Plan
+        </Text>
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
+          <ActivityIndicator size="large" color={theme.color.brand} />
         </View>
       </SafeAreaView>
     );
@@ -229,11 +225,11 @@ export function MealPlanScreen({
 
   if (phase.state === 'error') {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.screenTitle}>Your Plan</Text>
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load your plan.</Text>
-        </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text variant="h1" style={styles.screenTitle}>
+          Your Plan
+        </Text>
+        <EmptyState glyph="⚠️" title="식단을 불러오지 못했어요" body="잠시 후 다시 시도해주세요." />
       </SafeAreaView>
     );
   }
@@ -244,23 +240,17 @@ export function MealPlanScreen({
   // state 1 — 미온보딩: 온보딩 CTA (무료 크레딧 리워드 프레이밍).
   if (!bioPresent) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.screenTitle}>Your Plan</Text>
-        <View style={styles.centered}>
-          <Text style={styles.emptyEmoji}>🥗</Text>
-          <Text style={styles.emptyTitle}>프로필을 완성하세요</Text>
-          <Text style={styles.emptyBody}>
-            온보딩을 마치면 무료 식단 크레딧 3개를 드려요. 좋아하는 셀럽의 식단으로 시작해보세요.
-          </Text>
-          <TouchableOpacity
-            onPress={onNavigateOnboarding}
-            accessibilityRole="button"
-            accessibilityLabel="Start onboarding"
-            style={styles.primaryButton}
-          >
-            <Text style={styles.primaryButtonText}>온보딩하고 크레딧 3개 받기</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text variant="h1" style={styles.screenTitle}>
+          Your Plan
+        </Text>
+        <EmptyState
+          glyph="🥗"
+          title="프로필을 완성하세요"
+          body="온보딩을 마치면 무료 식단 크레딧 3개를 드려요. 좋아하는 셀럽의 식단으로 시작해보세요."
+          ctaLabel="온보딩하고 크레딧 3개 받기"
+          onPressCta={onNavigateOnboarding}
+        />
       </SafeAreaView>
     );
   }
@@ -268,36 +258,36 @@ export function MealPlanScreen({
   const selectedDay = calendar.find((d) => d.date === selectedDate) ?? null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.screenTitle}>Your Plan</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <Text variant="h1" style={styles.screenTitle}>
+        Your Plan
+      </Text>
 
       <ScrollView contentContainerStyle={styles.body}>
         <CreditsHeader credits={credits} remaining={remaining} />
 
-        {remaining > 0 ? (
-          <TouchableOpacity
-            onPress={() => {
-              setSheetVisible(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Open generate sheet"
-            style={styles.primaryButton}
-          >
-            <Text style={styles.primaryButtonText}>+ 식단 만들기</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={onNavigatePaywall}
-            accessibilityRole="button"
-            accessibilityLabel="Upgrade for credits"
-            style={styles.primaryButton}
-          >
-            <Text style={styles.primaryButtonText}>크레딧 받기 · 업그레이드</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.ctaWrap}>
+          {remaining > 0 ? (
+            <Button
+              label="+ 식단 만들기"
+              accessibilityLabel="Open generate sheet"
+              onPress={() => {
+                setSheetVisible(true);
+              }}
+            />
+          ) : (
+            <Button
+              label="크레딧 받기 · 업그레이드"
+              accessibilityLabel="Upgrade for credits"
+              onPress={onNavigatePaywall}
+            />
+          )}
+        </View>
 
         {calendar.length === 0 ? (
-          <Text style={styles.bodyText}>아직 식단이 없어요. 위에서 만들어보세요.</Text>
+          <Text variant="body" tone="muted" style={styles.emptyHint}>
+            아직 식단이 없어요. 위에서 만들어보세요.
+          </Text>
         ) : (
           <>
             <DateStrip
@@ -338,23 +328,25 @@ interface CreditsHeaderProps {
 }
 
 function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const tierLabel = credits?.tier ?? 'free';
   const unlimited = credits !== null && credits.credits_total === null;
-  const totalLabel = unlimited ? '무제한' : `${String(remaining)} / ${String(credits?.credits_total ?? 0)}`;
+  const totalLabel = unlimited
+    ? '무제한'
+    : `${String(remaining)} / ${String(credits?.credits_total ?? 0)}`;
   const resetAt = credits?.credits_reset_at ?? null;
 
   return (
-    <View style={styles.creditsCard}>
+    <Card variant="surface" style={styles.creditsCard}>
       <View style={styles.creditsRow}>
-        <Text style={styles.creditsTier}>{tierLabel.toUpperCase()}</Text>
-        <Text style={styles.creditsValue}>{unlimited ? '무제한' : `${totalLabel} 크레딧`}</Text>
+        <Badge label={tierLabel.toUpperCase()} tone="subtle" />
+        <Text variant="h4">{unlimited ? '무제한' : `${totalLabel} 크레딧`}</Text>
       </View>
-      {resetAt !== null ? (
-        <Text style={styles.creditsReset}>다음 리셋: {resetAt.slice(0, 10)}</Text>
-      ) : (
-        <Text style={styles.creditsReset}>온보딩 무료 크레딧 (1회성)</Text>
-      )}
-    </View>
+      <Text variant="caption" tone="muted">
+        {resetAt !== null ? `다음 리셋: ${resetAt.slice(0, 10)}` : '온보딩 무료 크레딧 (1회성)'}
+      </Text>
+    </Card>
   );
 }
 
@@ -365,6 +357,8 @@ interface DateStripProps {
 }
 
 function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <ScrollView
       horizontal
@@ -384,11 +378,11 @@ function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.
             accessibilityState={{ selected: isSel }}
             style={[styles.datePill, isSel ? styles.datePillSelected : styles.datePillUnselected]}
           >
-            <Text style={isSel ? styles.datePillTextSelected : styles.datePillText}>
+            <Text variant="bodySm" tone={isSel ? 'brand' : 'default'} style={styles.datePillDate}>
               {d.date.slice(5)}
             </Text>
             {d.celebName !== null ? (
-              <Text style={styles.datePillCeleb} numberOfLines={1}>
+              <Text variant="caption" tone="muted" numberOfLines={1} style={styles.datePillCeleb}>
                 {d.celebName}
               </Text>
             ) : null}
@@ -406,22 +400,32 @@ function DayDetail({
   day: CalendarDay;
   recipeTitleById: Record<string, string>;
 }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.detail}>
-      <View style={styles.planHeaderCard}>
-        <Text style={styles.planName}>{day.celebName ?? 'My Plan'}</Text>
-        <Text style={styles.planDates}>{day.date}</Text>
+      <Card variant="subtle" style={styles.planHeaderCard}>
+        <Text variant="h3" tone="brand">
+          {day.celebName ?? 'My Plan'}
+        </Text>
+        <Text variant="bodySm" tone="muted">
+          {day.date}
+        </Text>
         <View style={styles.macrosRow}>
           <MacroBox label="kcal" value={String(Math.round(day.dailyTotals.calories))} />
           <MacroBox label="P" value={`${String(Math.round(day.dailyTotals.protein_g))}g`} />
           <MacroBox label="C" value={`${String(Math.round(day.dailyTotals.carbs_g))}g`} />
           <MacroBox label="F" value={`${String(Math.round(day.dailyTotals.fat_g))}g`} />
         </View>
-      </View>
+      </Card>
 
-      <Text style={styles.sectionTitle}>Meals</Text>
+      <Text variant="label" tone="muted" style={styles.sectionTitle}>
+        Meals
+      </Text>
       {day.meals.length === 0 ? (
-        <Text style={styles.bodyText}>No meals scheduled.</Text>
+        <Text variant="body" tone="muted" style={styles.emptyHint}>
+          No meals scheduled.
+        </Text>
       ) : (
         day.meals.map((meal, idx) => (
           <MealCard
@@ -436,15 +440,23 @@ function DayDetail({
 }
 
 function MacroBox({ label, value }: { label: string; value: string }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.macroBox}>
-      <Text style={styles.macroValue}>{value}</Text>
-      <Text style={styles.macroLabel}>{label}</Text>
+      <Text variant="body" style={styles.macroValue}>
+        {value}
+      </Text>
+      <Text variant="caption" tone="muted" style={styles.macroLabel}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 function MealCard({ meal, title }: { meal: DailyMeal; title?: string }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const kcal = meal.adjusted_nutrition?.calories;
   // 우선순위: 해석된 레시피 제목 → narrative(LLM 설명) → recipe_id placeholder.
   const mealName =
@@ -454,15 +466,19 @@ function MealCard({ meal, title }: { meal: DailyMeal; title?: string }): React.J
         ? meal.narrative
         : `Recipe #${meal.recipe_id.slice(0, 8)}`;
   return (
-    <View style={styles.mealCard}>
+    <Card variant="surface" style={styles.mealCard}>
       <View style={styles.mealHeader}>
-        <Text style={styles.mealSlot}>{capitalize(meal.meal_type)}</Text>
+        <Text variant="label" tone="brand">
+          {capitalize(meal.meal_type)}
+        </Text>
         {typeof kcal === 'number' ? (
-          <Text style={styles.mealKcal}>{String(Math.round(kcal))} kcal</Text>
+          <Text variant="caption" tone="muted">
+            {String(Math.round(kcal))} kcal
+          </Text>
         ) : null}
       </View>
-      <Text style={styles.mealName}>{mealName}</Text>
-    </View>
+      <Text variant="body">{mealName}</Text>
+    </Card>
   );
 }
 
@@ -470,205 +486,73 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  screenTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-text'),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-4']),
-  },
-  body: {
-    paddingBottom: px(tokens.light['--cb-space-5']),
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-5']),
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  emptyEmoji: { fontSize: 64 },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  emptyBody: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-    lineHeight: px(tokens.light['--cb-body-md']) + 6,
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  primaryButton: {
-    marginHorizontal: px(tokens.light['--cb-space-4']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  primaryButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  creditsCard: {
-    margin: px(tokens.light['--cb-space-4']),
-    padding: px(tokens.light['--cb-space-4']),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderRadius: 16,
-    gap: 6,
-  },
-  creditsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  creditsTier: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    letterSpacing: 1,
-  },
-  creditsValue: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  creditsReset: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  dateStrip: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-2']),
-    paddingBottom: px(tokens.light['--cb-space-3']),
-  },
-  datePill: {
-    minWidth: 64,
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    gap: 2,
-  },
-  datePillSelected: {
-    borderColor: resolveToken('light', '--cb-color-brand'),
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-  },
-  datePillUnselected: {
-    borderColor: 'transparent',
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  datePillText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  datePillTextSelected: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  datePillCeleb: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    maxWidth: 72,
-  },
-  detail: {
-    paddingTop: px(tokens.light['--cb-space-2']),
-  },
-  planHeaderCard: {
-    marginHorizontal: px(tokens.light['--cb-space-4']),
-    marginBottom: px(tokens.light['--cb-space-3']),
-    padding: px(tokens.light['--cb-space-4']),
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-    borderRadius: 16,
-    gap: 4,
-  },
-  planName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  planDates: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  macrosRow: {
-    flexDirection: 'row',
-    gap: px(tokens.light['--cb-space-3']),
-    marginTop: px(tokens.light['--cb-space-3']),
-  },
-  macroBox: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderRadius: 8,
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    alignItems: 'center',
-  },
-  macroValue: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  macroLabel: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  sectionTitle: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-2']),
-  },
-  mealCard: {
-    marginHorizontal: px(tokens.light['--cb-space-4']),
-    marginBottom: px(tokens.light['--cb-space-2']),
-    padding: px(tokens.light['--cb-space-3']),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderRadius: 12,
-    gap: 4,
-  },
-  mealHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  mealSlot: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  mealKcal: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  mealName: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  bodyText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    screenTitle: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(4) },
+    body: { paddingBottom: theme.space(5) },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: theme.space(5),
+      gap: theme.space(3),
+    },
+    ctaWrap: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(3) },
+    emptyHint: { paddingHorizontal: theme.space(4) },
+    creditsCard: {
+      marginHorizontal: theme.space(4),
+      marginTop: theme.space(4),
+      marginBottom: theme.space(3),
+      gap: theme.space(2),
+    },
+    creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    dateStrip: {
+      paddingHorizontal: theme.space(4),
+      gap: theme.space(2),
+      paddingBottom: theme.space(3),
+    },
+    datePill: {
+      minWidth: 64,
+      paddingVertical: theme.space(2),
+      paddingHorizontal: theme.space(3),
+      borderRadius: theme.radius.md,
+      alignItems: 'center',
+      borderWidth: 2,
+      gap: 2,
+    },
+    datePillSelected: {
+      borderColor: theme.color.brand,
+      backgroundColor: theme.color.brandSubtle,
+    },
+    datePillUnselected: { borderColor: 'transparent', backgroundColor: theme.color.surface },
+    datePillDate: { fontWeight: '700' },
+    datePillCeleb: { maxWidth: 72 },
+    detail: { paddingTop: theme.space(2) },
+    planHeaderCard: {
+      marginHorizontal: theme.space(4),
+      marginBottom: theme.space(3),
+      gap: theme.space(1),
+    },
+    macrosRow: { flexDirection: 'row', gap: theme.space(3), marginTop: theme.space(3) },
+    macroBox: {
+      flex: 1,
+      backgroundColor: theme.color.surface,
+      borderRadius: theme.radius.sm,
+      paddingVertical: theme.space(2),
+      alignItems: 'center',
+    },
+    macroValue: { fontWeight: '700' },
+    macroLabel: { textTransform: 'uppercase', letterSpacing: 0.5 },
+    sectionTitle: {
+      paddingHorizontal: theme.space(4),
+      paddingBottom: theme.space(2),
+    },
+    mealCard: {
+      marginHorizontal: theme.space(4),
+      marginBottom: theme.space(2),
+      gap: theme.space(1),
+    },
+    mealHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  });
+}
