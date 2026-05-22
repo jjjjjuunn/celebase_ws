@@ -6,15 +6,31 @@ import { schemas } from '@celebbase/shared-types';
 
 import { authedFetch } from '../lib/fetch-with-refresh';
 
+// content-service `/recipes` caps a single request at 32 ids. The calendar can
+// reference more across multiple plans, so chunk below that cap and merge.
+const MAX_IDS_PER_BATCH = 30;
+
 /**
  * recipe_id 목록을 제목 해석용으로 batch 조회한다 (순서 무관, 미페이지).
- * 빈 목록이면 네트워크 호출 없이 빈 응답 반환.
+ * 빈 목록이면 네트워크 호출 없이 빈 응답 반환. 32개 cap 을 넘으면 청크로 분할 조회.
  *
  * @throws ApiError BFF 4xx/5xx
  */
 export async function getRecipesByIds(ids: string[]): Promise<schemas.RecipeBatchResponse> {
   if (ids.length === 0) return { recipes: [] };
-  const search = new URLSearchParams({ ids: ids.join(',') });
-  const raw = await authedFetch<unknown>(`/api/recipes?${search.toString()}`);
-  return schemas.RecipeBatchResponseSchema.parse(raw);
+
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += MAX_IDS_PER_BATCH) {
+    chunks.push(ids.slice(i, i + MAX_IDS_PER_BATCH));
+  }
+
+  const responses = await Promise.all(
+    chunks.map(async (chunk) => {
+      const search = new URLSearchParams({ ids: chunk.join(',') });
+      const raw = await authedFetch<unknown>(`/api/recipes?${search.toString()}`);
+      return schemas.RecipeBatchResponseSchema.parse(raw);
+    }),
+  );
+
+  return { recipes: responses.flatMap((r) => r.recipes) };
 }
