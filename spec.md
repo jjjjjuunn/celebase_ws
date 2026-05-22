@@ -2684,6 +2684,15 @@ celebbase-wellness/
 
 design-tokens 의 RN 익스포트 (`tokens.native.ts`) 는 web/mobile token drift 방지를 위해 두 클라이언트가 동일 source 를 import 한다.
 
+#### 11.2.1 Mobile design system *(IMPL-MOBILE-DESIGN-SYSTEM-001)*
+
+`apps/mobile/src/ui/` 가 토큰 기반 primitive 레이어를 제공한다 — 화면별 `StyleSheet` 중복 (`primaryButton` 5+ 회 등) 을 대체한다.
+
+- **`ThemeProvider` / `useTheme()`**: `tokens.native.ts` 를 `theme.color.*` / `theme.space(n)` / `theme.type.*` / `theme.radius.*` 구조체로 resolve (네임스페이스가 토큰명 미러). light/dark 양쪽 precompute, 런타임 mode 전환 가능. 현재 mode 는 'light' 고정 (대부분 화면이 아직 static `resolveToken('light')` 사용 → 부분 다크 방지). 전 화면 migration 후 `FOLLOW_SYSTEM` 플립.
+- **Primitives**: `Text`(타이포 변형, display=Fraunces serif·body=Plus Jakarta Sans), `Button`(Animated press, reanimated 무의존), `Card`, `Avatar`(셀럽 사진 라이선스 hold → 토큰 accent 팔레트 기반 결정적 monogram), `Badge`, `Skeleton`(`--cb-skeleton-*` shimmer), `EmptyState`, `Screen`.
+- **폰트**: token 폰트패밀리(Fraunces / Plus Jakarta Sans) 미로딩 시 시스템 폰트 graceful fallback. 실제 로딩은 `expo-font` + `@expo-google-fonts` 설치 후속 단계.
+- 검증: light + dark 양쪽 스냅샷 테스트 (`src/ui/__tests__/ui.test.tsx`).
+
 ### 11.3 Mobile fetch wrapper + auto-login *(PIVOT-MOBILE-2026-05, IMPL-MOBILE-M2-FETCH-001)*
 
 `apps/mobile` 의 protected BFF 호출은 `src/lib/fetch-with-refresh.ts` 의 `authedFetch<T>(path, options?)` 만 사용한다 — M1 의 `postJson()` (단발성 unauthenticated POST 용) 과 분리. 라운드트립 단계:

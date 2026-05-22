@@ -7233,3 +7233,35 @@ verified_by: claude-opus-4-7 (staging DB 실증 — 행 start_date vs daily_plan
 - **Review tier**: L2 (단일 서비스 + 모바일 1파일, 스키마/PHI 무변경).
 ### 미완료: 배포 후 (a) 신규 생성 plan 의 daily_plans date == start_date 확인, (b) 기존 completed plan 백필(`daily_plans[i].date = start_date + i`, staging-only) 로 즉시 캘린더 정합, (c) `record-log-sha.sh`. 후속 backlog: meal_plans.id UUIDv4→v7 (CHORE), 05-20 failed 27건 원인.
 ### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, services/meal-plan-engine/src/routes/meal_plans.py, apps/mobile/src/services/meal-plans.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-DESIGN-SYSTEM-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/ui/ThemeProvider.tsx
+  - apps/mobile/src/ui/Text.tsx
+  - apps/mobile/src/ui/Button.tsx
+  - apps/mobile/src/ui/Card.tsx
+  - apps/mobile/src/ui/Avatar.tsx
+  - apps/mobile/src/ui/Badge.tsx
+  - apps/mobile/src/ui/Skeleton.tsx
+  - apps/mobile/src/ui/EmptyState.tsx
+  - apps/mobile/src/ui/Screen.tsx
+  - apps/mobile/src/ui/index.ts
+  - apps/mobile/src/ui/__tests__/ui.test.tsx
+  - apps/mobile/App.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 12 primitive tests PASS in light+dark; additive — 기존 화면 무변경)
+---
+### 완료: 모바일 디자인 시스템 foundation — 토큰 기반 primitive 레이어 (IMPL-MOBILE-DESIGN-SYSTEM-001)
+- **배경 (FE 감사)**: 컴포넌트 시스템 부재 → `primaryButton` StyleSheet 가 화면마다 5+ 회 중복. 폰트 토큰(Fraunces/Plus Jakarta Sans) 정의됐으나 미로딩(시스템 폰트). dark 토큰 정의됐으나 `resolveToken('light')` 하드코딩. 모션/스켈레톤 전무.
+- **foundation**: `apps/mobile/src/ui/` — `ThemeProvider`+`useTheme()`(토큰 → `theme.color/space/type/radius` 구조체, 네임스페이스 토큰명 미러, light/dark precompute, 런타임 전환 가능) + primitive 8종(`Text` 타이포변형, `Button` Animated press, `Card`, `Avatar` 결정적 monogram, `Badge`, `Skeleton` shimmer, `EmptyState`, `Screen`).
+- **제약 준수 (오버나이트, 시각검증 불가)**: 새 네이티브 모듈 0 (reanimated/expo-haptics/expo-font/svg 미설치 → 추가 시 dev build 재컴파일 필요). 모션은 RN 코어 `Animated`. raw hex 0 (FE 토큰 규칙 — shadowColor 도 토큰). 폰트는 패밀리만 참조(미로딩 시 시스템 폰트 graceful), 실제 로딩은 후속.
+- **additive**: ThemeProvider 는 App.tsx wrap 만 — 기존 화면은 context 미소비라 시각 변화 0. mode 'light' 고정(부분 다크 방지).
+- **검증**: mobile typecheck + lint(max-warnings=0) clean. primitive 12 테스트(light+dark 스냅샷 6 + 인터랙션) PASS.
+- **Review tier**: L2 (단일 클라이언트 additive, 스키마/PHI/계약 무변경).
+### 미완료: (a) 폰트 실제 로딩(`pnpm add expo-font @expo-google-fonts/{fraunces,plus-jakarta-sans}` + `useFonts`, native rebuild 필요 가능) — bare family 명으로 등록 필수. (b) 화면 migration: Celebrities flagship 우선(IMPL-MOBILE-CELEB-REDESIGN-001, 별도 PR, 시각 리뷰 후 머지). (c) 전 화면 migration 후 `FOLLOW_SYSTEM` 플립 + Settings 다크 토글. (d) `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/ui/*, apps/mobile/App.tsx, spec.md

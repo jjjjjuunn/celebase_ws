@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { configureCognito } from './src/lib/cognito';
 import { configureRevenueCat } from './src/lib/revenuecat';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { ThemeProvider } from './src/ui';
 
 // Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
@@ -22,8 +23,10 @@ configureRevenueCat();
 export default function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
-      <RootNavigator />
-      <StatusBar style="auto" />
+      <ThemeProvider>
+        <RootNavigator />
+        <StatusBar style="auto" />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
