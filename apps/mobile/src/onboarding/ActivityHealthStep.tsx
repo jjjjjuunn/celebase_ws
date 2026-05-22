@@ -9,23 +9,15 @@
 // PHI 안전 의무:
 //  - state 는 in-memory only (AsyncStorage 등 평문 영속화 금지).
 //  - structured logger 포함 어떤 출력으로도 PHI 값을 흘리지 않는다.
-//  - Health Disclaimer 반드시 노출 (role="note" 접근성 보장).
+//  - Health Disclaimer 반드시 노출 (role="alert" 접근성 보장).
 
-import { useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { tokens } from '@celebbase/design-tokens';
 import type { ActivityLevel } from '@celebbase/shared-types';
 
-import { px, resolveToken } from '../lib/tokens';
+import { Button, Text, useTheme, type Theme } from '../ui';
 import type { ActivityHealthDraft } from './types';
 
 interface ActivityHealthStepProps {
@@ -56,16 +48,14 @@ export function ActivityHealthStep({
   onBack,
   onClose,
 }: ActivityHealthStepProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | undefined>(
     initial?.activity_level,
   );
   const [allergies, setAllergies] = useState<string[]>(initial?.allergies ?? []);
-  const [conditionsText, setConditionsText] = useState(
-    initial?.medical_conditions.join(', ') ?? '',
-  );
-  const [medicationsText, setMedicationsText] = useState(
-    initial?.medications.join(', ') ?? '',
-  );
+  const [conditionsText, setConditionsText] = useState(initial?.medical_conditions.join(', ') ?? '');
+  const [medicationsText, setMedicationsText] = useState(initial?.medications.join(', ') ?? '');
   const [error, setError] = useState<string | null>(null);
 
   function toggleAllergy(allergy: string): void {
@@ -99,26 +89,32 @@ export function ActivityHealthStep({
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={styles.backButton}>←</Text>
+          <Text tone="brand" style={styles.navIcon}>
+            ←
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.stepLabel}>4 / 6</Text>
+        <Text variant="bodySm" tone="muted" style={styles.stepLabel}>
+          4 / 6
+        </Text>
         <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-          <Text style={styles.closeButton}>✕</Text>
+          <Text tone="muted" style={styles.navIcon}>
+            ✕
+          </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>Activity & health</Text>
-        <View
-          accessibilityRole="alert"
-          accessibilityLabel="Health disclaimer"
-          style={styles.disclaimer}
-        >
-          <Text style={styles.disclaimerText}>⚠ {HEALTH_DISCLAIMER}</Text>
+        <Text variant="h1">Activity &amp; health</Text>
+        <View accessibilityRole="alert" accessibilityLabel="Health disclaimer" style={styles.disclaimer}>
+          <Text variant="bodySm" style={styles.disclaimerText}>
+            ⚠ {HEALTH_DISCLAIMER}
+          </Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Daily activity level</Text>
+          <Text variant="bodySm" style={styles.label}>
+            Daily activity level
+          </Text>
           <View style={styles.activityList}>
             {ACTIVITY_OPTIONS.map((opt) => {
               const active = activityLevel === opt.value;
@@ -133,12 +129,12 @@ export function ActivityHealthStep({
                   accessibilityState={{ selected: active }}
                   style={[styles.activityRow, active ? styles.activityRowActive : null]}
                 >
-                  <Text
-                    style={[styles.activityLabel, active ? styles.activityLabelActive : null]}
-                  >
+                  <Text variant="body" tone={active ? 'brand' : 'default'} style={styles.activityLabel}>
                     {opt.label}
                   </Text>
-                  <Text style={styles.activityDesc}>{opt.desc}</Text>
+                  <Text variant="caption" tone="muted" style={styles.activityDesc}>
+                    {opt.desc}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -146,7 +142,12 @@ export function ActivityHealthStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Allergies <Text style={styles.optional}>· Select all that apply</Text></Text>
+          <Text variant="bodySm" style={styles.label}>
+            Allergies{' '}
+            <Text variant="bodySm" tone="muted" style={styles.optional}>
+              · Select all that apply
+            </Text>
+          </Text>
           <View style={styles.chipRow}>
             {COMMON_ALLERGIES.map((allergy) => {
               const active = allergies.includes(allergy);
@@ -161,7 +162,7 @@ export function ActivityHealthStep({
                   accessibilityState={{ selected: active }}
                   style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
                 >
-                  <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+                  <Text variant="bodySm" tone={active ? 'onBrand' : 'default'} style={styles.chipText}>
                     {allergy}
                   </Text>
                 </TouchableOpacity>
@@ -171,11 +172,17 @@ export function ActivityHealthStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Medical conditions <Text style={styles.optional}>· Comma-separated, leave blank if none</Text></Text>
+          <Text variant="bodySm" style={styles.label}>
+            Medical conditions{' '}
+            <Text variant="bodySm" tone="muted" style={styles.optional}>
+              · Comma-separated, leave blank if none
+            </Text>
+          </Text>
           <TextInput
             value={conditionsText}
             onChangeText={setConditionsText}
             placeholder="e.g. hypertension, diabetes"
+            placeholderTextColor={theme.color.textMuted}
             accessibilityLabel="Medical conditions"
             multiline
             style={styles.input}
@@ -183,152 +190,100 @@ export function ActivityHealthStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Medications <Text style={styles.optional}>· Comma-separated, leave blank if none</Text></Text>
+          <Text variant="bodySm" style={styles.label}>
+            Medications{' '}
+            <Text variant="bodySm" tone="muted" style={styles.optional}>
+              · Comma-separated, leave blank if none
+            </Text>
+          </Text>
           <TextInput
             value={medicationsText}
             onChangeText={setMedicationsText}
             placeholder="e.g. metformin, aspirin"
+            placeholderTextColor={theme.color.textMuted}
             accessibilityLabel="Medications"
             multiline
             style={styles.input}
           />
         </View>
 
-        {error !== null ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error !== null ? (
+          <Text variant="bodySm" tone="error">
+            {error}
+          </Text>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={validateAndNext}
-          accessibilityRole="button"
-          accessibilityLabel="Continue"
-          style={styles.nextButton}
-        >
-          <Text style={styles.nextButtonText}>Continue</Text>
-        </TouchableOpacity>
+        <Button label="Continue" onPress={validateAndNext} />
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: resolveToken('light', '--cb-color-bg') },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  backButton: { fontSize: 24, color: resolveToken('light', '--cb-color-brand') },
-  closeButton: { fontSize: 24, color: resolveToken('light', '--cb-color-text-muted') },
-  stepLabel: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    fontWeight: '600',
-  },
-  body: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-4']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-display-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  disclaimer: {
-    padding: px(tokens.light['--cb-space-3']),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-  },
-  disclaimerText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text'),
-    lineHeight: px(tokens.light['--cb-body-sm']) + 6,
-  },
-  field: { gap: px(tokens.light['--cb-space-2']) },
-  label: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  optional: {
-    color: resolveToken('light', '--cb-color-text-muted'),
-    fontWeight: '400',
-  },
-  activityList: { gap: px(tokens.light['--cb-space-2']) },
-  activityRow: {
-    padding: px(tokens.light['--cb-space-3']),
-    borderRadius: 8,
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  activityRowActive: {
-    borderColor: resolveToken('light', '--cb-color-brand'),
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-  },
-  activityLabel: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  activityLabelActive: {
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  activityDesc: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    marginTop: 2,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  chip: {
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    borderRadius: 16,
-  },
-  chipActive: { backgroundColor: resolveToken('light', '--cb-color-brand-bg') },
-  chipInactive: { backgroundColor: resolveToken('light', '--cb-color-surface') },
-  chipText: { fontSize: px(tokens.light['--cb-body-sm']), fontWeight: '600' },
-  chipTextActive: { color: resolveToken('light', '--cb-color-on-brand') },
-  chipTextInactive: { color: resolveToken('light', '--cb-color-text') },
-  input: {
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-    borderRadius: 8,
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    minHeight: 48,
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  footer: {
-    padding: px(tokens.light['--cb-space-4']),
-    borderTopWidth: 1,
-    borderTopColor: resolveToken('light', '--cb-color-border'),
-  },
-  nextButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  nextButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+    },
+    navIcon: { fontSize: 24 },
+    stepLabel: { fontWeight: theme.weight.semibold },
+    body: {
+      paddingHorizontal: theme.space(4),
+      paddingBottom: theme.space(4),
+      gap: theme.space(4),
+    },
+    disclaimer: {
+      padding: theme.space(3),
+      backgroundColor: theme.color.surface,
+      borderRadius: theme.radius.sm,
+      borderWidth: 1,
+      borderColor: theme.color.border,
+    },
+    disclaimerText: { lineHeight: theme.type.bodySm + 6 },
+    field: { gap: theme.space(2) },
+    label: { fontWeight: theme.weight.semibold },
+    optional: { fontWeight: theme.weight.regular },
+    activityList: { gap: theme.space(2) },
+    activityRow: {
+      padding: theme.space(3),
+      borderRadius: theme.radius.sm,
+      backgroundColor: theme.color.surface,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    activityRowActive: { borderColor: theme.color.brand, backgroundColor: theme.color.brandSubtle },
+    activityLabel: { fontWeight: theme.weight.semibold },
+    activityDesc: { marginTop: 2 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2) },
+    chip: {
+      paddingHorizontal: theme.space(3),
+      paddingVertical: theme.space(2),
+      borderRadius: theme.radius.pill,
+    },
+    chipActive: { backgroundColor: theme.color.brandBg },
+    chipInactive: { backgroundColor: theme.color.surface },
+    chipText: { fontWeight: theme.weight.semibold },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.color.border,
+      borderRadius: theme.radius.md,
+      paddingHorizontal: theme.space(3),
+      paddingVertical: theme.space(3),
+      fontSize: theme.type.body,
+      color: theme.color.text,
+      backgroundColor: theme.color.surface,
+      minHeight: 48,
+    },
+    footer: {
+      padding: theme.space(4),
+      borderTopWidth: 1,
+      borderTopColor: theme.color.border,
+    },
+  });
+}
