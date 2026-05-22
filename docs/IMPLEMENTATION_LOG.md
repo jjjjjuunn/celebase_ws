@@ -7315,7 +7315,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-NEWS-REDESIGN-001
-commit_sha: PENDING
+commit_sha: 48191fd
 files_changed:
   - apps/mobile/src/screens/NewsScreen.tsx
 verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; ⚠️ 시각 검증 미완 — PR #160 open)
