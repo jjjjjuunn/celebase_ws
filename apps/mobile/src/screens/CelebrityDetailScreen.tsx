@@ -5,24 +5,17 @@
 //   - GET /api/celebrities/:slug/claims — claim list (paginated)
 //
 // 두 fetch 병렬. tier-aware gating 은 ClaimsFeed 와 동일 룰 (trust A/B + free = locked).
+// 헤더는 ui/ primitive(Avatar monogram + Badge)로 재작성 (IMPL-MOBILE-CELEB-REDESIGN-001).
 
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
 import { ClaimCard } from '../components/ClaimCard';
-import { px, resolveToken } from '../lib/tokens';
 import { isClaimLocked, useCurrentTier } from '../lib/use-current-tier';
 import { getCelebrity, listCelebrityClaims } from '../services/celebrities';
+import { Avatar, Badge, EmptyState, Text, useTheme, type Theme } from '../ui';
 
 interface CelebrityDetailScreenProps {
   slug: string;
@@ -44,6 +37,8 @@ export function CelebrityDetailScreen({
   onBack,
   onClaimPress,
 }: CelebrityDetailScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
   const { tier } = useCurrentTier();
 
@@ -74,26 +69,27 @@ export function CelebrityDetailScreen({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
+        <Pressable
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Back"
           testID="celebrity-detail-back"
         >
-          <Text style={styles.backButton}>← Back</Text>
-        </TouchableOpacity>
+          <Text variant="body" tone="brand" style={styles.bold}>
+            ← Back
+          </Text>
+        </Pressable>
       </View>
 
       {phase.state === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator
-            size="large"
-            color={resolveToken('light', '--cb-color-brand')}
-          />
+          <ActivityIndicator size="large" color={theme.color.brand} />
         </View>
       ) : phase.state === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load celebrity details.</Text>
+          <Text variant="body" tone="error">
+            Couldn't load celebrity details.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -101,11 +97,11 @@ export function CelebrityDetailScreen({
           keyExtractor={(item) => item.id}
           ListHeaderComponent={<HeaderCard celebrity={phase.celebrity} />}
           ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>
-                No claims yet for {phase.celebrity.display_name}.
-              </Text>
-            </View>
+            <EmptyState
+              glyph="📭"
+              title="No claims yet"
+              body={`No wellness claims for ${phase.celebrity.display_name} yet.`}
+            />
           }
           renderItem={({ item }) => {
             const locked = isClaimLocked(item.trust_grade, tier);
@@ -126,95 +122,37 @@ export function CelebrityDetailScreen({
   );
 }
 
-interface HeaderCardProps {
-  celebrity: schemas.CelebrityWire;
-}
-
-function HeaderCard({ celebrity }: HeaderCardProps): React.JSX.Element {
+function HeaderCard({ celebrity }: { celebrity: schemas.CelebrityWire }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.celebHeader}>
-      <View style={styles.avatarPlaceholder}>
-        <Text style={styles.avatarInitial}>
-          {celebrity.display_name.slice(0, 1).toUpperCase()}
-        </Text>
-      </View>
-      <Text style={styles.celebName}>{celebrity.display_name}</Text>
-      <Text style={styles.celebCategory}>{celebrity.category.toUpperCase()}</Text>
+      <Avatar name={celebrity.display_name} size={96} />
+      <Text variant="h2" center>
+        {celebrity.display_name}
+      </Text>
+      <Badge label={celebrity.category.toUpperCase()} tone="subtle" />
       {celebrity.short_bio !== null && celebrity.short_bio !== '' ? (
-        <Text style={styles.celebBio}>{celebrity.short_bio}</Text>
+        <Text variant="body" tone="muted" center style={styles.bio}>
+          {celebrity.short_bio}
+        </Text>
       ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  header: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  backButton: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-brand'),
-    fontWeight: '600',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  celebHeader: {
-    alignItems: 'center',
-    paddingVertical: px(tokens.light['--cb-space-4']),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  avatarPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: px(tokens.light['--cb-space-2']),
-  },
-  avatarInitial: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  celebName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  celebCategory: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    letterSpacing: 1,
-  },
-  celebBio: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-  },
-  emptyState: {
-    padding: px(tokens.light['--cb-space-5']),
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    header: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(3) },
+    bold: { fontWeight: '600' },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.space(4) },
+    celebHeader: {
+      alignItems: 'center',
+      paddingVertical: theme.space(4),
+      paddingHorizontal: theme.space(4),
+      gap: theme.space(2),
+    },
+    bio: { marginTop: theme.space(2), paddingHorizontal: theme.space(3) },
+  });
+}

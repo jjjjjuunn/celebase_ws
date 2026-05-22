@@ -10,6 +10,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import { CelebrityDetailScreen } from '../../src/screens/CelebrityDetailScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen now consumes useTheme() — every render must be inside ThemeProvider.
+function renderScreen(ui: React.ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const CELEB = {
   id: '018d1a6a-0000-7000-8000-000000000040',
@@ -108,7 +114,7 @@ describe('<CelebrityDetailScreen />', () => {
       claims: makeResponse(200, { claims: [CLAIM_C], next_cursor: null, has_next: false }),
     });
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={jest.fn()} onClaimPress={jest.fn()} />,
     );
 
@@ -123,12 +129,12 @@ describe('<CelebrityDetailScreen />', () => {
       claims: makeResponse(200, { claims: [], next_cursor: null, has_next: false }),
     });
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={jest.fn()} onClaimPress={jest.fn()} />,
     );
 
     expect(
-      await screen.findByText('No claims yet for Gwyneth Paltrow.'),
+      await screen.findByText('No wellness claims for Gwyneth Paltrow yet.'),
     ).toBeTruthy();
   });
 
@@ -138,7 +144,7 @@ describe('<CelebrityDetailScreen />', () => {
     });
     const onClaimPress = jest.fn();
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={jest.fn()} onClaimPress={onClaimPress} />,
     );
 
@@ -157,7 +163,7 @@ describe('<CelebrityDetailScreen />', () => {
     });
     const onClaimPress = jest.fn();
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={jest.fn()} onClaimPress={onClaimPress} />,
     );
 
@@ -175,7 +181,7 @@ describe('<CelebrityDetailScreen />', () => {
     });
     const onBack = jest.fn();
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={onBack} onClaimPress={jest.fn()} />,
     );
 
@@ -186,7 +192,7 @@ describe('<CelebrityDetailScreen />', () => {
   it('celebrity fetch 실패 → error state', async () => {
     mockRouter(fetchSpy, { celebError: true });
 
-    render(
+    renderScreen(
       <CelebrityDetailScreen slug="gwyneth-paltrow" onBack={jest.fn()} onClaimPress={jest.fn()} />,
     );
 

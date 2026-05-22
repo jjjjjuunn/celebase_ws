@@ -17,3 +17,4 @@ export type { BadgeTone } from './Badge';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
 export { Screen } from './Screen';
+export { monogramInitials, monogramIndex } from './monogram';

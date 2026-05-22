@@ -7265,3 +7265,28 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 12 primitive tests 
 - **Review tier**: L2 (단일 클라이언트 additive, 스키마/PHI/계약 무변경).
 ### 미완료: (a) 폰트 실제 로딩(`pnpm add expo-font @expo-google-fonts/{fraunces,plus-jakarta-sans}` + `useFonts`, native rebuild 필요 가능) — bare family 명으로 등록 필수. (b) 화면 migration: Celebrities flagship 우선(IMPL-MOBILE-CELEB-REDESIGN-001, 별도 PR, 시각 리뷰 후 머지). (c) 전 화면 migration 후 `FOLLOW_SYSTEM` 플립 + Settings 다크 토글. (d) `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/ui/*, apps/mobile/App.tsx, spec.md
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-CELEB-REDESIGN-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+  - apps/mobile/src/screens/CelebrityDetailScreen.tsx
+  - apps/mobile/src/ui/Avatar.tsx
+  - apps/mobile/src/ui/monogram.ts
+  - apps/mobile/src/ui/index.ts
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; raw hex 0 — ⚠️ 시각 검증 미완 → PR #160 open 유지, 사용자 실기 리뷰 후 머지)
+---
+### 완료: Celebrities flagship 화면 디자인 시스템 migration (IMPL-MOBILE-CELEB-REDESIGN-001)
+- **flagship 선정 근거 (advisor)**: FE 감사 #1 갭이 imagery(셀럽=색박스+이니셜). gradient/monogram 격상이 라이선스 hold placeholder 를 의도된 럭스로 전환 — 최대 임팩트. grid+card 표면이라 회귀 리스크 낮음. MealPlan 은 #157/#159 직후라 안정 유지(사용자 날짜 fix 검증 비혼동).
+- **CelebritiesScreen**: 3열 그리드 카드를 ui primitive 로 재작성 — full-bleed 톤 패널(`theme.accents` 결정적 해시 + Fraunces serif 이니셜) + Card shadow + Animated press scale + `Text` 변형 + 칩 리스타일. 기존 spec(3열/personalize 체크/gender 토글) 보존.
+- **CelebrityDetailScreen**: 헤더를 `Avatar`(96 monogram) + `Text`(h2) + `Badge`(category) + `EmptyState` 로 격상. fetch/tier 게이팅/ClaimCard 로직 무변경.
+- **공유 helper**: `ui/monogram.ts`(`monogramInitials`/`monogramIndex`) 추출 → Avatar + grid card 가 동일 해시 사용(셀럽 톤 정체성 화면 간 일관).
+- **제약 준수**: 새 네이티브 모듈 0(Animated press = RN 코어). raw hex 0(소스). 폰트는 패밀리 참조(미로딩 시 시스템 폰트).
+- **검증**: typecheck + lint clean, 전체 189 tests PASS(CelebrityDetailScreen.test 는 ThemeProvider 래퍼 + 신규 문구로 갱신). **시각 검증은 시뮬레이터 필요 → 미완**.
+- **Review tier**: L2 (단일 클라이언트, mock-data 표시 변경, 계약/PHI 무변경).
+### 미완료: ⚠️ 실기 시각 확인(PR #160 머지 전 사용자 리뷰 필수 — 작성자 시각검증 불가). 후속: 나머지 화면(News/Profile/Settings/Claims/Paywall/MealPlan) migration, 폰트 로딩, 다크모드 토글. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/ui/monogram.ts
