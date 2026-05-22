@@ -1,311 +1,225 @@
-// Celebrities 탭 root — 3열 카드 그리드 (디자인 ref: 1번 사진 / Etsy-style grid).
+// Celebrities 탭 root — 히어로형(Spotify/Netflix 스타일): 전면 히어로 1개 +
+// 카테고리별(Women/Men) 가로 스와이프 rail. (사용자 선택 2026-05-22.)
 //
-// 스펙 (사용자 2026-05-14):
-//   1.   가로 3열 카드 그리드. 카테고리는 여성 / 남성 2개.
-//   1-1. 카드 = 셀럽 사진 + 이름 + 식단/루틴 해시태그 2-3개.
-//   1-5. 카드 좌측 상단 빈 동그라미 — 체크하면 personalize 대상으로 표시.
-//
-// 사진은 라이선스 이슈로 accent placeholder + 이니셜 (mock-data.ts 참조).
-// personalize 선택은 현재 화면 로컬 state — 영속화는 BE 연결 시 후속.
+// 셀럽 사진은 라이선스 hold → 디자인 시스템의 결정적 monogram(토큰 accent 팔레트 +
+// Fraunces serif 이니셜) 으로 placeholder 가 아닌 의도된 비주얼. 탭 → CelebrityDetail.
+// 데이터는 mock-data (content-service 실 셀럽 + 풍부 프로필 시드 후 교체 — backlog).
 
-import { useMemo, useState } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useMemo, useRef } from 'react';
+import { Animated, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { tokens } from '@celebbase/design-tokens';
-
-import { px, resolveToken } from '../lib/tokens';
-import {
-  getMockCelebritiesByGender,
-  type CelebGender,
-  type MockCelebrity,
-} from '../lib/mock-data';
+import { getMockCelebritiesByGender, type MockCelebrity } from '../lib/mock-data';
+import { monogramIndex, monogramInitials, Text, useTheme, type Theme } from '../ui';
 
 interface CelebritiesScreenProps {
-  /** 카드 탭 시 — CelebrityDetail 로 이동. */
+  /** 카드/히어로 탭 시 — CelebrityDetail 로 이동. */
   onCelebPress: (slug: string) => void;
 }
 
-const NUM_COLS = 3;
-const H_PADDING = px(tokens.light['--cb-space-4']); // 16
-const COL_GAP = px(tokens.light['--cb-space-2']); // 8
-const SCREEN_W = Dimensions.get('window').width;
-const CARD_W = (SCREEN_W - H_PADDING * 2 - COL_GAP * (NUM_COLS - 1)) / NUM_COLS;
-
-const CATEGORIES: ReadonlyArray<{ key: CelebGender; label: string }> = [
-  { key: 'women', label: 'Women' },
-  { key: 'men', label: 'Men' },
-];
-
-function initialsOf(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part.charAt(0))
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+function usePressScale(): { scale: Animated.Value; onPressIn: () => void; onPressOut: () => void } {
+  const scale = useRef(new Animated.Value(1)).current;
+  return {
+    scale,
+    onPressIn: () => {
+      Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 50 }).start();
+    },
+    onPressOut: () => {
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
+    },
+  };
 }
 
-interface CelebCardProps {
-  celeb: MockCelebrity;
-  selected: boolean;
-  onPress: () => void;
-  onToggleSelect: () => void;
+function accentFor(theme: Theme, name: string): string {
+  return theme.accents[monogramIndex(name, theme.accents.length)];
 }
 
-function CelebCard({
-  celeb,
-  selected,
-  onPress,
-  onToggleSelect,
-}: CelebCardProps): React.JSX.Element {
+function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const press = usePressScale();
+
   return (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityLabel={`${celeb.name} — view profile`}
-      activeOpacity={0.85}
-      onPress={onPress}
-      style={styles.card}
-    >
-      <View style={[styles.photo, { backgroundColor: resolveToken('light', celeb.accent) }]}>
-        <Text style={styles.photoInitials}>{initialsOf(celeb.name)}</Text>
-
-        {/* 1-5. personalize 체크 동그라미 */}
-        <TouchableOpacity
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: selected }}
-          accessibilityLabel={`Personalize with ${celeb.name}`}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          onPress={onToggleSelect}
-          style={[styles.checkbox, selected ? styles.checkboxOn : styles.checkboxOff]}
-        >
-          {selected ? <Text style={styles.checkboxMark}>✓</Text> : null}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.cardBody}>
-        <Text numberOfLines={1} style={styles.name}>
-          {celeb.name}
+    <Animated.View style={{ transform: [{ scale: press.scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${celeb.name} — view profile`}
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={[styles.hero, { backgroundColor: accentFor(theme, celeb.name) }]}
+      >
+        <Text style={[styles.heroMonogram, { fontFamily: theme.font.display }]} tone="onBrand">
+          {monogramInitials(celeb.name)}
         </Text>
-        <View style={styles.tagRow}>
-          {celeb.hashtags.slice(0, 3).map((tag) => (
-            <Text key={tag} numberOfLines={1} style={styles.tag}>
-              #{tag}
-            </Text>
-          ))}
+        <View style={styles.heroScrim} />
+        <View style={styles.heroTextWrap}>
+          <Text variant="display" tone="onBrand" style={{ fontFamily: theme.font.display }}>
+            {celeb.name}
+          </Text>
+          <View style={styles.heroTags}>
+            {celeb.hashtags.slice(0, 3).map((tag) => (
+              <Text key={tag} variant="caption" tone="onBrand">
+                #{tag}
+              </Text>
+            ))}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </Pressable>
+    </Animated.View>
   );
 }
 
-export function CelebritiesScreen({
-  onCelebPress,
-}: CelebritiesScreenProps): React.JSX.Element {
-  const [gender, setGender] = useState<CelebGender>('women');
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
-
-  const data = useMemo(() => getMockCelebritiesByGender(gender), [gender]);
-
-  function toggleSelect(id: string): void {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }
+function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const press = usePressScale();
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <Text style={styles.title}>Celebrities</Text>
-
-      {/* 1. 카테고리 — 여성 / 남성 */}
-      <View style={styles.categoryRow}>
-        {CATEGORIES.map((cat) => {
-          const active = cat.key === gender;
-          return (
-            <TouchableOpacity
-              key={cat.key}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              onPress={() => {
-                setGender(cat.key);
-              }}
-              style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
-            >
-              <Text
-                style={[
-                  styles.chipLabel,
-                  active ? styles.chipLabelActive : styles.chipLabelInactive,
-                ]}
-              >
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-
-        {selectedIds.size > 0 ? (
-          <Text style={styles.selectedCount}>
-            {String(selectedIds.size)} selected
+    <Animated.View style={{ transform: [{ scale: press.scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${celeb.name} — view profile`}
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={styles.railCard}
+      >
+        <View style={[styles.railPanel, { backgroundColor: accentFor(theme, celeb.name) }]}>
+          <Text style={[styles.railMonogram, { fontFamily: theme.font.display }]} tone="onBrand">
+            {monogramInitials(celeb.name)}
           </Text>
-        ) : null}
-      </View>
+        </View>
+        <Text variant="bodySm" numberOfLines={1} style={styles.railName}>
+          {celeb.name}
+        </Text>
+        <Text variant="caption" tone="muted" numberOfLines={1}>
+          #{celeb.hashtags[0]}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
 
+function Rail({
+  title,
+  celebs,
+  onCelebPress,
+}: {
+  title: string;
+  celebs: ReadonlyArray<MockCelebrity>;
+  onCelebPress: (slug: string) => void;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <View style={styles.rail}>
+      <Text variant="h3" style={styles.railTitle}>
+        {title}
+      </Text>
       <FlatList
-        data={data}
+        horizontal
+        data={celebs as MockCelebrity[]}
         keyExtractor={(item) => item.id}
-        numColumns={NUM_COLS}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.railContent}
         renderItem={({ item }) => (
-          <CelebCard
+          <RailCard
             celeb={item}
-            selected={selectedIds.has(item.id)}
             onPress={() => {
               onCelebPress(item.slug);
-            }}
-            onToggleSelect={() => {
-              toggleSelect(item.id);
             }}
           />
         )}
       />
+    </View>
+  );
+}
+
+export function CelebritiesScreen({ onCelebPress }: CelebritiesScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const women = useMemo(() => getMockCelebritiesByGender('women'), []);
+  const men = useMemo(() => getMockCelebritiesByGender('men'), []);
+  const featured = women[0]; // mock always has Women entries
+
+  return (
+    <SafeAreaView edges={['top']} style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text variant="h1">Celebrities</Text>
+          <Text variant="bodySm" tone="muted">
+            좋아하는 셀럽을 골라 나만의 식단을 시작하세요.
+          </Text>
+        </View>
+
+        <Hero
+          celeb={featured}
+          onPress={() => {
+            onCelebPress(featured.slug);
+          }}
+        />
+
+        <Rail title="Women" celebs={women} onCelebPress={onCelebPress} />
+        <Rail title="Men" celebs={men} onCelebPress={onCelebPress} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-h1']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-    paddingHorizontal: H_PADDING,
-    paddingTop: px(tokens.light['--cb-space-2']),
-    paddingBottom: px(tokens.light['--cb-space-3']),
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: H_PADDING,
-    paddingBottom: px(tokens.light['--cb-space-3']),
-  },
-  chip: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    borderRadius: px(tokens.light['--cb-radius-pill']),
-  },
-  chipActive: {
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  chipInactive: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  chipLabel: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-  },
-  chipLabelActive: {
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  chipLabelInactive: {
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  selectedCount: {
-    marginLeft: 'auto',
-    fontSize: px(tokens.light['--cb-label-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  listContent: {
-    paddingHorizontal: H_PADDING,
-    paddingBottom: px(tokens.light['--cb-space-8']),
-  },
-  columnWrapper: {
-    gap: COL_GAP,
-    marginBottom: px(tokens.light['--cb-space-4']),
-  },
-  // 웹 ui-kit CelebrityCard 와 정렬 — radius-lg, shadow, 흰 본문, 4:3 photo.
-  card: {
-    width: CARD_W,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    borderRadius: px(tokens.light['--cb-radius-lg']),
-    overflow: 'hidden',
-    // --cb-shadow-2 근사 (iOS) + Android elevation.
-    shadowColor: resolveToken('light', '--cb-neutral-900'),
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  photo: {
-    width: '100%',
-    height: (CARD_W * 3) / 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoInitials: {
-    fontSize: px(tokens.light['--cb-h2']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  checkbox: {
-    position: 'absolute',
-    top: px(tokens.light['--cb-space-2']),
-    left: px(tokens.light['--cb-space-2']),
-    width: 22,
-    height: 22,
-    borderRadius: px(tokens.light['--cb-radius-pill']),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxOff: {
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-    borderWidth: 1.5,
-    borderColor: resolveToken('light', '--cb-color-border'),
-    opacity: 0.9,
-  },
-  checkboxOn: {
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  checkboxMark: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  cardBody: {
-    paddingHorizontal: px(tokens.light['--cb-space-2']),
-    paddingTop: px(tokens.light['--cb-space-2']),
-    paddingBottom: px(tokens.light['--cb-space-3']),
-    gap: px(tokens.light['--cb-space-1']),
-  },
-  name: {
-    fontSize: px(tokens.light['--cb-label-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  tagRow: {
-    gap: 2,
-  },
-  tag: {
-    fontSize: px(tokens.light['--cb-label-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    scrollContent: { paddingBottom: theme.space(8) },
+    header: {
+      paddingHorizontal: theme.space(4),
+      paddingTop: theme.space(2),
+      paddingBottom: theme.space(4),
+      gap: theme.space(1),
+    },
+    // Hero — full-bleed immersive panel.
+    hero: {
+      height: 360,
+      marginHorizontal: theme.space(4),
+      borderRadius: theme.radius.xl,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    heroMonogram: { fontSize: 132, fontWeight: '700', opacity: 0.92 },
+    heroScrim: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 150,
+      backgroundColor: theme.color.text,
+      opacity: 0.32,
+    },
+    heroTextWrap: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      padding: theme.space(4),
+      gap: theme.space(1),
+    },
+    heroTags: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2) },
+    // Rails — horizontal category carousels.
+    rail: { paddingTop: theme.space(5), gap: theme.space(3) },
+    railTitle: { paddingHorizontal: theme.space(4) },
+    railContent: { paddingHorizontal: theme.space(4), gap: theme.space(3) },
+    railCard: { width: 140 },
+    railPanel: {
+      width: 140,
+      height: 168,
+      borderRadius: theme.radius.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: theme.space(2),
+    },
+    railMonogram: { fontSize: 56, fontWeight: '700' },
+    railName: { fontWeight: '700' },
+  });
+}

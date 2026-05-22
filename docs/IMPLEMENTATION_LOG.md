@@ -7237,6 +7237,145 @@ verified_by: claude-opus-4-7 (staging DB 실증 — 행 start_date vs daily_plan
 ---
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-DESIGN-SYSTEM-001
+commit_sha: 88c73e2
+files_changed:
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/ui/ThemeProvider.tsx
+  - apps/mobile/src/ui/Text.tsx
+  - apps/mobile/src/ui/Button.tsx
+  - apps/mobile/src/ui/Card.tsx
+  - apps/mobile/src/ui/Avatar.tsx
+  - apps/mobile/src/ui/Badge.tsx
+  - apps/mobile/src/ui/Skeleton.tsx
+  - apps/mobile/src/ui/EmptyState.tsx
+  - apps/mobile/src/ui/Screen.tsx
+  - apps/mobile/src/ui/index.ts
+  - apps/mobile/src/ui/__tests__/ui.test.tsx
+  - apps/mobile/App.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 12 primitive tests PASS in light+dark; additive — 기존 화면 무변경)
+---
+### 완료: 모바일 디자인 시스템 foundation — 토큰 기반 primitive 레이어 (IMPL-MOBILE-DESIGN-SYSTEM-001)
+- **배경 (FE 감사)**: 컴포넌트 시스템 부재 → `primaryButton` StyleSheet 가 화면마다 5+ 회 중복. 폰트 토큰(Fraunces/Plus Jakarta Sans) 정의됐으나 미로딩(시스템 폰트). dark 토큰 정의됐으나 `resolveToken('light')` 하드코딩. 모션/스켈레톤 전무.
+- **foundation**: `apps/mobile/src/ui/` — `ThemeProvider`+`useTheme()`(토큰 → `theme.color/space/type/radius` 구조체, 네임스페이스 토큰명 미러, light/dark precompute, 런타임 전환 가능) + primitive 8종(`Text` 타이포변형, `Button` Animated press, `Card`, `Avatar` 결정적 monogram, `Badge`, `Skeleton` shimmer, `EmptyState`, `Screen`).
+- **제약 준수 (오버나이트, 시각검증 불가)**: 새 네이티브 모듈 0 (reanimated/expo-haptics/expo-font/svg 미설치 → 추가 시 dev build 재컴파일 필요). 모션은 RN 코어 `Animated`. raw hex 0 (FE 토큰 규칙 — shadowColor 도 토큰). 폰트는 패밀리만 참조(미로딩 시 시스템 폰트 graceful), 실제 로딩은 후속.
+- **additive**: ThemeProvider 는 App.tsx wrap 만 — 기존 화면은 context 미소비라 시각 변화 0. mode 'light' 고정(부분 다크 방지).
+- **검증**: mobile typecheck + lint(max-warnings=0) clean. primitive 12 테스트(light+dark 스냅샷 6 + 인터랙션) PASS.
+- **Review tier**: L2 (단일 클라이언트 additive, 스키마/PHI/계약 무변경).
+### 미완료: (a) 폰트 실제 로딩(`pnpm add expo-font @expo-google-fonts/{fraunces,plus-jakarta-sans}` + `useFonts`, native rebuild 필요 가능) — bare family 명으로 등록 필수. (b) 화면 migration: Celebrities flagship 우선(IMPL-MOBILE-CELEB-REDESIGN-001, 별도 PR, 시각 리뷰 후 머지). (c) 전 화면 migration 후 `FOLLOW_SYSTEM` 플립 + Settings 다크 토글. (d) `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/ui/*, apps/mobile/App.tsx, spec.md
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-CELEB-REDESIGN-001
+commit_sha: cb6b5ee
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+  - apps/mobile/src/screens/CelebrityDetailScreen.tsx
+  - apps/mobile/src/ui/Avatar.tsx
+  - apps/mobile/src/ui/monogram.ts
+  - apps/mobile/src/ui/index.ts
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; raw hex 0 — ⚠️ 시각 검증 미완 → PR #160 open 유지, 사용자 실기 리뷰 후 머지)
+---
+### 완료: Celebrities flagship 화면 디자인 시스템 migration (IMPL-MOBILE-CELEB-REDESIGN-001)
+- **flagship 선정 근거 (advisor)**: FE 감사 #1 갭이 imagery(셀럽=색박스+이니셜). gradient/monogram 격상이 라이선스 hold placeholder 를 의도된 럭스로 전환 — 최대 임팩트. grid+card 표면이라 회귀 리스크 낮음. MealPlan 은 #157/#159 직후라 안정 유지(사용자 날짜 fix 검증 비혼동).
+- **CelebritiesScreen**: 3열 그리드 카드를 ui primitive 로 재작성 — full-bleed 톤 패널(`theme.accents` 결정적 해시 + Fraunces serif 이니셜) + Card shadow + Animated press scale + `Text` 변형 + 칩 리스타일. 기존 spec(3열/personalize 체크/gender 토글) 보존.
+- **CelebrityDetailScreen**: 헤더를 `Avatar`(96 monogram) + `Text`(h2) + `Badge`(category) + `EmptyState` 로 격상. fetch/tier 게이팅/ClaimCard 로직 무변경.
+- **공유 helper**: `ui/monogram.ts`(`monogramInitials`/`monogramIndex`) 추출 → Avatar + grid card 가 동일 해시 사용(셀럽 톤 정체성 화면 간 일관).
+- **제약 준수**: 새 네이티브 모듈 0(Animated press = RN 코어). raw hex 0(소스). 폰트는 패밀리 참조(미로딩 시 시스템 폰트).
+- **검증**: typecheck + lint clean, 전체 189 tests PASS(CelebrityDetailScreen.test 는 ThemeProvider 래퍼 + 신규 문구로 갱신). **시각 검증은 시뮬레이터 필요 → 미완**.
+- **Review tier**: L2 (단일 클라이언트, mock-data 표시 변경, 계약/PHI 무변경).
+### 미완료: ⚠️ 실기 시각 확인(PR #160 머지 전 사용자 리뷰 필수 — 작성자 시각검증 불가). 후속: 나머지 화면(News/Profile/Settings/Claims/Paywall/MealPlan) migration, 폰트 로딩, 다크모드 토글. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/ui/monogram.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-PROFILE-REDESIGN-001
+commit_sha: a2ef10e
+files_changed:
+  - apps/mobile/src/screens/ProfileScreen.tsx
+  - apps/mobile/src/ui/Button.tsx
+  - apps/mobile/__tests__/screens/ProfileScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; ⚠️ 시각 검증 미완 — PR #160 open 유지)
+---
+### 완료: Profile 화면 디자인 시스템 migration (IMPL-MOBILE-PROFILE-REDESIGN-001)
+- design system rollout 2번째 화면 (PR #160 동일, 다른 화면 타입 = settings-list). 사용자 부재(수면) 중이라 mid-stream 승인 불가 → 안전·되돌리기 쉬운(미머지) 화면을 최대한 준비해 아침 리뷰 대상 확대.
+- **ProfileScreen**: avatar 분기(Image/initial) → `Avatar` primitive(uri+monogram fallback) 1개로 단순화. tier 배지 → `Badge`(paid=brand/free=neutral). upgrade 카드 → `Card`+`Button`. edit → `Button` secondary. "About you" 그룹 리스트는 iOS 스타일 유지(theme 색). loading/error theme 정렬.
+- **Button**: `testID` prop 추가(forward to Pressable) — Profile 의 `profile-upgrade`/`profile-edit` testID 보존.
+- **테스트**: ThemeProvider 래퍼 + avatar 단언 갱신(단일 'J' → 2-letter monogram 'JD'; Avatar 는 image+monogram 폴백을 항상 렌더). 전체 189 PASS.
+- **제약 준수**: 새 네이티브 모듈 0, raw hex 0(소스). 시각 검증은 시뮬레이터 필요 → 미완.
+### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: News/ClaimsFeed/Settings(저위험), Login/Signup/Paywall/MealPlan/Onboarding(고위험 — 승인 후). 폰트 로딩 + 다크 토글. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/src/ui/Button.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-NEWS-REDESIGN-001
+commit_sha: 48191fd
+files_changed:
+  - apps/mobile/src/screens/NewsScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; ⚠️ 시각 검증 미완 — PR #160 open)
+---
+### 완료: News 화면 디자인 시스템 migration (IMPL-MOBILE-NEWS-REDESIGN-001)
+- design system rollout 3번째 화면 (feed 타입). FE 감사가 "placeholder-level"(색 사각형 썸네일)로 꼽은 최악 화면 격상.
+- **NewsScreen**: 색 사각형 썸네일 → 카테고리별 token accent 톤 타일 + 소스 monogram 이니셜(Fraunces serif). 칩 리스타일(brand/surface), `Text` 변형, Animated press. mock 데이터/카테고리 필터 로직 유지(content-service trend 연결은 후속).
+- **제약 준수**: 새 네이티브 모듈 0, raw hex 0(소스). 테스트 부재 화면이라 테스트 갱신 없음.
+- **검증**: typecheck + lint clean, 전체 189 tests PASS. 시각 검증은 시뮬레이터 필요 → 미완.
+### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: ClaimsFeed/Settings(중·저위험), auth/Paywall/MealPlan/Onboarding(고위험·승인 후). content-service trend intelligence 실연결. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/NewsScreen.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-REDESIGN-FIXES-001
+commit_sha: 8fd5dbf
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/package.json
+  - apps/mobile/src/screens/CelebrityDetailScreen.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/screens/NewsDetailScreen.tsx
+  - apps/mobile/src/lib/news-mock.ts
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/src/navigation/CelebritiesNavigator.tsx
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PASS; ⚠️ 폰트·시각은 실기 Metro 재시작 필요)
+---
+### 완료: redesign 사용자 피드백 3건 수정 (IMPL-MOBILE-REDESIGN-FIXES-001)
+- **사용자 피드백 (PR #160 실기 리뷰)**: ① "뭐가 바뀐지 모르겠다" ② 셀럽 상세 "Couldn't load celebrity details" ③ News 카드 탭해도 상세 없음.
+- **① 폰트 로딩 (변화가 안 보이던 핵심 원인)**: 토큰에 Fraunces(serif)/Plus Jakarta Sans 가 정의됐으나 **미로딩** → 제목·monogram 이 시스템 sans 로 렌더돼 redesign 이 안 보였다. `expo-font`(이미 expo 의존으로 .pnpm 존재, native autolink) + `@expo-google-fonts/{fraunces,plus-jakarta-sans}`(순수 JS ttf) 추가. App.tsx 에서 `Font.loadAsync` **non-blocking**(try/catch — 실패 시 시스템 폰트, 무crash) 으로 bare 이름('Fraunces'/'Plus Jakarta Sans') 등록 → theme.font 가 참조하던 패밀리 활성. expo-font 는 SDK54 호환 `~14.0.11` 로 pin(56.x 오설치 교정 — native 14.x 와 정렬).
+- **② 셀럽 상세 404 해소**: 그리드는 mock(getMockCelebritiesByGender)인데 상세는 **실 API**(getCelebrity/listCelebrityClaims) 호출 → mock slug 가 실 DB(셀럽 10·**claims 0**) 와 불일치 → 404. 상세를 `getMockCelebrityBySlug` 기반 **풍부 프로필**(Avatar·해시태그 Badge·매크로 표·신체·운동·철학 + 영양 면책조항)로 재작성. API 호출 제거 → 404 불가. `onClaimPress` prop + Celebrities/Discover navigator 사용처 제거. (실 데이터 배선은 claims 시드 후 backlog.)
+- **③ News 상세 추가**: mock 아티클을 `lib/news-mock.ts`(body 2-3문단 추가)로 추출 → `NewsScreen`(피드)+`NewsDetailScreen`(본문) 공유. `NewsDetailScreen` 신규 + `NewsStackParamList.NewsDetail` + `NewsNavigator` 라우트 + 카드 `onArticlePress` 배선.
+- **검증**: typecheck + lint clean, 전체 187 tests PASS(셀럽 상세 테스트를 mock 경로 4건으로 재작성, expo-font jest mock 추가). raw hex 0.
+### 미완료: ⚠️ **실기 Metro 재시작 필요**(`pnpm install` 후 Metro restart — 새 폰트 JS 패키지 픽업). 폰트 native(expo-font 14.x)는 이미 autolink 라 재빌드 불필요 예상 — 만약 재시작 후에도 serif 안 보이면 `npx expo run:ios` 1회. 후속: 셀럽/News 실 데이터(claims·trend) 배선, 카드 form 더 과감한 재디자인(사용자 방향 확인 후). `record-log-sha.sh`.
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/screens/NewsDetailScreen.tsx, apps/mobile/src/lib/news-mock.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-CELEB-HERO-001
+commit_sha: e368a3a
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint + 187 tests PASS; 사용자가 잡지형 vs 히어로형 비교 후 히어로형 선택; 실기 시각 확인은 PR #160)
+---
+### 완료: Celebrities 화면 히어로형(Spotify식) 재디자인 (IMPL-MOBILE-CELEB-HERO-001)
+- **방향 선택 (사용자, ASCII mockup 비교)**: 잡지형(editorial) vs 히어로형(Spotify/Netflix) 중 **히어로형** 선택 — 셀럽 발견·몰입 + 트렌디.
+- **레이아웃**: 3열 그리드(IMPL-MOBILE-CELEB-REDESIGN-001) → **전면 히어로 1개**(featured = Women[0], 360h, 큰 Fraunces serif monogram + 하단 scrim + 이름/해시태그 오버레이) + **카테고리별 가로 rail**(Women/Men, 가로 스와이프 FlatList, 140w monogram 카드). 탭 → CelebrityDetail (기존 동작 유지).
+- **scrim 가독성**: 하단 scrim = `theme.color.text` opacity 0.32 + onBrand 텍스트 (raw hex 0, 토큰만). 그라디언트 라이브러리 무의존.
+- **드롭**: gender 토글 칩(→ 2 rail 로 대체), personalize 체크박스(local-only 미영속 — 히어로 레이아웃에 부적합, 후속 detail 화면 save 로 재도입 가능).
+- **검증**: typecheck + lint clean, 전체 187 tests PASS. 실기 시각 확인은 PR #160 (사용자).
+- **Review tier**: L2 (단일 화면, mock 데이터 표시 레이아웃, 계약/PHI 무변경).
+### 미완료: ⚠️ 실기 시각 확인(PR #160 reload). 후속: rail "See all" → 필터 그리드, 셀럽 실데이터(content claims/profile) 배선, 나머지 화면(Settings/auth/Paywall/Onboarding) 디자인 시스템 정리. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
 task_id: FIX-RECIPE-TITLES-AUTH-001
 commit_sha: 3717906
 files_changed:

@@ -46,9 +46,10 @@ export type CelebritiesStackParamList = {
   ClaimDetail: { claimId: string };
 };
 
-// ── News stack (article feed) ───────────────────────────────
+// ── News stack (article feed → detail) ──────────────────────
 export type NewsStackParamList = {
   NewsFeed: undefined;
+  NewsDetail: { id: string };
 };
 
 // ── Plan / Profile / Settings stacks (single screen each for now) ────
