@@ -7310,3 +7310,20 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 - **제약 준수**: 새 네이티브 모듈 0, raw hex 0(소스). 시각 검증은 시뮬레이터 필요 → 미완.
 ### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: News/ClaimsFeed/Settings(저위험), Login/Signup/Paywall/MealPlan/Onboarding(고위험 — 승인 후). 폰트 로딩 + 다크 토글. `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/src/ui/Button.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-NEWS-REDESIGN-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/NewsScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; ⚠️ 시각 검증 미완 — PR #160 open)
+---
+### 완료: News 화면 디자인 시스템 migration (IMPL-MOBILE-NEWS-REDESIGN-001)
+- design system rollout 3번째 화면 (feed 타입). FE 감사가 "placeholder-level"(색 사각형 썸네일)로 꼽은 최악 화면 격상.
+- **NewsScreen**: 색 사각형 썸네일 → 카테고리별 token accent 톤 타일 + 소스 monogram 이니셜(Fraunces serif). 칩 리스타일(brand/surface), `Text` 변형, Animated press. mock 데이터/카테고리 필터 로직 유지(content-service trend 연결은 후속).
+- **제약 준수**: 새 네이티브 모듈 0, raw hex 0(소스). 테스트 부재 화면이라 테스트 갱신 없음.
+- **검증**: typecheck + lint clean, 전체 189 tests PASS. 시각 검증은 시뮬레이터 필요 → 미완.
+### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: ClaimsFeed/Settings(중·저위험), auth/Paywall/MealPlan/Onboarding(고위험·승인 후). content-service trend intelligence 실연결. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/NewsScreen.tsx
