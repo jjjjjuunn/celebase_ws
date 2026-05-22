@@ -81,6 +81,28 @@ const PLAN = {
   deleted_at: null,
 };
 
+const RECIPE = {
+  id: '01927000-0000-7000-8000-000000000100', // matches PLAN meal recipe_id
+  base_diet_id: BASE_DIET_ID,
+  title: 'Greek Yogurt Power Bowl',
+  slug: 'greek-yogurt-power-bowl',
+  description: null,
+  meal_type: 'breakfast' as const,
+  prep_time_min: 5,
+  cook_time_min: 0,
+  servings: 1,
+  difficulty: null,
+  nutrition: { calories: 420, protein_g: 28, carbs_g: 38, fat_g: 16 },
+  instructions: [],
+  tips: null,
+  image_url: null,
+  video_url: null,
+  citations: [],
+  is_active: true,
+  created_at: '2026-05-13T00:00:00.000Z',
+  updated_at: '2026-05-13T00:00:00.000Z',
+};
+
 const BIO_PROFILE = {
   id: '01927000-0000-7000-8000-000000000001',
   user_id: '01927000-0000-7000-8000-000000000002',
@@ -163,6 +185,9 @@ function routeScreen(fetchSpy: jest.SpyInstance, routes: ScreenRoutes): void {
         makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
       );
     }
+    if (u.includes('/api/recipes')) {
+      return Promise.resolve(makeResponse(200, { recipes: [RECIPE] }));
+    }
     if (u.includes('/api/meal-plans')) {
       return Promise.resolve(makeResponse(200, { items: plans, next_cursor: null, has_next: false }));
     }
@@ -208,6 +233,9 @@ describe('<MealPlanScreen />', () => {
     expect(screen.getByText('14 / 15 크레딧')).toBeTruthy();
     // 캘린더: base_diet → 셀럽 로컬 조인으로 'Beyoncé' 노출 (날짜 pill + 상세 헤더 양쪽).
     expect((await screen.findAllByText('Beyoncé')).length).toBeGreaterThan(0);
+    // 식사: recipe_id → content-service 제목 로컬 조인. placeholder('Recipe #...') 아님.
+    expect(await screen.findByText('Greek Yogurt Power Bowl')).toBeTruthy();
+    expect(screen.queryByText(/^Recipe #/)).toBeNull();
   });
 
   it('잔량 0 → 업그레이드 CTA → Paywall 콜백', async () => {

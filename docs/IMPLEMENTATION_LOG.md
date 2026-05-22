@@ -48,6 +48,27 @@ verified_by: claude-opus-4-7 + advisor (pytest/ruff)
 ### 연관 파일: services/meal-plan-engine/src/repositories/meal_plan_repository.py
 
 ---
+date: 2026-05-22
+agent: claude-opus-4-7
+task_id: FIX-MOBILE-RECIPE-NAME-001
+commit_sha: 7695466
+files_changed:
+  - apps/mobile/src/services/recipes.ts
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/__tests__/services/recipes.test.ts
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+verified_by: claude-opus-4-7 + advisor (mobile typecheck/lint/jest)
+---
+### 완료: 식사 카드에 레시피 제목 표시 — recipe_id 로컬 조인 (FIX-MOBILE-RECIPE-NAME-001)
+- **배경**: MealPlanScreen 의 식사가 `narrative` 부재 시 `Recipe #<id 앞 8자>` placeholder 로 표시됨(C3b 미완성). meal 객체엔 이름이 없고 모바일이 recipe_id→제목을 해석하지 않았다. staging E2E 에서 발견.
+- **변경**:
+  - `services/recipes.ts`(신규): `getRecipesByIds(ids)` — 기존 BFF `GET /api/recipes?ids=`(batch) 호출 → `RecipeBatchResponse`. 빈 목록이면 네트워크 호출 skip. rule #10 준수(content-service 소유).
+  - `screens/MealPlanScreen.tsx`: `loadScreen` 에서 celeb 이름과 병렬로 non-failed plan 의 distinct recipe_id → `getRecipesByIds` → `recipeTitleById` 맵 해석(best-effort, 실패 시 {}). `MealCard` 우선순위: 해석된 제목 → narrative → recipe_id placeholder.
+- **검증**: mobile `tsc --noEmit` 0, `eslint --max-warnings=0` 0, jest 29 suites/177 PASS(신규 recipes 2 test + MealPlanScreen 제목 렌더/placeholder 부재 단언). 백엔드 변경 없음(BFF `/api/recipes` 라우트 + content `title` 기존 존재) — mobile reload 만으로 반영.
+### 미완료: 디바이스 E2E 확인(시뮬레이터). FEAT-MEAL-CONSECUTIVE-DATES-001(엔진 연속 날짜)은 별도 PR.
+### 연관 파일: apps/mobile/src/services/recipes.ts, apps/mobile/src/screens/MealPlanScreen.tsx
+
+---
 date: 2026-05-21
 agent: claude-opus-4-7
 task_id: FEAT-MOBILE-AUTH-FORM-001

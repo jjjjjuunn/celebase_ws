@@ -29,6 +29,7 @@ import { px, resolveToken } from '../lib/tokens';
 import { getBioProfile } from '../services/bio-profile';
 import { getBaseDiet, listCelebrities } from '../services/celebrities';
 import { getMealPlanCredits, listMyMealPlans } from '../services/meal-plans';
+import { getRecipesByIds } from '../services/recipes';
 
 interface MealPlanScreenProps {
   onNavigateOnboarding: () => void;
@@ -42,6 +43,7 @@ interface ScreenData {
   credits: schemas.MealPlanCreditsResponse | null;
   plans: schemas.MealPlanWire[];
   celebNameByBaseDiet: Record<string, string>;
+  recipeTitleById: Record<string, string>;
 }
 
 type Phase = { state: 'loading' } | { state: 'error' } | { state: 'ready'; data: ScreenData };
@@ -75,8 +77,35 @@ async function loadScreen(): Promise<ScreenData> {
     plansPromise,
   ]);
 
-  const celebNameByBaseDiet = await resolveCelebNames(plans);
-  return { bioPresent, credits, plans, celebNameByBaseDiet };
+  const [celebNameByBaseDiet, recipeTitleById] = await Promise.all([
+    resolveCelebNames(plans),
+    resolveRecipeTitles(plans),
+  ]);
+  return { bioPresent, credits, plans, celebNameByBaseDiet, recipeTitleById };
+}
+
+// recipe_id → 사람이 읽는 제목 로컬 조인 (rule #10: content-service 소유 데이터).
+// non-failed plan 의 distinct recipe_id 만 batch 조회. best-effort — 실패 시 제목 생략.
+async function resolveRecipeTitles(
+  plans: schemas.MealPlanWire[],
+): Promise<Record<string, string>> {
+  const ids = Array.from(
+    new Set(
+      plans
+        .filter((p) => p.status !== 'failed')
+        .flatMap((p) => p.daily_plans)
+        .flatMap((dp) => dp.meals)
+        .map((m) => m.recipe_id),
+    ),
+  );
+  if (ids.length === 0) return {};
+
+  const res = await getRecipesByIds(ids).catch(() => null);
+  if (res === null) return {};
+
+  const map: Record<string, string> = {};
+  for (const r of res.recipes) map[r.id] = r.title;
+  return map;
 }
 
 // base_diet_id → 셀럽 display_name 로컬 조인 (rule #10: content-service 소유 데이터).
@@ -209,7 +238,7 @@ export function MealPlanScreen({
     );
   }
 
-  const { bioPresent, credits } = phase.data;
+  const { bioPresent, credits, recipeTitleById } = phase.data;
   const remaining = remainingDays(credits);
 
   // state 1 — 미온보딩: 온보딩 CTA (무료 크레딧 리워드 프레이밍).
@@ -278,7 +307,9 @@ export function MealPlanScreen({
                 setSelectedDate(date);
               }}
             />
-            {selectedDay !== null ? <DayDetail day={selectedDay} /> : null}
+            {selectedDay !== null ? (
+              <DayDetail day={selectedDay} recipeTitleById={recipeTitleById} />
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -368,7 +399,13 @@ function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.
   );
 }
 
-function DayDetail({ day }: { day: CalendarDay }): React.JSX.Element {
+function DayDetail({
+  day,
+  recipeTitleById,
+}: {
+  day: CalendarDay;
+  recipeTitleById: Record<string, string>;
+}): React.JSX.Element {
   return (
     <View style={styles.detail}>
       <View style={styles.planHeaderCard}>
@@ -387,7 +424,11 @@ function DayDetail({ day }: { day: CalendarDay }): React.JSX.Element {
         <Text style={styles.bodyText}>No meals scheduled.</Text>
       ) : (
         day.meals.map((meal, idx) => (
-          <MealCard key={`${meal.meal_type}-${String(idx)}`} meal={meal} />
+          <MealCard
+            key={`${meal.meal_type}-${String(idx)}`}
+            meal={meal}
+            title={recipeTitleById[meal.recipe_id]}
+          />
         ))
       )}
     </View>
@@ -403,8 +444,15 @@ function MacroBox({ label, value }: { label: string; value: string }): React.JSX
   );
 }
 
-function MealCard({ meal }: { meal: DailyMeal }): React.JSX.Element {
+function MealCard({ meal, title }: { meal: DailyMeal; title?: string }): React.JSX.Element {
   const kcal = meal.adjusted_nutrition?.calories;
+  // 우선순위: 해석된 레시피 제목 → narrative(LLM 설명) → recipe_id placeholder.
+  const mealName =
+    title != null && title !== ''
+      ? title
+      : meal.narrative != null && meal.narrative !== ''
+        ? meal.narrative
+        : `Recipe #${meal.recipe_id.slice(0, 8)}`;
   return (
     <View style={styles.mealCard}>
       <View style={styles.mealHeader}>
@@ -413,11 +461,7 @@ function MealCard({ meal }: { meal: DailyMeal }): React.JSX.Element {
           <Text style={styles.mealKcal}>{String(Math.round(kcal))} kcal</Text>
         ) : null}
       </View>
-      {meal.narrative != null && meal.narrative !== '' ? (
-        <Text style={styles.mealName}>{meal.narrative}</Text>
-      ) : (
-        <Text style={styles.mealName}>Recipe #{meal.recipe_id.slice(0, 8)}</Text>
-      )}
+      <Text style={styles.mealName}>{mealName}</Text>
     </View>
   );
 }
