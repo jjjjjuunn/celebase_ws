@@ -7212,7 +7212,7 @@ verified_by: claude-opus-4-7 (staging probe — RS256/HS256 mint→/auth/refresh
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: FIX-MEAL-PLAN-DATES-001
-commit_sha: PENDING
+commit_sha: b49401e
 files_changed:
   - services/meal-plan-engine/src/engine/pipeline.py
   - services/meal-plan-engine/src/consumers/sqs_consumer.py
