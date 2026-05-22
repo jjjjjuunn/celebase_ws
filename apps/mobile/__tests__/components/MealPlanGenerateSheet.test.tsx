@@ -8,9 +8,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { MealPlanGenerateSheet } from '../../src/components/MealPlanGenerateSheet';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Sheet + CelebrityPicker consume useTheme() — wrap every render in ThemeProvider.
+function renderSheet(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const PLAN_ID = '01927000-0000-7000-8000-000000000010';
 const BASE_DIET_ID = '018d1a6a-0000-7000-8000-000000000050';
@@ -119,7 +126,7 @@ describe('<MealPlanGenerateSheet />', () => {
 
   it('maxDays=3 → 기간 pill 1·2·3 만 노출', async () => {
     routeFetch(fetchSpy, {});
-    render(<MealPlanGenerateSheet visible maxDays={3} onClose={jest.fn()} onGenerated={jest.fn()} />);
+    renderSheet(<MealPlanGenerateSheet visible maxDays={3} onClose={jest.fn()} onGenerated={jest.fn()} />);
 
     expect(await screen.findByLabelText('1일')).toBeTruthy();
     expect(screen.getByLabelText('2일')).toBeTruthy();
@@ -130,7 +137,7 @@ describe('<MealPlanGenerateSheet />', () => {
   it('happy path: 셀럽 선택 → 2일 → 생성 → poll active → onGenerated(planId)', async () => {
     routeFetch(fetchSpy, {});
     const onGenerated = jest.fn();
-    render(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={onGenerated} />);
+    renderSheet(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={onGenerated} />);
 
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('2일'));
@@ -146,7 +153,7 @@ describe('<MealPlanGenerateSheet />', () => {
       generate: { status: 429, body: { error: { code: 'PLAN_LIMIT_REACHED', message: 'no credits' } } },
     });
     const onGenerated = jest.fn();
-    render(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={onGenerated} />);
+    renderSheet(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={onGenerated} />);
 
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Generate plan'));
@@ -157,7 +164,7 @@ describe('<MealPlanGenerateSheet />', () => {
 
   it('poll 결과 failed → 환불 안내 에러', async () => {
     routeFetch(fetchSpy, { poll: { status: 200, body: planDetail('failed') } });
-    render(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={jest.fn()} />);
+    renderSheet(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={jest.fn()} />);
 
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Generate plan'));
@@ -167,7 +174,7 @@ describe('<MealPlanGenerateSheet />', () => {
 
   it('셀럽에 base_diet 없음 → 식단 데이터 없음 에러', async () => {
     routeFetch(fetchSpy, { diets: [] });
-    render(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={jest.fn()} />);
+    renderSheet(<MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={jest.fn()} />);
 
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Generate plan'));
@@ -177,7 +184,7 @@ describe('<MealPlanGenerateSheet />', () => {
 
   it('maxDays 축소 시 days clamp — effectiveMax 초과 days 유지 안 함', async () => {
     routeFetch(fetchSpy, {});
-    const { rerender } = render(
+    const { rerender } = renderSheet(
       <MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={jest.fn()} />,
     );
 
@@ -187,7 +194,9 @@ describe('<MealPlanGenerateSheet />', () => {
 
     // 잔여 크레딧이 2로 줄어든 채 시트가 열려 있는 상황 (visible 유지 → 리셋 안 됨).
     rerender(
-      <MealPlanGenerateSheet visible maxDays={2} onClose={jest.fn()} onGenerated={jest.fn()} />,
+      <ThemeProvider>
+        <MealPlanGenerateSheet visible maxDays={2} onClose={jest.fn()} onGenerated={jest.fn()} />
+      </ThemeProvider>,
     );
 
     expect(screen.queryByLabelText('5일')).toBeNull();
@@ -215,7 +224,7 @@ describe('<MealPlanGenerateSheet />', () => {
       return Promise.reject(new Error(`unmocked ${method} ${url}`));
     });
     const onGenerated = jest.fn();
-    const { rerender } = render(
+    const { rerender } = renderSheet(
       <MealPlanGenerateSheet visible maxDays={7} onClose={jest.fn()} onGenerated={onGenerated} />,
     );
 
@@ -229,12 +238,14 @@ describe('<MealPlanGenerateSheet />', () => {
 
     // 사용자가 생성 도중 시트를 닫는다 (visible=false → runId 무효화).
     rerender(
-      <MealPlanGenerateSheet
-        visible={false}
-        maxDays={7}
-        onClose={jest.fn()}
-        onGenerated={onGenerated}
-      />,
+      <ThemeProvider>
+        <MealPlanGenerateSheet
+          visible={false}
+          maxDays={7}
+          onClose={jest.fn()}
+          onGenerated={onGenerated}
+        />
+      </ThemeProvider>,
     );
 
     // 뒤늦게 서버 응답이 도착해도 stale run 이라 onGenerated 가 호출되면 안 된다.

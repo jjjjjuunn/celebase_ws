@@ -5,9 +5,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { ClaimsFeedScreen } from '../../src/screens/ClaimsFeedScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen renders ui primitives (useTheme) — wrap every render in ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const CLAIM_FIXTURE = {
   id: '01927000-0000-7000-8000-000000000001',
@@ -97,7 +104,7 @@ describe('<ClaimsFeedScreen />', () => {
       claims: makeResponse(200, { claims: [CLAIM_FIXTURE_UNLOCKED], next_cursor: null, has_next: false }),
     });
 
-    render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
+    renderScreen(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
     expect(await screen.findByText('celery juice ritual')).toBeTruthy();
   });
@@ -107,7 +114,7 @@ describe('<ClaimsFeedScreen />', () => {
       claims: makeResponse(200, { claims: [], next_cursor: null, has_next: false }),
     });
 
-    render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
+    renderScreen(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
     expect(await screen.findByText('No claims yet.')).toBeTruthy();
   });
@@ -117,7 +124,7 @@ describe('<ClaimsFeedScreen />', () => {
       claims: makeResponse(500, { error: { code: 'INTERNAL', message: 'boom' } }),
     });
 
-    render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
+    renderScreen(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
 
     expect(await screen.findByText("Couldn't load claims.")).toBeTruthy();
     expect(screen.getByText('Try again')).toBeTruthy();
@@ -131,7 +138,7 @@ describe('<ClaimsFeedScreen />', () => {
       ],
     });
 
-    render(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
+    renderScreen(<ClaimsFeedScreen onClaimPress={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     fireEvent.press(screen.getByText('Fitness'));
@@ -151,7 +158,7 @@ describe('<ClaimsFeedScreen />', () => {
     });
     const onClaimPress = jest.fn();
 
-    render(<ClaimsFeedScreen onClaimPress={onClaimPress} />);
+    renderScreen(<ClaimsFeedScreen onClaimPress={onClaimPress} />);
     await screen.findByLabelText(`claim ${CLAIM_FIXTURE_UNLOCKED.headline}`);
 
     fireEvent.press(screen.getByLabelText(`claim ${CLAIM_FIXTURE_UNLOCKED.headline}`));

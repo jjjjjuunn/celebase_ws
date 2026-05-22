@@ -61,10 +61,23 @@ export interface Theme {
     semibold: TextWeight;
     bold: TextWeight;
   };
+  /**
+   * Motion vocabulary (DESIGN.md §10). Durations in ms; easing as cubic-bezier
+   * control points — spread into RN `Easing.bezier(...theme.motion.easing.x)`.
+   * Defined now as a shared language; screens adopt it during L2 polish.
+   */
+  motion: {
+    duration: { fast: number; base: number; slow: number };
+    easing: { standard: Bezier; emphasized: Bezier };
+  };
+  /** Trust grade signal colors (A best → E lowest). Theme-invariant signal palette. */
+  trust: Record<TrustGradeKey, { bg: string; fg: string }>;
 }
 
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 export type TextWeight = '400' | '500' | '600' | '700' | '800';
+export type Bezier = readonly [number, number, number, number];
+export type TrustGradeKey = 'A' | 'B' | 'C' | 'D' | 'E';
 
 // design-tokens stores font-family as a CSS stack ("'Fraunces', 'Georgia', serif").
 // RN's fontFamily takes a single family name, so extract the first quoted family.
@@ -80,6 +93,15 @@ function num(mode: ThemeMode, name: TokenName): number {
 
 function weight(mode: ThemeMode, name: TokenName): TextWeight {
   return resolveToken(mode, name) as TextWeight;
+}
+
+// Parse a CSS cubic-bezier() into its 4 control points for RN's Easing.bezier.
+function bezier(mode: ThemeMode, name: TokenName): Bezier {
+  const nums = resolveToken(mode, name).match(/-?\d*\.?\d+/g)?.map(Number);
+  if (!nums || nums.length !== 4) {
+    throw new Error(`[theme] cannot parse cubic-bezier from token '${name}' (mode=${mode})`);
+  }
+  return [nums[0], nums[1], nums[2], nums[3]] as const;
 }
 
 function buildTheme(mode: ThemeMode): Theme {
@@ -137,6 +159,24 @@ function buildTheme(mode: ThemeMode): Theme {
       medium: weight(mode, '--cb-font-weight-medium'),
       semibold: weight(mode, '--cb-font-weight-semibold'),
       bold: weight(mode, '--cb-font-weight-bold'),
+    },
+    motion: {
+      duration: {
+        fast: num(mode, '--cb-motion-fast'),
+        base: num(mode, '--cb-motion-base'),
+        slow: num(mode, '--cb-motion-slow'),
+      },
+      easing: {
+        standard: bezier(mode, '--cb-ease-standard'),
+        emphasized: bezier(mode, '--cb-ease-emphasized'),
+      },
+    },
+    trust: {
+      A: { bg: resolveToken(mode, '--cb-color-trust-a-bg'), fg: resolveToken(mode, '--cb-color-trust-a-fg') },
+      B: { bg: resolveToken(mode, '--cb-color-trust-b-bg'), fg: resolveToken(mode, '--cb-color-trust-b-fg') },
+      C: { bg: resolveToken(mode, '--cb-color-trust-c-bg'), fg: resolveToken(mode, '--cb-color-trust-c-fg') },
+      D: { bg: resolveToken(mode, '--cb-color-trust-d-bg'), fg: resolveToken(mode, '--cb-color-trust-d-fg') },
+      E: { bg: resolveToken(mode, '--cb-color-trust-e-bg'), fg: resolveToken(mode, '--cb-color-trust-e-fg') },
     },
   };
 }

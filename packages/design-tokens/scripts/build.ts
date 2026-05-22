@@ -24,13 +24,19 @@ function parseBlock(css: string, selector: string): TokenMap {
   }
   const body = css.slice(openBrace + 1, closeBrace);
   const map: TokenMap = {};
-  for (const rawLine of body.split('\n')) {
-    const line = rawLine.replace(/\/\*.*?\*\//g, '').trim();
-    if (!line.startsWith('--')) continue;
-    const colonIdx = line.indexOf(':');
+  // Strip block comments first (multi-line safe), then split on ';' — the CSS
+  // declaration separator. Splitting on '\n' (the old approach) swallowed every
+  // declaration after the first on a multi-declaration line into the first
+  // one's value (e.g. "--cb-danger-600: X;  --cb-danger-100: Y;" lost -100 and
+  // corrupted -600). CSS values never contain a bare ';', so this is safe.
+  const withoutComments = body.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const rawDecl of withoutComments.split(';')) {
+    const decl = rawDecl.trim();
+    if (!decl.startsWith('--')) continue;
+    const colonIdx = decl.indexOf(':');
     if (colonIdx === -1) continue;
-    const name = line.slice(0, colonIdx).trim();
-    const value = line.slice(colonIdx + 1).replace(/;$/, '').trim();
+    const name = decl.slice(0, colonIdx).trim();
+    const value = decl.slice(colonIdx + 1).trim();
     if (!name || !value) continue;
     map[name] = value;
   }

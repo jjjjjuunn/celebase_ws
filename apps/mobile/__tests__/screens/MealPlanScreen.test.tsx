@@ -8,9 +8,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { MealPlanScreen } from '../../src/screens/MealPlanScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen now consumes useTheme() — every render must be inside ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const BASE_DIET_ID = '018d1a6a-0000-7000-8000-000000000050';
 const CELEB_ID = '018d1a6a-0000-7000-8000-000000000040';
@@ -213,21 +220,21 @@ describe('<MealPlanScreen />', () => {
     routeScreen(fetchSpy, { bioStatus: 404, credits: () => CREDITS_PREMIUM });
     const onNavigateOnboarding = jest.fn();
 
-    render(
+    renderScreen(
       <MealPlanScreen
         onNavigateOnboarding={onNavigateOnboarding}
         onNavigatePaywall={jest.fn()}
       />,
     );
 
-    fireEvent.press(await screen.findByLabelText('Start onboarding'));
+    fireEvent.press(await screen.findByLabelText('온보딩하고 크레딧 3개 받기'));
     expect(onNavigateOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('온보딩 완료 + 잔량>0 → credits 헤더 + 식단 만들기 + 캘린더 셀럽명', async () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN] });
 
-    render(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
 
     expect(await screen.findByLabelText('Open generate sheet')).toBeTruthy();
     expect(screen.getByText('14 / 15 크레딧')).toBeTruthy();
@@ -242,7 +249,7 @@ describe('<MealPlanScreen />', () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_FREE_EMPTY });
     const onNavigatePaywall = jest.fn();
 
-    render(
+    renderScreen(
       <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={onNavigatePaywall} />,
     );
 
@@ -253,7 +260,7 @@ describe('<MealPlanScreen />', () => {
   it('식단 만들기 → 생성 시트 오픈', async () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [] });
 
-    render(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
 
     fireEvent.press(await screen.findByLabelText('Open generate sheet'));
     // 시트의 Generate 버튼이 나타나면 시트가 열린 것.
@@ -304,7 +311,7 @@ describe('<MealPlanScreen />', () => {
       return Promise.reject(new Error(`unmocked ${u}`));
     });
 
-    render(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
 
     expect(await screen.findByText('14 / 15 크레딧')).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Open generate sheet'));
@@ -319,7 +326,7 @@ describe('<MealPlanScreen />', () => {
     let creditsState: unknown = CREDITS_FREE_EMPTY;
     routeScreen(fetchSpy, { credits: () => creditsState });
 
-    const { rerender } = render(
+    const { rerender } = renderScreen(
       <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} reloadKey={0} />,
     );
 
@@ -329,7 +336,9 @@ describe('<MealPlanScreen />', () => {
     // 사용자가 Paywall 에서 premium 구매 → 서버 잔량 갱신, focus 로 reloadKey 증가.
     creditsState = CREDITS_PREMIUM;
     rerender(
-      <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} reloadKey={1} />,
+      <ThemeProvider>
+        <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} reloadKey={1} />
+      </ThemeProvider>,
     );
 
     // 재fetch 후 stale "업그레이드" 가 아니라 "식단 만들기" 로 바뀌어야 한다.

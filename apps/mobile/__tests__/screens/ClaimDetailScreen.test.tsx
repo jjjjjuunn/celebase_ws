@@ -5,9 +5,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { ClaimDetailScreen } from '../../src/screens/ClaimDetailScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen renders ui primitives (useTheme) — wrap every render in ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const CLAIM_BASE = {
   id: '01927000-0000-7000-8000-000000000001',
@@ -69,7 +76,7 @@ describe('<ClaimDetailScreen />', () => {
       makeResponse(200, { claim: CLAIM_BASE, sources: [SOURCE_BASE] }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
 
     expect(await screen.findByText('celery juice ritual')).toBeTruthy();
     expect(screen.getByText('morning routine since 2019')).toBeTruthy();
@@ -84,7 +91,7 @@ describe('<ClaimDetailScreen />', () => {
       }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(
@@ -100,7 +107,7 @@ describe('<ClaimDetailScreen />', () => {
       }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(
@@ -113,7 +120,7 @@ describe('<ClaimDetailScreen />', () => {
       makeResponse(200, { claim: CLAIM_BASE, sources: [] }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(screen.queryByText(/educational purposes only/i)).toBeNull();
@@ -127,7 +134,7 @@ describe('<ClaimDetailScreen />', () => {
       }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(screen.getByText('Eat like this celebrity')).toBeTruthy();
@@ -139,7 +146,7 @@ describe('<ClaimDetailScreen />', () => {
       makeResponse(200, { claim: CLAIM_BASE, sources: [] }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(screen.queryByText('Eat like this celebrity')).toBeNull();
@@ -153,7 +160,7 @@ describe('<ClaimDetailScreen />', () => {
       }),
     );
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
     expect(screen.getByText('Source link unavailable')).toBeTruthy();
@@ -167,7 +174,7 @@ describe('<ClaimDetailScreen />', () => {
     );
     const onBack = jest.fn();
 
-    render(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={onBack} />);
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={onBack} />);
     await screen.findByText('celery juice ritual');
 
     fireEvent.press(screen.getByLabelText('Back'));

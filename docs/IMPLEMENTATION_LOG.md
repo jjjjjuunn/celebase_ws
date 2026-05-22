@@ -7392,3 +7392,44 @@ verified_by: claude-opus-4-7 (staging DB 실증 — recipe_id 들이 제목과 �
 - **Review tier**: L3 (인증 경계 변경 — endpoint 를 public 으로). 판정: recipes 는 공개 카탈로그라 celebrities/base-diets 와 동일 class, BFF 가 이미 public route 로 설계 → publicPaths 누락이 버그. PHI/유저데이터 노출 없음.
 ### 미완료: 배포 후 라이브 `/api/recipes?ids=` 200 + 모바일 reload 시 음식 이름 표시 확인. `record-log-sha.sh`.
 ### 연관 파일: services/content-service/src/index.ts, apps/mobile/src/services/recipes.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-DESIGN-CONSOLIDATION-001
+commit_sha: f78b902
+files_changed:
+  - packages/design-tokens/scripts/build.ts
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/ui/ThemeProvider.tsx
+  - apps/mobile/DESIGN.md
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/screens/ForgotPasswordScreen.tsx
+  - apps/mobile/src/screens/ClaimsFeedScreen.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/screens/SettingsScreen.tsx
+  - apps/mobile/src/screens/PaywallScreen.tsx
+  - apps/mobile/src/components/FormField.tsx
+  - apps/mobile/src/components/MealPlanGenerateSheet.tsx
+  - apps/mobile/src/components/CelebrityPicker.tsx
+  - apps/mobile/src/onboarding/ActivityHealthStep.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/navigation/RootNavigator.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PASS; 번들 HTTP 200; 게이트 resolveToken('light')==0 확인; ⚠️ 다크모드 실제 출시·실기 시각 QA 는 후속)
+---
+### 완료: 모바일 디자인 시스템 정돈 (단일 시스템 통합) (IMPL-MOBILE-DESIGN-CONSOLIDATION-001)
+- **배경 (FE 감사 + advisor)**: 디자인 시스템(theme.ts + ui primitives)은 production-grade 였으나 5/13 화면만 이전 → `useTheme()` 신규 시스템과 `resolveToken('light',...)` 구버전이 **두 개로 공존**. 다크모드 구조적 차단(대부분 화면이 light 토큰 모듈 로드 시점 하드와이어). 신규 화면이 기본적으로 구버전 패턴으로 지어지는 비선형 부채. → "이대로 진행 금지, 정돈 먼저" 확정.
+- **#160 머지**: 디자인 시스템 foundation + 5 redesigned 화면을 main 으로 (단일 진실 소스). 충돌 IMPLEMENTATION_LOG 1파일, 양쪽 보존.
+- **토큰 파서 근본 수정**: `build.ts` 가 `tokens.css` 를 newline 단위로 파싱 → 한 줄 다중 선언(`--cb-danger-600: X;  --cb-danger-100: Y;`)에서 두 번째 선언이 첫 값에 흡수돼 **~12 토큰**(danger-100, success/warning/info-100, 모든 tier bg/border/text) 손상. 주석 제거 후 `;`(CSS 선언 구분자)로 split 하도록 수정 → CI/로컬 빌드 전역 복구. `tokens.native.ts` 는 gitignore 된 생성물.
+- **공용 언어 (DESIGN.md)**: 토큰 표 + primitive 사용법 + "새 화면 만드는 법" 스니펫 + do/don't. 시스템을 기본 경로로 만드는 Airbnb-식 common language.
+- **토큰 vocabulary 확장**: `theme.motion`(duration ms + easing bezier 컨트롤포인트, 사용 0 — 어휘만), `theme.trust`(A~E 신호색을 first-class 토큰화 — TrustGradeBadge 가 모듈 로드 resolveToken 대신 소비).
+- **전 표면 마이그레이션 (26 파일)**: 화면 8(MealPlan·Login·Signup·Forgot·ClaimsFeed·ClaimDetail·Settings·Paywall) + 컴포넌트 10(Form*·Auth*·Social*·Password*·Trust*·Claim*·Category*·CelebrityPicker·MealPlanGenerateSheet) + 온보딩 6단계 + 네비게이터 2. presentation 만 `useTheme()` + ui primitive(Button/Card/Text/Badge/EmptyState/Avatar)로 전환, **로직·텍스트·testID·accessibilityLabel 100% 보존**. AuthCardLayout `#000` shadow → `theme.color.text`(앱 코드 마지막 raw hex 제거).
+- **다크모드 구조 해제**: `resolveToken('light')` 가 theme 빌더(theme.ts) 외 0건 → 모드 전환이 더 이상 half-dark 렌더 안 함. `FOLLOW_SYSTEM` 은 실기 다크 시각 QA 전까지 'light' 고정(실제 출시는 후속).
+- **테스트**: useTheme 소비로 화면/컴포넌트 테스트 9종을 `ThemeProvider` 래퍼로 갱신(MealPlan·Login·Signup·Claims×2·Onboarding·Settings·MealPlanGenerateSheet·CelebrityPicker). 전체 187 tests PASS 유지.
+- **게이트**: `rg "resolveToken('light'" apps/mobile/src` == 0(빌더 제외), typecheck + lint(max-warnings 0) clean, 187 tests PASS, 번들 HTTP 200.
+- **spec.md 무영향**: 순수 내부 스타일 리팩터 — 제품 동작/API/데이터 형상 변경 없음. spec.md 본문과 drift 없음(sign-off). PIVOT spec-sync 의무는 본 task 에 해당 없음(시각/구현 레이어 한정).
+- **Review tier**: L2 (단일 클라이언트, presentation 한정, 계약/PHI/스키마 무변경, 기계적 + 187 tests 회귀 가드).
+### 미완료: ⚠️ 실기 시각 확인(PR 리뷰 — 작성자 시각검증 불가). 다크모드 실제 출시(FOLLOW_SYSTEM flip + 다크 QA). 셀럽/뉴스 mock → content-service 실데이터(별개 content 시드 작업). a11y/VoiceOver 패스 + 화면별 loading/empty/error 전수 커버 + 모션 안무(L2 폴리시). `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/ui/**, apps/mobile/src/screens/**, apps/mobile/src/components/**, apps/mobile/src/onboarding/**, apps/mobile/src/navigation/**, apps/mobile/DESIGN.md, packages/design-tokens/scripts/build.ts

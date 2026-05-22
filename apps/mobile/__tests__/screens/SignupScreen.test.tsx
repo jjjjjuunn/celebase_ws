@@ -17,8 +17,15 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { SignupScreen } from '../../src/screens/SignupScreen';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen renders ui primitives (useTheme) — wrap every render in ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 // 비밀번호 정책 충족 샘플 (12자 + 대문자 + 소문자 + 숫자).
 const VALID_PASSWORD = 'Password1234';
@@ -27,7 +34,7 @@ describe('SignupScreen', () => {
   it('form step: 타이틀 + 이름/이메일/비밀번호 input + 가입 버튼을 렌더한다', () => {
     const onSuccess = jest.fn();
     const onBackToLogin = jest.fn();
-    render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
+    renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
     expect(screen.getByText('Create account')).toBeTruthy();
     expect(screen.getByText('Get started with CelebBase')).toBeTruthy();
@@ -41,7 +48,7 @@ describe('SignupScreen', () => {
   it('비밀번호 정책 미달 시 Sign up 버튼이 비활성화되어 onSuccess 미호출', () => {
     const onSuccess = jest.fn();
     const onBackToLogin = jest.fn();
-    render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
+    renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
     fireEvent.changeText(screen.getByLabelText('Display name'), 'Alice');
     fireEvent.changeText(screen.getByLabelText('Email'), 'a@b.co');
@@ -57,7 +64,7 @@ describe('SignupScreen', () => {
   it('유효 비밀번호 + invalid email 제출 시 email validation 에러, onSuccess 미호출', () => {
     const onSuccess = jest.fn();
     const onBackToLogin = jest.fn();
-    render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
+    renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
     fireEvent.changeText(screen.getByLabelText('Display name'), 'Alice');
     fireEvent.changeText(screen.getByLabelText('Email'), 'not-an-email');
@@ -71,7 +78,7 @@ describe('SignupScreen', () => {
   it('"로그인으로 돌아가기" 탭 시 onBackToLogin 호출', () => {
     const onSuccess = jest.fn();
     const onBackToLogin = jest.fn();
-    render(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
+    renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
     fireEvent.press(screen.getByLabelText('Back to sign in'));
     expect(onBackToLogin).toHaveBeenCalledTimes(1);

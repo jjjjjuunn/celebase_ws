@@ -1,11 +1,12 @@
 // Reactive theme context. Primitives read `useTheme()` and recompute styles when
-// the mode changes, so dark mode becomes a runtime switch (vs. the legacy static
-// `resolveToken('light', …)` calls scattered across un-migrated screens).
+// the mode changes, so dark mode is a runtime switch.
 //
-// Default mode is 'light' and pinned for now: most screens still resolve light
-// tokens statically, so following the device color scheme would render a
-// half-dark app. Flip `FOLLOW_SYSTEM` (or expose setMode via a Settings toggle)
-// once enough screens are migrated to primitives.
+// Dark mode is now STRUCTURALLY UNBLOCKED (IMPL-MOBILE-DESIGN-CONSOLIDATION-001):
+// every screen / component / navigator consumes useTheme() — zero static
+// `resolveToken('light', …)` outside the theme builder, so flipping the mode no
+// longer renders a half-dark app. Still pinned to 'light' pending a dark-mode
+// visual QA pass; flip `FOLLOW_SYSTEM` (or wire setMode to a Settings toggle) once
+// dark is reviewed on-device.
 
 import { createContext, useContext, useMemo, useState } from 'react';
 

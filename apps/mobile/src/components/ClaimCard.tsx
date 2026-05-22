@@ -4,12 +4,12 @@
 // 후 (fast-follow sub-task) 활성화. 현재는 claim_type + trust_grade + headline
 // + 1차 source outlet · year 만 표시 — wire schema 만으로 렌더 가능한 범위.
 
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
-import { px, resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 import { TrustGradeBadge } from './TrustGradeBadge';
 
 // ClaimType → en-US 라벨 (CategoryTabs 와 동일 매핑).
@@ -39,30 +39,34 @@ export function ClaimCard({
   onPress,
   locked = false,
 }: ClaimCardProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const body = (
     <>
       <View style={styles.headerRow}>
         <View style={styles.claimTypePill}>
-          <Text style={styles.claimTypeText}>{CLAIM_TYPE_LABEL[claim.claim_type] ?? claim.claim_type}</Text>
+          <Text variant="caption" tone="brand" style={styles.claimTypeText}>
+            {CLAIM_TYPE_LABEL[claim.claim_type] ?? claim.claim_type}
+          </Text>
         </View>
         <TrustGradeBadge grade={claim.trust_grade} />
       </View>
-      <Text
-        style={[styles.headline, locked ? styles.headlineLocked : null]}
-        numberOfLines={3}
-      >
+      <Text variant="body" tone={locked ? 'muted' : 'default'} numberOfLines={3} style={styles.headline}>
         {claim.headline}
       </Text>
       {primarySource !== undefined ? (
-        <Text style={styles.sourceMeta} numberOfLines={1}>
+        <Text variant="caption" tone="muted" numberOfLines={1}>
           {primarySource.outlet}
           {primarySource.published_date !== null ? ` · ${primarySource.published_date.slice(0, 4)}` : ''}
         </Text>
       ) : null}
       {locked ? (
         <View style={styles.lockOverlay}>
-          <Text style={styles.lockIcon}>🔒</Text>
-          <Text style={styles.lockLabel}>Premium · Tap to unlock</Text>
+          <Text variant="body">🔒</Text>
+          <Text variant="bodySm" tone="brand" style={styles.lockLabel}>
+            Premium · Tap to unlock
+          </Text>
         </View>
       ) : null}
     </>
@@ -76,9 +80,7 @@ export function ClaimCard({
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={
-        locked
-          ? `Locked premium claim ${claim.headline}. Tap to upgrade.`
-          : `claim ${claim.headline}`
+        locked ? `Locked premium claim ${claim.headline}. Tap to upgrade.` : `claim ${claim.headline}`
       }
       onPress={() => {
         onPress(claim.id);
@@ -90,63 +92,35 @@ export function ClaimCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderRadius: 12,
-    padding: px(tokens.light['--cb-space-4']),
-    marginHorizontal: px(tokens.light['--cb-space-4']),
-    marginVertical: px(tokens.light['--cb-space-2']),
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  claimTypePill: {
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-  },
-  claimTypeText: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  headline: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-    lineHeight: px(tokens.light['--cb-body-md']) + 6,
-  },
-  headlineLocked: {
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  sourceMeta: {
-    fontSize: px(tokens.light['--cb-caption']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  cardLocked: {
-    opacity: 0.85,
-  },
-  lockOverlay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: px(tokens.light['--cb-space-2']),
-    marginTop: px(tokens.light['--cb-space-2']),
-    paddingTop: px(tokens.light['--cb-space-2']),
-    borderTopWidth: 1,
-    borderTopColor: resolveToken('light', '--cb-color-border'),
-  },
-  lockIcon: {
-    fontSize: px(tokens.light['--cb-body-md']),
-  },
-  lockLabel: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-    letterSpacing: 0.3,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: theme.color.surface,
+      borderRadius: theme.radius.md,
+      padding: theme.space(4),
+      marginHorizontal: theme.space(4),
+      marginVertical: theme.space(2),
+      gap: theme.space(2),
+    },
+    headerRow: { flexDirection: 'row', alignItems: 'center', gap: theme.space(2) },
+    claimTypePill: {
+      paddingHorizontal: theme.space(3),
+      paddingVertical: 4,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.color.brandSubtle,
+    },
+    claimTypeText: { fontWeight: theme.weight.semibold },
+    headline: { fontWeight: theme.weight.semibold },
+    cardLocked: { opacity: 0.85 },
+    lockOverlay: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(2),
+      marginTop: theme.space(2),
+      paddingTop: theme.space(2),
+      borderTopWidth: 1,
+      borderTopColor: theme.color.border,
+    },
+    lockLabel: { fontWeight: theme.weight.bold, letterSpacing: 0.3 },
+  });
+}

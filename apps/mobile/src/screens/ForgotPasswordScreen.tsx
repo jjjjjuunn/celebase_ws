@@ -9,21 +9,19 @@
 // 하지 않는다 (user enumeration 회피) — generic "If an account exists, a code
 // has been sent" 로 처리하고 step 을 무조건 'confirm' 으로 전환.
 //
-// 디자인: 웹 (auth) 의 카드 + label-above-input 패턴 적용 (Login/Signup 과 동등).
+// 디자인 시스템 primitive(Button/Text) + AuthCardLayout 카드 (Login/Signup 과 동등).
 
-import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
-
-import { tokens } from '@celebbase/design-tokens';
 
 import { AuthCardLayout } from '../components/AuthCardLayout';
 import { FormErrorBox } from '../components/FormErrorBox';
 import { FormField } from '../components/FormField';
 import { PasswordRequirements } from '../components/PasswordRequirements';
 import { PasswordSchema, isPasswordValid } from '../lib/password-policy';
-import { px, resolveToken } from '../lib/tokens';
 import { confirmPasswordReset, requestPasswordReset } from '../services/auth';
+import { Button, Text, useTheme, type Theme } from '../ui';
 
 const RequestSchema = z.object({
   email: z.string().email('Please enter a valid email address.').max(255),
@@ -47,6 +45,8 @@ export function ForgotPasswordScreen({
   onSuccess,
   onBackToLogin,
 }: ForgotPasswordScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [step, setStep] = useState<Step>('request');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -109,10 +109,12 @@ export function ForgotPasswordScreen({
     return (
       <AuthCardLayout>
         <View style={styles.intro}>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text variant="h2" accessibilityRole="header" center>
             Password updated
           </Text>
-          <Text style={styles.subtitle}>Sign in with your new password.</Text>
+          <Text variant="bodySm" tone="muted" center>
+            Sign in with your new password.
+          </Text>
         </View>
       </AuthCardLayout>
     );
@@ -122,11 +124,11 @@ export function ForgotPasswordScreen({
     return (
       <AuthCardLayout>
         <View style={styles.intro}>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text variant="h2" accessibilityRole="header" center>
             Reset your password
           </Text>
-          <Text style={styles.subtitle}>
-            Enter the email associated with your account. We'll send a verification code.
+          <Text variant="bodySm" tone="muted" center>
+            Enter the email associated with your account. We&apos;ll send a verification code.
           </Text>
         </View>
 
@@ -148,33 +150,30 @@ export function ForgotPasswordScreen({
             value={email}
           />
 
-          <TouchableOpacity
-            accessibilityLabel="Send verification code"
-            testID="forgot-send-code"
-            accessibilityRole="button"
-            accessibilityState={{ disabled: submitting }}
-            disabled={submitting}
-            onPress={() => {
-              void handleRequest();
-            }}
-            style={[styles.submit, submitting && styles.submitDisabled]}
-          >
-            {submitting ? (
-              <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
-            ) : (
-              <Text style={styles.submitText}>Send code</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.submitWrap}>
+            <Button
+              label="Send code"
+              accessibilityLabel="Send verification code"
+              testID="forgot-send-code"
+              loading={submitting}
+              disabled={submitting}
+              onPress={() => {
+                void handleRequest();
+              }}
+            />
+          </View>
         </View>
 
-        <View style={styles.switchRow}>
+        <View style={styles.switchRowCenter}>
           <TouchableOpacity
             accessibilityLabel="Back to sign in"
             accessibilityRole="link"
             disabled={submitting}
             onPress={onBackToLogin}
           >
-            <Text style={styles.switchLink}>Back to sign in</Text>
+            <Text variant="bodySm" tone="brand" style={styles.linkBold}>
+              Back to sign in
+            </Text>
           </TouchableOpacity>
         </View>
       </AuthCardLayout>
@@ -186,16 +185,20 @@ export function ForgotPasswordScreen({
   return (
     <AuthCardLayout>
       <View style={styles.intro}>
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text variant="h2" accessibilityRole="header" center>
           Enter the code
         </Text>
-        <Text style={styles.subtitle}>
+        <Text variant="bodySm" tone="muted" center>
           Enter the 6-digit code sent to {email} and choose a new password.
         </Text>
       </View>
 
       <View style={styles.form}>
-        {info !== null && <Text style={styles.info}>{info}</Text>}
+        {info !== null ? (
+          <Text variant="bodySm" tone="muted" center>
+            {info}
+          </Text>
+        ) : null}
 
         <FormErrorBox message={error} />
 
@@ -230,36 +233,29 @@ export function ForgotPasswordScreen({
 
         <PasswordRequirements password={newPassword} />
 
-        <TouchableOpacity
-          accessibilityLabel="Reset password"
-          testID="forgot-confirm"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: submitting || !passwordValid }}
-          disabled={submitting || !passwordValid}
-          onPress={() => {
-            void handleConfirm();
-          }}
-          style={[
-            styles.submit,
-            (submitting || !passwordValid) && styles.submitDisabled,
-          ]}
-        >
-          {submitting ? (
-            <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
-          ) : (
-            <Text style={styles.submitText}>Reset password</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.submitWrap}>
+          <Button
+            label="Reset password"
+            testID="forgot-confirm"
+            loading={submitting}
+            disabled={submitting || !passwordValid}
+            onPress={() => {
+              void handleConfirm();
+            }}
+          />
+        </View>
       </View>
 
-      <View style={styles.switchRow}>
+      <View style={styles.switchRowCenter}>
         <TouchableOpacity
           accessibilityLabel="Back to sign in"
           accessibilityRole="link"
           disabled={submitting}
           onPress={onBackToLogin}
         >
-          <Text style={styles.switchLink}>Back to sign in</Text>
+          <Text variant="bodySm" tone="brand" style={styles.linkBold}>
+            Back to sign in
+          </Text>
         </TouchableOpacity>
       </View>
     </AuthCardLayout>
@@ -283,52 +279,12 @@ function mapErrorToMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-const styles = StyleSheet.create({
-  intro: {
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-font-size-xl']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-  },
-  form: {
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  info: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-  },
-  submit: {
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    borderRadius: px(tokens.light['--cb-radius-md']),
-    alignItems: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-  },
-  submitDisabled: {
-    opacity: 0.55,
-  },
-  submitText: {
-    color: resolveToken('light', '--cb-cta-text'),
-    fontSize: px(tokens.light['--cb-font-size-md']),
-    fontWeight: '600',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  switchLink: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    intro: { gap: theme.space(2) },
+    form: { gap: theme.space(3) },
+    submitWrap: { marginTop: theme.space(2) },
+    switchRowCenter: { flexDirection: 'row', justifyContent: 'center' },
+    linkBold: { fontWeight: theme.weight.semibold },
+  });
+}

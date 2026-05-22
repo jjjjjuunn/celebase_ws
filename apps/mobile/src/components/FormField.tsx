@@ -1,26 +1,14 @@
 // 폼 입력 필드 — Label + TextInput + focus state.
 // 웹 `EmailLoginForm.module.css` 의 `.label` + `.input` 패턴을 RN 으로 옮김.
-//
-// 디자인 정렬:
-//   - label sm size + medium weight + 본문 color, input 위에 배치
-//   - input surface bg + border + radius-md + body-md font
-//   - focus 시 border brand color (RN onFocus state 로 처리 — 웹의 :focus-visible 대응)
-//   - disabled 시 opacity 0.55
-//
+//   - label sm + medium weight, input 위에 배치
+//   - input surface bg + border + radius-md + body font
+//   - focus 시 border brand (onFocus state — 웹 :focus-visible 대응), disabled opacity 0.55
 // 다른 모든 TextInput prop 은 그대로 전달 — keyboardType / autoComplete / secureTextEntry 등.
 
-import { forwardRef, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  type TextInputProps,
-  View,
-} from 'react-native';
+import { forwardRef, useMemo, useState } from 'react';
+import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 
-import { tokens } from '@celebbase/design-tokens';
-
-import { px, resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 
 interface FormFieldProps extends Omit<TextInputProps, 'style'> {
   label: string;
@@ -34,10 +22,17 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(function FormFiel
   { label, id, hasError = false, onFocus, onBlur, editable = true, ...inputProps },
   ref,
 ) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.fieldGroup}>
-      <Text accessibilityRole="text" nativeID={id !== undefined ? `${id}-label` : undefined} style={styles.label}>
+      <Text
+        variant="bodySm"
+        accessibilityRole="text"
+        nativeID={id !== undefined ? `${id}-label` : undefined}
+        style={styles.label}
+      >
         {label}
       </Text>
       <TextInput
@@ -45,7 +40,7 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(function FormFiel
         nativeID={id}
         accessibilityLabel={label}
         editable={editable}
-        placeholderTextColor={resolveToken('light', '--cb-color-text-muted')}
+        placeholderTextColor={theme.color.textMuted}
         onFocus={(e) => {
           setFocused(true);
           onFocus?.(e);
@@ -66,36 +61,28 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(function FormFiel
   );
 });
 
-const styles = StyleSheet.create({
-  fieldGroup: {
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  label: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    fontWeight: '500',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  input: {
-    width: '100%',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    fontSize: px(tokens.light['--cb-font-size-md']),
-    color: resolveToken('light', '--cb-color-text'),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-    borderRadius: px(tokens.light['--cb-radius-md']),
-  },
-  inputFocused: {
-    borderColor: resolveToken('light', '--cb-color-brand'),
-    borderWidth: 2,
-    paddingHorizontal: px(tokens.light['--cb-space-4']) - 1,
-    paddingVertical: px(tokens.light['--cb-space-3']) - 1,
-  },
-  inputError: {
-    borderColor: resolveToken('light', '--cb-color-error'),
-  },
-  inputDisabled: {
-    opacity: 0.55,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    fieldGroup: { gap: theme.space(2) },
+    label: { fontWeight: theme.weight.medium },
+    input: {
+      width: '100%',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+      fontSize: theme.type.body,
+      color: theme.color.text,
+      backgroundColor: theme.color.surface,
+      borderWidth: 1,
+      borderColor: theme.color.border,
+      borderRadius: theme.radius.md,
+    },
+    inputFocused: {
+      borderColor: theme.color.brand,
+      borderWidth: 2,
+      paddingHorizontal: theme.space(4) - 1,
+      paddingVertical: theme.space(3) - 1,
+    },
+    inputError: { borderColor: theme.color.error },
+    inputDisabled: { opacity: 0.55 },
+  });
+}

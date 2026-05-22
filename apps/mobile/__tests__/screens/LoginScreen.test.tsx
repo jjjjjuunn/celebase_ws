@@ -15,14 +15,21 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { LoginScreen } from '../../src/screens/LoginScreen';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen renders ui primitives (useTheme) — wrap every render in ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 describe('LoginScreen', () => {
   it('타이틀 / 입력 필드 / 로그인 버튼을 렌더한다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(
+    renderScreen(
       <LoginScreen
         onSuccess={onSuccess}
         onSignupRequest={onSignupRequest}
@@ -39,7 +46,7 @@ describe('LoginScreen', () => {
   it('빈 이메일로 제출 시 validation 에러 메시지가 표시되고 onSuccess 는 호출되지 않는다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(
+    renderScreen(
       <LoginScreen
         onSuccess={onSuccess}
         onSignupRequest={onSignupRequest}
@@ -58,7 +65,7 @@ describe('LoginScreen', () => {
   it('invalid email 입력 시 validation 에러를 표시한다', () => {
     const onSuccess = jest.fn();
     const onSignupRequest = jest.fn();
-    render(
+    renderScreen(
       <LoginScreen
         onSuccess={onSuccess}
         onSignupRequest={onSignupRequest}
