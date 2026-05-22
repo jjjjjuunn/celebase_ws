@@ -7191,7 +7191,7 @@ verified_by: claude-opus-4-7 (staging live device E2E — Apple + Google signup 
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: FIX-AUTH-REFRESH-RS256-001
-commit_sha: PENDING
+commit_sha: d520569
 files_changed:
   - services/user-service/src/services/auth.service.ts
   - services/user-service/tests/integration/refresh-rotation.test.ts
