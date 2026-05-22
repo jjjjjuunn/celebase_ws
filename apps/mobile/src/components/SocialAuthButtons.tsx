@@ -8,24 +8,16 @@
 //
 // Apple is listed first per App Store HIG ("Sign in with Apple" prominence).
 // Sign-in uses the NATIVE sheet/picker (expo-apple-authentication /
-// @react-native-google-signin), not Cognito Hosted UI.
+// @react-native-google-signin), not Cognito Hosted UI. Apple/Google buttons keep
+// brand-specific colors (not the ui Button primitive) per each provider's HIG.
 
-import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-
-import { tokens } from '@celebbase/design-tokens';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ApiError } from '../lib/api-client';
 import { isAppleConfigured, isGoogleConfigured, type SocialProvider } from '../lib/social-config';
 import { signInWithSocial } from '../services/social-auth';
-import { px, resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 
 interface SocialAuthButtonsProps {
   /** Disable while the parent (email/password) flow is submitting. */
@@ -49,6 +41,8 @@ export function SocialAuthButtons({
   onSuccess,
   onError,
 }: SocialAuthButtonsProps): React.JSX.Element | null {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [pending, setPending] = useState<SocialProvider | null>(null);
 
   // Apple is iOS-only (native sheet); Google needs its client IDs. Filtering
@@ -78,7 +72,9 @@ export function SocialAuthButtons({
     <View style={styles.wrap}>
       <View style={styles.dividerRow}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>or</Text>
+        <Text variant="bodySm" tone="muted" style={styles.dividerText}>
+          or
+        </Text>
         <View style={styles.dividerLine} />
       </View>
 
@@ -102,11 +98,9 @@ export function SocialAuthButtons({
             ]}
           >
             {pending === provider ? (
-              <ActivityIndicator
-                color={resolveToken('light', isApple ? '--cb-color-bg' : '--cb-color-text')}
-              />
+              <ActivityIndicator color={isApple ? theme.color.bg : theme.color.text} />
             ) : (
-              <Text style={[styles.buttonText, isApple ? styles.appleText : styles.googleText]}>
+              <Text variant="body" tone={isApple ? 'onBrand' : 'default'} style={styles.buttonText}>
                 {LABELS[provider]}
               </Text>
             )}
@@ -143,50 +137,25 @@ function mapSocialError(err: unknown): string | null {
   return 'Social sign-in failed. Please try again.';
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    marginTop: px(tokens.light['--cb-space-4']),
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: px(tokens.light['--cb-space-3']),
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: resolveToken('light', '--cb-color-border'),
-  },
-  dividerText: {
-    marginHorizontal: px(tokens.light['--cb-space-2']),
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  button: {
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: px(tokens.light['--cb-space-2']),
-  },
-  appleButton: {
-    backgroundColor: resolveToken('light', '--cb-color-text'),
-  },
-  googleButton: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-  },
-  appleText: {
-    color: resolveToken('light', '--cb-color-bg'),
-  },
-  googleText: {
-    color: resolveToken('light', '--cb-color-text'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    wrap: { marginTop: theme.space(4) },
+    dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: theme.space(3) },
+    dividerLine: { flex: 1, height: 1, backgroundColor: theme.color.border },
+    dividerText: { marginHorizontal: theme.space(2) },
+    button: {
+      paddingVertical: theme.space(3),
+      borderRadius: theme.radius.sm,
+      alignItems: 'center',
+      marginBottom: theme.space(2),
+    },
+    appleButton: { backgroundColor: theme.color.text },
+    googleButton: {
+      backgroundColor: theme.color.surface,
+      borderWidth: 1,
+      borderColor: theme.color.border,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { fontWeight: theme.weight.semibold },
+  });
+}
