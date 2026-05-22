@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-22
 agent: claude-opus-4-7
 task_id: FIX-MOBILE-RECIPE-NAME-001
-commit_sha: PENDING
+commit_sha: 7695466
 files_changed:
   - apps/mobile/src/services/recipes.ts
   - apps/mobile/src/screens/MealPlanScreen.tsx
