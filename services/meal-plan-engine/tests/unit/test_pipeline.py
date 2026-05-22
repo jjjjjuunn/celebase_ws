@@ -6,6 +6,7 @@ BS-NEW-03 회귀 방지 — `mode`, `quota_exceeded`, `ui_hint`, `llm_provenance
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Any, Dict, List
 from unittest.mock import patch
 
@@ -169,6 +170,29 @@ async def test_daily_targets_preserve_target_values() -> None:
     assert targets["target_kcal"] == result["target_kcal"]
     for key in ("target_kcal", "protein_g", "carbs_g", "fat_g"):
         assert key in targets
+
+
+@pytest.mark.asyncio
+async def test_weekly_plan_dates_anchor_to_start_date() -> None:
+    """daily_plans dates start at the passed start_date, not the generation day
+    (FIX-MEAL-PLAN-DATES-001 — the mobile calendar reads these dates)."""
+    inputs = _baseline_inputs()
+    anchor = date.today() + timedelta(days=6)
+    inputs["start_date"] = anchor
+
+    result = await run_pipeline(**inputs)
+    week = result["weekly_plan"]
+    assert len(week) == inputs["duration_days"]
+    assert week[0]["date"] == anchor.isoformat()
+    assert week[-1]["date"] == (anchor + timedelta(days=len(week) - 1)).isoformat()
+
+
+@pytest.mark.asyncio
+async def test_weekly_plan_dates_default_to_today_without_start_date() -> None:
+    """No start_date (legacy/test path) → falls back to today's date."""
+    result = await run_pipeline(**_baseline_inputs())
+    week = result["weekly_plan"]
+    assert week[0]["date"] == date.today().isoformat()
 
 
 @pytest.mark.asyncio

@@ -7207,3 +7207,29 @@ verified_by: claude-opus-4-7 (staging probe — RS256/HS256 mint→/auth/refresh
 - **Review tier**: L3 (auth/token 경계). adversarial: helper 가 alg 분기를 강제하므로 alg-confusion 닫힘(HS256 path 는 INTERNAL_SECRET, RS256 path 는 in-process public key, 교차 불가).
 ### 미완료: post-deploy staging probe(RS256 메시지 `"Invalid refresh token"`→`"Refresh token user not found"` 전환 확인) + 모바일 재로그인 E2E(MealPlan 진입 후 로그아웃 안 됨). 배포 후 `record-log-sha.sh` 로 SHA 기록.
 ### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/tests/integration/refresh-rotation.test.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: FIX-MEAL-PLAN-DATES-001
+commit_sha: b49401e
+files_changed:
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/routes/meal_plans.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_repository.py
+  - apps/mobile/src/services/meal-plans.ts
+verified_by: claude-opus-4-7 (staging DB 실증 — 행 start_date vs daily_plans date 괴리 확인; 엔진 194 unit PASS; ruff/mobile typecheck clean; 배포 후 신규 생성 날짜 정합 + 백필 검증 예정)
+---
+### 완료: meal-plan 캘린더 날짜 오배정 + 리스트 정렬 수정 (FIX-MEAL-PLAN-DATES-001)
+- **증상 (사용자)**: 식단을 만들어도 캘린더 "5/27 이후 아무것도 안 뜸", "하루치 만들었는데 안 뜸".
+- **근본 원인 1 — pipeline 날짜 anchor**: `pipeline.py:390` 이 `daily_plans[].date` 를 `date.today()`(생성일) 기준으로 매겼다. FEAT-MEAL-CONSECUTIVE-DATES-001(#157)은 meal_plans **행**의 `start_date`/`end_date` 만 연속 배정했고, 모바일 캘린더가 읽는 `daily_plans[].date` 까지 전파되지 않았다. staging 실증: 최신 1일 plan `beb0e31e` 행 `start_date=2026-05-28` 인데 daily_plans date=`2026-05-22`(today). → 새 plan 이 오늘 날짜에 겹쳐 안 보이고, 캘린더 최대 날짜가 가장 긴 plan 범위(5/27)에서 멈춤.
+- **근본 원인 2 — list 정렬**: `list_meal_plans` 가 `ORDER BY id ASC`. meal_plans.id 는 전부 **UUIDv4(random)**(staging 31행 version-digit=4 확인) → id 정렬이 임의. 모바일 `limit=10` 첫 페이지가 failed 27개에 묻혀 completed 3개 중 1개만 포함 → 새 plan 이 애초에 리스트에 안 들어옴.
+- **수정 1**: worker(`sqs_consumer.py`)가 `plan_row.start_date` 를 `run_pipeline(start_date=...)` 로 전달 → pipeline 이 `(start_date or date.today()) + i` 로 anchor. 검증 분기 없는 단일 경로.
+- **수정 2**: `list_meal_plans` → `ORDER BY created_at DESC` + created_at cursor(`created_at < $2::timestamptz`). route `next_cursor` 도 `created_at.isoformat()`. cursor 소비처 0(BFF passthrough + 모바일 page-1) 확인 — 비파괴. 모바일 `listMyMealPlans` limit 10→30(failed 다발 robustness).
+- **테스트**: pipeline date anchor 회귀 2건(start_date anchor / None→today fallback) + list 정렬 회귀 2건(created_at DESC / cursor clause). 엔진 194 unit PASS, ruff clean, 모바일 typecheck clean.
+- **Review tier**: L2 (단일 서비스 + 모바일 1파일, 스키마/PHI 무변경).
+### 미완료: 배포 후 (a) 신규 생성 plan 의 daily_plans date == start_date 확인, (b) 기존 completed plan 백필(`daily_plans[i].date = start_date + i`, staging-only) 로 즉시 캘린더 정합, (c) `record-log-sha.sh`. 후속 backlog: meal_plans.id UUIDv4→v7 (CHORE), 05-20 failed 27건 원인.
+### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, services/meal-plan-engine/src/routes/meal_plans.py, apps/mobile/src/services/meal-plans.ts

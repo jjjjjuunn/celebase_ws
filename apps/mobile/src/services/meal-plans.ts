@@ -20,7 +20,9 @@ import { authedFetch } from '../lib/fetch-with-refresh';
  * @throws ApiError BFF 4xx/5xx
  */
 export async function listMyMealPlans(): Promise<schemas.MealPlanListResponse> {
-  const raw = await authedFetch<unknown>('/api/meal-plans?limit=10');
+  // limit=30: server returns newest-first; 30 keeps the full calendar visible even
+  // when recent failed generations would otherwise crowd out completed plans.
+  const raw = await authedFetch<unknown>('/api/meal-plans?limit=30');
   return schemas.MealPlanListResponseSchema.parse(raw);
 }
 

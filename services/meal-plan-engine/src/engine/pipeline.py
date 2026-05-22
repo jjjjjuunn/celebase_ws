@@ -155,6 +155,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     on_progress: Callable[[Dict[str, Any]], None] | Callable[[Dict[str, Any]], Any],
     redis_client: Any = None,
     llm_context: Dict[str, Any] | None = None,
+    start_date: date | None = None,
 ) -> Dict[str, Any]:
     """Generate a personalised meal-plan using the Two-Pass strategy.
 
@@ -387,7 +388,10 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
         "weekly_plan": [
             {
                 "day": i + 1,
-                "date": (date.today() + timedelta(days=i)).isoformat(),
+                # Anchor to the plan's scheduled start_date so daily_plans dates
+                # match the consecutive-date row scheduling (FEAT-MEAL-CONSECUTIVE-
+                # DATES-001) the mobile calendar reads — not the generation day.
+                "date": ((start_date or date.today()) + timedelta(days=i)).isoformat(),
                 "meals": [_serialize_slot(slot) for slot in day_slots],
                 "daily_totals": _round_totals(
                     nutrition_aggregator.aggregate_day(

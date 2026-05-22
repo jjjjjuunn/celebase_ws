@@ -126,6 +126,9 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     # Get plan preferences
     plan_row = await repo.get_meal_plan(pool, plan_id, user_id)
     preferences = (plan_row.get("preferences") or {}) if plan_row else {}
+    # Pass the scheduled start_date so the pipeline dates daily_plans to match the
+    # row's consecutive-date window (FEAT-MEAL-CONSECUTIVE-DATES-001) the calendar reads.
+    start_date = plan_row.get("start_date") if plan_row else None
 
     # Progress callback → WebSocket broadcast (IMPL-014-a)
     async def on_progress(payload: Dict[str, Any]) -> None:
@@ -150,6 +153,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         on_progress=on_progress,
         redis_client=redis_client,
         llm_context=llm_context,
+        start_date=start_date,
     )
 
     # Persist result — BS-NEW-03 final_out 가드: standard/llm 양쪽 mode 필드 모두 보존.
