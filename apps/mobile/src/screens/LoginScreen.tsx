@@ -1,23 +1,18 @@
 // 로그인 화면 — email + password 입력 + signIn 호출.
-//
-// 디자인: 웹 `apps/web/src/app/(auth)/login/page.tsx` 의 카드 + label-above-input
-// + 시각적 에러 박스 패턴 적용. AuthCardLayout 으로 중앙 카드 + 브랜드 상단.
-//
-// validation: Zod inline (RHF 의존성 추가 회피 — 2 필드 폼에 oversized).
+// 디자인 시스템 primitive(Button/Text) + AuthCardLayout 카드. validation: Zod inline
+// (RHF 의존성 추가 회피 — 2 필드 폼에 oversized).
 
-import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
-
-import { tokens } from '@celebbase/design-tokens';
 
 import { AuthCardLayout } from '../components/AuthCardLayout';
 import { FormErrorBox } from '../components/FormErrorBox';
 import { FormField } from '../components/FormField';
+import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { ApiError } from '../lib/api-client';
 import { signIn } from '../services/auth';
-import { SocialAuthButtons } from '../components/SocialAuthButtons';
-import { px, resolveToken } from '../lib/tokens';
+import { Button, Text, useTheme, type Theme } from '../ui';
 
 const LoginFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.').max(255),
@@ -38,6 +33,8 @@ export function LoginScreen({
   onSignupRequest,
   onForgotPasswordRequest,
 }: LoginScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -66,10 +63,12 @@ export function LoginScreen({
   return (
     <AuthCardLayout>
       <View style={styles.intro}>
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text variant="h2" accessibilityRole="header" center>
           Welcome back
         </Text>
-        <Text style={styles.subtitle}>Sign in to continue to CelebBase</Text>
+        <Text variant="bodySm" tone="muted" center>
+          Sign in to continue to CelebBase
+        </Text>
       </View>
 
       <View style={styles.form}>
@@ -113,32 +112,30 @@ export function LoginScreen({
           onPress={onForgotPasswordRequest}
           style={styles.forgotLink}
         >
-          <Text style={styles.forgotLinkText}>Forgot password?</Text>
+          <Text variant="bodySm" tone="brand" style={styles.linkBold}>
+            Forgot password?
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          accessibilityLabel="Sign in"
-          testID="login-submit"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: submitting }}
-          disabled={submitting}
-          onPress={() => {
-            void handleSubmit();
-          }}
-          style={[styles.submit, submitting && styles.submitDisabled]}
-        >
-          {submitting ? (
-            <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
-          ) : (
-            <Text style={styles.submitText}>Sign in</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.submitWrap}>
+          <Button
+            label="Sign in"
+            testID="login-submit"
+            loading={submitting}
+            disabled={submitting}
+            onPress={() => {
+              void handleSubmit();
+            }}
+          />
+        </View>
 
         <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
       </View>
 
       <View style={styles.switchRow}>
-        <Text style={styles.switchText}>Don't have an account? </Text>
+        <Text variant="bodySm" tone="muted">
+          Don&apos;t have an account?{' '}
+        </Text>
         <TouchableOpacity
           accessibilityLabel="Create account"
           testID="login-signup-link"
@@ -146,7 +143,9 @@ export function LoginScreen({
           disabled={submitting}
           onPress={onSignupRequest}
         >
-          <Text style={styles.switchLink}>Sign up</Text>
+          <Text variant="bodySm" tone="brand" style={styles.linkBold}>
+            Sign up
+          </Text>
         </TouchableOpacity>
       </View>
     </AuthCardLayout>
@@ -172,61 +171,13 @@ function mapErrorToMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-const styles = StyleSheet.create({
-  intro: {
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-font-size-xl']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-  },
-  form: {
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  forgotLink: {
-    alignSelf: 'flex-end',
-    paddingVertical: 2,
-  },
-  forgotLinkText: {
-    color: resolveToken('light', '--cb-color-brand'),
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    fontWeight: '600',
-  },
-  submit: {
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    borderRadius: px(tokens.light['--cb-radius-md']),
-    alignItems: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-  },
-  submitDisabled: {
-    opacity: 0.55,
-  },
-  submitText: {
-    color: resolveToken('light', '--cb-cta-text'),
-    fontSize: px(tokens.light['--cb-font-size-md']),
-    fontWeight: '600',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'baseline',
-  },
-  switchText: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  switchLink: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    intro: { gap: theme.space(2) },
+    form: { gap: theme.space(3) },
+    forgotLink: { alignSelf: 'flex-end', paddingVertical: 2 },
+    submitWrap: { marginTop: theme.space(2) },
+    switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'baseline' },
+    linkBold: { fontWeight: theme.weight.semibold },
+  });
+}

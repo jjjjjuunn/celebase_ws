@@ -5,24 +5,22 @@
 //   step 'confirm': 6자리 코드 입력 → confirmSignUpAndLogin 호출
 //                   → BFF /signup → SecureStore → onSuccess 콜백
 //
-// 디자인: 웹 `apps/web/src/app/(auth)/signup/page.tsx` 의 카드 + label 위 input
-// 패턴 적용. PasswordRequirements 가 카드 내 password input 바로 아래.
+// 디자인 시스템 primitive(Button/Text) + AuthCardLayout 카드. PasswordRequirements
+// 가 카드 내 password input 바로 아래.
 
-import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
-
-import { tokens } from '@celebbase/design-tokens';
 
 import { AuthCardLayout } from '../components/AuthCardLayout';
 import { FormErrorBox } from '../components/FormErrorBox';
 import { FormField } from '../components/FormField';
 import { PasswordRequirements } from '../components/PasswordRequirements';
+import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { ApiError } from '../lib/api-client';
 import { PasswordSchema, isPasswordValid } from '../lib/password-policy';
 import { confirmSignUpAndLogin, signUp } from '../services/auth';
-import { SocialAuthButtons } from '../components/SocialAuthButtons';
-import { px, resolveToken } from '../lib/tokens';
+import { Button, Text, useTheme, type Theme } from '../ui';
 
 const SignupFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.').max(255),
@@ -44,6 +42,8 @@ interface SignupScreenProps {
 type Step = 'form' | 'confirm';
 
 export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [step, setStep] = useState<Step>('form');
 
   const [email, setEmail] = useState('');
@@ -114,10 +114,12 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
     return (
       <AuthCardLayout>
         <View style={styles.intro}>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text variant="h2" accessibilityRole="header" center>
             Create account
           </Text>
-          <Text style={styles.subtitle}>Get started with CelebBase</Text>
+          <Text variant="bodySm" tone="muted" center>
+            Get started with CelebBase
+          </Text>
         </View>
 
         <View style={styles.form}>
@@ -164,39 +166,34 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
           <PasswordRequirements password={password} />
 
-          <TouchableOpacity
-            accessibilityLabel="Sign up"
-            testID="signup-submit"
-            accessibilityRole="button"
-            accessibilityState={{ disabled: submitting || !passwordValid }}
-            disabled={submitting || !passwordValid}
-            onPress={() => {
-              void handleSignup();
-            }}
-            style={[
-              styles.submit,
-              (submitting || !passwordValid) && styles.submitDisabled,
-            ]}
-          >
-            {submitting ? (
-              <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
-            ) : (
-              <Text style={styles.submitText}>Sign up</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.submitWrap}>
+            <Button
+              label="Sign up"
+              testID="signup-submit"
+              loading={submitting}
+              disabled={submitting || !passwordValid}
+              onPress={() => {
+                void handleSignup();
+              }}
+            />
+          </View>
 
           <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
         </View>
 
         <View style={styles.switchRow}>
-          <Text style={styles.switchText}>Already have an account? </Text>
+          <Text variant="bodySm" tone="muted">
+            Already have an account?{' '}
+          </Text>
           <TouchableOpacity
             accessibilityLabel="Back to sign in"
             accessibilityRole="link"
             disabled={submitting}
             onPress={onBackToLogin}
           >
-            <Text style={styles.switchLink}>Sign in</Text>
+            <Text variant="bodySm" tone="brand" style={styles.linkBold}>
+              Sign in
+            </Text>
           </TouchableOpacity>
         </View>
       </AuthCardLayout>
@@ -207,10 +204,12 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
   return (
     <AuthCardLayout>
       <View style={styles.intro}>
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text variant="h2" accessibilityRole="header" center>
           Verify your email
         </Text>
-        <Text style={styles.subtitle}>Enter the 6-digit code sent to {email}.</Text>
+        <Text variant="bodySm" tone="muted" center>
+          Enter the 6-digit code sent to {email}.
+        </Text>
       </View>
 
       <View style={styles.form}>
@@ -229,22 +228,17 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
           value={code}
         />
 
-        <TouchableOpacity
-          accessibilityLabel="Verify code"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: submitting }}
-          disabled={submitting}
-          onPress={() => {
-            void handleConfirm();
-          }}
-          style={[styles.submit, submitting && styles.submitDisabled]}
-        >
-          {submitting ? (
-            <ActivityIndicator color={resolveToken('light', '--cb-cta-text')} />
-          ) : (
-            <Text style={styles.submitText}>Verify</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.submitWrap}>
+          <Button
+            label="Verify"
+            accessibilityLabel="Verify code"
+            loading={submitting}
+            disabled={submitting}
+            onPress={() => {
+              void handleConfirm();
+            }}
+          />
+        </View>
       </View>
     </AuthCardLayout>
   );
@@ -273,52 +267,12 @@ function mapErrorToMessage(err: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
-const styles = StyleSheet.create({
-  intro: {
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-font-size-xl']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textAlign: 'center',
-  },
-  form: {
-    gap: px(tokens.light['--cb-space-3']),
-  },
-  submit: {
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    borderRadius: px(tokens.light['--cb-radius-md']),
-    alignItems: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-  },
-  submitDisabled: {
-    opacity: 0.55,
-  },
-  submitText: {
-    color: resolveToken('light', '--cb-cta-text'),
-    fontSize: px(tokens.light['--cb-font-size-md']),
-    fontWeight: '600',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'baseline',
-  },
-  switchText: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  switchLink: {
-    fontSize: px(tokens.light['--cb-font-size-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    intro: { gap: theme.space(2) },
+    form: { gap: theme.space(3) },
+    submitWrap: { marginTop: theme.space(2) },
+    switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'baseline' },
+    linkBold: { fontWeight: theme.weight.semibold },
+  });
+}
