@@ -6,12 +6,11 @@
 //
 // 사용자 스펙 (2026-05-14): 하단 4탭 — 좌→우 Celebrities / Meal & Routine / News / Settings.
 
-import { StyleSheet, Text } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { tokens } from '@celebbase/design-tokens';
-
-import { px, resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 import { CelebritiesNavigator } from './CelebritiesNavigator';
 import { NewsNavigator } from './NewsNavigator';
 import { PlanNavigator } from './PlanNavigator';
@@ -36,21 +35,26 @@ const TAB_LABELS = {
   SettingsTab: 'Settings',
 } as const;
 
-function tabIcon(name: keyof typeof TAB_ICONS, focused: boolean) {
-  return (
-    <Text style={[styles.icon, focused ? styles.iconFocused : null]}>
-      {TAB_ICONS[name]}
-    </Text>
-  );
+type TabStyles = ReturnType<typeof makeStyles>;
+
+function tabIcon(
+  name: keyof typeof TAB_ICONS,
+  focused: boolean,
+  styles: TabStyles,
+): React.JSX.Element {
+  return <Text style={[styles.icon, focused ? styles.iconFocused : null]}>{TAB_ICONS[name]}</Text>;
 }
 
 export function MainTabsNavigator(): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: resolveToken('light', '--cb-color-brand'),
-        tabBarInactiveTintColor: resolveToken('light', '--cb-color-text-muted'),
+        tabBarActiveTintColor: theme.color.brand,
+        tabBarInactiveTintColor: theme.color.textMuted,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.label,
       }}
@@ -60,7 +64,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={CelebritiesNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Celebrities,
-          tabBarIcon: ({ focused }) => tabIcon('Celebrities', focused),
+          tabBarIcon: ({ focused }) => tabIcon('Celebrities', focused, styles),
         }}
       />
       <Tab.Screen
@@ -68,7 +72,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={PlanNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Plan,
-          tabBarIcon: ({ focused }) => tabIcon('Plan', focused),
+          tabBarIcon: ({ focused }) => tabIcon('Plan', focused, styles),
         }}
       />
       <Tab.Screen
@@ -76,7 +80,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={NewsNavigator}
         options={{
           tabBarLabel: TAB_LABELS.News,
-          tabBarIcon: ({ focused }) => tabIcon('News', focused),
+          tabBarIcon: ({ focused }) => tabIcon('News', focused, styles),
         }}
       />
       <Tab.Screen
@@ -84,27 +88,18 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={SettingsNavigator}
         options={{
           tabBarLabel: TAB_LABELS.SettingsTab,
-          tabBarIcon: ({ focused }) => tabIcon('SettingsTab', focused),
+          tabBarIcon: ({ focused }) => tabIcon('SettingsTab', focused, styles),
         }}
       />
     </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderTopColor: resolveToken('light', '--cb-color-border'),
-  },
-  label: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '600',
-  },
-  icon: {
-    fontSize: 20,
-    opacity: 0.6,
-  },
-  iconFocused: {
-    opacity: 1,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    tabBar: { backgroundColor: theme.color.surface, borderTopColor: theme.color.border },
+    label: { fontSize: theme.type.caption, fontWeight: theme.weight.semibold },
+    icon: { fontSize: 20, opacity: 0.6 },
+    iconFocused: { opacity: 1 },
+  });
+}

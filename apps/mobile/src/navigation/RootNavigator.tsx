@@ -1,19 +1,18 @@
 // Root stack — 인증 상태에 따라 Auth | Main 토글 + Modal 화면 (Onboarding/Paywall).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { resolveToken } from '../lib/tokens';
 import { onLoginSignal, onLogoutSignal, type LogoutReason } from '../lib/auth-events';
 import { bootstrapSession } from '../services/auth-bootstrap';
-import { AuthNavigator } from './AuthNavigator';
-import { MainTabsNavigator } from './MainTabsNavigator';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
 import { PaywallScreen } from '../screens/PaywallScreen';
+import { useTheme, type Theme } from '../ui';
+import { AuthNavigator } from './AuthNavigator';
+import { MainTabsNavigator } from './MainTabsNavigator';
 import type { RootStackParamList, RootStackScreenProps } from './types';
-import { useRef } from 'react';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,7 +22,7 @@ function describeLogout(reason: LogoutReason): { title: string; message: string 
     return {
       title: 'Security alert',
       message:
-        "We detected your account being used from another location and signed you out everywhere. Please sign in again.",
+        'We detected your account being used from another location and signed you out everywhere. Please sign in again.',
     };
   }
   if (reason === 'account_deleted') {
@@ -35,9 +34,7 @@ function describeLogout(reason: LogoutReason): { title: string; message: string 
   return null;
 }
 
-function OnboardingRoute({
-  navigation,
-}: RootStackScreenProps<'Onboarding'>): React.JSX.Element {
+function OnboardingRoute({ navigation }: RootStackScreenProps<'Onboarding'>): React.JSX.Element {
   return (
     <OnboardingFlow
       onDone={() => {
@@ -50,9 +47,7 @@ function OnboardingRoute({
   );
 }
 
-function PaywallRoute({
-  navigation,
-}: RootStackScreenProps<'Paywall'>): React.JSX.Element {
+function PaywallRoute({ navigation }: RootStackScreenProps<'Paywall'>): React.JSX.Element {
   return (
     <PaywallScreen
       onClose={() => {
@@ -63,6 +58,8 @@ function PaywallRoute({
 }
 
 export function RootNavigator(): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<'loading' | 'auth' | 'main'>('loading');
   const navRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
 
@@ -100,7 +97,7 @@ export function RootNavigator(): React.JSX.Element {
   if (phase === 'loading') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={resolveToken('light', '--cb-color-brand')} />
+        <ActivityIndicator size="large" color={theme.color.brand} />
       </View>
     );
   }
@@ -113,26 +110,20 @@ export function RootNavigator(): React.JSX.Element {
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingRoute}
-          options={{ presentation: 'modal' }}
-        />
-        <Stack.Screen
-          name="Paywall"
-          component={PaywallRoute}
-          options={{ presentation: 'modal' }}
-        />
+        <Stack.Screen name="Onboarding" component={OnboardingRoute} options={{ presentation: 'modal' }} />
+        <Stack.Screen name="Paywall" component={PaywallRoute} options={{ presentation: 'modal' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.color.bg,
+    },
+  });
+}
