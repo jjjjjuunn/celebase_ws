@@ -7,31 +7,23 @@
 // 게이트(MealPlanScreen)는 잔여 크레딧 > 0 일 때만 시트를 연다. maxDays = min(7, 잔여).
 // unlimited admin override 는 maxDays=7 로 전달. 시트는 maxDays 를 [1,7] 로 방어 clamp.
 
-import { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ZodError } from 'zod';
 
-import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
-import { CelebrityPicker } from './CelebrityPicker';
 import { ApiError } from '../lib/api-client';
-import { px, resolveToken } from '../lib/tokens';
 import { getCelebrityDiets } from '../services/celebrities';
 import {
   generateMealPlan,
   MealPlanPollError,
   pollMealPlanUntilReady,
 } from '../services/meal-plans';
+import { Button, Text, useTheme, type Theme } from '../ui';
+import { CelebrityPicker } from './CelebrityPicker';
 
 interface MealPlanGenerateSheetProps {
   visible: boolean;
@@ -67,6 +59,8 @@ export function MealPlanGenerateSheet({
   onClose,
   onGenerated,
 }: MealPlanGenerateSheetProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const effectiveMax = Math.max(1, Math.min(7, maxDays));
 
   const [selected, setSelected] = useState<schemas.CelebrityWire | null>(null);
@@ -133,13 +127,17 @@ export function MealPlanGenerateSheet({
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>식단 만들기</Text>
+          <Text variant="h1">식단 만들기</Text>
           <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-            <Text style={styles.closeButton}>✕</Text>
+            <Text tone="muted" style={styles.closeButton}>
+              ✕
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionLabel}>셀럽 선택</Text>
+        <Text variant="label" tone="muted" style={styles.sectionLabel}>
+          셀럽 선택
+        </Text>
         <View style={styles.pickerArea}>
           <CelebrityPicker
             selectedSlug={selected?.slug}
@@ -150,7 +148,9 @@ export function MealPlanGenerateSheet({
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.sectionLabel}>기간</Text>
+          <Text variant="label" tone="muted">
+            기간
+          </Text>
           <View style={styles.dayRow}>
             {dayOptions.map((n) => {
               const isSel = days === n;
@@ -165,135 +165,71 @@ export function MealPlanGenerateSheet({
                   accessibilityState={{ selected: isSel }}
                   style={[styles.dayPill, isSel ? styles.dayPillSelected : styles.dayPillUnselected]}
                 >
-                  <Text style={isSel ? styles.dayPillTextSelected : styles.dayPillText}>
+                  <Text variant="body" tone={isSel ? 'brand' : 'default'} style={styles.dayPillText}>
                     {String(n)}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <Text style={styles.creditNote}>
+          <Text variant="bodySm" tone="muted">
             {String(days)}일 = {String(days)} 크레딧 사용
           </Text>
 
-          {errorMsg !== null ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
+          {errorMsg !== null ? (
+            <Text variant="bodySm" tone="error">
+              {errorMsg}
+            </Text>
+          ) : null}
 
-          <TouchableOpacity
-            onPress={() => {
-              void handleGenerate();
-            }}
-            disabled={!canSubmit}
-            accessibilityRole="button"
-            accessibilityLabel="Generate plan"
-            accessibilityState={{ disabled: !canSubmit }}
-            style={[styles.generateButton, canSubmit ? styles.generateActive : styles.generateDisabled]}
-          >
-            {submitting ? (
-              <ActivityIndicator color={resolveToken('light', '--cb-color-on-brand')} />
-            ) : (
-              <Text style={styles.generateText}>생성하기</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.generateWrap}>
+            <Button
+              label="생성하기"
+              accessibilityLabel="Generate plan"
+              loading={submitting}
+              disabled={!canSubmit}
+              onPress={() => {
+                void handleGenerate();
+              }}
+            />
+          </View>
         </View>
       </SafeAreaView>
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-display-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  closeButton: {
-    fontSize: 24,
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  sectionLabel: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-2']),
-  },
-  pickerArea: {
-    flex: 1,
-  },
-  footer: {
-    padding: px(tokens.light['--cb-space-4']),
-    borderTopWidth: 1,
-    borderTopColor: resolveToken('light', '--cb-color-border'),
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  dayRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  dayPill: {
-    minWidth: 44,
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 2,
-  },
-  dayPillSelected: {
-    borderColor: resolveToken('light', '--cb-color-brand'),
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-  },
-  dayPillUnselected: {
-    borderColor: 'transparent',
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  dayPillText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  dayPillTextSelected: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  creditNote: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  generateButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: px(tokens.light['--cb-space-2']),
-  },
-  generateActive: {
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  generateDisabled: {
-    backgroundColor: resolveToken('light', '--cb-color-neutral-100'),
-  },
-  generateText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+    },
+    closeButton: { fontSize: 24 },
+    sectionLabel: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(2) },
+    pickerArea: { flex: 1 },
+    footer: {
+      padding: theme.space(4),
+      borderTopWidth: 1,
+      borderTopColor: theme.color.border,
+      gap: theme.space(2),
+    },
+    dayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2) },
+    dayPill: {
+      minWidth: 44,
+      paddingVertical: theme.space(2),
+      paddingHorizontal: theme.space(3),
+      borderRadius: theme.radius.md,
+      alignItems: 'center',
+      borderWidth: 2,
+    },
+    dayPillSelected: { borderColor: theme.color.brand, backgroundColor: theme.color.brandSubtle },
+    dayPillUnselected: { borderColor: 'transparent', backgroundColor: theme.color.surface },
+    dayPillText: { fontWeight: theme.weight.semibold },
+    generateWrap: { marginTop: theme.space(2) },
+  });
+}

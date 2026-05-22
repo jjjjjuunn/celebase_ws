@@ -8,9 +8,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { CelebrityPicker } from '../../src/components/CelebrityPicker';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// CelebrityPicker consumes useTheme() — wrap every render in ThemeProvider.
+function renderPicker(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const CELEB = {
   id: '018d1a6a-0000-7000-8000-000000000040',
@@ -54,7 +61,7 @@ describe('<CelebrityPicker />', () => {
       makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
     );
 
-    render(<CelebrityPicker onSelect={jest.fn()} />);
+    renderPicker(<CelebrityPicker onSelect={jest.fn()} />);
 
     expect(await screen.findByLabelText('Select Beyoncé')).toBeTruthy();
   });
@@ -65,7 +72,7 @@ describe('<CelebrityPicker />', () => {
     );
     const onSelect = jest.fn();
 
-    render(<CelebrityPicker onSelect={onSelect} />);
+    renderPicker(<CelebrityPicker onSelect={onSelect} />);
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
 
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ slug: 'beyonce' }));
@@ -76,7 +83,7 @@ describe('<CelebrityPicker />', () => {
       makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
     );
 
-    render(<CelebrityPicker selectedSlug="beyonce" onSelect={jest.fn()} />);
+    renderPicker(<CelebrityPicker selectedSlug="beyonce" onSelect={jest.fn()} />);
 
     expect(await screen.findByLabelText('Select Beyoncé')).toBeSelected();
   });
@@ -86,7 +93,7 @@ describe('<CelebrityPicker />', () => {
       makeResponse(500, { error: { code: 'INTERNAL', message: 'boom' } }),
     );
 
-    render(<CelebrityPicker onSelect={jest.fn()} />);
+    renderPicker(<CelebrityPicker onSelect={jest.fn()} />);
 
     expect(await screen.findByText("Couldn't load celebrities.")).toBeTruthy();
   });
