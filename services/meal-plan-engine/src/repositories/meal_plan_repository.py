@@ -37,7 +37,35 @@ async def create_meal_plan(
     Accepts either a Pool or a Connection (for use within transactions).
     """
 
-    start_date = datetime.now(timezone.utc).date()
+    # Consecutive-date assignment (celebrity-hopping): a new plan begins the day
+    # after the user's latest scheduled plan ends, so each generation's credits
+    # map 1:1 to NEW calendar days instead of piling onto the same date window
+    # (FEAT-MEAL-CONSECUTIVE-DATES-001). Never schedules in the past — clamps to
+    # today so a stale past plan doesn't backdate the new one.
+    #
+    # The filter intentionally differs from credit accounting: dates are calendar
+    # slots, so a soft-deleted plan FREES its days (deleted_at IS NULL here),
+    # whereas credit sums ignore deleted_at (delete = no refund of compute cost).
+    #
+    # Race-safety: when called from check_quota_atomic's limited path this runs
+    # inside that user's pg_advisory_xact_lock, so the read-max-then-insert is
+    # serialised. The unlimited admin-override path holds no lock — two concurrent
+    # overrides could read the same MAX and start on the same date; admin-only and
+    # rare, so accepted.
+    today = datetime.now(timezone.utc).date()
+    latest_end = await pool_or_conn.fetchval(
+        """
+        SELECT MAX(end_date)
+        FROM meal_plans
+        WHERE user_id = $1
+          AND deleted_at IS NULL
+          AND status <> 'failed'
+        """,
+        user_id,
+    )
+    start_date = (
+        max(today, latest_end + timedelta(days=1)) if latest_end is not None else today
+    )
     end_date = start_date + timedelta(days=duration_days - 1)
 
     row = await pool_or_conn.fetchrow(
