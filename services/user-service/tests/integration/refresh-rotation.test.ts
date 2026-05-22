@@ -210,6 +210,48 @@ describe('POST /auth/refresh — Phase C rotation', () => {
     expect(typeof rotatedLog?.new_jti_hash).toBe('string');
   });
 
+  it('RS256 refresh token — dual-verify 로 rotation 성공 (FIX-AUTH-REFRESH-RS256-001 회귀 차단)', async () => {
+    // staging signs internal tokens RS256 when INTERNAL_JWT_PRIVATE_KEY is set.
+    // performRotation must dual-verify, not HS256-only — otherwise every mobile
+    // refresh fails MALFORMED → forced logout. Sign with this process's own
+    // ephemeral signing key so the in-process public key verifies it.
+    const { getInternalSigningKey } = await import(
+      '../../src/lib/internal-signing-key.js'
+    );
+    const { privateKey, kid } = await getInternalSigningKey();
+    const rt = await new SignJWT({
+      sub: 'user-rs256',
+      email: 'test@example.com',
+      cognito_sub: 'dev-sub',
+      token_use: 'refresh',
+    })
+      .setProtectedHeader({ alg: 'RS256', kid })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .setIssuer('celebbase-user-service')
+      .setJti('jti-rs256')
+      .sign(privateKey);
+    mockRevokeForRotation.mockResolvedValue(true);
+
+    app = await buildApp(captured);
+    await app.ready();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/refresh',
+      headers: { 'content-type': 'application/json' },
+      payload: { refresh_token: rt },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body) as {
+      access_token: string;
+      refresh_token: string;
+    };
+    expect(typeof body.access_token).toBe('string');
+    expect(typeof body.refresh_token).toBe('string');
+  });
+
   it('parallel refresh race — 동일 token 두 번 요청, 두 번째는 401', async () => {
     const { token: rt } = await makeRefreshToken('user-race');
     mockRevokeForRotation

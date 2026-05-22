@@ -7186,3 +7186,24 @@ verified_by: claude-opus-4-7 (staging live device E2E — Apple + Google signup 
 - **테스트 계정 정리**: 옛 federated/SRP 충돌 행 3개 + 검증용 native 행 2개 DB hard-delete (child FK 7개 테이블 → users, 단일 tx, `qownsdnjs@gmail.com` 1개 유지).
 ### 미완료 (운영/후속, 본 task 범위 밖): 프로덕션 Cognito/Google/Apple 자격증명 + EAS prod build; `CHORE-COGNITO-IDP-DEPRECATE-001` (vestigial Cognito Hosted-UI IdP + mobile client OAuth flow 제거 — ⚠️ 그 과정에서 "Cognito" Google web client 는 네이티브 Google 의 idToken aud 로 쓰이므로 **삭제 금지**); 계정 link 기능 (PreSignUp / verified-email auto-link, 409 UX 대체); staging env 영속화 `CHORE-STAGING-ENV-MANAGEMENT-001` (`/app/.env.staging` EC2-local → SSM).
 ### 연관 파일: docs/runbooks/SOCIAL-LOGIN-SETUP.md, docs/IMPLEMENTATION_LOG.md
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: FIX-AUTH-REFRESH-RS256-001
+commit_sha: d520569
+files_changed:
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/integration/refresh-rotation.test.ts
+verified_by: claude-opus-4-7 (staging probe — RS256/HS256 mint→/auth/refresh; 185 user-service tests PASS; mobile re-login E2E post-deploy)
+---
+### 완료: /auth/refresh RS256 dual-verify 누락 수정 — 모바일 강제 로그아웃 해소 (FIX-AUTH-REFRESH-RS256-001)
+- **증상**: 모바일에서 MealPlan 진입 시 계속 로그인 풀림. access token(15m TTL) 만료 후 `/auth/refresh` 시도가 항상 `MALFORMED` 로 실패 → `signalLogout`.
+- **근본 원인**: `performRotation`(`/auth/refresh` 핸들러)이 **HS256 만 검증**(auth.service.ts:427)했으나, `issueInternalTokens` 는 `INTERNAL_JWT_PRIVATE_KEY` 설정 시 **RS256 으로 서명**(line 122-125, CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2b). staging 은 키 설정됨(`PRIVATE_KEY_SET=yes`) → 모든 RS256 refresh token 이 signature 검증 실패 → MALFORMED. RS256 cutover 시 `verifyInternalRefresh`(/auth/logout)만 dual-verify 로 갱신되고 `performRotation` 은 누락됨.
+- **실증 (staging probe)**: 컨테이너 env 키로 RS256·HS256 refresh token mint 후 `/auth/refresh` 호출 — fix 전: RS256 → `"Invalid refresh token"`(line 437 sig fail), HS256 → `"Refresh token user not found"`(line 472, sig pass 후 user lookup). 두 메시지 차이가 HS256-only verifier 를 증명.
+- **수정**: header `alg` 분기 dual-verify 를 단일 헬퍼 `verifyRefreshJwt` 로 추출 → `verifyInternalRefresh` + `performRotation` 둘 다 동일 경로 경유. 검증 분기 divergence(이 버그의 클래스) 재발 차단. jose 에러는 propagate 해 caller 가 `JWTExpired`→`REFRESH_EXPIRED_OR_MISSING` 분기 보존.
+- **테스트**: refresh-rotation.test.ts 에 RS256 회귀 테스트 1건 추가(in-process ephemeral key 로 서명 → 200 rotation). user-service 전체 185 tests PASS, typecheck/lint clean.
+- **다른 서비스 무변경**: BFF `session.ts`·`service-core/jwt.ts` 의 access-token verifier 는 이미 dual-verify(grep 확인). `commerce/user internal-jwt.ts` HS256-only 는 별도 service-to-service `/internal/*` 토큰 시스템(`celebbase-internal` issuer)으로 RS256 cutover 무관.
+- **Review tier**: L3 (auth/token 경계). adversarial: helper 가 alg 분기를 강제하므로 alg-confusion 닫힘(HS256 path 는 INTERNAL_SECRET, RS256 path 는 in-process public key, 교차 불가).
+### 미완료: post-deploy staging probe(RS256 메시지 `"Invalid refresh token"`→`"Refresh token user not found"` 전환 확인) + 모바일 재로그인 E2E(MealPlan 진입 후 로그아웃 안 됨). 배포 후 `record-log-sha.sh` 로 SHA 기록.
+### 연관 파일: services/user-service/src/services/auth.service.ts, services/user-service/tests/integration/refresh-rotation.test.ts

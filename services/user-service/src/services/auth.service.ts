@@ -133,30 +133,41 @@ export async function issueInternalTokens(
   return { access_token: accessToken, refresh_token: refreshToken };
 }
 
+/**
+ * Verify a refresh JWT's signature + issuer, dispatching on the header `alg`:
+ * RS256 against this service's own public key (CHORE-AUTH-ASYMMETRIC-SIGNING-001),
+ * HS256 against the shared secret. jose errors (incl. JWTExpired) propagate so
+ * callers can branch on the failure mode. Single verification path — both
+ * verifyInternalRefresh (/auth/logout) and performRotation (/auth/refresh) route
+ * through it so the dual-verify dispatch can never diverge again.
+ * (FIX-AUTH-REFRESH-RS256-001: performRotation previously verified HS256 only,
+ * rejecting every RS256 refresh token as MALFORMED → forced mobile logout.)
+ */
+async function verifyRefreshJwt(refreshToken: string): Promise<JWTPayload> {
+  const { alg } = decodeProtectedHeader(refreshToken);
+  if (alg === 'RS256') {
+    const { publicJwk } = await getInternalSigningKey();
+    const publicKey = await importJWK(publicJwk, 'RS256');
+    const { payload } = await jwtVerify(refreshToken, publicKey, {
+      algorithms: ['RS256'],
+      issuer: INTERNAL_ISSUER,
+      clockTolerance: 2,
+    });
+    return payload;
+  }
+  const { payload } = await jwtVerify(refreshToken, INTERNAL_SECRET, {
+    algorithms: ['HS256'],
+    issuer: INTERNAL_ISSUER,
+    clockTolerance: 2,
+  });
+  return payload;
+}
+
 export async function verifyInternalRefresh(
   refreshToken: string,
 ): Promise<AuthTokenSubject & { jti: string }> {
   try {
-    // Dual-verify (CHORE-AUTH-ASYMMETRIC-SIGNING-001 Phase 2a): RS256 refresh
-    // tokens verify against this service's own public key; HS256 against the
-    // shared secret. Header alg dispatches — different key per alg, no confusion.
-    const { alg } = decodeProtectedHeader(refreshToken);
-    let payload: JWTPayload;
-    if (alg === 'RS256') {
-      const { publicJwk } = await getInternalSigningKey();
-      const publicKey = await importJWK(publicJwk, 'RS256');
-      ({ payload } = await jwtVerify(refreshToken, publicKey, {
-        algorithms: ['RS256'],
-        issuer: INTERNAL_ISSUER,
-        clockTolerance: 2,
-      }));
-    } else {
-      ({ payload } = await jwtVerify(refreshToken, INTERNAL_SECRET, {
-        algorithms: ['HS256'],
-        issuer: INTERNAL_ISSUER,
-        clockTolerance: 2,
-      }));
-    }
+    const payload = await verifyRefreshJwt(refreshToken);
     if (payload['token_use'] !== 'refresh') {
       throw new UnauthorizedError('Invalid token: expected refresh token');
     }
@@ -422,14 +433,9 @@ export async function performRotation(
   //    Plan v5 §59: distinguish JWT-expired (REFRESH_EXPIRED_OR_MISSING) from
   //    every other verify failure (MALFORMED) so the mobile state machine can
   //    branch — Cognito silent re-issue vs forced logout.
-  let jwtPayload: Awaited<ReturnType<typeof jwtVerify>>['payload'];
+  let jwtPayload: JWTPayload;
   try {
-    const result = await jwtVerify(refreshJwt, INTERNAL_SECRET, {
-      algorithms: ['HS256'],
-      issuer: INTERNAL_ISSUER,
-      clockTolerance: 2,
-    });
-    jwtPayload = result.payload;
+    jwtPayload = await verifyRefreshJwt(refreshJwt);
   } catch (err) {
     if (err instanceof joseErrors.JWTExpired) {
       throw new RefreshExpiredOrMissingError('Refresh token expired');
