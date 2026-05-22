@@ -197,7 +197,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         {phase.state === 'success' ? (
           <View style={styles.successCard}>
             <Text style={styles.successEmoji}>🎉</Text>
-            <Text variant="h2" tone="brand" center style={styles.successTitle}>
+            <Text variant="h1" tone="brand" center style={styles.successTitle}>
               You&apos;re now {phase.result.tier}!
             </Text>
             <Text variant="body" center>
