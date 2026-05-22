@@ -7332,7 +7332,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-REDESIGN-FIXES-001
-commit_sha: PENDING
+commit_sha: 8fd5dbf
 files_changed:
   - apps/mobile/App.tsx
   - apps/mobile/package.json
