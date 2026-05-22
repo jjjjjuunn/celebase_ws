@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-22
 agent: claude-opus-4-7
 task_id: FEAT-MEAL-CONSECUTIVE-DATES-001
-commit_sha: PENDING
+commit_sha: b553694
 files_changed:
   - services/meal-plan-engine/src/repositories/meal_plan_repository.py
   - services/meal-plan-engine/tests/unit/test_meal_plan_repository.py
