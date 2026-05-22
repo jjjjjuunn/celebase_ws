@@ -7372,3 +7372,23 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint + 187 tests PASS; 사용�
 - **Review tier**: L2 (단일 화면, mock 데이터 표시 레이아웃, 계약/PHI 무변경).
 ### 미완료: ⚠️ 실기 시각 확인(PR #160 reload). 후속: rail "See all" → 필터 그리드, 셀럽 실데이터(content claims/profile) 배선, 나머지 화면(Settings/auth/Paywall/Onboarding) 디자인 시스템 정리. `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: FIX-RECIPE-TITLES-AUTH-001
+commit_sha: 3717906
+files_changed:
+  - services/content-service/src/index.ts
+  - apps/mobile/src/services/recipes.ts
+verified_by: claude-opus-4-7 (staging DB 실증 — recipe_id 들이 제목과 함께 존재; 라이브 BFF /api/recipes 401 재현; content typecheck+89 tests, mobile typecheck/lint/9 tests PASS; 배포 후 라이브 검증 예정)
+---
+### 완료: meal card "Recipe #id" → 제목 미표시 근본 수정 (FIX-RECIPE-TITLES-AUTH-001)
+- **증상 (사용자)**: MealPlan 식사가 음식 이름 대신 "Recipe #43c6fea8" 로만 표시 (FIX-MOBILE-RECIPE-NAME-001 이후 재발).
+- **근본 원인**: content-service `registerJwtAuth` publicPaths 에 `/celebrities`·`/base-diets` 는 있으나 **`/recipes` 누락**. `/recipes?ids=` 는 인증 필요인데 BFF `/api/recipes` 는 `createPublicRoute`(세션 없음 → 내부 토큰 발급 불가) → content-service **401** → 모바일 `getRecipesByIds` throw → 빈 맵 → fallback "Recipe #id". 라이브 재현: `GET https://staging.celebase.app/api/recipes?ids=...` → 401 `UNAUTHORIZED`. 데이터 자체는 정상(recipe_id 들이 제목과 함께 존재, 총 180 recipes).
+- **수정 1 (블로커)**: content-service publicPaths 에 exact `'/recipes'` 추가. recipes 는 공개 카탈로그(celebrities/base-diets 와 동급, api-conventions.md 가 `/recipes` 를 동일 `items` list 로 명시) — PHI/유저데이터 없음. `/recipes/:id/personalized`(user-specific)는 exact match 라 영향 없음(protected 유지). `isPublicPath` 가 query 를 strip(`url.split('?')[0]`)하므로 `/recipes?ids=` → `/recipes` exact 매칭.
+- **수정 2 (robustness)**: 모바일 `getRecipesByIds` 가 `MAX_BATCH_IDS=32` cap 을 넘으면 400 → 전체 제목 실패. ids 를 ≤30 청크로 분할 + 병렬 조회 + merge. (현재 유저 28 ids 라 당장은 cap 미도달이나 plan 누적 시 초과 — 선제 방어.)
+- **검증**: content-service typecheck + 89 tests PASS, mobile typecheck/lint + recipes/meal-plans 9 tests PASS. 배포(CD content-service) 후 라이브 200 + 제목 표시 확인 예정.
+- **Review tier**: L3 (인증 경계 변경 — endpoint 를 public 으로). 판정: recipes 는 공개 카탈로그라 celebrities/base-diets 와 동일 class, BFF 가 이미 public route 로 설계 → publicPaths 누락이 버그. PHI/유저데이터 노출 없음.
+### 미완료: 배포 후 라이브 `/api/recipes?ids=` 200 + 모바일 reload 시 음식 이름 표시 확인. `record-log-sha.sh`.
+### 연관 파일: services/content-service/src/index.ts, apps/mobile/src/services/recipes.ts

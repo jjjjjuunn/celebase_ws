@@ -28,7 +28,11 @@ const start = async (): Promise<void> => {
   // 누락 → JWKS/internal 모드 (staging) 에서 meal-plan 생성이 base-diets 401 로 실패.
   registerJwtAuth(app, {
     mode: 'internal',
-    publicPaths: ['/admin/*', '/celebrities', '/celebrities/*', '/base-diets', '/base-diets/*'],
+    // `/recipes` (batch by id, public catalog) joins celebrities/base-diets as
+    // unauthenticated catalog reads — the BFF /api/recipes is a public route and
+    // can't mint an internal token, so content-service must not require auth here.
+    // Exact match only: `/recipes/:id/personalized` stays protected (user-specific).
+    publicPaths: ['/admin/*', '/celebrities', '/celebrities/*', '/base-diets', '/base-diets/*', '/recipes'],
   });
   registerAdminAuth(app);
 
