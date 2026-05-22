@@ -7353,3 +7353,22 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PA
 - **검증**: typecheck + lint clean, 전체 187 tests PASS(셀럽 상세 테스트를 mock 경로 4건으로 재작성, expo-font jest mock 추가). raw hex 0.
 ### 미완료: ⚠️ **실기 Metro 재시작 필요**(`pnpm install` 후 Metro restart — 새 폰트 JS 패키지 픽업). 폰트 native(expo-font 14.x)는 이미 autolink 라 재빌드 불필요 예상 — 만약 재시작 후에도 serif 안 보이면 `npx expo run:ios` 1회. 후속: 셀럽/News 실 데이터(claims·trend) 배선, 카드 form 더 과감한 재디자인(사용자 방향 확인 후). `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/screens/NewsDetailScreen.tsx, apps/mobile/src/lib/news-mock.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-CELEB-HERO-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint + 187 tests PASS; 사용자가 잡지형 vs 히어로형 비교 후 히어로형 선택; 실기 시각 확인은 PR #160)
+---
+### 완료: Celebrities 화면 히어로형(Spotify식) 재디자인 (IMPL-MOBILE-CELEB-HERO-001)
+- **방향 선택 (사용자, ASCII mockup 비교)**: 잡지형(editorial) vs 히어로형(Spotify/Netflix) 중 **히어로형** 선택 — 셀럽 발견·몰입 + 트렌디.
+- **레이아웃**: 3열 그리드(IMPL-MOBILE-CELEB-REDESIGN-001) → **전면 히어로 1개**(featured = Women[0], 360h, 큰 Fraunces serif monogram + 하단 scrim + 이름/해시태그 오버레이) + **카테고리별 가로 rail**(Women/Men, 가로 스와이프 FlatList, 140w monogram 카드). 탭 → CelebrityDetail (기존 동작 유지).
+- **scrim 가독성**: 하단 scrim = `theme.color.text` opacity 0.32 + onBrand 텍스트 (raw hex 0, 토큰만). 그라디언트 라이브러리 무의존.
+- **드롭**: gender 토글 칩(→ 2 rail 로 대체), personalize 체크박스(local-only 미영속 — 히어로 레이아웃에 부적합, 후속 detail 화면 save 로 재도입 가능).
+- **검증**: typecheck + lint clean, 전체 187 tests PASS. 실기 시각 확인은 PR #160 (사용자).
+- **Review tier**: L2 (단일 화면, mock 데이터 표시 레이아웃, 계약/PHI 무변경).
+### 미완료: ⚠️ 실기 시각 확인(PR #160 reload). 후속: rail "See all" → 필터 그리드, 셀럽 실데이터(content claims/profile) 배선, 나머지 화면(Settings/auth/Paywall/Onboarding) 디자인 시스템 정리. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
