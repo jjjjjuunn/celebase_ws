@@ -70,3 +70,32 @@ class TestCreateMealPlanDates:
         sql = conn.fetchval.call_args.args[0]
         assert "deleted_at IS NULL" in sql
         assert "status <> 'failed'" in sql
+
+
+class TestListMealPlansOrdering:
+    """list_meal_plans is newest-first by created_at (FIX-MEAL-PLAN-DATES-001).
+
+    meal_plans ids are random UUIDv4, so the prior ``ORDER BY id ASC`` returned an
+    arbitrary page that buried recent completed plans under older failed ones.
+    """
+
+    @pytest.mark.asyncio
+    async def test_no_cursor_orders_by_created_at_desc(self) -> None:
+        pool = AsyncMock()
+        pool.fetch = AsyncMock(return_value=[])
+        await repo.list_meal_plans(pool, "user-1", None, 20)
+        sql = pool.fetch.call_args.args[0]
+        assert "ORDER BY created_at DESC" in sql
+        assert "id ASC" not in sql
+        assert "deleted_at IS NULL" in sql
+
+    @pytest.mark.asyncio
+    async def test_cursor_filters_on_created_at(self) -> None:
+        pool = AsyncMock()
+        pool.fetch = AsyncMock(return_value=[])
+        cursor = "2026-05-22T00:00:00+00:00"
+        await repo.list_meal_plans(pool, "user-1", cursor, 20)
+        sql = pool.fetch.call_args.args[0]
+        assert "created_at < $2::timestamptz" in sql
+        assert "ORDER BY created_at DESC" in sql
+        assert pool.fetch.call_args.args[2] == cursor

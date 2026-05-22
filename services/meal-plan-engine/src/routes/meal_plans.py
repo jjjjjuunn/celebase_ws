@@ -366,7 +366,8 @@ async def list_meal_plans(
 
     has_next = len(rows) > limit
     items = rows[:limit]
-    next_cursor = str(items[-1]["id"]) if has_next else None
+    # Cursor is the last row's created_at (list is ordered created_at DESC).
+    next_cursor = items[-1]["created_at"].isoformat() if has_next else None
 
     return {"items": items, "has_next": has_next, "next_cursor": next_cursor}
 

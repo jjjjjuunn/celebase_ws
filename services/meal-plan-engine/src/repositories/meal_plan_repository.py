@@ -185,8 +185,12 @@ async def list_meal_plans(
     cursor: Optional[str],
     limit: int,
 ) -> List[Dict[str, Any]]:
-    """Return meal plans with cursor-based pagination.
+    """Return meal plans newest-first with cursor-based pagination.
 
+    Ordered by ``created_at DESC`` (not ``id``): meal_plans ids are random
+    UUIDv4, so id ordering is arbitrary — the calendar needs the most recent
+    plans (which cover today→future under consecutive-date scheduling) on the
+    first page. The cursor is the last row's ``created_at`` ISO timestamp.
     Fetches ``limit + 1`` rows so the caller can derive ``has_next``.
     """
 
@@ -194,8 +198,8 @@ async def list_meal_plans(
         rows = await pool.fetch(
             """
             SELECT * FROM meal_plans
-            WHERE user_id = $1 AND id > $2 AND deleted_at IS NULL
-            ORDER BY id ASC
+            WHERE user_id = $1 AND created_at < $2::timestamptz AND deleted_at IS NULL
+            ORDER BY created_at DESC
             LIMIT $3
             """,
             user_id,
@@ -207,7 +211,7 @@ async def list_meal_plans(
             """
             SELECT * FROM meal_plans
             WHERE user_id = $1 AND deleted_at IS NULL
-            ORDER BY id ASC
+            ORDER BY created_at DESC
             LIMIT $2
             """,
             user_id,
