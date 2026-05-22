@@ -62,9 +62,6 @@ function CelebrityDetailRoute({
       onBack={() => {
         navigation.goBack();
       }}
-      onClaimPress={(claimId) => {
-        navigation.navigate('ClaimDetail', { claimId });
-      }}
     />
   );
 }

@@ -59,3 +59,11 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaFrame: () => ({ x: 0, y: 0, width: 0, height: 0 }),
   };
 });
+
+// expo-font — App.tsx loads Fraunces / Plus Jakarta Sans at startup. jest 환경엔
+// native 폰트 모듈이 없으므로 loadAsync 를 no-op resolve 로 stub (App 은 결과와
+// 무관하게 system-font fallback 으로 렌더 — 폰트 로딩은 비차단).
+jest.mock('expo-font', () => ({
+  loadAsync: jest.fn().mockResolvedValue(undefined),
+  isLoaded: jest.fn(() => true),
+}));

@@ -5,7 +5,11 @@
 
 import 'react-native-gesture-handler'; // RN gesture handler 는 모든 navigation import 이전 1회 필요.
 
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import * as Font from 'expo-font';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
+import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureCognito } from './src/lib/cognito';
@@ -21,6 +25,25 @@ configureCognito();
 configureRevenueCat();
 
 export default function App(): React.JSX.Element {
+  // Non-blocking font load: register design-token font families (Fraunces serif
+  // display, Plus Jakarta Sans body) under their bare names so theme styles
+  // (fontFamily: 'Fraunces' / 'Plus Jakarta Sans') resolve once loaded. We render
+  // immediately with the system-font fallback and swap in on success — if the
+  // native module is unavailable the catch keeps the app on system fonts (no crash).
+  const [, setFontsReady] = useState(false);
+  useEffect(() => {
+    Font.loadAsync({
+      Fraunces: Fraunces_600SemiBold,
+      'Plus Jakarta Sans': PlusJakartaSans_500Medium,
+    })
+      .then(() => {
+        setFontsReady(true);
+      })
+      .catch(() => {
+        // Keep system-font fallback — never block the UI on font loading.
+      });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>

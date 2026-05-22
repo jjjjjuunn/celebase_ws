@@ -4,47 +4,36 @@
 //   3.   뉴스는 4번 사진 참고.
 //   3-1. 카테고리는 Beauty / Diet / Wellness & Fitness.
 //
-// 현재는 mock 아티클 — content-service 의 trend intelligence (spec.md) 연결 시 교체.
-// content.md "자동 게시 금지: 편집팀 수동 승인 후에만 노출" — 실 연결 시 published 만.
-// ui/ primitive 레이어로 재작성 (design system rollout).
+// mock 아티클(src/lib/news-mock.ts) — 카드 탭 시 NewsDetail 로 이동. content-service
+// trend intelligence 연결 시 교체. ui/ primitive 레이어 사용.
 
 import { useMemo, useRef, useState } from 'react';
 import { Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  getNewsArticlesByCategory,
+  NEWS_CATEGORIES,
+  type NewsArticle,
+  type NewsCategory,
+} from '../lib/news-mock';
 import { monogramInitials, Text, useTheme, type Theme } from '../ui';
 
-type NewsCategory = 'beauty' | 'diet' | 'wellness';
-
-interface NewsArticle {
-  id: string;
-  category: NewsCategory;
-  title: string;
-  source: string;
-  /** 발행 표시용 상대 시간 — mock. */
-  postedAt: string;
-  readMinutes: number;
+interface NewsScreenProps {
+  /** 카드 탭 시 — NewsDetail 로 이동. */
+  onArticlePress: (id: string) => void;
 }
-
-const CATEGORIES: ReadonlyArray<{ key: NewsCategory; label: string }> = [
-  { key: 'beauty', label: 'Beauty' },
-  { key: 'diet', label: 'Diet' },
-  { key: 'wellness', label: 'Wellness & Fitness' },
-];
-
-const MOCK_ARTICLES: ReadonlyArray<NewsArticle> = [
-  { id: 'n1', category: 'diet', title: 'Why high-protein breakfasts are having a moment', source: 'The Wellness Edit', postedAt: '2h ago', readMinutes: 4 },
-  { id: 'n2', category: 'wellness', title: 'Cold plunges, explained: what the science actually says', source: 'Recovery Lab', postedAt: '5h ago', readMinutes: 6 },
-  { id: 'n3', category: 'beauty', title: 'The skin-barrier routine dermatologists keep recommending', source: 'Glow Journal', postedAt: '1d ago', readMinutes: 5 },
-  { id: 'n4', category: 'diet', title: 'Mediterranean vs. plant-based: how the celebrity plates compare', source: 'Plate & Performance', postedAt: '1d ago', readMinutes: 8 },
-  { id: 'n5', category: 'wellness', title: 'Sleep is the new supplement: routines from elite athletes', source: 'Recovery Lab', postedAt: '2d ago', readMinutes: 7 },
-  { id: 'n6', category: 'beauty', title: 'Inside the 5-step morning routine that took over your feed', source: 'Glow Journal', postedAt: '3d ago', readMinutes: 4 },
-];
 
 // category → token accent index (beauty=terracotta, diet=gold, wellness=teal).
 const CATEGORY_ACCENT: Record<NewsCategory, number> = { beauty: 0, diet: 4, wellness: 1 };
 
-function ArticleCard({ article }: { article: NewsArticle }): React.JSX.Element {
+function ArticleCard({
+  article,
+  onPress,
+}: {
+  article: NewsArticle;
+  onPress: () => void;
+}): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeCardStyles(theme), [theme]);
   const scale = useRef(new Animated.Value(1)).current;
@@ -55,6 +44,7 @@ function ArticleCard({ article }: { article: NewsArticle }): React.JSX.Element {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={article.title}
+        onPress={onPress}
         onPressIn={() => {
           Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 50 }).start();
         }}
@@ -84,12 +74,12 @@ function ArticleCard({ article }: { article: NewsArticle }): React.JSX.Element {
   );
 }
 
-export function NewsScreen(): React.JSX.Element {
+export function NewsScreen({ onArticlePress }: NewsScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeScreenStyles(theme), [theme]);
   const [category, setCategory] = useState<NewsCategory>('beauty');
 
-  const data = useMemo(() => MOCK_ARTICLES.filter((a) => a.category === category), [category]);
+  const data = useMemo(() => getNewsArticlesByCategory(category), [category]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -101,7 +91,7 @@ export function NewsScreen(): React.JSX.Element {
       </View>
 
       <View style={styles.categoryRow}>
-        {CATEGORIES.map((cat) => {
+        {NEWS_CATEGORIES.map((cat) => {
           const active = cat.key === category;
           return (
             <Pressable
@@ -127,7 +117,14 @@ export function NewsScreen(): React.JSX.Element {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => <ArticleCard article={item} />}
+        renderItem={({ item }) => (
+          <ArticleCard
+            article={item}
+            onPress={() => {
+              onArticlePress(item.id);
+            }}
+          />
+        )}
       />
     </SafeAreaView>
   );

@@ -7327,3 +7327,29 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 - **검증**: typecheck + lint clean, 전체 189 tests PASS. 시각 검증은 시뮬레이터 필요 → 미완.
 ### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: ClaimsFeed/Settings(중·저위험), auth/Paywall/MealPlan/Onboarding(고위험·승인 후). content-service trend intelligence 실연결. `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/screens/NewsScreen.tsx
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-REDESIGN-FIXES-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/package.json
+  - apps/mobile/src/screens/CelebrityDetailScreen.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/screens/NewsDetailScreen.tsx
+  - apps/mobile/src/lib/news-mock.ts
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/src/navigation/CelebritiesNavigator.tsx
+  - apps/mobile/__tests__/screens/CelebrityDetailScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PASS; ⚠️ 폰트·시각은 실기 Metro 재시작 필요)
+---
+### 완료: redesign 사용자 피드백 3건 수정 (IMPL-MOBILE-REDESIGN-FIXES-001)
+- **사용자 피드백 (PR #160 실기 리뷰)**: ① "뭐가 바뀐지 모르겠다" ② 셀럽 상세 "Couldn't load celebrity details" ③ News 카드 탭해도 상세 없음.
+- **① 폰트 로딩 (변화가 안 보이던 핵심 원인)**: 토큰에 Fraunces(serif)/Plus Jakarta Sans 가 정의됐으나 **미로딩** → 제목·monogram 이 시스템 sans 로 렌더돼 redesign 이 안 보였다. `expo-font`(이미 expo 의존으로 .pnpm 존재, native autolink) + `@expo-google-fonts/{fraunces,plus-jakarta-sans}`(순수 JS ttf) 추가. App.tsx 에서 `Font.loadAsync` **non-blocking**(try/catch — 실패 시 시스템 폰트, 무crash) 으로 bare 이름('Fraunces'/'Plus Jakarta Sans') 등록 → theme.font 가 참조하던 패밀리 활성. expo-font 는 SDK54 호환 `~14.0.11` 로 pin(56.x 오설치 교정 — native 14.x 와 정렬).
+- **② 셀럽 상세 404 해소**: 그리드는 mock(getMockCelebritiesByGender)인데 상세는 **실 API**(getCelebrity/listCelebrityClaims) 호출 → mock slug 가 실 DB(셀럽 10·**claims 0**) 와 불일치 → 404. 상세를 `getMockCelebrityBySlug` 기반 **풍부 프로필**(Avatar·해시태그 Badge·매크로 표·신체·운동·철학 + 영양 면책조항)로 재작성. API 호출 제거 → 404 불가. `onClaimPress` prop + Celebrities/Discover navigator 사용처 제거. (실 데이터 배선은 claims 시드 후 backlog.)
+- **③ News 상세 추가**: mock 아티클을 `lib/news-mock.ts`(body 2-3문단 추가)로 추출 → `NewsScreen`(피드)+`NewsDetailScreen`(본문) 공유. `NewsDetailScreen` 신규 + `NewsStackParamList.NewsDetail` + `NewsNavigator` 라우트 + 카드 `onArticlePress` 배선.
+- **검증**: typecheck + lint clean, 전체 187 tests PASS(셀럽 상세 테스트를 mock 경로 4건으로 재작성, expo-font jest mock 추가). raw hex 0.
+### 미완료: ⚠️ **실기 Metro 재시작 필요**(`pnpm install` 후 Metro restart — 새 폰트 JS 패키지 픽업). 폰트 native(expo-font 14.x)는 이미 autolink 라 재빌드 불필요 예상 — 만약 재시작 후에도 serif 안 보이면 `npx expo run:ios` 1회. 후속: 셀럽/News 실 데이터(claims·trend) 배선, 카드 form 더 과감한 재디자인(사용자 방향 확인 후). `record-log-sha.sh`.
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/screens/NewsDetailScreen.tsx, apps/mobile/src/lib/news-mock.ts
