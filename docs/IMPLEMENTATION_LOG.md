@@ -7358,7 +7358,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PA
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-CELEB-HERO-001
-commit_sha: PENDING
+commit_sha: e368a3a
 files_changed:
   - apps/mobile/src/screens/CelebritiesScreen.tsx
 verified_by: claude-opus-4-7 (mobile typecheck + lint + 187 tests PASS; 사용자가 잡지형 vs 히어로형 비교 후 히어로형 선택; 실기 시각 확인은 PR #160)
