@@ -7238,7 +7238,7 @@ verified_by: claude-opus-4-7 (staging DB 실증 — 행 start_date vs daily_plan
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: FIX-RECIPE-TITLES-AUTH-001
-commit_sha: PENDING
+commit_sha: 3717906
 files_changed:
   - services/content-service/src/index.ts
   - apps/mobile/src/services/recipes.ts
