@@ -30,6 +30,26 @@ verified_by: <human | codex-review | 기타 검증자>
 ---
 date: 2026-05-22
 agent: claude-opus-4-7
+task_id: FEAT-MEAL-CONSECUTIVE-DATES-001
+commit_sha: b553694
+files_changed:
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_repository.py
+verified_by: claude-opus-4-7 + advisor (pytest/ruff)
+---
+### 완료: plan 날짜 연속 배정 — celebrity-hopping (FEAT-MEAL-CONSECUTIVE-DATES-001)
+- **배경**: `create_meal_plan` 이 항상 `start_date = today` 로 배정 → 생성마다 같은 날짜창에 겹쳐 distinct 캘린더 날짜가 안 늘어남. 크레딧을 써도 캘린더가 7일에 멈춤(staging E2E 발견). 크레딧 모델의 celebrity-hopping("오늘 X, 내일 Y") 미실현.
+- **변경**: `repositories/meal_plan_repository.py` `create_meal_plan`:
+  - `start_date = max(today, MAX(end_date) + 1)` — 유저의 최신 plan 다음 날부터 연속 배정. 과거 종료 plan 은 today 로 clamp(과거 배정 방지).
+  - 날짜 쿼리 필터 `deleted_at IS NULL AND status <> 'failed'` — **크레딧 회계와 의도적으로 다름**(크레딧은 deleted_at 미필터: delete=no refund / 날짜는 캘린더 슬롯이라 삭제 시 반환). 코드 주석 명시.
+  - race-safety: limited path 는 `check_quota_atomic` 의 `pg_advisory_xact_lock` 안에서 실행(직렬화). unlimited admin-override path 는 lock 없음 → 경미한 race(주석 명시, admin-only 수용).
+- **검증**: pytest 34 PASS(신규 4: 없음→today / 미래종료→+1 / 과거종료→today / failed·deleted 필터 존재), ruff check/format 0. advisor 설계 리뷰(deleted_at 필터 분리 반영).
+### 미완료: staging 재배포(merge → CD build-push → 수동 pull+recreate). 기존 겹친 plan 은 cleanup 안 됨(지금부터 새 생성만 연속). 성능 인덱스(user_id,end_date) 후속 CHORE-MEAL-END-DATE-INDEX-001.
+### 연관 파일: services/meal-plan-engine/src/repositories/meal_plan_repository.py
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7
 task_id: FIX-MOBILE-RECIPE-NAME-001
 commit_sha: 7695466
 files_changed:
