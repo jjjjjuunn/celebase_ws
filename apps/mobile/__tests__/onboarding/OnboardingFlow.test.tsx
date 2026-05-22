@@ -5,9 +5,16 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
 
 import { OnboardingFlow } from '../../src/onboarding/OnboardingFlow';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Steps now consume useTheme() — every render must be inside ThemeProvider.
+function renderScreen(ui: ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const CELEB = {
   id: '018d1a6a-0000-7000-8000-000000000040',
@@ -72,7 +79,7 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
   it('S2 셀럽 그리드 로드 → 카드 노출', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
 
     expect(await screen.findByLabelText('Select Beyoncé')).toBeTruthy();
   });
@@ -80,7 +87,7 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
   it('S2~S4 통과 → S5 (활동량 화면) 렌더', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
 
     advanceThroughS2toS4();
@@ -91,7 +98,7 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
   it('S3 빈 이름 → validation 에러, 진행 안 함', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Continue'));
 
@@ -103,7 +110,7 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
   it('S4 키 범위 밖 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Continue'));
     fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
@@ -124,7 +131,7 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
     mockCelebrities(fetchSpy);
     const onClose = jest.fn();
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={onClose} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={onClose} />);
     await screen.findByLabelText('Select Beyoncé');
 
     fireEvent.press(screen.getByLabelText('Close'));
@@ -151,7 +158,7 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
   it('S5 Health Disclaimer 노출 (accessibility role="alert")', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
     await screen.findByText('Activity & health');
@@ -163,7 +170,7 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
   it('S5 activity_level 미선택 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
     await screen.findByText('Activity & health');
@@ -176,7 +183,7 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
   it('S6 primary_goal 미선택 → validation 에러', async () => {
     mockCelebrities(fetchSpy);
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
     await screen.findByText('Activity & health');
@@ -240,7 +247,7 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
 
     const onDone = jest.fn();
 
-    render(<OnboardingFlow onDone={onDone} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={onDone} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
 
@@ -291,7 +298,7 @@ describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
       makeResponse(500, { error: { code: 'AUDIT_LOG_FAILURE', message: 'fail-closed' } }),
     );
 
-    render(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
     await screen.findByLabelText('Select Beyoncé');
     advanceThroughS2toS4();
     await screen.findByText('Activity & health');

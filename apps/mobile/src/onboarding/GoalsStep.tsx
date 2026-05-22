@@ -1,19 +1,12 @@
 // S6 — Goals & Diet Prefs. 비-PHI.
 
-import { useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { tokens } from '@celebbase/design-tokens';
-import type { PrimaryGoal, DietType } from '@celebbase/shared-types';
+import type { DietType, PrimaryGoal } from '@celebbase/shared-types';
 
-import { px, resolveToken } from '../lib/tokens';
+import { Button, Text, useTheme, type Theme } from '../ui';
 import type { GoalsDraft } from './types';
 
 interface GoalsStepProps {
@@ -51,12 +44,9 @@ const DIET_TYPE_OPTIONS: ReadonlyArray<{ value: DietType; label: string }> = [
   { value: 'paleo', label: 'Paleo' },
 ];
 
-export function GoalsStep({
-  initial,
-  onNext,
-  onBack,
-  onClose,
-}: GoalsStepProps): React.JSX.Element {
+export function GoalsStep({ initial, onNext, onBack, onClose }: GoalsStepProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal | undefined>(initial?.primary_goal);
   const [secondaryGoals, setSecondaryGoals] = useState<string[]>(initial?.secondary_goals ?? []);
   const [dietType, setDietType] = useState<DietType | null>(initial?.diet_type ?? null);
@@ -81,19 +71,27 @@ export function GoalsStep({
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={styles.backButton}>←</Text>
+          <Text tone="brand" style={styles.navIcon}>
+            ←
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.stepLabel}>5 / 6</Text>
+        <Text variant="bodySm" tone="muted" style={styles.stepLabel}>
+          5 / 6
+        </Text>
         <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-          <Text style={styles.closeButton}>✕</Text>
+          <Text tone="muted" style={styles.navIcon}>
+            ✕
+          </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.title}>Goals & diet</Text>
+        <Text variant="h1">Goals &amp; diet</Text>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Primary goal (pick one)</Text>
+          <Text variant="bodySm" style={styles.label}>
+            Primary goal (pick one)
+          </Text>
           <View style={styles.chipRow}>
             {PRIMARY_GOAL_OPTIONS.map((opt) => {
               const active = primaryGoal === opt.value;
@@ -108,7 +106,7 @@ export function GoalsStep({
                   accessibilityState={{ selected: active }}
                   style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
                 >
-                  <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+                  <Text variant="bodySm" tone={active ? 'onBrand' : 'default'} style={styles.chipText}>
                     {opt.label}
                   </Text>
                 </TouchableOpacity>
@@ -118,7 +116,12 @@ export function GoalsStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Other goals <Text style={styles.optional}>· Select any that apply</Text></Text>
+          <Text variant="bodySm" style={styles.label}>
+            Other goals{' '}
+            <Text variant="bodySm" tone="muted" style={styles.optional}>
+              · Select any that apply
+            </Text>
+          </Text>
           <View style={styles.chipRow}>
             {SECONDARY_GOAL_OPTIONS.map((goal) => {
               const active = secondaryGoals.includes(goal);
@@ -133,7 +136,7 @@ export function GoalsStep({
                   accessibilityState={{ selected: active }}
                   style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
                 >
-                  <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+                  <Text variant="bodySm" tone={active ? 'onBrand' : 'default'} style={styles.chipText}>
                     {goal}
                   </Text>
                 </TouchableOpacity>
@@ -143,7 +146,12 @@ export function GoalsStep({
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Diet type <Text style={styles.optional}>· Optional, leave blank if none</Text></Text>
+          <Text variant="bodySm" style={styles.label}>
+            Diet type{' '}
+            <Text variant="bodySm" tone="muted" style={styles.optional}>
+              · Optional, leave blank if none
+            </Text>
+          </Text>
           <View style={styles.chipRow}>
             {DIET_TYPE_OPTIONS.map((opt) => {
               const active = dietType === opt.value;
@@ -158,7 +166,7 @@ export function GoalsStep({
                   accessibilityState={{ selected: active }}
                   style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
                 >
-                  <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>
+                  <Text variant="bodySm" tone={active ? 'onBrand' : 'default'} style={styles.chipText}>
                     {opt.label}
                   </Text>
                 </TouchableOpacity>
@@ -167,93 +175,53 @@ export function GoalsStep({
           </View>
         </View>
 
-        {error !== null ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error !== null ? (
+          <Text variant="bodySm" tone="error">
+            {error}
+          </Text>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={validateAndNext}
-          accessibilityRole="button"
-          accessibilityLabel="Continue"
-          style={styles.nextButton}
-        >
-          <Text style={styles.nextButtonText}>Continue</Text>
-        </TouchableOpacity>
+        <Button label="Continue" onPress={validateAndNext} />
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: resolveToken('light', '--cb-color-bg') },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-  },
-  backButton: { fontSize: 24, color: resolveToken('light', '--cb-color-brand') },
-  closeButton: { fontSize: 24, color: resolveToken('light', '--cb-color-text-muted') },
-  stepLabel: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-    fontWeight: '600',
-  },
-  body: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-4']),
-  },
-  title: {
-    fontSize: px(tokens.light['--cb-display-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  field: { gap: px(tokens.light['--cb-space-2']) },
-  label: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  optional: {
-    color: resolveToken('light', '--cb-color-text-muted'),
-    fontWeight: '400',
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  chip: {
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: px(tokens.light['--cb-space-2']),
-    borderRadius: 16,
-  },
-  chipActive: { backgroundColor: resolveToken('light', '--cb-color-brand-bg') },
-  chipInactive: { backgroundColor: resolveToken('light', '--cb-color-surface') },
-  chipText: { fontSize: px(tokens.light['--cb-body-sm']), fontWeight: '600' },
-  chipTextActive: { color: resolveToken('light', '--cb-color-on-brand') },
-  chipTextInactive: { color: resolveToken('light', '--cb-color-text') },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  footer: {
-    padding: px(tokens.light['--cb-space-4']),
-    borderTopWidth: 1,
-    borderTopColor: resolveToken('light', '--cb-color-border'),
-  },
-  nextButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-  },
-  nextButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+    },
+    navIcon: { fontSize: 24 },
+    stepLabel: { fontWeight: theme.weight.semibold },
+    body: {
+      paddingHorizontal: theme.space(4),
+      paddingBottom: theme.space(4),
+      gap: theme.space(4),
+    },
+    field: { gap: theme.space(2) },
+    label: { fontWeight: theme.weight.semibold },
+    optional: { fontWeight: theme.weight.regular },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2) },
+    chip: {
+      paddingHorizontal: theme.space(3),
+      paddingVertical: theme.space(2),
+      borderRadius: theme.radius.pill,
+    },
+    chipActive: { backgroundColor: theme.color.brandBg },
+    chipInactive: { backgroundColor: theme.color.surface },
+    chipText: { fontWeight: theme.weight.semibold },
+    footer: {
+      padding: theme.space(4),
+      borderTopWidth: 1,
+      borderTopColor: theme.color.border,
+    },
+  });
+}
