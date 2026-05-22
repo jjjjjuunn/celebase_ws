@@ -11,6 +11,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import { ProfileScreen } from '../../src/screens/ProfileScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
+import { ThemeProvider } from '../../src/ui';
+
+// Screen now consumes useTheme() — every render must be inside ThemeProvider.
+function renderScreen(ui: React.ReactElement): ReturnType<typeof render> {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+}
 
 const USER_BASE = {
   id: '01927000-0000-7000-8000-000000000001',
@@ -53,7 +59,7 @@ describe('<ProfileScreen />', () => {
   it('GET /api/users/me 성공 → display_name + email + 가입월 + Free 배지', async () => {
     fetchSpy.mockResolvedValue(makeResponse(200, { user: USER_BASE }));
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
 
     expect(await screen.findByText('Jane Doe')).toBeTruthy();
     expect(screen.getByText('jane@example.com')).toBeTruthy();
@@ -64,7 +70,7 @@ describe('<ProfileScreen />', () => {
     fetchSpy.mockResolvedValue(makeResponse(200, { user: USER_BASE }));
     const onUpgrade = jest.fn();
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={onUpgrade} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={onUpgrade} />);
 
     await screen.findByTestId('profile-upgrade');
     fireEvent.press(screen.getByTestId('profile-upgrade'));
@@ -76,39 +82,38 @@ describe('<ProfileScreen />', () => {
       makeResponse(200, { user: { ...USER_BASE, subscription_tier: 'premium' } }),
     );
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
 
     expect(await screen.findByText('Premium')).toBeTruthy();
     expect(screen.queryByTestId('profile-upgrade')).toBeNull();
   });
 
-  it('avatar_url 존재 → Image 렌더 (initial placeholder 미노출)', async () => {
+  it('avatar_url 존재 → Avatar 렌더 (monogram fallback 유지)', async () => {
     fetchSpy.mockResolvedValue(
       makeResponse(200, {
         user: { ...USER_BASE, avatar_url: 'https://example.com/avatar.jpg' },
       }),
     );
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
 
-    expect(await screen.findByLabelText('Jane Doe avatar')).toBeTruthy();
-    // initial "J" placeholder Text 는 같은 동작에서 미노출
-    expect(screen.queryByText('J')).toBeNull();
+    // Avatar primitive 은 이미지 로드 전/실패 시 monogram(2-letter) 으로 폴백한다.
+    expect(await screen.findByText('JD')).toBeTruthy();
   });
 
-  it('avatar_url null → initial placeholder 노출', async () => {
+  it('avatar_url null → monogram 이니셜(JD) 노출', async () => {
     fetchSpy.mockResolvedValue(makeResponse(200, { user: USER_BASE }));
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
 
     await screen.findByText('Jane Doe');
-    expect(screen.getByText('J')).toBeTruthy();
+    expect(screen.getByText('JD')).toBeTruthy();
   });
 
   it('fetch 실패 → error state 표시', async () => {
     fetchSpy.mockResolvedValue(makeResponse(500, { error: { code: 'INTERNAL' } }));
 
-    render(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={jest.fn()} onUpgradePress={jest.fn()} />);
 
     expect(await screen.findByText("Couldn't load your profile.")).toBeTruthy();
   });
@@ -117,7 +122,7 @@ describe('<ProfileScreen />', () => {
     fetchSpy.mockResolvedValue(makeResponse(200, { user: USER_BASE }));
     const onEdit = jest.fn();
 
-    render(<ProfileScreen onEditBioProfile={onEdit} onUpgradePress={jest.fn()} />);
+    renderScreen(<ProfileScreen onEditBioProfile={onEdit} onUpgradePress={jest.fn()} />);
 
     await screen.findByTestId('profile-edit');
     fireEvent.press(screen.getByTestId('profile-edit'));

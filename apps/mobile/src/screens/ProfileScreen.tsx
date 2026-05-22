@@ -2,28 +2,20 @@
 //
 // 데이터:
 //   - GET /api/users/me — display_name, email, joined date, preferred_celebrity_slug, tier
-//   - 추후 GET /api/users/me/bio-profile — bio summary (current sub-task X, 별도 chore)
 //
 // 액션:
 //   - "Edit profile" → Onboarding modal 재진입 (기존 onboarding flow 재사용)
 //   - "Upgrade to Premium" → Paywall (free tier 만 노출)
+//
+// ui/ primitive 레이어로 재작성 (IMPL-MOBILE-CELEB-REDESIGN-001 design system).
 
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { tokens } from '@celebbase/design-tokens';
 import type { schemas } from '@celebbase/shared-types';
 
-import { px, resolveToken } from '../lib/tokens';
 import { getCurrentUser } from '../services/users';
+import { Avatar, Badge, Button, Card, Text, useTheme, type BadgeTone, type Theme } from '../ui';
 
 interface ProfileScreenProps {
   onEditBioProfile: () => void;
@@ -39,6 +31,8 @@ export function ProfileScreen({
   onEditBioProfile,
   onUpgradePress,
 }: ProfileScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
 
   useEffect(() => {
@@ -65,10 +59,7 @@ export function ProfileScreen({
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
-          <ActivityIndicator
-            size="large"
-            color={resolveToken('light', '--cb-color-brand')}
-          />
+          <ActivityIndicator size="large" color={theme.color.brand} />
         </View>
       </SafeAreaView>
     );
@@ -78,7 +69,9 @@ export function ProfileScreen({
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load your profile.</Text>
+          <Text variant="body" tone="error">
+            Couldn't load your profile.
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -87,100 +80,77 @@ export function ProfileScreen({
   const { user } = phase;
   const isFreeTier = user.subscription_tier === 'free';
   const joinedDate = formatJoinedDate(user.created_at);
+  const tierLabel =
+    user.subscription_tier === 'free'
+      ? 'Free'
+      : user.subscription_tier === 'premium'
+        ? 'Premium'
+        : 'Elite';
+  const tierTone: BadgeTone = isFreeTier ? 'neutral' : 'brand';
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.avatarSection}>
-          {user.avatar_url !== null ? (
-            <Image
-              accessibilityLabel={`${user.display_name} avatar`}
-              source={{ uri: user.avatar_url }}
-              style={styles.avatarImage}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarInitial}>
-                {user.display_name.slice(0, 1).toUpperCase()}
-              </Text>
-            </View>
-          )}
-          <Text style={styles.displayName}>{user.display_name}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-          <TierBadge tier={user.subscription_tier} />
+          <Avatar name={user.display_name} uri={user.avatar_url} size={96} />
+          <Text variant="h2">{user.display_name}</Text>
+          <Text variant="body" tone="muted">
+            {user.email}
+          </Text>
+          <Badge label={tierLabel} tone={tierTone} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About you</Text>
+          <Text variant="label" tone="muted" style={styles.sectionTitle}>
+            About you
+          </Text>
           <View style={styles.sectionBody}>
             <Row label="Joined" value={joinedDate} />
-            <Row
-              label="Following"
-              value={user.preferred_celebrity_slug ?? 'None yet'}
-            />
+            <Row label="Following" value={user.preferred_celebrity_slug ?? 'None yet'} />
             <Row label="Language" value={user.locale} />
           </View>
         </View>
 
         {isFreeTier ? (
-          <View style={styles.upgradeCard}>
-            <Text style={styles.upgradeTitle}>Unlock Celebase Pro</Text>
-            <Text style={styles.upgradeBody}>
+          <Card variant="subtle" style={styles.upgradeCard}>
+            <Text variant="h3" tone="brand" center>
+              Unlock Celebase Pro
+            </Text>
+            <Text variant="bodySm" center>
               Personalized plans, full celebrity libraries, daily insights.
             </Text>
-            <TouchableOpacity
-              onPress={onUpgradePress}
-              accessibilityRole="button"
-              accessibilityLabel="Upgrade to Pro"
-              testID="profile-upgrade"
-              style={styles.upgradeButton}
-            >
-              <Text style={styles.upgradeButtonText}>Upgrade</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.upgradeButton}>
+              <Button
+                label="Upgrade"
+                onPress={onUpgradePress}
+                testID="profile-upgrade"
+                accessibilityLabel="Upgrade to Pro"
+              />
+            </View>
+          </Card>
         ) : null}
 
         <View style={styles.actionsSection}>
-          <TouchableOpacity
+          <Button
+            label="Edit profile details"
+            variant="secondary"
             onPress={onEditBioProfile}
-            accessibilityRole="button"
-            accessibilityLabel="Edit profile details"
             testID="profile-edit"
-            style={styles.editButton}
-          >
-            <Text style={styles.editButtonText}>Edit profile details</Text>
-          </TouchableOpacity>
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-interface RowProps {
-  label: string;
-  value: string;
-}
-
-function Row({ label, value }: RowProps): React.JSX.Element {
+function Row({ label, value }: { label: string; value: string }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}
-
-interface TierBadgeProps {
-  tier: schemas.UserWire['subscription_tier'];
-}
-
-function TierBadge({ tier }: TierBadgeProps): React.JSX.Element {
-  const label = tier === 'free' ? 'Free' : tier === 'premium' ? 'Premium' : 'Elite';
-  const isPaid = tier !== 'free';
-  return (
-    <View style={[styles.tierBadge, isPaid ? styles.tierBadgePaid : null]}>
-      <Text style={[styles.tierBadgeText, isPaid ? styles.tierBadgeTextPaid : null]}>
-        {label}
+      <Text variant="body">{label}</Text>
+      <Text variant="body" tone="muted">
+        {value}
       </Text>
     </View>
   );
@@ -191,161 +161,36 @@ function formatJoinedDate(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: resolveToken('light', '--cb-color-bg'),
-  },
-  body: {
-    paddingBottom: px(tokens.light['--cb-space-5']),
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: px(tokens.light['--cb-space-4']),
-  },
-  errorText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-error'),
-  },
-  avatarSection: {
-    alignItems: 'center',
-    paddingVertical: px(tokens.light['--cb-space-5']),
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  avatarPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: resolveToken('light', '--cb-color-brand-bg'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: px(tokens.light['--cb-space-2']),
-  },
-  avatarImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    marginBottom: px(tokens.light['--cb-space-2']),
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-  },
-  avatarInitial: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  displayName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  email: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  tierBadge: {
-    marginTop: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-3']),
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: resolveToken('light', '--cb-color-neutral-100'),
-  },
-  tierBadgePaid: {
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
-  },
-  tierBadgeText: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  tierBadgeTextPaid: {
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  section: {
-    marginTop: px(tokens.light['--cb-space-3']),
-  },
-  sectionTitle: {
-    fontSize: px(tokens.light['--cb-caption']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-text-muted'),
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingBottom: px(tokens.light['--cb-space-2']),
-  },
-  sectionBody: {
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingVertical: px(tokens.light['--cb-space-3']),
-    borderBottomWidth: 1,
-    borderBottomColor: resolveToken('light', '--cb-color-border'),
-  },
-  rowLabel: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text'),
-  },
-  rowValue: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    color: resolveToken('light', '--cb-color-text-muted'),
-  },
-  upgradeCard: {
-    margin: px(tokens.light['--cb-space-4']),
-    padding: px(tokens.light['--cb-space-4']),
-    borderRadius: 16,
-    backgroundColor: resolveToken('light', '--cb-color-brand-subtle'),
-    alignItems: 'center',
-    gap: px(tokens.light['--cb-space-2']),
-  },
-  upgradeTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-brand'),
-  },
-  upgradeBody: {
-    fontSize: px(tokens.light['--cb-body-sm']),
-    color: resolveToken('light', '--cb-color-text'),
-    textAlign: 'center',
-  },
-  upgradeButton: {
-    marginTop: px(tokens.light['--cb-space-2']),
-    paddingHorizontal: px(tokens.light['--cb-space-5']),
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    backgroundColor: resolveToken('light', '--cb-color-brand'),
-    borderRadius: 8,
-  },
-  upgradeButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '700',
-    color: resolveToken('light', '--cb-color-on-brand'),
-  },
-  actionsSection: {
-    paddingHorizontal: px(tokens.light['--cb-space-4']),
-    paddingTop: px(tokens.light['--cb-space-3']),
-  },
-  editButton: {
-    paddingVertical: px(tokens.light['--cb-button-pad-y']),
-    paddingHorizontal: px(tokens.light['--cb-button-pad-x']),
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: resolveToken('light', '--cb-color-surface'),
-    borderWidth: 1,
-    borderColor: resolveToken('light', '--cb-color-border'),
-  },
-  editButtonText: {
-    fontSize: px(tokens.light['--cb-body-md']),
-    fontWeight: '600',
-    color: resolveToken('light', '--cb-color-text'),
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.color.bg },
+    body: { paddingBottom: theme.space(5) },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.space(4) },
+    avatarSection: {
+      alignItems: 'center',
+      paddingVertical: theme.space(5),
+      paddingHorizontal: theme.space(4),
+      gap: theme.space(2),
+    },
+    section: { marginTop: theme.space(3) },
+    sectionTitle: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(2) },
+    sectionBody: {
+      backgroundColor: theme.color.surface,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: theme.color.border,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.color.border,
+    },
+    upgradeCard: { margin: theme.space(4), alignItems: 'center', gap: theme.space(2) },
+    upgradeButton: { marginTop: theme.space(2), alignSelf: 'stretch' },
+    actionsSection: { paddingHorizontal: theme.space(4), paddingTop: theme.space(3) },
+  });
+}

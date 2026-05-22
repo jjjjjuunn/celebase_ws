@@ -7290,3 +7290,23 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 - **Review tier**: L2 (단일 클라이언트, mock-data 표시 변경, 계약/PHI 무변경).
 ### 미완료: ⚠️ 실기 시각 확인(PR #160 머지 전 사용자 리뷰 필수 — 작성자 시각검증 불가). 후속: 나머지 화면(News/Profile/Settings/Claims/Paywall/MealPlan) migration, 폰트 로딩, 다크모드 토글. `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx, apps/mobile/src/screens/CelebrityDetailScreen.tsx, apps/mobile/src/ui/monogram.ts
+
+---
+date: 2026-05-22
+agent: claude-opus-4-7 (1M)
+task_id: IMPL-MOBILE-PROFILE-REDESIGN-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/ProfileScreen.tsx
+  - apps/mobile/src/ui/Button.tsx
+  - apps/mobile/__tests__/screens/ProfileScreen.test.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PASS; ⚠️ 시각 검증 미완 — PR #160 open 유지)
+---
+### 완료: Profile 화면 디자인 시스템 migration (IMPL-MOBILE-PROFILE-REDESIGN-001)
+- design system rollout 2번째 화면 (PR #160 동일, 다른 화면 타입 = settings-list). 사용자 부재(수면) 중이라 mid-stream 승인 불가 → 안전·되돌리기 쉬운(미머지) 화면을 최대한 준비해 아침 리뷰 대상 확대.
+- **ProfileScreen**: avatar 분기(Image/initial) → `Avatar` primitive(uri+monogram fallback) 1개로 단순화. tier 배지 → `Badge`(paid=brand/free=neutral). upgrade 카드 → `Card`+`Button`. edit → `Button` secondary. "About you" 그룹 리스트는 iOS 스타일 유지(theme 색). loading/error theme 정렬.
+- **Button**: `testID` prop 추가(forward to Pressable) — Profile 의 `profile-upgrade`/`profile-edit` testID 보존.
+- **테스트**: ThemeProvider 래퍼 + avatar 단언 갱신(단일 'J' → 2-letter monogram 'JD'; Avatar 는 image+monogram 폴백을 항상 렌더). 전체 189 PASS.
+- **제약 준수**: 새 네이티브 모듈 0, raw hex 0(소스). 시각 검증은 시뮬레이터 필요 → 미완.
+### 미완료: ⚠️ 실기 시각 확인(PR #160). 후속 화면: News/ClaimsFeed/Settings(저위험), Login/Signup/Paywall/MealPlan/Onboarding(고위험 — 승인 후). 폰트 로딩 + 다크 토글. `record-log-sha.sh`.
+### 연관 파일: apps/mobile/src/screens/ProfileScreen.tsx, apps/mobile/src/ui/Button.tsx

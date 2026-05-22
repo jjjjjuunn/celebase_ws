@@ -26,6 +26,7 @@ interface ButtonProps {
   loading?: boolean;
   fullWidth?: boolean;
   accessibilityLabel?: string;
+  testID?: string;
 }
 
 export function Button({
@@ -37,6 +38,7 @@ export function Button({
   loading = false,
   fullWidth = true,
   accessibilityLabel,
+  testID,
 }: ButtonProps): React.JSX.Element {
   const theme = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
@@ -79,6 +81,7 @@ export function Button({
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         disabled={inactive}
+        testID={testID}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel ?? label}
         accessibilityState={{ disabled: inactive, busy: loading }}
