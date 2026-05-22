@@ -7270,7 +7270,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 12 primitive tests 
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-CELEB-REDESIGN-001
-commit_sha: PENDING
+commit_sha: cb6b5ee
 files_changed:
   - apps/mobile/src/screens/CelebritiesScreen.tsx
   - apps/mobile/src/screens/CelebrityDetailScreen.tsx
