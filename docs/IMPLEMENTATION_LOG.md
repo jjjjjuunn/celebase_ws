@@ -7295,7 +7295,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 189 tests PA
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-PROFILE-REDESIGN-001
-commit_sha: PENDING
+commit_sha: a2ef10e
 files_changed:
   - apps/mobile/src/screens/ProfileScreen.tsx
   - apps/mobile/src/ui/Button.tsx
