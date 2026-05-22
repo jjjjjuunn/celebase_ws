@@ -7397,7 +7397,7 @@ verified_by: claude-opus-4-7 (staging DB 실증 — recipe_id 들이 제목과 �
 date: 2026-05-22
 agent: claude-opus-4-7 (1M)
 task_id: IMPL-MOBILE-DESIGN-CONSOLIDATION-001
-commit_sha: PENDING
+commit_sha: f78b902
 files_changed:
   - packages/design-tokens/scripts/build.ts
   - apps/mobile/src/ui/theme.ts
