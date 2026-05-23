@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { ClaimType, schemas } from '@celebbase/shared-types';
 
@@ -156,8 +157,9 @@ export function ClaimsFeedScreen({
               testID="claims-upgrade"
               style={styles.topLink}
             >
+              <Ionicons name="sparkles" size={14} color={theme.color.brand} />
               <Text variant="bodySm" tone="brand" style={styles.topLinkBold}>
-                ⭐ Upgrade
+                Upgrade
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -229,7 +231,13 @@ function makeStyles(theme: Theme) {
       paddingHorizontal: theme.space(4),
       paddingTop: theme.space(2),
     },
-    topLink: { paddingVertical: theme.space(2), paddingHorizontal: theme.space(3) },
+    topLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(1),
+      paddingVertical: theme.space(2),
+      paddingHorizontal: theme.space(3),
+    },
     topLinkText: { fontWeight: theme.weight.semibold },
     topLinkBold: { fontWeight: theme.weight.bold },
     centered: { flex: 1, justifyContent: 'center' },
