@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { DietType, PrimaryGoal } from '@celebbase/shared-types';
 
@@ -79,9 +80,7 @@ export function GoalsStep({ initial, onNext, onBack, onClose }: GoalsStepProps):
           5 / 6
         </Text>
         <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-          <Text tone="muted" style={styles.navIcon}>
-            ✕
-          </Text>
+          <Ionicons name="close" size={24} color={theme.color.textMuted} />
         </TouchableOpacity>
       </View>
 

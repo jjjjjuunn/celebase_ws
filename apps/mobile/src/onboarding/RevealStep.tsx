@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ApiError } from '../lib/api-client';
 import { draftToBioProfileBody, saveBioProfile } from '../services/bio-profile';
@@ -98,7 +99,7 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.centered}>
-        <Text style={styles.successEmoji}>🎉</Text>
+        <Ionicons name="sparkles" size={56} color={theme.color.gold} />
         <Text variant="h1" tone="brand" center>
           You&apos;re all set!
         </Text>
@@ -123,7 +124,6 @@ function makeStyles(theme: Theme) {
       padding: theme.space(4),
       gap: theme.space(3),
     },
-    successEmoji: { fontSize: 64 },
     footer: { padding: theme.space(4), gap: theme.space(2) },
   });
 }

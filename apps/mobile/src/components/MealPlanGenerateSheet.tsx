@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ZodError } from 'zod';
 
@@ -129,9 +130,7 @@ export function MealPlanGenerateSheet({
         <View style={styles.header}>
           <Text variant="h1">식단 만들기</Text>
           <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-            <Text tone="muted" style={styles.closeButton}>
-              ✕
-            </Text>
+            <Ionicons name="close" size={26} color={theme.color.textMuted} />
           </TouchableOpacity>
         </View>
 
@@ -209,7 +208,6 @@ function makeStyles(theme: Theme) {
       paddingHorizontal: theme.space(4),
       paddingVertical: theme.space(3),
     },
-    closeButton: { fontSize: 24 },
     sectionLabel: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(2) },
     pickerArea: { flex: 1 },
     footer: {

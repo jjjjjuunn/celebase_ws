@@ -14,6 +14,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { ActivityLevel } from '@celebbase/shared-types';
 
@@ -97,17 +98,21 @@ export function ActivityHealthStep({
           4 / 6
         </Text>
         <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-          <Text tone="muted" style={styles.navIcon}>
-            ✕
-          </Text>
+          <Ionicons name="close" size={24} color={theme.color.textMuted} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         <Text variant="h1">Activity &amp; health</Text>
         <View accessibilityRole="alert" accessibilityLabel="Health disclaimer" style={styles.disclaimer}>
+          <Ionicons
+            name="information-circle-outline"
+            size={16}
+            color={theme.color.textMuted}
+            style={styles.disclaimerIcon}
+          />
           <Text variant="bodySm" style={styles.disclaimerText}>
-            ⚠ {HEALTH_DISCLAIMER}
+            {HEALTH_DISCLAIMER}
           </Text>
         </View>
 
@@ -239,13 +244,17 @@ function makeStyles(theme: Theme) {
       gap: theme.space(4),
     },
     disclaimer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: theme.space(2),
       padding: theme.space(3),
       backgroundColor: theme.color.surface,
       borderRadius: theme.radius.sm,
       borderWidth: 1,
       borderColor: theme.color.border,
     },
-    disclaimerText: { lineHeight: theme.type.bodySm + 6 },
+    disclaimerIcon: { marginTop: 1 },
+    disclaimerText: { flex: 1, lineHeight: theme.type.bodySm + 6 },
     field: { gap: theme.space(2) },
     label: { fontWeight: theme.weight.semibold },
     optional: { fontWeight: theme.weight.regular },
