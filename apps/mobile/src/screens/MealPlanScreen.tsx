@@ -334,22 +334,29 @@ function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.El
   const unlimited = credits !== null && credits.credits_total === null;
   const resetAt = credits?.credits_reset_at ?? null;
 
+  // Dark "ink" feature card (reference Profile/Plan hero cards): the credit
+  // balance is the screen's headline number → ink surface + gold metric + cream
+  // supporting text reads as the premium "wow" moment.
   return (
-    <Card variant="surface" style={styles.creditsCard}>
+    <Card variant="surface" style={[styles.creditsCard, styles.creditsCardDark]}>
       <View style={styles.creditsRow}>
         <Badge label={tierLabel.toUpperCase()} tone="subtle" />
         {unlimited ? (
-          <Text variant="h4">무제한</Text>
+          <Text variant="h4" style={{ color: theme.color.onInk }}>
+            무제한
+          </Text>
         ) : (
           <View style={styles.creditsCount}>
-            <Text variant="metricLg">{String(remaining)}</Text>
-            <Text variant="bodySm" tone="muted" style={styles.creditsSuffix}>
+            <Text variant="metricLg" style={{ color: theme.color.gold }}>
+              {String(remaining)}
+            </Text>
+            <Text variant="bodySm" style={[styles.creditsSuffix, styles.onDark]}>
               {`/ ${String(credits?.credits_total ?? 0)} 크레딧`}
             </Text>
           </View>
         )}
       </View>
-      <Text variant="caption" tone="muted">
+      <Text variant="caption" style={styles.onDark}>
         {resetAt !== null ? `다음 리셋: ${resetAt.slice(0, 10)}` : '온보딩 무료 크레딧 (1회성)'}
       </Text>
     </Card>
@@ -510,9 +517,11 @@ function makeStyles(theme: Theme) {
       marginBottom: theme.space(3),
       gap: theme.space(2),
     },
+    creditsCardDark: { backgroundColor: theme.color.ink },
     creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     creditsCount: { flexDirection: 'row', alignItems: 'baseline', gap: theme.space(1) },
     creditsSuffix: { paddingBottom: 2 },
+    onDark: { color: theme.color.onInk, opacity: 0.7 },
     dateStrip: {
       paddingHorizontal: theme.space(4),
       gap: theme.space(2),
