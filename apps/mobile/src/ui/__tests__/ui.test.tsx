@@ -72,7 +72,7 @@ describe.each(MODES)('design system — %s theme', (mode) => {
       <Card>
         <Badge label="ELITE" />
         <Skeleton width={120} height={20} />
-        <EmptyState glyph="🥗" title="No plans yet" body="Create your first plan." />
+        <EmptyState icon="leaf-outline" title="No plans yet" body="Create your first plan." />
       </Card>,
       mode,
     );

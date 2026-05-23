@@ -70,7 +70,11 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
         </View>
       ) : state.phase === 'error' ? (
         <View style={styles.centered}>
-          <EmptyState glyph="⚠️" title="Couldn't load this claim." body="잠시 후 다시 시도해주세요." />
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Couldn't load this claim."
+            body="잠시 후 다시 시도해주세요."
+          />
         </View>
       ) : (
         <DetailBody data={state.data} />

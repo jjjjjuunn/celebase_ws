@@ -171,7 +171,7 @@ export function ClaimsFeedScreen({
       ) : state.error !== null ? (
         <View style={styles.centered}>
           <EmptyState
-            glyph="⚠️"
+            icon="alert-circle-outline"
             title="Couldn't load claims."
             ctaLabel="Try again"
             onPressCta={retry}
@@ -179,7 +179,11 @@ export function ClaimsFeedScreen({
         </View>
       ) : state.claims.length === 0 ? (
         <View style={styles.centered}>
-          <EmptyState glyph="📭" title="No claims yet." body="새 클레임이 곧 추가됩니다." />
+          <EmptyState
+            icon="file-tray-outline"
+            title="No claims yet."
+            body="새 클레임이 곧 추가됩니다."
+          />
         </View>
       ) : (
         <FlatList

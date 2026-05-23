@@ -1,16 +1,19 @@
 // EmptyState primitive — replaces text-only "아직 ... 없어요" blocks. Centered
 // glyph + title + body + optional CTA, so empty surfaces feel intentional.
 
-import { useMemo } from 'react';
+import { useMemo, type ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Button } from './Button';
 import { Text } from './Text';
 import { useTheme } from './ThemeProvider';
 
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
+
 interface EmptyStateProps {
-  /** Emoji or short glyph shown above the title. */
-  glyph?: string;
+  /** Ionicons outline name shown above the title (Lucide-adjacent line icon). */
+  icon?: IoniconName;
   title: string;
   body?: string;
   ctaLabel?: string;
@@ -18,7 +21,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  glyph = '✨',
+  icon = 'sparkles-outline',
   title,
   body,
   ctaLabel,
@@ -36,7 +39,6 @@ export function EmptyState({
           paddingVertical: theme.space(8),
           gap: theme.space(3),
         },
-        glyph: { fontSize: 56 },
         cta: { marginTop: theme.space(2), alignSelf: 'stretch' },
       }),
     [theme],
@@ -44,7 +46,7 @@ export function EmptyState({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.glyph}>{glyph}</Text>
+      <Ionicons name={icon} size={36} color={theme.color.textSubtle} />
       <Text variant="h3" center>
         {title}
       </Text>

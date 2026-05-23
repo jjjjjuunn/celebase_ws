@@ -201,26 +201,25 @@ exports[`design system — dark theme Card / Badge / Skeleton / EmptyState rende
     }
   >
     <Text
+      allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
-            "color": "#F2F0EB",
-            "fontFamily": "Plus Jakarta Sans",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "lineHeight": 24,
+            "color": "#6D6A64",
+            "fontSize": 36,
           },
+          undefined,
           {
-            "color": "#F2F0EB",
+            "fontFamily": "ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
-          false,
-          {
-            "fontSize": 56,
-          },
+          {},
         ]
       }
     >
-      🥗
+      
     </Text>
     <Text
       style={
@@ -557,26 +556,25 @@ exports[`design system — light theme Card / Badge / Skeleton / EmptyState rend
     }
   >
     <Text
+      allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
-            "color": "#1A1917",
-            "fontFamily": "Plus Jakarta Sans",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "lineHeight": 24,
+            "color": "#8A8780",
+            "fontSize": 36,
           },
+          undefined,
           {
-            "color": "#1A1917",
+            "fontFamily": "ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
-          false,
-          {
-            "fontSize": 56,
-          },
+          {},
         ]
       }
     >
-      🥗
+      
     </Text>
     <Text
       style={

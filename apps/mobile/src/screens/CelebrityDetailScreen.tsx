@@ -39,7 +39,11 @@ export function CelebrityDetailScreen({
       </View>
 
       {celeb === undefined ? (
-        <EmptyState glyph="🔍" title="Celebrity not found" body="We couldn't find this profile." />
+        <EmptyState
+          icon="search-outline"
+          title="Celebrity not found"
+          body="We couldn't find this profile."
+        />
       ) : (
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
           <View style={styles.heroSection}>

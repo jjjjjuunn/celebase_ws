@@ -229,7 +229,11 @@ export function MealPlanScreen({
         <Text variant="h1" style={styles.screenTitle}>
           Your Plan
         </Text>
-        <EmptyState glyph="⚠️" title="식단을 불러오지 못했어요" body="잠시 후 다시 시도해주세요." />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="식단을 불러오지 못했어요"
+          body="잠시 후 다시 시도해주세요."
+        />
       </SafeAreaView>
     );
   }
@@ -245,7 +249,7 @@ export function MealPlanScreen({
           Your Plan
         </Text>
         <EmptyState
-          glyph="🥗"
+          icon="leaf-outline"
           title="프로필을 완성하세요"
           body="온보딩을 마치면 무료 식단 크레딧 3개를 드려요. 좋아하는 셀럽의 식단으로 시작해보세요."
           ctaLabel="온보딩하고 크레딧 3개 받기"
