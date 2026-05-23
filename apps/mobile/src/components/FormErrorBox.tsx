@@ -7,14 +7,16 @@ import { StyleSheet, View } from 'react-native';
 import { Text, useTheme, type Theme } from '../ui';
 
 interface FormErrorBoxProps {
-  /** 표시할 메시지. null 이면 박스 자체 미렌더. */
+  /** 표시할 메시지. null 또는 공백 문자열이면 박스 자체 미렌더. */
   message: string | null;
 }
 
 export function FormErrorBox({ message }: FormErrorBoxProps): React.JSX.Element | null {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  if (message === null) return null;
+  // 빈/공백 문자열도 "에러 없음" 으로 취급한다. SocialAuthButtons 가 탭 시 clear 신호로
+  // onError('') 를 보내는데, '' !== null 이라 박스만 비어서 떠버리는 회귀를 막는다.
+  if (message === null || message.trim() === '') return null;
   return (
     <View accessibilityRole="alert" style={styles.container}>
       <Text variant="bodySm" tone="error">
