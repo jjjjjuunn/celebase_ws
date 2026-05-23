@@ -17,7 +17,6 @@ import type { schemas } from '@celebbase/shared-types';
 
 import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
 import { ApiError } from '../lib/api-client';
-import { resolveToken } from '../lib/tokens';
 import { getBioProfile } from '../services/bio-profile';
 import { getBaseDiet, listCelebrities } from '../services/celebrities';
 import { getMealPlanCredits, listMyMealPlans } from '../services/meal-plans';
@@ -174,8 +173,6 @@ export function MealPlanScreen({
   const [reloadCounter, setReloadCounter] = useState(0);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  // TEMP A/B compare — credits card jewel surface. Remove after direction is chosen.
-  const [heroMode, setHeroMode] = useState<HeroMode>('ink');
 
   useEffect(() => {
     let cancelled = false;
@@ -267,19 +264,7 @@ export function MealPlanScreen({
       </Text>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <TouchableOpacity
-          onPress={() => {
-            setHeroMode((m) => HERO_MODES[(HERO_MODES.indexOf(m) + 1) % HERO_MODES.length]);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Cycle credits card theme"
-          style={styles.abToggle}
-        >
-          <Text variant="caption" tone="brand">
-            {`크레딧 카드: ${HERO_LABELS[heroMode]} · 탭하여 전환`}
-          </Text>
-        </TouchableOpacity>
-        <CreditsHeader credits={credits} remaining={remaining} mode={heroMode} />
+        <CreditsHeader credits={credits} remaining={remaining} />
 
         <View style={styles.ctaWrap}>
           {remaining > 0 ? (
@@ -337,62 +322,41 @@ export function MealPlanScreen({
 const EMPTY_PLANS: schemas.MealPlanWire[] = [];
 const EMPTY_MAP: Record<string, string> = {};
 
-type HeroMode = 'ink' | 'espresso' | 'forest' | 'light';
-const HERO_MODES: readonly HeroMode[] = ['ink', 'espresso', 'forest', 'light'];
-const HERO_LABELS: Record<HeroMode, string> = {
-  ink: 'near-black',
-  espresso: '에스프레소',
-  forest: '포레스트 그린',
-  light: '라이트',
-};
-
 interface CreditsHeaderProps {
   credits: schemas.MealPlanCreditsResponse | null;
   remaining: number;
-  /** A/B compare: which warm-dark jewel surface, or 'light'. TEMP toggle. */
-  mode: HeroMode;
 }
 
-function CreditsHeader({ credits, remaining, mode }: CreditsHeaderProps): React.JSX.Element {
+function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const tierLabel = credits?.tier ?? 'free';
   const unlimited = credits !== null && credits.credits_total === null;
   const resetAt = credits?.credits_reset_at ?? null;
 
-  // Dark jewel (ink / espresso / forest) = warm dark surface + gold metric + cream
-  // text. Light = original surface card. Rationed to one card; toggled to compare.
-  const dark = mode !== 'light';
-  const darkBg =
-    mode === 'espresso'
-      ? resolveToken(theme.mode, '--cb-surface-espresso')
-      : mode === 'forest'
-        ? resolveToken(theme.mode, '--cb-surface-forest')
-        : resolveToken(theme.mode, '--cb-surface-ink');
-  const cardStyle = dark ? [styles.creditsCard, { backgroundColor: darkBg }] : styles.creditsCard;
-  const numberColor = dark ? theme.color.gold : theme.color.text;
-  const muted = dark ? styles.onDark : styles.onLightMuted;
-
+  // Dark "ink" feature card (reference Profile/Plan hero cards): the credit
+  // balance is the screen's headline number → ink surface + gold metric + cream
+  // supporting text reads as the premium "wow" moment.
   return (
-    <Card variant="surface" style={cardStyle}>
+    <Card variant="surface" style={[styles.creditsCard, styles.creditsCardDark]}>
       <View style={styles.creditsRow}>
         <Badge label={tierLabel.toUpperCase()} tone="subtle" />
         {unlimited ? (
-          <Text variant="h4" style={{ color: dark ? theme.color.onInk : theme.color.text }}>
+          <Text variant="h4" style={{ color: theme.color.onInk }}>
             무제한
           </Text>
         ) : (
           <View style={styles.creditsCount}>
-            <Text variant="metricLg" style={{ color: numberColor }}>
+            <Text variant="metricLg" style={{ color: theme.color.gold }}>
               {String(remaining)}
             </Text>
-            <Text variant="bodySm" style={[styles.creditsSuffix, muted]}>
+            <Text variant="bodySm" style={[styles.creditsSuffix, styles.onDark]}>
               {`/ ${String(credits?.credits_total ?? 0)} 크레딧`}
             </Text>
           </View>
         )}
       </View>
-      <Text variant="caption" style={muted}>
+      <Text variant="caption" style={styles.onDark}>
         {resetAt !== null ? `다음 리셋: ${resetAt.slice(0, 10)}` : '온보딩 무료 크레딧 (1회성)'}
       </Text>
     </Card>
@@ -553,12 +517,11 @@ function makeStyles(theme: Theme) {
       marginBottom: theme.space(3),
       gap: theme.space(2),
     },
+    creditsCardDark: { backgroundColor: theme.color.ink },
     creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     creditsCount: { flexDirection: 'row', alignItems: 'baseline', gap: theme.space(1) },
     creditsSuffix: { paddingBottom: 2 },
     onDark: { color: theme.color.onInk, opacity: 0.7 },
-    onLightMuted: { color: theme.color.textMuted },
-    abToggle: { alignSelf: 'center', paddingTop: theme.space(3), paddingBottom: theme.space(1) },
     dateStrip: {
       paddingHorizontal: theme.space(4),
       gap: theme.space(2),
