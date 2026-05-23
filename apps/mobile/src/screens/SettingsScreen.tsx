@@ -31,7 +31,13 @@ const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 const _PLAY_SUBSCRIPTIONS_URL = 'https://play.google.com/store/account/subscriptions';
 void _PLAY_SUBSCRIPTIONS_URL;
 
-export function SettingsScreen(): React.JSX.Element {
+interface SettingsScreenProps {
+  /** dev 빌드 전용 — Settings 에서 온보딩 모달을 다시 열기 위한 콜백(root nav 주입).
+   *  미주입(테스트 등) 시 Developer 섹션 자체가 렌더되지 않는다. */
+  onReplayOnboarding?: () => void;
+}
+
+export function SettingsScreen({ onReplayOnboarding }: SettingsScreenProps = {}): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { tier } = useCurrentTier();
@@ -175,6 +181,16 @@ export function SettingsScreen(): React.JSX.Element {
             testID="settings-support"
           />
         </Section>
+
+        {__DEV__ && onReplayOnboarding !== undefined ? (
+          <Section title="Developer">
+            <PressableRow
+              label="Replay onboarding"
+              onPress={onReplayOnboarding}
+              testID="settings-replay-onboarding"
+            />
+          </Section>
+        ) : null}
 
         <View style={styles.signOutSection}>
           <TouchableOpacity
