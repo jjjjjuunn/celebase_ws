@@ -116,7 +116,11 @@ export function SocialAuthButtons({
             ) : (
               <View style={styles.buttonInner}>
                 {isApple ? (
-                  <RNText style={[styles.appleGlyph, { color: labelColor }]}></RNText>
+                  // U+F8FF renders the Apple logo in the system font (SF). Built from a
+                  // charcode (pure ASCII source) so the private-use glyph is never stripped.
+                  <RNText style={[styles.appleGlyph, { color: labelColor }]}>
+                    {String.fromCharCode(0xf8ff)}
+                  </RNText>
                 ) : null}
                 <Text variant="body" style={[styles.buttonText, { color: labelColor }]}>
                   {LABELS[provider]}
@@ -178,8 +182,8 @@ function makeStyles(theme: Theme) {
     },
     buttonDisabled: { opacity: 0.6 },
     buttonText: { fontWeight: theme.weight.semibold },
-    // U+F8FF renders the Apple logo in the system font (iOS). No fontFamily → SF.
-    appleGlyph: { fontSize: 18, marginTop: -2 },
+    // U+F8FF maps to the Apple logo only in the system font (SF) — pin it explicitly.
+    appleGlyph: { fontFamily: 'System', fontSize: 18, marginTop: -2 },
 
   });
 }

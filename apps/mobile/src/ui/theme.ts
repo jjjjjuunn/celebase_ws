@@ -27,6 +27,8 @@ export interface Theme {
     /** Primary action fill (Editorial Luxe ink) + its label color. */
     ink: string;
     onInk: string;
+    /** Bright signature gold (brand-500) — luminous CTA fill paired with dark text. */
+    gold: string;
     error: string;
     skeletonBase: string;
     skeletonShimmer: string;
@@ -130,6 +132,7 @@ function buildTheme(mode: ThemeMode): Theme {
       onBrand: resolveToken(mode, '--cb-color-on-brand'),
       ink: resolveToken(mode, '--cb-color-ink'),
       onInk: resolveToken(mode, '--cb-color-on-ink'),
+      gold: resolveToken(mode, '--cb-brand-500'),
       error: resolveToken(mode, '--cb-color-error'),
       skeletonBase: resolveToken(mode, '--cb-skeleton-base'),
       skeletonShimmer: resolveToken(mode, '--cb-skeleton-shimmer'),

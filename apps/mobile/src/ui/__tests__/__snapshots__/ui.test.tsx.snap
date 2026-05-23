@@ -60,8 +60,8 @@ exports[`design system — dark theme Button fires onPress and renders variants 
           "paddingVertical": 16,
         },
         {
-          "backgroundColor": "#F2F0EB",
-          "borderColor": "#F2F0EB",
+          "backgroundColor": "#E8C870",
+          "borderColor": "#E8C870",
         },
         false,
       ]
@@ -86,7 +86,7 @@ exports[`design system — dark theme Button fires onPress and renders variants 
               "fontWeight": "700",
             },
             {
-              "color": "#1A1917",
+              "color": "#F2F0EB",
             },
           ],
         ]
@@ -416,8 +416,8 @@ exports[`design system — light theme Button fires onPress and renders variants
           "paddingVertical": 16,
         },
         {
-          "backgroundColor": "#1F1A14",
-          "borderColor": "#1F1A14",
+          "backgroundColor": "#C9A84C",
+          "borderColor": "#C9A84C",
         },
         false,
       ]
@@ -442,7 +442,7 @@ exports[`design system — light theme Button fires onPress and renders variants
               "fontWeight": "700",
             },
             {
-              "color": "#FBF8F1",
+              "color": "#1A1917",
             },
           ],
         ]

@@ -57,7 +57,7 @@ export function Button({
         borderWidth: 2,
         alignSelf: fullWidth ? 'stretch' : 'flex-start',
       },
-      primary: { backgroundColor: theme.color.ink, borderColor: theme.color.ink },
+      primary: { backgroundColor: theme.color.gold, borderColor: theme.color.gold },
       secondary: { backgroundColor: theme.color.surface, borderColor: theme.color.brand },
       ghost: { backgroundColor: 'transparent', borderColor: 'transparent' },
       disabled: { opacity: 0.45 },
@@ -71,7 +71,7 @@ export function Button({
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
   };
 
-  const labelColor = variant === 'primary' ? theme.color.onInk : theme.color.brand;
+  const labelColor = variant === 'primary' ? theme.color.text : theme.color.brand;
   const inactive = disabled || loading;
 
   return (
