@@ -11,6 +11,7 @@ import { Animated, FlatList, Pressable, ScrollView, StyleSheet, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getMockCelebritiesByGender, type MockCelebrity } from '../lib/mock-data';
+import { resolveToken } from '../lib/tokens';
 import { monogramIndex, Text, useTheme, type Theme } from '../ui';
 
 interface CelebritiesScreenProps {
@@ -31,8 +32,12 @@ function usePressScale(): { scale: Animated.Value; onPressIn: () => void; onPres
   };
 }
 
-function accentFor(theme: Theme, name: string): string {
-  return theme.accents[monogramIndex(name, theme.accents.length)];
+// Photo placeholder: warm-grey/taupe tile (a desaturated "dimmed portrait" until
+// licensed celebrity photography lands). Deterministic shade per name → stable
+// identity, cohesive monochrome that lets the gold brand read as the only colour.
+const TILE_SHADES = ['--cb-neutral-400', '--cb-neutral-500', '--cb-neutral-600'] as const;
+function tileShade(theme: Theme, name: string): string {
+  return resolveToken(theme.mode, TILE_SHADES[monogramIndex(name, TILE_SHADES.length)]);
 }
 
 function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void }): React.JSX.Element {
@@ -48,7 +53,7 @@ function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void })
         onPress={onPress}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        style={[styles.hero, { backgroundColor: accentFor(theme, celeb.name) }]}
+        style={[styles.hero, { backgroundColor: tileShade(theme, celeb.name) }]}
       >
         <View style={styles.heroScrim} />
         {celeb.hashtags.length > 0 ? (
@@ -90,7 +95,7 @@ function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => voi
         onPressOut={press.onPressOut}
         style={styles.railCard}
       >
-        <View style={[styles.railPanel, { backgroundColor: accentFor(theme, celeb.name) }]}>
+        <View style={[styles.railPanel, { backgroundColor: tileShade(theme, celeb.name) }]}>
           <View style={styles.railScrim} />
           <View style={styles.railTextWrap}>
             <Text
