@@ -61,6 +61,18 @@ export const EnvSchema = z
     APPLE_BUNDLE_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_IDS: z.string().min(1).optional(),
 
+    // Apple token revocation (FEAT-APPLE-REVOKE-001, App Store Guideline 4.8.1).
+    // Needed ONLY to revoke Apple refresh tokens on account deletion. All four
+    // are required together (all-or-nothing guard below) — when unset, the Apple
+    // OAuth client is not constructed and the exchange/revoke steps are skipped
+    // (deletion still soft-deletes; the auth identity path is unaffected, no
+    // silent fallback there). APPLE_PRIVATE_KEY is the PKCS#8 PEM of the
+    // Sign-in-with-Apple .p8 key (literal "\n" escapes are normalized at use).
+    APPLE_TEAM_ID: z.string().min(1).optional(),
+    APPLE_KEY_ID: z.string().min(1).optional(),
+    APPLE_SERVICES_ID: z.string().min(1).optional(),
+    APPLE_PRIVATE_KEY: z.string().min(1).optional(),
+
     // Per-route rate-limit overrides (Plan v5 §58, IMPL-MOBILE-AUTH-002b
     // DECISION §3). Defaults reflect the post-mobile-pivot baseline:
     // signup 3/min (unchanged), login 10/min (5→10 — mobile SRP needs
@@ -153,6 +165,24 @@ export const EnvSchema = z
           path: ['GOOGLE_CLIENT_IDS'],
         });
       }
+    }
+
+    // Apple revocation config is all-or-nothing — a partial set would build a
+    // broken client that throws only at exchange/revoke time. Fail closed at boot.
+    const appleVars = [
+      env.APPLE_TEAM_ID,
+      env.APPLE_KEY_ID,
+      env.APPLE_SERVICES_ID,
+      env.APPLE_PRIVATE_KEY,
+    ];
+    const appleSet = appleVars.filter((v) => v !== undefined && v !== '').length;
+    if (appleSet > 0 && appleSet < appleVars.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_SERVICES_ID, APPLE_PRIVATE_KEY must all be set together (Apple token revocation) or all unset',
+        path: ['APPLE_TEAM_ID'],
+      });
     }
 
     // COGNITO_LIVE_JWKS staging guard

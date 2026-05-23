@@ -11,6 +11,12 @@ export const SignupRequestSchema = z.object({
   email: z.string().email().max(255),
   display_name: z.string().min(1).max(100),
   id_token: z.string().optional(),
+  // Sign in with Apple ONLY — the one-time authorization code from the native
+  // sheet (expo-apple-authentication credential.authorizationCode). user-service
+  // exchanges it with Apple for a refresh_token (stored encrypted) so it can
+  // call Apple's revocation endpoint on account deletion (App Store Guideline
+  // 4.8.1). Absent for email/password + Google. Single-use, short-lived.
+  apple_authorization_code: z.string().optional(),
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
 
@@ -35,6 +41,10 @@ export const LoginRequestSchema = z.object({
   email: z.string().email().max(255).optional(),
   id_token: z.string().optional(),
   provider: AuthProviderKindSchema.optional(),
+  // Sign in with Apple ONLY — one-time authorization code (see SignupRequest).
+  // Apple returns a fresh code on every native sign-in, so the stored refresh
+  // token is refreshed on each Apple login (enables later revocation on delete).
+  apple_authorization_code: z.string().optional(),
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
