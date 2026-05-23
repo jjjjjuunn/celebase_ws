@@ -12,12 +12,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { signalLogout } from '../lib/auth-events';
 import { useCurrentTier } from '../lib/use-current-tier';
 import { signOut } from '../services/auth';
 import { getCurrentUser } from '../services/users';
-import { Text, useTheme, type Theme } from '../ui';
+import { Badge, Text, useTheme, type Theme } from '../ui';
 
 const TERMS_URL = 'https://celebbase.com/terms';
 const PRIVACY_URL = 'https://celebbase.com/privacy';
@@ -120,7 +121,10 @@ export function SettingsScreen(): React.JSX.Element {
         </Section>
 
         <Section title="Subscription">
-          <Row label="Current plan" value={tierLabel(tier)} />
+          <View style={styles.row}>
+            <Text variant="body">Current plan</Text>
+            <Badge label={tierLabel(tier).toUpperCase()} tone={tier === 'free' ? 'subtle' : 'brand'} />
+          </View>
           {tier !== 'free' ? (
             <PressableRow
               label="Manage subscription"
@@ -239,9 +243,7 @@ function PressableRow({
       <Text variant="body" tone={destructive ? 'error' : 'default'}>
         {label}
       </Text>
-      <Text tone="muted" style={styles.chevron}>
-        ›
-      </Text>
+      <Ionicons name="chevron-forward" size={18} color={theme.color.textSubtle} />
     </TouchableOpacity>
   );
 }
@@ -274,7 +276,6 @@ function makeStyles(theme: Theme) {
       borderBottomWidth: 1,
       borderBottomColor: theme.color.border,
     },
-    chevron: { fontSize: 20 },
     signOutSection: { paddingHorizontal: theme.space(4), paddingTop: theme.space(5) },
     signOutButton: {
       paddingVertical: theme.space(4),
