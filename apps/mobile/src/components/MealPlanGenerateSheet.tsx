@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { ZodError } from 'zod';
@@ -126,74 +126,78 @@ export function MealPlanGenerateSheet({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="h1">식단 만들기</Text>
-          <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-            <Ionicons name="close" size={26} color={theme.color.textMuted} />
-          </TouchableOpacity>
-        </View>
-
-        <Text variant="label" tone="muted" style={styles.sectionLabel}>
-          셀럽 선택
-        </Text>
-        <View style={styles.pickerArea}>
-          <CelebrityPicker
-            selectedSlug={selected?.slug}
-            onSelect={(celebrity) => {
-              setSelected(celebrity);
-            }}
-          />
-        </View>
-
-        <View style={styles.footer}>
-          <Text variant="label" tone="muted">
-            기간
-          </Text>
-          <View style={styles.dayRow}>
-            {dayOptions.map((n) => {
-              const isSel = days === n;
-              return (
-                <TouchableOpacity
-                  key={n}
-                  onPress={() => {
-                    setDays(n);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${String(n)}일`}
-                  accessibilityState={{ selected: isSel }}
-                  style={[styles.dayPill, isSel ? styles.dayPillSelected : styles.dayPillUnselected]}
-                >
-                  <Text variant="metricMd" tone={isSel ? 'brand' : 'default'} style={styles.dayPillText}>
-                    {String(n)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+      {/* RN core Modal 은 별도 네이티브 뷰 트리라 루트 SafeAreaProvider 의 inset 이
+          닿지 않는다 → 안에서 다시 provider 를 깔아야 헤더가 상태바 밑으로 내려온다. */}
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <Text variant="h1">식단 만들기</Text>
+            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+              <Ionicons name="close" size={26} color={theme.color.textMuted} />
+            </TouchableOpacity>
           </View>
-          <Text variant="bodySm" tone="muted">
-            {String(days)}일 = {String(days)} 크레딧 사용
+
+          <Text variant="label" tone="muted" style={styles.sectionLabel}>
+            셀럽 선택
           </Text>
-
-          {errorMsg !== null ? (
-            <Text variant="bodySm" tone="error">
-              {errorMsg}
-            </Text>
-          ) : null}
-
-          <View style={styles.generateWrap}>
-            <Button
-              label="생성하기"
-              accessibilityLabel="Generate plan"
-              loading={submitting}
-              disabled={!canSubmit}
-              onPress={() => {
-                void handleGenerate();
+          <View style={styles.pickerArea}>
+            <CelebrityPicker
+              selectedSlug={selected?.slug}
+              onSelect={(celebrity) => {
+                setSelected(celebrity);
               }}
             />
           </View>
-        </View>
-      </SafeAreaView>
+
+          <View style={styles.footer}>
+            <Text variant="label" tone="muted">
+              기간
+            </Text>
+            <View style={styles.dayRow}>
+              {dayOptions.map((n) => {
+                const isSel = days === n;
+                return (
+                  <TouchableOpacity
+                    key={n}
+                    onPress={() => {
+                      setDays(n);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${String(n)}일`}
+                    accessibilityState={{ selected: isSel }}
+                    style={[styles.dayPill, isSel ? styles.dayPillSelected : styles.dayPillUnselected]}
+                  >
+                    <Text variant="metricMd" tone={isSel ? 'brand' : 'default'} style={styles.dayPillText}>
+                      {String(n)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <Text variant="bodySm" tone="muted">
+              {String(days)}일 = {String(days)} 크레딧 사용
+            </Text>
+
+            {errorMsg !== null ? (
+              <Text variant="bodySm" tone="error">
+                {errorMsg}
+              </Text>
+            ) : null}
+
+            <View style={styles.generateWrap}>
+              <Button
+                label="생성하기"
+                accessibilityLabel="Generate plan"
+                loading={submitting}
+                disabled={!canSubmit}
+                onPress={() => {
+                  void handleGenerate();
+                }}
+              />
+            </View>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
