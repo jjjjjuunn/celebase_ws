@@ -46,6 +46,13 @@
   --cb-accent-household:    var(--cb-brand-500);
   --cb-color-on-glp1:       #FFFFFF;   /* white text on Digital Lavender — 7.1:1 */
 
+  /* Dark "feature card" jewel surfaces — warm darks that stay organic (not cold
+     tech-black) so a single dark hero card reads premium without losing wellness.
+     Pair with gold metric + cream text. Rationed to ≤1 card per screen. */
+  --cb-surface-ink:      #1F1A14;   /* warm near-black (espresso-adjacent) */
+  --cb-surface-espresso: #2D2118;   /* dark chocolate / coffee */
+  --cb-surface-forest:   #1F2C23;   /* deep botanical green — green = nature/health */
+
   /* Subscription tiers (DESIGN.md §2.5) */
   --cb-tier-free-bg:       #EEF2F5;  --cb-tier-free-border:    #CBD5DE;  --cb-tier-free-text:    #33414E;
   --cb-tier-premium-bg:    #E8F6F3;  --cb-tier-premium-border: #79C8BB;  --cb-tier-premium-text: #0B5A4F;
@@ -263,6 +270,11 @@
   --cb-brand-500: #E8C870;   /* lightened gold — text/icon on dark bg */
   --cb-brand-600: #D4B35F;   /* CTA bg — dark text (#1A1917) ≥ 4.5:1 */
   --cb-brand-700: #E8C870;   /* alias for accent usage on dark */
+
+  /* Dark jewel surfaces (same warm darks; already dark-mode appropriate). */
+  --cb-surface-ink:      #1F1A14;
+  --cb-surface-espresso: #2D2118;
+  --cb-surface-forest:   #1F2C23;
 
   --cb-success-600: #3ABF6E;  --cb-success-100: rgba(58,191,110,0.14);
   --cb-warning-600: #E2933A;  --cb-warning-100: rgba(226,147,58,0.14);
