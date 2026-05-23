@@ -332,16 +332,22 @@ function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.El
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const tierLabel = credits?.tier ?? 'free';
   const unlimited = credits !== null && credits.credits_total === null;
-  const totalLabel = unlimited
-    ? '무제한'
-    : `${String(remaining)} / ${String(credits?.credits_total ?? 0)}`;
   const resetAt = credits?.credits_reset_at ?? null;
 
   return (
     <Card variant="surface" style={styles.creditsCard}>
       <View style={styles.creditsRow}>
         <Badge label={tierLabel.toUpperCase()} tone="subtle" />
-        <Text variant="h4">{unlimited ? '무제한' : `${totalLabel} 크레딧`}</Text>
+        {unlimited ? (
+          <Text variant="h4">무제한</Text>
+        ) : (
+          <View style={styles.creditsCount}>
+            <Text variant="metricLg">{String(remaining)}</Text>
+            <Text variant="bodySm" tone="muted" style={styles.creditsSuffix}>
+              {`/ ${String(credits?.credits_total ?? 0)} 크레딧`}
+            </Text>
+          </View>
+        )}
       </View>
       <Text variant="caption" tone="muted">
         {resetAt !== null ? `다음 리셋: ${resetAt.slice(0, 10)}` : '온보딩 무료 크레딧 (1회성)'}
@@ -378,7 +384,7 @@ function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.
             accessibilityState={{ selected: isSel }}
             style={[styles.datePill, isSel ? styles.datePillSelected : styles.datePillUnselected]}
           >
-            <Text variant="bodySm" tone={isSel ? 'brand' : 'default'} style={styles.datePillDate}>
+            <Text variant="metricSm" tone={isSel ? 'brand' : 'default'} style={styles.datePillDate}>
               {d.date.slice(5)}
             </Text>
             {d.celebName !== null ? (
@@ -408,7 +414,7 @@ function DayDetail({
         <Text variant="h3" tone="brand">
           {day.celebName ?? 'My Plan'}
         </Text>
-        <Text variant="bodySm" tone="muted">
+        <Text variant="metricSm" tone="muted">
           {day.date}
         </Text>
         <View style={styles.macrosRow}>
@@ -444,9 +450,7 @@ function MacroBox({ label, value }: { label: string; value: string }): React.JSX
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.macroBox}>
-      <Text variant="body" style={styles.macroValue}>
-        {value}
-      </Text>
+      <Text variant="metricMd">{value}</Text>
       <Text variant="caption" tone="muted" style={styles.macroLabel}>
         {label}
       </Text>
@@ -472,8 +476,8 @@ function MealCard({ meal, title }: { meal: DailyMeal; title?: string }): React.J
           {capitalize(meal.meal_type)}
         </Text>
         {typeof kcal === 'number' ? (
-          <Text variant="caption" tone="muted">
-            {String(Math.round(kcal))} kcal
+          <Text variant="metricSm" tone="muted">
+            {`${String(Math.round(kcal))} kcal`}
           </Text>
         ) : null}
       </View>
@@ -507,6 +511,8 @@ function makeStyles(theme: Theme) {
       gap: theme.space(2),
     },
     creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    creditsCount: { flexDirection: 'row', alignItems: 'baseline', gap: theme.space(1) },
+    creditsSuffix: { paddingBottom: 2 },
     dateStrip: {
       paddingHorizontal: theme.space(4),
       gap: theme.space(2),
@@ -542,7 +548,6 @@ function makeStyles(theme: Theme) {
       paddingVertical: theme.space(2),
       alignItems: 'center',
     },
-    macroValue: { fontWeight: '700' },
     macroLabel: { textTransform: 'uppercase', letterSpacing: 0.5 },
     sectionTitle: {
       paddingHorizontal: theme.space(4),

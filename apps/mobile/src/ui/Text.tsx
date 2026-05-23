@@ -4,7 +4,7 @@
 // falls back to the system font — no crash, just no premium face yet.
 
 import { useMemo } from 'react';
-import { StyleSheet, Text as RNText, type TextProps as RNTextProps } from 'react-native';
+import { StyleSheet, Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
 
 import { useTheme } from './ThemeProvider';
 
@@ -18,7 +18,11 @@ export type TextVariant =
   | 'bodyLg'
   | 'bodySm'
   | 'caption'
-  | 'label';
+  | 'label'
+  | 'metricXl'
+  | 'metricLg'
+  | 'metricMd'
+  | 'metricSm';
 
 export type TextTone = 'default' | 'muted' | 'subtle' | 'brand' | 'onBrand' | 'error';
 
@@ -42,6 +46,10 @@ export function Text({
   const { variants, tones } = useMemo(() => {
     const display = { fontFamily: theme.font.display, color: theme.color.text };
     const body = { fontFamily: theme.font.body, color: theme.color.text };
+    // JetBrains Mono numerals — tabular digits keep columns/animated counters from
+    // jittering. Numbers only (kcal, %, credits, dates), never body copy.
+    const tabular = ['tabular-nums'] as TextStyle['fontVariant'];
+    const mono = { fontFamily: theme.font.mono, color: theme.color.text, fontVariant: tabular };
     return {
       variants: StyleSheet.create({
         display: { ...display, fontSize: theme.type.display, fontWeight: theme.weight.bold, lineHeight: theme.type.display * 1.1 },
@@ -60,6 +68,10 @@ export function Text({
           textTransform: 'uppercase',
           letterSpacing: 0.8,
         },
+        metricXl: { ...mono, fontSize: theme.type.metricXl, fontWeight: theme.weight.semibold, lineHeight: theme.type.metricXl, letterSpacing: -0.5 },
+        metricLg: { ...mono, fontSize: theme.type.metricLg, fontWeight: theme.weight.semibold, lineHeight: theme.type.metricLg, letterSpacing: -0.3 },
+        metricMd: { ...mono, fontSize: theme.type.metricMd, fontWeight: theme.weight.medium, lineHeight: theme.type.metricMd * 1.1 },
+        metricSm: { ...mono, fontSize: theme.type.metricSm, fontWeight: theme.weight.medium, lineHeight: theme.type.metricSm * 1.3, letterSpacing: 0.2 },
       }),
       tones: StyleSheet.create({
         default: { color: theme.color.text },

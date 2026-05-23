@@ -165,7 +165,7 @@ export function MealPlanGenerateSheet({
                   accessibilityState={{ selected: isSel }}
                   style={[styles.dayPill, isSel ? styles.dayPillSelected : styles.dayPillUnselected]}
                 >
-                  <Text variant="body" tone={isSel ? 'brand' : 'default'} style={styles.dayPillText}>
+                  <Text variant="metricMd" tone={isSel ? 'brand' : 'default'} style={styles.dayPillText}>
                     {String(n)}
                   </Text>
                 </TouchableOpacity>

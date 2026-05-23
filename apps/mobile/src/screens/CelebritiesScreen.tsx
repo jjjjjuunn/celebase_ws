@@ -1,8 +1,9 @@
 // Celebrities 탭 root — 히어로형(Spotify/Netflix 스타일): 전면 히어로 1개 +
 // 카테고리별(Women/Men) 가로 스와이프 rail. (사용자 선택 2026-05-22.)
 //
-// 셀럽 사진은 라이선스 hold → 디자인 시스템의 결정적 monogram(토큰 accent 팔레트 +
-// Fraunces serif 이니셜) 으로 placeholder 가 아닌 의도된 비주얼. 탭 → CelebrityDetail.
+// 셀럽 사진은 라이선스 hold → 사진 대신 결정적 accent 컬러 블록 타일 + 하단 scrim +
+// Fraunces 이름 오버레이 + 카테고리 칩 (에디토리얼 매거진 커버 — 레퍼런스 CelebTile).
+// 사진 시드 후 컬러 블록 → 풀블리드 이미지로 교체 (backlog). 탭 → CelebrityDetail.
 // 데이터는 mock-data (content-service 실 셀럽 + 풍부 프로필 시드 후 교체 — backlog).
 
 import { useMemo, useRef } from 'react';
@@ -10,7 +11,7 @@ import { Animated, FlatList, Pressable, ScrollView, StyleSheet, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getMockCelebritiesByGender, type MockCelebrity } from '../lib/mock-data';
-import { monogramIndex, monogramInitials, Text, useTheme, type Theme } from '../ui';
+import { monogramIndex, Text, useTheme, type Theme } from '../ui';
 
 interface CelebritiesScreenProps {
   /** 카드/히어로 탭 시 — CelebrityDetail 로 이동. */
@@ -49,17 +50,21 @@ function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void })
         onPressOut={press.onPressOut}
         style={[styles.hero, { backgroundColor: accentFor(theme, celeb.name) }]}
       >
-        <Text style={[styles.heroMonogram, { fontFamily: theme.font.display }]} tone="onBrand">
-          {monogramInitials(celeb.name)}
-        </Text>
         <View style={styles.heroScrim} />
+        {celeb.hashtags.length > 0 ? (
+          <View style={styles.heroChip}>
+            <Text variant="caption" style={[styles.heroChipText, { color: theme.color.onInk }]}>
+              {celeb.hashtags[0].toUpperCase()}
+            </Text>
+          </View>
+        ) : null}
         <View style={styles.heroTextWrap}>
           <Text variant="display" tone="onBrand" style={{ fontFamily: theme.font.display }}>
             {celeb.name}
           </Text>
           <View style={styles.heroTags}>
             {celeb.hashtags.slice(0, 3).map((tag) => (
-              <Text key={tag} variant="caption" tone="onBrand">
+              <Text key={tag} variant="caption" tone="onBrand" style={styles.heroTag}>
                 #{tag}
               </Text>
             ))}
@@ -86,16 +91,21 @@ function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => voi
         style={styles.railCard}
       >
         <View style={[styles.railPanel, { backgroundColor: accentFor(theme, celeb.name) }]}>
-          <Text style={[styles.railMonogram, { fontFamily: theme.font.display }]} tone="onBrand">
-            {monogramInitials(celeb.name)}
-          </Text>
+          <View style={styles.railScrim} />
+          <View style={styles.railTextWrap}>
+            <Text
+              variant="bodySm"
+              tone="onBrand"
+              numberOfLines={1}
+              style={[styles.railName, { fontFamily: theme.font.display }]}
+            >
+              {celeb.name}
+            </Text>
+            <Text variant="caption" tone="onBrand" numberOfLines={1} style={styles.railTag}>
+              #{celeb.hashtags[0]}
+            </Text>
+          </View>
         </View>
-        <Text variant="bodySm" numberOfLines={1} style={styles.railName}>
-          {celeb.name}
-        </Text>
-        <Text variant="caption" tone="muted" numberOfLines={1}>
-          #{celeb.hashtags[0]}
-        </Text>
       </Pressable>
     </Animated.View>
   );
@@ -178,48 +188,65 @@ function makeStyles(theme: Theme) {
       paddingBottom: theme.space(4),
       gap: theme.space(1),
     },
-    // Hero — full-bleed immersive panel.
+    // Hero — full-bleed editorial color block (placeholder for licensed photo).
     hero: {
-      height: 360,
+      height: 380,
       marginHorizontal: theme.space(4),
       borderRadius: theme.radius.xl,
       overflow: 'hidden',
-      justifyContent: 'center',
-      alignItems: 'center',
     },
-    heroMonogram: { fontSize: 132, fontWeight: '700', opacity: 0.92 },
     heroScrim: {
       position: 'absolute',
       left: 0,
       right: 0,
       bottom: 0,
-      height: 150,
+      height: 190,
       backgroundColor: theme.color.text,
-      opacity: 0.32,
+      opacity: 0.42,
     },
+    heroChip: {
+      position: 'absolute',
+      top: theme.space(4),
+      left: theme.space(4),
+      backgroundColor: theme.color.ink,
+      paddingVertical: 5,
+      paddingHorizontal: theme.space(3),
+      borderRadius: theme.radius.pill,
+    },
+    heroChipText: { fontWeight: '600', letterSpacing: 1 },
     heroTextWrap: {
       position: 'absolute',
       left: 0,
       right: 0,
       bottom: 0,
-      padding: theme.space(4),
-      gap: theme.space(1),
+      padding: theme.space(5),
+      gap: theme.space(2),
     },
-    heroTags: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2) },
-    // Rails — horizontal category carousels.
+    heroTags: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(3) },
+    heroTag: { opacity: 0.88 },
+    // Rails — horizontal category carousels of overlaid color tiles.
     rail: { paddingTop: theme.space(5), gap: theme.space(3) },
     railTitle: { paddingHorizontal: theme.space(4) },
     railContent: { paddingHorizontal: theme.space(4), gap: theme.space(3) },
     railCard: { width: 140 },
     railPanel: {
       width: 140,
-      height: 168,
+      height: 180,
       borderRadius: theme.radius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: theme.space(2),
+      overflow: 'hidden',
+      justifyContent: 'flex-end',
     },
-    railMonogram: { fontSize: 56, fontWeight: '700' },
-    railName: { fontWeight: '700' },
+    railScrim: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 96,
+      backgroundColor: theme.color.text,
+      opacity: 0.4,
+    },
+    railTextWrap: { padding: theme.space(3), gap: 2 },
+    railName: { fontSize: 16 },
+    railTag: { opacity: 0.85 },
   });
 }

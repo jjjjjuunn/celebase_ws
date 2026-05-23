@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
 import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans';
+import { JetBrainsMono_600SemiBold } from '@expo-google-fonts/jetbrains-mono';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureCognito } from './src/lib/cognito';
@@ -26,15 +27,17 @@ configureRevenueCat();
 
 export default function App(): React.JSX.Element {
   // Non-blocking font load: register design-token font families (Fraunces serif
-  // display, Plus Jakarta Sans body) under their bare names so theme styles
-  // (fontFamily: 'Fraunces' / 'Plus Jakarta Sans') resolve once loaded. We render
-  // immediately with the system-font fallback and swap in on success — if the
-  // native module is unavailable the catch keeps the app on system fonts (no crash).
+  // display, Plus Jakarta Sans body, JetBrains Mono numerals) under their bare
+  // names so theme styles (fontFamily: 'Fraunces' / 'Plus Jakarta Sans' /
+  // 'JetBrains Mono') resolve once loaded. We render immediately with the
+  // system-font fallback and swap in on success — if the native module is
+  // unavailable the catch keeps the app on system fonts (no crash).
   const [, setFontsReady] = useState(false);
   useEffect(() => {
     Font.loadAsync({
       Fraunces: Fraunces_600SemiBold,
       'Plus Jakarta Sans': PlusJakartaSans_500Medium,
+      'JetBrains Mono': JetBrainsMono_600SemiBold,
     })
       .then(() => {
         setFontsReady(true);

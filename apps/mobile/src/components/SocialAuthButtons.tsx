@@ -9,10 +9,23 @@
 // Apple is listed first per App Store HIG ("Sign in with Apple" prominence).
 // Sign-in uses the NATIVE sheet/picker (expo-apple-authentication /
 // @react-native-google-signin), not Cognito Hosted UI. Apple/Google buttons keep
-// brand-specific colors (not the ui Button primitive) per each provider's HIG.
+// brand-specific colors (not the ui Button primitive) per each provider's HIG:
+//   Apple  — black fill + white Apple logo glyph (U+F8FF, rendered in the system
+//            font so iOS substitutes the real mark) + approved "Continue with" text.
+//   Google — white fill + hairline border + label. (Official 4-colour "G" needs
+//            react-native-svg / an image asset + a native rebuild — deferred so the
+//            JS-only redesign stays reload-safe.)
+// Both share one height (52) + radius so they read as a coherent pair.
 
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  Text as RNText,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { ApiError } from '../lib/api-client';
 import { isAppleConfigured, isGoogleConfigured, type SocialProvider } from '../lib/social-config';
@@ -80,6 +93,7 @@ export function SocialAuthButtons({
 
       {providers.map((provider) => {
         const isApple = provider === 'Apple';
+        const labelColor = isApple ? theme.color.onInk : theme.color.text;
         return (
           <TouchableOpacity
             key={provider}
@@ -98,11 +112,16 @@ export function SocialAuthButtons({
             ]}
           >
             {pending === provider ? (
-              <ActivityIndicator color={isApple ? theme.color.bg : theme.color.text} />
+              <ActivityIndicator color={labelColor} />
             ) : (
-              <Text variant="body" tone={isApple ? 'onBrand' : 'default'} style={styles.buttonText}>
-                {LABELS[provider]}
-              </Text>
+              <View style={styles.buttonInner}>
+                {isApple ? (
+                  <RNText style={[styles.appleGlyph, { color: labelColor }]}></RNText>
+                ) : null}
+                <Text variant="body" style={[styles.buttonText, { color: labelColor }]}>
+                  {LABELS[provider]}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
         );
@@ -144,11 +163,13 @@ function makeStyles(theme: Theme) {
     dividerLine: { flex: 1, height: 1, backgroundColor: theme.color.border },
     dividerText: { marginHorizontal: theme.space(2) },
     button: {
-      paddingVertical: theme.space(3),
-      borderRadius: theme.radius.sm,
+      height: 52,
+      borderRadius: theme.radius.lg,
       alignItems: 'center',
+      justifyContent: 'center',
       marginBottom: theme.space(2),
     },
+    buttonInner: { flexDirection: 'row', alignItems: 'center', gap: theme.space(2) },
     appleButton: { backgroundColor: theme.color.text },
     googleButton: {
       backgroundColor: theme.color.surface,
@@ -157,5 +178,8 @@ function makeStyles(theme: Theme) {
     },
     buttonDisabled: { opacity: 0.6 },
     buttonText: { fontWeight: theme.weight.semibold },
+    // U+F8FF renders the Apple logo in the system font (iOS). No fontFamily → SF.
+    appleGlyph: { fontSize: 18, marginTop: -2 },
+
   });
 }

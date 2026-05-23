@@ -53,10 +53,17 @@ export interface Theme {
     body: number;
     bodySm: number;
     caption: number;
+    /** JetBrains Mono numeral scale (tabular). Numbers only — never body copy. */
+    metricXl: number;
+    metricLg: number;
+    metricMd: number;
+    metricSm: number;
   };
   font: {
     display: string;
     body: string;
+    /** Monospace numerals (JetBrains Mono). Pair with fontVariant tabular-nums. */
+    mono: string;
   };
   weight: {
     regular: TextWeight;
@@ -154,10 +161,15 @@ function buildTheme(mode: ThemeMode): Theme {
       body: num(mode, '--cb-body-md'),
       bodySm: num(mode, '--cb-body-sm'),
       caption: num(mode, '--cb-caption'),
+      metricXl: num(mode, '--cb-metric-xl'),
+      metricLg: num(mode, '--cb-metric-lg'),
+      metricMd: num(mode, '--cb-metric-md'),
+      metricSm: num(mode, '--cb-metric-sm'),
     },
     font: {
       display: firstFamily(resolveToken(mode, '--cb-font-family-display')),
       body: firstFamily(resolveToken(mode, '--cb-font-family-body')),
+      mono: firstFamily(resolveToken(mode, '--cb-font-family-mono')),
     },
     weight: {
       regular: weight(mode, '--cb-font-weight-regular'),
