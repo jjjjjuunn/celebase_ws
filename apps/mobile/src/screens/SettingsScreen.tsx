@@ -17,7 +17,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { signalLogout } from '../lib/auth-events';
 import { useCurrentTier } from '../lib/use-current-tier';
 import { signOut } from '../services/auth';
-import { getCurrentUser } from '../services/users';
+import { deleteAccount, getCurrentUser } from '../services/users';
 import { Badge, Text, useTheme, type Theme } from '../ui';
 
 const TERMS_URL = 'https://celebbase.com/terms';
@@ -36,6 +36,7 @@ export function SettingsScreen(): React.JSX.Element {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { tier } = useCurrentTier();
   const [signingOut, setSigningOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Account email — GET /api/users/me. This screen only renders when signed in
   // (RootNavigator gates auth), so a fetch failure shows "Unavailable", not a
@@ -78,6 +79,27 @@ export function SettingsScreen(): React.JSX.Element {
     ]);
   }
 
+  async function handleDeleteAccount(): Promise<void> {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await deleteAccount();
+    } catch {
+      // 삭제 실패 — 세션 유지 (재시도 가능). 명시적 안내, silent ignore 금지.
+      Alert.alert(
+        "Couldn't delete account",
+        `Please try again, or contact ${SUPPORT_EMAIL} if this keeps happening.`,
+      );
+      setDeleting(false);
+      return;
+    }
+    // 서버에서 deleted_at soft-delete 완료 → 로그인/refresh 차단됨. 로컬 세션 정리 후
+    // Auth 로 복귀. signOut() 은 토큰 폐기 + Amplify signOut(best-effort) — 화면 전환
+    // 자체가 사용자에게 삭제 완료 신호.
+    await signOut();
+    signalLogout('expired_or_missing');
+  }
+
   function confirmDeleteAccount(): void {
     Alert.alert(
       'Delete account',
@@ -87,12 +109,7 @@ export function SettingsScreen(): React.JSX.Element {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'Deletion requested',
-              `Your deletion request has been submitted. Your data will be removed within 7 days. Contact ${SUPPORT_EMAIL} if you have questions.`,
-            );
-          },
+          onPress: () => void handleDeleteAccount(),
         },
       ],
     );
@@ -113,8 +130,9 @@ export function SettingsScreen(): React.JSX.Element {
         <Section title="Account">
           <Row label="Email" value={emailValue} />
           <PressableRow
-            label="Delete account"
+            label={deleting ? 'Deleting…' : 'Delete account'}
             destructive
+            disabled={deleting}
             onPress={confirmDeleteAccount}
             testID="settings-delete-account"
           />
@@ -221,6 +239,7 @@ interface PressableRowProps {
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  disabled?: boolean;
   testID?: string;
 }
 
@@ -228,6 +247,7 @@ function PressableRow({
   label,
   onPress,
   destructive = false,
+  disabled = false,
   testID,
 }: PressableRowProps): React.JSX.Element {
   const theme = useTheme();
@@ -235,10 +255,12 @@ function PressableRow({
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       testID={testID}
-      style={styles.row}
+      style={[styles.row, disabled ? styles.rowDisabled : null]}
     >
       <Text variant="body" tone={destructive ? 'error' : 'default'}>
         {label}
@@ -276,6 +298,7 @@ function makeStyles(theme: Theme) {
       borderBottomWidth: 1,
       borderBottomColor: theme.color.border,
     },
+    rowDisabled: { opacity: 0.5 },
     signOutSection: { paddingHorizontal: theme.space(4), paddingTop: theme.space(5) },
     signOutButton: {
       paddingVertical: theme.space(4),
