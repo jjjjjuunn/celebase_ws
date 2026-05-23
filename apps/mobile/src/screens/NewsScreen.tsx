@@ -7,9 +7,10 @@
 // mock 아티클(src/lib/news-mock.ts) — 카드 탭 시 NewsDetail 로 이동. content-service
 // trend intelligence 연결 시 교체. ui/ primitive 레이어 사용.
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ComponentProps } from 'react';
 import { Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {
   getNewsArticlesByCategory,
@@ -17,15 +18,22 @@ import {
   type NewsArticle,
   type NewsCategory,
 } from '../lib/news-mock';
-import { monogramInitials, Text, useTheme, type Theme } from '../ui';
+import { resolveToken } from '../lib/tokens';
+import { Text, useTheme, type Theme } from '../ui';
 
 interface NewsScreenProps {
   /** 카드 탭 시 — NewsDetail 로 이동. */
   onArticlePress: (id: string) => void;
 }
 
-// category → token accent index (beauty=terracotta, diet=gold, wellness=teal).
-const CATEGORY_ACCENT: Record<NewsCategory, number> = { beauty: 0, diet: 4, wellness: 1 };
+// category → line icon (thumbnail is a neutral taupe placeholder until article
+// imagery lands; the icon signals the category without a muddy colour block).
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
+const CATEGORY_ICON: Record<NewsCategory, IoniconName> = {
+  beauty: 'sparkles-outline',
+  diet: 'nutrition-outline',
+  wellness: 'barbell-outline',
+};
 
 function ArticleCard({
   article,
@@ -37,7 +45,6 @@ function ArticleCard({
   const theme = useTheme();
   const styles = useMemo(() => makeCardStyles(theme), [theme]);
   const scale = useRef(new Animated.Value(1)).current;
-  const thumbColor = theme.accents[CATEGORY_ACCENT[article.category]];
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
@@ -60,14 +67,12 @@ function ArticleCard({
           <Text variant="h4" numberOfLines={3} style={styles.articleTitle}>
             {article.title}
           </Text>
-          <Text variant="caption" tone="muted">
+          <Text variant="metricSm" tone="muted">
             {article.postedAt} · {String(article.readMinutes)} min read
           </Text>
         </View>
-        <View style={[styles.articleThumb, { backgroundColor: thumbColor }]}>
-          <Text style={[styles.thumbInitial, { fontFamily: theme.font.display }]} tone="onBrand">
-            {monogramInitials(article.source)}
-          </Text>
+        <View style={styles.articleThumb}>
+          <Ionicons name={CATEGORY_ICON[article.category]} size={30} color={theme.color.onInk} />
         </View>
       </Pressable>
     </Animated.View>
@@ -169,7 +174,7 @@ function makeCardStyles(theme: Theme) {
       borderRadius: theme.radius.md,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: resolveToken(theme.mode, '--cb-neutral-400'),
     },
-    thumbInitial: { fontSize: 28, fontWeight: '700' },
   });
 }
