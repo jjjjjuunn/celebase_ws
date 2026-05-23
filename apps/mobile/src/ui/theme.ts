@@ -24,6 +24,9 @@ export interface Theme {
     brandBg: string;
     brandSubtle: string;
     onBrand: string;
+    /** Primary action fill (Editorial Luxe ink) + its label color. */
+    ink: string;
+    onInk: string;
     error: string;
     skeletonBase: string;
     skeletonShimmer: string;
@@ -118,6 +121,8 @@ function buildTheme(mode: ThemeMode): Theme {
       brandBg: resolveToken(mode, '--cb-color-brand-bg'),
       brandSubtle: resolveToken(mode, '--cb-color-brand-subtle'),
       onBrand: resolveToken(mode, '--cb-color-on-brand'),
+      ink: resolveToken(mode, '--cb-color-ink'),
+      onInk: resolveToken(mode, '--cb-color-on-ink'),
       error: resolveToken(mode, '--cb-color-error'),
       skeletonBase: resolveToken(mode, '--cb-skeleton-base'),
       skeletonShimmer: resolveToken(mode, '--cb-skeleton-shimmer'),

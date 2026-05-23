@@ -60,8 +60,8 @@ exports[`design system — dark theme Button fires onPress and renders variants 
           "paddingVertical": 16,
         },
         {
-          "backgroundColor": "#E8C870",
-          "borderColor": "#E8C870",
+          "backgroundColor": "#F2F0EB",
+          "borderColor": "#F2F0EB",
         },
         false,
       ]
@@ -78,12 +78,17 @@ exports[`design system — dark theme Button fires onPress and renders variants 
             "lineHeight": 24,
           },
           {
-            "color": "#1A1917",
+            "color": "#F2F0EB",
           },
           false,
-          {
-            "fontWeight": "700",
-          },
+          [
+            {
+              "fontWeight": "700",
+            },
+            {
+              "color": "#1A1917",
+            },
+          ],
         ]
       }
     >
@@ -411,8 +416,8 @@ exports[`design system — light theme Button fires onPress and renders variants
           "paddingVertical": 16,
         },
         {
-          "backgroundColor": "#6B5420",
-          "borderColor": "#6B5420",
+          "backgroundColor": "#1F1A14",
+          "borderColor": "#1F1A14",
         },
         false,
       ]
@@ -429,12 +434,17 @@ exports[`design system — light theme Button fires onPress and renders variants
             "lineHeight": 24,
           },
           {
-            "color": "#FAFAF8",
+            "color": "#1A1917",
           },
           false,
-          {
-            "fontWeight": "700",
-          },
+          [
+            {
+              "fontWeight": "700",
+            },
+            {
+              "color": "#FBF8F1",
+            },
+          ],
         ]
       }
     >
@@ -477,7 +487,7 @@ exports[`design system — light theme Card / Badge / Skeleton / EmptyState rend
           "paddingVertical": 4,
         },
         {
-          "backgroundColor": "#6B5420",
+          "backgroundColor": "#7C5A14",
         },
       ]
     }
@@ -690,7 +700,7 @@ exports[`design system — light theme Text renders all variants 1`] = `
           "textTransform": "uppercase",
         },
         {
-          "color": "#6B5420",
+          "color": "#7C5A14",
         },
         false,
         undefined,

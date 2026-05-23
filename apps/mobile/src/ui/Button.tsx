@@ -57,7 +57,7 @@ export function Button({
         borderWidth: 2,
         alignSelf: fullWidth ? 'stretch' : 'flex-start',
       },
-      primary: { backgroundColor: theme.color.brand, borderColor: theme.color.brand },
+      primary: { backgroundColor: theme.color.ink, borderColor: theme.color.ink },
       secondary: { backgroundColor: theme.color.surface, borderColor: theme.color.brand },
       ghost: { backgroundColor: 'transparent', borderColor: 'transparent' },
       disabled: { opacity: 0.45 },
@@ -71,7 +71,7 @@ export function Button({
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
   };
 
-  const tone = variant === 'primary' ? 'onBrand' : 'brand';
+  const labelColor = variant === 'primary' ? theme.color.onInk : theme.color.brand;
   const inactive = disabled || loading;
 
   return (
@@ -88,9 +88,9 @@ export function Button({
         style={[styles.base, styles[variant], inactive && styles.disabled]}
       >
         {loading ? (
-          <ActivityIndicator color={variant === 'primary' ? theme.color.onBrand : theme.color.brand} />
+          <ActivityIndicator color={labelColor} />
         ) : (
-          <Text variant="body" tone={tone} style={boldText}>
+          <Text variant="body" style={[boldText, { color: labelColor }]}>
             {label}
           </Text>
         )}
