@@ -35,6 +35,59 @@ const CATEGORY_ICON: Record<NewsCategory, IoniconName> = {
   wellness: 'barbell-outline',
 };
 
+// 피드 최상단 기사 = 에디토리얼 히어로. 큰 이미지 블록(이미지 라이선스 hold →
+// 토프 placeholder + 카테고리 라인 아이콘) 위, 그 아래 brand kicker + 큰 Fraunces
+// 헤드라인 + dek(본문 첫 문단) + 모노 메타. 셀럽 풀블리드 타일과 같은 에디토리얼 언어.
+function HeroCard({
+  article,
+  onPress,
+}: {
+  article: NewsArticle;
+  onPress: () => void;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeHeroStyles(theme), [theme]);
+  const scale = useRef(new Animated.Value(1)).current;
+  const dek = article.body[0] ?? '';
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={article.title}
+        onPress={onPress}
+        onPressIn={() => {
+          Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 50 }).start();
+        }}
+        onPressOut={() => {
+          Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
+        }}
+        style={styles.heroCard}
+      >
+        <View style={styles.heroImage}>
+          <Ionicons name={CATEGORY_ICON[article.category]} size={52} color={theme.color.onInk} />
+        </View>
+        <View style={styles.heroBody}>
+          <Text variant="label" tone="brand">
+            {article.source}
+          </Text>
+          <Text variant="h2" numberOfLines={3} style={styles.heroTitle}>
+            {article.title}
+          </Text>
+          {dek !== '' ? (
+            <Text variant="bodySm" tone="muted" numberOfLines={2}>
+              {dek}
+            </Text>
+          ) : null}
+          <Text variant="metricSm" tone="muted">
+            {article.postedAt} · {String(article.readMinutes)} min read
+          </Text>
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 function ArticleCard({
   article,
   onPress,
@@ -85,6 +138,9 @@ export function NewsScreen({ onArticlePress }: NewsScreenProps): React.JSX.Eleme
   const [category, setCategory] = useState<NewsCategory>('beauty');
 
   const data = useMemo(() => getNewsArticlesByCategory(category), [category]);
+  // 에디토리얼 레이아웃: 첫 기사는 히어로, 나머지는 리스트 행.
+  const hero = data[0];
+  const rest = useMemo(() => data.slice(1), [data]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -117,10 +173,22 @@ export function NewsScreen({ onArticlePress }: NewsScreenProps): React.JSX.Eleme
       </View>
 
       <FlatList
-        data={data}
+        data={rest}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          data.length > 0 ? (
+            <View style={styles.heroWrap}>
+              <HeroCard
+                article={hero}
+                onPress={() => {
+                  onArticlePress(hero.id);
+                }}
+              />
+            </View>
+          ) : null
+        }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => (
           <ArticleCard
@@ -160,6 +228,29 @@ function makeScreenStyles(theme: Theme) {
     chipInactive: { backgroundColor: theme.color.surface },
     listContent: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(8) },
     separator: { height: 1, backgroundColor: theme.color.border, marginVertical: theme.space(4) },
+    // 히어로와 첫 리스트 행 사이를 list separator 와 같은 리듬(1px line + 상하 여백)으로.
+    heroWrap: {
+      paddingBottom: theme.space(4),
+      marginBottom: theme.space(4),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.color.border,
+    },
+  });
+}
+
+function makeHeroStyles(theme: Theme) {
+  return StyleSheet.create({
+    heroCard: { gap: theme.space(3) },
+    heroImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: theme.radius.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: resolveToken(theme.mode, '--cb-neutral-500'),
+    },
+    heroBody: { gap: theme.space(2) },
+    heroTitle: { letterSpacing: -0.3 },
   });
 }
 
