@@ -6,10 +6,13 @@ import {
   ValidationError,
   UnauthorizedError,
   SocialProviderNotConfiguredError,
+  type PhiKeyProvider,
 } from '@celebbase/service-core';
 import type { AuthProvider } from '../services/auth.service.js';
 import * as authService from '../services/auth.service.js';
 import * as refreshTokenRepo from '../repositories/refresh-token.repository.js';
+import type { AppleOAuthClient } from '../services/apple-oauth.js';
+import { storeAppleRefreshToken } from '../services/apple-token-store.js';
 import { emitAuthLog, hashId } from '../lib/auth-log.js';
 
 const SignupSchema = z.object({
@@ -27,6 +30,9 @@ const LoginSchema = z.object({
   // (Cognito in prod, dev stub locally). 'apple' / 'google' → the matching
   // native social verifier, or SOCIAL_PROVIDER_NOT_CONFIGURED if unwired.
   provider: z.enum(['cognito', 'apple', 'google']).optional(),
+  // Apple ONLY — one-time authorization code (FEAT-APPLE-REVOKE-001). Exchanged
+  // for a refresh_token (stored encrypted) so deletion can revoke it.
+  apple_authorization_code: z.string().optional(),
 });
 
 const RefreshSchema = z.object({
@@ -68,9 +74,13 @@ export async function authRoutes(
     // keys fail closed via SOCIAL_PROVIDER_NOT_CONFIGURED (no fallback).
     socialProviders?: Partial<Record<'apple' | 'google', AuthProvider>>;
     rateLimits?: Partial<AuthRateLimits>;
+    // FEAT-APPLE-REVOKE-001 — when both present, a successful Apple login with an
+    // apple_authorization_code exchanges + stores the refresh_token (best-effort).
+    appleOAuth?: AppleOAuthClient | null;
+    phiKeyProvider?: PhiKeyProvider;
   },
 ): Promise<void> {
-  const { pool, authProvider } = options;
+  const { pool, authProvider, appleOAuth, phiKeyProvider } = options;
   const socialProviders = options.socialProviders ?? {};
   const rateLimits: AuthRateLimits = {
     ...DEFAULT_RATE_LIMITS,
@@ -150,6 +160,24 @@ export async function authRoutes(
         provider: parsed.data.provider ?? 'cognito',
         requestId: request.id,
       });
+      // FEAT-APPLE-REVOKE-001 — capture the Apple refresh_token for later
+      // revocation. Best-effort + audited; never blocks the login response.
+      if (
+        parsed.data.provider === 'apple' &&
+        parsed.data.apple_authorization_code &&
+        appleOAuth &&
+        phiKeyProvider
+      ) {
+        await storeAppleRefreshToken({
+          pool,
+          userId: result.user.id,
+          authorizationCode: parsed.data.apple_authorization_code,
+          appleOAuth,
+          keyProvider: phiKeyProvider,
+          log: request.log,
+          requestId: request.id,
+        });
+      }
       return result;
     },
   );

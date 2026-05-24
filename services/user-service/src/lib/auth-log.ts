@@ -92,6 +92,21 @@ export interface ProviderCollisionFields {
   requestId: string;
 }
 
+// FEAT-APPLE-REVOKE-001 — Apple token lifecycle audit (App Store Guideline
+// 4.8.1). Outcome enums are the compliance/forensic signal that we ATTEMPTED
+// the exchange/revoke; never carries the authorization code or refresh token.
+export interface AppleTokenStoredFields {
+  user_id_hash: string;
+  outcome: 'exchanged' | 'exchange_failed';
+  requestId: string;
+}
+
+export interface AppleTokenRevokedFields {
+  user_id_hash: string;
+  outcome: 'revoked' | 'revoke_failed' | 'no_token_stored';
+  requestId: string;
+}
+
 export interface AuthLogFieldMap {
   'auth.cognito.verify': CognitoVerifyFields;
   'auth.internal_token.issued': InternalTokenIssuedFields;
@@ -102,6 +117,8 @@ export interface AuthLogFieldMap {
   'auth.refresh.rotated': RefreshRotatedFields;
   'auth.refresh.expired_or_missing': RefreshExpiredOrMissingFields;
   'auth.token.reuse_detected': TokenReuseDetectedFields;
+  'auth.apple.token_stored': AppleTokenStoredFields;
+  'auth.apple.token_revoked': AppleTokenRevokedFields;
 }
 
 export type AuthLogEventName = keyof AuthLogFieldMap;

@@ -19,6 +19,7 @@ import {
   GoogleAuthProvider,
   parseGoogleClientIds,
 } from './services/social-auth.provider.js';
+import { appleOAuthConfigFromEnv, createAppleOAuthClient } from './services/apple-oauth.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -115,10 +116,20 @@ const start = async (): Promise<void> => {
     app.log.info('Social provider: google (native)');
   }
 
+  // Apple token revocation client (FEAT-APPLE-REVOKE-001). Null unless the
+  // APPLE_TEAM_ID/KEY_ID/PRIVATE_KEY trio + APPLE_BUNDLE_ID are all set (env.ts
+  // boot guard). When null, exchange/revoke are skipped (deletion soft-deletes).
+  const appleOAuth = createAppleOAuthClient(appleOAuthConfigFromEnv(env));
+  if (appleOAuth) {
+    app.log.info('Apple token revocation: enabled');
+  }
+
   await app.register(authRoutes, {
     pool,
     authProvider,
     socialProviders,
+    appleOAuth,
+    phiKeyProvider,
     rateLimits: {
       signup: env.AUTH_RATE_LIMIT_SIGNUP,
       login: env.AUTH_RATE_LIMIT_LOGIN,
@@ -127,7 +138,7 @@ const start = async (): Promise<void> => {
     },
   });
 
-  await app.register(userRoutes, { pool });
+  await app.register(userRoutes, { pool, appleOAuth, phiKeyProvider });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(internalRoutes, { pool });

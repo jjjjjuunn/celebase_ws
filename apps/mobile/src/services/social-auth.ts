@@ -54,11 +54,17 @@ async function exchangeAndStore(
   idToken: string,
   provider: 'apple' | 'google',
   email: string | undefined,
+  appleAuthorizationCode?: string,
 ): Promise<schemas.AuthTokens> {
   const body: schemas.LoginRequest = {
     id_token: idToken,
     provider,
     ...(email !== undefined && email !== '' ? { email } : {}),
+    // Apple only — lets user-service exchange it for a refresh_token so account
+    // deletion can revoke it at Apple (App Store 4.8.1).
+    ...(appleAuthorizationCode !== undefined && appleAuthorizationCode !== ''
+      ? { apple_authorization_code: appleAuthorizationCode }
+      : {}),
   };
   const tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/login', body);
   if (tokens.access_token === '' || tokens.refresh_token === '') {
@@ -112,7 +118,10 @@ export async function signInWithApple(): Promise<schemas.AuthTokens> {
   // Apple returns `email` only on the FIRST authorization; on re-sign-in it is
   // null and user-service resolves the user by the token `sub`.
   const email = credential.email ?? undefined;
-  return exchangeAndStore(idToken, 'apple', email);
+  // authorizationCode (one-time) lets user-service capture an Apple refresh_token
+  // for later revocation on account deletion. null is tolerated (revoke off).
+  const authorizationCode = credential.authorizationCode ?? undefined;
+  return exchangeAndStore(idToken, 'apple', email, authorizationCode);
 }
 
 /**
