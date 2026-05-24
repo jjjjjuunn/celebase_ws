@@ -25,11 +25,19 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { Text, useTheme, type Theme } from '../ui';
 
 const ITEM_HEIGHT = 48;
 const DEFAULT_VISIBLE_COUNT = 5; // odd → a true center row
+
+// Light "tick" as each value crosses the selection line — the tactile signature
+// of a native wheel. Fire-and-forget; no-ops on the simulator / if the native
+// module isn't linked yet (non-critical feedback, never block the UI).
+function tickHaptic(): void {
+  void Haptics.selectionAsync().catch(() => undefined);
+}
 
 export interface DrumPickerProps {
   /** Inclusive lower bound. */
@@ -96,6 +104,29 @@ export function DrumPicker({
   const scrollY = useRef(new Animated.Value(activeIndex * ITEM_HEIGHT)).current;
   const scrollRef = useRef<ScrollView>(null);
   const lastEmitted = useRef<number | undefined>(value);
+  // Initial scroll offset, captured ONCE. `contentOffset` must NOT track `value`
+  // reactively: a value change mid-fling (or any re-render) would re-apply the
+  // prop and yank the wheel back to that row, fighting the user's scroll. Initial
+  // positioning is set here; later external changes go through the sync effect.
+  const initialOffset = useRef(activeIndex * ITEM_HEIGHT).current;
+  // Last row index that fired a haptic — so we tick once per item crossed.
+  const hapticIndex = useRef(activeIndex);
+
+  // Haptic tick per item as the wheel scrolls past the selection line. The
+  // native-driven scrollY still notifies JS listeners; we debounce to integer
+  // index changes so it's one tick per value, not per frame.
+  useEffect(() => {
+    const id = scrollY.addListener(({ value: y }) => {
+      const idx = Math.round(y / ITEM_HEIGHT);
+      if (idx !== hapticIndex.current) {
+        hapticIndex.current = idx;
+        tickHaptic();
+      }
+    });
+    return () => {
+      scrollY.removeListener(id);
+    };
+  }, [scrollY]);
 
   // Resolve to a concrete value once on mount so the wheel is never "empty".
   // Mount-only by design; external changes are handled by the controlled-sync
@@ -137,8 +168,18 @@ export function DrumPicker({
     }
   }
 
+  // Emit on momentum end — by then snapToInterval has settled the offset on an
+  // exact item boundary, so the rounded index is the truly-centered value.
   function handleSettle(e: NativeSyntheticEvent<NativeScrollEvent>): void {
     emitForOffset(e.nativeEvent.contentOffset.y);
+  }
+
+  // Drag release with ~no velocity won't produce a momentum phase (so
+  // onMomentumScrollEnd never fires) — emit here. With velocity, defer to the
+  // momentum handler; emitting the mid-fling offset would pick a wrong value.
+  function handleScrollEndDrag(e: NativeSyntheticEvent<NativeScrollEvent>): void {
+    const velocityY = e.nativeEvent.velocity?.y ?? 0;
+    if (Math.abs(velocityY) < 0.05) emitForOffset(e.nativeEvent.contentOffset.y);
   }
 
   function adjust(direction: 1 | -1): void {
@@ -147,7 +188,9 @@ export function DrumPicker({
     const next = items[nextIdx];
     if (next !== value) {
       lastEmitted.current = next;
+      hapticIndex.current = nextIdx;
       onChange(next);
+      tickHaptic();
       scrollRef.current?.scrollTo({ y: nextIdx * ITEM_HEIGHT, animated: true });
     }
   }
@@ -174,13 +217,13 @@ export function DrumPicker({
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
         scrollEventThrottle={16}
-        contentOffset={{ x: 0, y: activeIndex * ITEM_HEIGHT }}
+        contentOffset={{ x: 0, y: initialOffset }}
         contentContainerStyle={{ paddingVertical: pad }}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: true,
         })}
         onMomentumScrollEnd={handleSettle}
-        onScrollEndDrag={handleSettle}
+        onScrollEndDrag={handleScrollEndDrag}
       >
         {items.map((v, index) => {
           const inputRange = [
