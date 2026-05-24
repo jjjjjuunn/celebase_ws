@@ -12,7 +12,9 @@ jest.unstable_mockModule('../../src/repositories/bio-profile.repository.js', () 
   upsert: mockUpsert,
 }));
 
-const { getBioProfile, recalculate } = await import('../../src/services/bio-profile.service.js');
+const { getBioProfile, recalculate, createOrUpdateBioProfile } = await import(
+  '../../src/services/bio-profile.service.js'
+);
 const { NotFoundError } = await import('@celebbase/service-core');
 
 const mockPool = {} as pg.Pool;
@@ -272,6 +274,57 @@ describe('bioProfileService P1-B — BMR dispatch (Mifflin / Katch-McArdle, IMPL
     await recalculate(mockPool, 'user-1', mockKeyProvider);
     const call = mockUpdateCalculated.mock.calls.at(-1) as [unknown, unknown, { bmr_kcal: number }, unknown];
     expect(call[2].bmr_kcal).toBe(1800);
+  });
+});
+
+describe('bioProfileService.createOrUpdateBioProfile — allergen normalization (CHORE-ALLERGEN-VOCAB-001)', () => {
+  function expectUpsertAllergies(): { allergies?: string[]; intolerances?: string[] } {
+    const call = mockUpsert.mock.calls.at(-1) as [unknown, unknown, { allergies?: string[]; intolerances?: string[] }, unknown];
+    return call[2];
+  }
+
+  it('maps legacy labels to canonical recipe-tag tokens at the write path', async () => {
+    mockUpsert.mockResolvedValueOnce(baseProfile);
+    mockFindByUserId.mockResolvedValueOnce(baseProfile); // for recalculate
+    mockUpdateCalculated.mockResolvedValueOnce(baseProfile);
+
+    await createOrUpdateBioProfile(
+      mockPool,
+      'user-1',
+      { allergies: ['Milk', 'Wheat (gluten)', 'Peanuts'], intolerances: ['Dairy'] },
+      mockKeyProvider,
+    );
+
+    const data = expectUpsertAllergies();
+    expect(data.allergies).toEqual(['dairy', 'gluten', 'wheat', 'peanuts']);
+    expect(data.intolerances).toEqual(['dairy']);
+  });
+
+  it('preserves unknown custom entries (trimmed) and de-dupes', async () => {
+    mockUpsert.mockResolvedValueOnce(baseProfile);
+    mockFindByUserId.mockResolvedValueOnce(baseProfile);
+    mockUpdateCalculated.mockResolvedValueOnce(baseProfile);
+
+    await createOrUpdateBioProfile(
+      mockPool,
+      'user-1',
+      { allergies: ['  Mango  ', 'gluten', 'wheat'] },
+      mockKeyProvider,
+    );
+
+    expect(expectUpsertAllergies().allergies).toEqual(['Mango', 'gluten', 'wheat']);
+  });
+
+  it('leaves allergies untouched (undefined) on a partial PATCH that omits them', async () => {
+    mockUpsert.mockResolvedValueOnce(baseProfile);
+    mockFindByUserId.mockResolvedValueOnce(baseProfile);
+    mockUpdateCalculated.mockResolvedValueOnce(baseProfile);
+
+    await createOrUpdateBioProfile(mockPool, 'user-1', { weight_kg: 80 }, mockKeyProvider);
+
+    const data = expectUpsertAllergies();
+    expect(data.allergies).toBeUndefined();
+    expect(data.intolerances).toBeUndefined();
   });
 });
 

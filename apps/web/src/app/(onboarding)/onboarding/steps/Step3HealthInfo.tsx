@@ -3,22 +3,18 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { Input, Chip } from '@celebbase/ui-kit';
+import { CANONICAL_ALLERGENS } from '@celebbase/shared-types';
 import type { WizardStep3 } from '../wizard-schema.js';
 import styles from './steps.module.css';
 
 const PHI_DISCLAIMER =
   'This information is for personalizing your meal plan only. It is never shared, sold, or used for any purpose other than generating your recommendations.';
 
-const ALLERGY_OPTIONS = [
-  'Tree nuts',
-  'Peanuts',
-  'Shellfish',
-  'Dairy',
-  'Wheat / gluten',
-  'Eggs',
-  'Fish',
-  'Soy',
-] as const;
+// Curated allergen chips come from the shared canonical vocabulary
+// (CHORE-ALLERGEN-VOCAB-001), aligning web with mobile. The user-service
+// bio-profile write path normalizes these labels to recipe-tag tokens so the
+// meal-plan engine's allergen filter actually matches them.
+const ALLERGY_OPTIONS: ReadonlyArray<string> = CANONICAL_ALLERGENS.map((a) => a.label);
 const INTOLERANCE_OPTIONS = [
   'Lactose',
   'Gluten sensitivity',

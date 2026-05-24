@@ -1,4 +1,5 @@
 export * from './enums.js';
+export * from './allergens.js';
 export * from './enums/citation.js';
 export * from './api/common.js';
 export * from './jsonb/index.js';

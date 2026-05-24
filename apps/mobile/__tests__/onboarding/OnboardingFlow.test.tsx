@@ -155,7 +155,8 @@ describe('<OnboardingFlow /> one-question flow', () => {
     // Data minimization: medical_conditions never collected; GLP-1 'No' → no meds.
     expect(body.medical_conditions).toEqual([]);
     expect(body.medications).toEqual([]);
-    expect(body.allergies).toEqual(['Peanuts']);
+    // Allergy chips now emit canonical recipe-tag tokens, not display labels.
+    expect(body.allergies).toEqual(['peanuts']);
     expect(body.sex).toBe('male');
     expect(body.birth_year).toBe(1995);
     expect(body.activity_level).toBe('moderate');

@@ -29,6 +29,34 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-24
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: CHORE-ALLERGEN-VOCAB-001
+commit_sha: f8d4e08
+files_changed:
+  - packages/shared-types/src/allergens.ts
+  - packages/shared-types/src/allergens.test.ts
+  - packages/shared-types/src/index.ts
+  - packages/shared-types/package.json
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_pipeline_allergens.py
+  - services/user-service/src/services/bio-profile.service.ts
+  - services/user-service/tests/unit/bio-profile.service.test.ts
+  - db/migrations/0024_normalize_bio_profile_allergies.sql
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+  - apps/web/src/app/(onboarding)/onboarding/steps/Step3HealthInfo.tsx
+verified_by: claude-opus-4-7 + advisor (pytest 18, jest mobile 188 / user-service 203, tsx --test 4, tsc/eslint/ruff)
+---
+### 완료: 알레르겐 필터링 정합성 — bio_profile 배선 + canonical 어휘 + 서버 정규화 (CHORE-ALLERGEN-VOCAB-001)
+- **Layer 0 (핵심 안전 버그)**: `pipeline.py` 의 allergen filter 가 `preferences.allergies`(모바일 생성 요청엔 비어있음)에서만 읽고 `bio_profile.allergies`(온보딩 저장소)는 필터에 전달 안 됨 → **모바일 생성 plan 의 알레르겐 필터링이 완전히 no-op**(`phi_minimizer "allergen_filter"` task 가 dead code 였음). 수정: `minimize_profile(bio_profile, "allergen_filter")` 로 bio_profile 에서 source + preferences 와 union(`_union_lists`, 순서보존·dedup). fail-closed `llm_safety` gate 도 동일 `user_allergies` 받음 (`llm_reranker.py:328`).
+- **Layer 1 (어휘 불일치)**: 온보딩 칩이 label(`Milk`, `Wheat (gluten)`)을 emit → 레시피 allergen 태그(`dairy`,`wheat`,`gluten`, `ingredients.allergens` 유래)와 exact `.lower()` match 실패 → silent fail. 수정: `shared-types/allergens.ts` 의 `CANONICAL_ALLERGENS` (id/label/tags, gluten→[gluten,wheat]) 단일 SoT. 모바일/웹 칩이 토큰 emit.
+- **서버 정규화 (Fork B)**: `normalizeAllergies()` 를 user-service bio-profile write path(`createOrUpdateBioProfile`, POST+PATCH 공통)에 적용 → 앱 업데이트 지연·웹·직접 API 입력 무관하게 저장값 canonical 보장. unknown custom 입력은 보존(trim). 마이그레이션 `0024` 로 기존 row 백필(DISTINCT idempotent, 비암호화 TEXT[]).
+- **양방향 drift-guard**(`allergens.test.ts`, `tsx --test`): canonical.tags ⊆ seed 태그 (dead filter 방지) **AND** seed ⊆ canonical (DB mistag fail-open 방지). + id/label uniqueness + normalizeAllergies 케이스.
+- **검증**: pytest 18(engine), jest 188(mobile)/203(user-service), tsx --test 4(shared-types), tsc/eslint/ruff 0. 배포 순서: shared-types build → user-service(0024 백필) → engine — 백필이 엔진 read 전 선행(CD 가 migration→image 순).
+### 미완료: custom-allergy autocomplete 입력(원 요청, 후속), `_ingredients.json` 재료→allergen 커버리지 감사(CHORE-ALLERGEN-COVERAGE-002), intolerances(FODMAP/MSG/Caffeine 무태그 = best-effort, 기존 동작 유지). 웹 edit 재방문 시 토큰-라벨 round-trip pre-select 는 frozen web 미해결(서버 저장은 정상).
+### 연관 파일: packages/shared-types/src/allergens.ts, services/meal-plan-engine/src/engine/pipeline.py, services/user-service/src/services/bio-profile.service.ts, db/migrations/0024_normalize_bio_profile_allergies.sql
+
+---
+date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: IMPL-MOBILE-ONBOARDING-V2-001
 commit_sha: 8d5a022

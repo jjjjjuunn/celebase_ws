@@ -66,6 +66,25 @@ _logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
+def _union_lists(*sources: Any) -> list[str]:
+    """Union string lists from multiple sources, preserving order, de-duplicated.
+
+    Used to merge a user's stored bio_profile allergies/intolerances with any
+    legacy values carried in meal_plans.preferences (CHORE-ALLERGEN-VOCAB-001).
+    Non-list / non-str entries are ignored defensively.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for source in sources:
+        if not isinstance(source, list):
+            continue
+        for item in source:
+            if isinstance(item, str) and item not in seen:
+                seen.add(item)
+                out.append(item)
+    return out
+
+
 async def _emit(
     on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str, Any]
 ) -> None:  # noqa: D401
@@ -187,8 +206,19 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     )
 
     # --- 1b. Allergen filter ---------------------------------------------
-    user_allergies = preferences.get("allergies", [])
-    user_intolerances = preferences.get("intolerances", [])
+    # CHORE-ALLERGEN-VOCAB-001: source allergies from the stored bio_profile (the
+    # canonical, server-normalized truth) via the phi_minimizer "allergen_filter"
+    # task, unioned with any legacy preferences.allergies. Previously only
+    # preferences.allergies was read — empty for mobile-generated plans — so the
+    # filter (and the fail-closed llm_safety gate) were a no-op. The filter
+    # lowercases + set-intersects, so duplicates across the two sources are safe.
+    prof_allergen = phi_minimizer.minimize_profile(bio_profile, "allergen_filter")
+    user_allergies = _union_lists(
+        prof_allergen.get("allergies"), preferences.get("allergies")
+    )
+    user_intolerances = _union_lists(
+        prof_allergen.get("intolerances"), preferences.get("intolerances")
+    )
     draft_recipes = filter_allergens(
         base_diet.get("recipes", []), user_allergies, user_intolerances, candidate_pool
     )  # type: ignore[arg-type]
@@ -314,7 +344,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
                 persona_id=llm_context.get("persona_id", ""),
                 plan_id=plan_id,
                 user_id_hash=llm_context.get("user_id_hash", ""),
-                user_allergies=user_allergies,
+                # The LLM reranker may swap in any recipe from candidate_pool
+                # (Gate 2 only checks pool membership, not intolerance-safety), so
+                # the fail-closed allergen gate must enforce the SAME blocked set
+                # filter_allergens used — allergies AND intolerances. A gate
+                # violation falls back to the (already-filtered) varied_plan, so
+                # this only adds safety; it never hard-fails generation.
+                user_allergies=_union_lists(user_allergies, user_intolerances),
                 redis_client=redis_client,
             )
         except Exception:  # noqa: BLE001
