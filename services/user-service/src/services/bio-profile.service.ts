@@ -1,5 +1,6 @@
 import type pg from 'pg';
 import type { BioProfile, MacroTargets } from '@celebbase/shared-types';
+import { normalizeAllergies } from '@celebbase/shared-types';
 import { NotFoundError } from '@celebbase/service-core';
 import type { PhiKeyProvider } from '@celebbase/service-core';
 import * as bioProfileRepo from '../repositories/bio-profile.repository.js';
@@ -90,7 +91,19 @@ export async function createOrUpdateBioProfile(
   data: Parameters<typeof bioProfileRepo.upsert>[2],
   keyProvider: PhiKeyProvider,
 ): Promise<BioProfile> {
-  await bioProfileRepo.upsert(pool, userId, data, keyProvider);
+  // Authoritative allergen normalization (CHORE-ALLERGEN-VOCAB-001): map any
+  // label/legacy/synonym to canonical recipe-tag tokens at the write path so the
+  // stored value always matches the engine's allergen filter, regardless of
+  // client version or input surface. Only touch fields actually present (PATCH
+  // is a partial merge — undefined fields must stay unset, not be cleared).
+  const normalized: typeof data = {
+    ...data,
+    ...(data.allergies !== undefined ? { allergies: normalizeAllergies(data.allergies) } : {}),
+    ...(data.intolerances !== undefined
+      ? { intolerances: normalizeAllergies(data.intolerances) }
+      : {}),
+  };
+  await bioProfileRepo.upsert(pool, userId, normalized, keyProvider);
   return recalculate(pool, userId, keyProvider);
 }
 

@@ -13,9 +13,12 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src/",
-    "test": "echo 'no tests yet'"
+    "test": "tsx --test src/allergens.test.ts"
   },
   "dependencies": {
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
   }
 }

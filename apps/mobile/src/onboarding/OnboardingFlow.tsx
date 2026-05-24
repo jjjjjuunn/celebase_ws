@@ -11,7 +11,15 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
-import type { ActivityLevel, DietType, PrimaryGoal, Sex, schemas } from '@celebbase/shared-types';
+import type {
+  ActivityLevel,
+  CanonicalAllergen,
+  DietType,
+  PrimaryGoal,
+  Sex,
+  schemas,
+} from '@celebbase/shared-types';
+import { CANONICAL_ALLERGENS } from '@celebbase/shared-types';
 
 import { DrumPicker } from '../components/DrumPicker';
 import { OptionChips, type ChipOption } from '../components/OptionChips';
@@ -48,17 +56,10 @@ const ACTIVITY_OPTIONS: ReadonlyArray<{ value: ActivityLevel; label: string; des
   { value: 'very_active', label: 'Very active', desc: 'Intense daily training or physical labor' },
 ];
 
-const COMMON_ALLERGIES: ReadonlyArray<string> = [
-  'Peanuts',
-  'Tree nuts',
-  'Milk',
-  'Eggs',
-  'Wheat (gluten)',
-  'Soy',
-  'Shellfish',
-  'Fish',
-];
-
+// Allergy chips emit canonical recipe-tag TOKENS (CHORE-ALLERGEN-VOCAB-001), not
+// display labels — so the stored allergies actually match the engine's allergen
+// filter. Each chip toggles its whole `tags` set (e.g. "Wheat / gluten" →
+// ['gluten','wheat']) into draft.allergies.
 const GLP1_OPTIONS: ReadonlyArray<ChipOption<'yes' | 'no'>> = [
   { value: 'no', label: 'No' },
   { value: 'yes', label: 'Yes, I take one' },
@@ -104,10 +105,25 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
   function patch(p: Partial<OnboardingDraft>): void {
     setDraft((d) => ({ ...d, ...p }));
   }
-  function toggleInArray(key: 'allergies' | 'secondary_goals', value: string): void {
+  function toggleInArray(key: 'secondary_goals', value: string): void {
     setDraft((d) => {
       const arr = d[key];
       return { ...d, [key]: arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value] };
+    });
+  }
+
+  // An allergen chip is selected when ALL of its tags are present; toggling
+  // adds or removes the whole tag set (draft.allergies stores canonical tokens).
+  function isAllergenSelected(a: CanonicalAllergen): boolean {
+    return a.tags.every((t) => draft.allergies.includes(t));
+  }
+  function toggleAllergen(a: CanonicalAllergen): void {
+    setDraft((d) => {
+      const selected = a.tags.every((t) => d.allergies.includes(t));
+      const allergies = selected
+        ? d.allergies.filter((t) => !a.tags.includes(t))
+        : [...d.allergies, ...a.tags.filter((t) => !d.allergies.includes(t))];
+      return { ...d, allergies };
     });
   }
 
@@ -328,10 +344,11 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
           subtitle="We'll never include these in your plans. Skip if none."
         >
           <OptionChips
-            options={COMMON_ALLERGIES.map((a) => ({ value: a, label: a }))}
-            selected={draft.allergies}
-            onToggle={(v) => {
-              toggleInArray('allergies', v);
+            options={CANONICAL_ALLERGENS.map((a) => ({ value: a.id, label: a.label }))}
+            selected={CANONICAL_ALLERGENS.filter(isAllergenSelected).map((a) => a.id)}
+            onToggle={(id) => {
+              const allergen = CANONICAL_ALLERGENS.find((a) => a.id === id);
+              if (allergen !== undefined) toggleAllergen(allergen);
             }}
           />
         </OnboardingScaffold>

@@ -66,6 +66,25 @@ _logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
+def _union_lists(*sources: Any) -> list[str]:
+    """Union string lists from multiple sources, preserving order, de-duplicated.
+
+    Used to merge a user's stored bio_profile allergies/intolerances with any
+    legacy values carried in meal_plans.preferences (CHORE-ALLERGEN-VOCAB-001).
+    Non-list / non-str entries are ignored defensively.
+    """
+    out: list[str] = []
+    seen: set[str] = set()
+    for source in sources:
+        if not isinstance(source, list):
+            continue
+        for item in source:
+            if isinstance(item, str) and item not in seen:
+                seen.add(item)
+                out.append(item)
+    return out
+
+
 async def _emit(
     on_progress: Callable[[Dict[str, Any]], None], payload: Dict[str, Any]
 ) -> None:  # noqa: D401
@@ -187,8 +206,19 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     )
 
     # --- 1b. Allergen filter ---------------------------------------------
-    user_allergies = preferences.get("allergies", [])
-    user_intolerances = preferences.get("intolerances", [])
+    # CHORE-ALLERGEN-VOCAB-001: source allergies from the stored bio_profile (the
+    # canonical, server-normalized truth) via the phi_minimizer "allergen_filter"
+    # task, unioned with any legacy preferences.allergies. Previously only
+    # preferences.allergies was read — empty for mobile-generated plans — so the
+    # filter (and the fail-closed llm_safety gate) were a no-op. The filter
+    # lowercases + set-intersects, so duplicates across the two sources are safe.
+    prof_allergen = phi_minimizer.minimize_profile(bio_profile, "allergen_filter")
+    user_allergies = _union_lists(
+        prof_allergen.get("allergies"), preferences.get("allergies")
+    )
+    user_intolerances = _union_lists(
+        prof_allergen.get("intolerances"), preferences.get("intolerances")
+    )
     draft_recipes = filter_allergens(
         base_diet.get("recipes", []), user_allergies, user_intolerances, candidate_pool
     )  # type: ignore[arg-type]
