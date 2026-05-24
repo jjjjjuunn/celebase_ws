@@ -7433,3 +7433,68 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; 전체 187 tests PA
 - **Review tier**: L2 (단일 클라이언트, presentation 한정, 계약/PHI/스키마 무변경, 기계적 + 187 tests 회귀 가드).
 ### 미완료: ⚠️ 실기 시각 확인(PR 리뷰 — 작성자 시각검증 불가). 다크모드 실제 출시(FOLLOW_SYSTEM flip + 다크 QA). 셀럽/뉴스 mock → content-service 실데이터(별개 content 시드 작업). a11y/VoiceOver 패스 + 화면별 loading/empty/error 전수 커버 + 모션 안무(L2 폴리시). `record-log-sha.sh`.
 ### 연관 파일: apps/mobile/src/ui/**, apps/mobile/src/screens/**, apps/mobile/src/components/**, apps/mobile/src/onboarding/**, apps/mobile/src/navigation/**, apps/mobile/DESIGN.md, packages/design-tokens/scripts/build.ts
+
+---
+date: 2026-05-24
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: IMPL-MOBILE-EDITORIAL-LUXE-001
+commit_sha: 522783f
+files_changed:
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/ui/Text.tsx
+  - apps/mobile/src/ui/Button.tsx
+  - apps/mobile/src/ui/EmptyState.tsx
+  - apps/mobile/src/components/SocialAuthButtons.tsx
+  - apps/mobile/src/components/FormErrorBox.tsx
+  - apps/mobile/src/components/MealPlanGenerateSheet.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/screens/SettingsScreen.tsx
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+  - apps/mobile/src/screens/PaywallScreen.tsx
+  - apps/mobile/src/services/users.ts
+  - apps/mobile/src/navigation/SettingsNavigator.tsx
+  - apps/mobile/App.tsx
+  - packages/design-tokens/tokens.css
+verified_by: claude-opus-4-7 (mobile typecheck + lint(max-warnings 0) clean; 193 tests PASS; 번들 HTTP 200; ⚠️ 실기 시각 QA 는 PR 리뷰)
+---
+### 완료: "Editorial Luxe" 모바일 UI 개편 + QA 버그픽스 (IMPL-MOBILE-EDITORIAL-LUXE-001)
+- **에디토리얼 언어 전 표면 적용**: 웹사이트 밝은 골드(brand-500) primary 버튼 + ink 텍스트; JetBrains Mono tabular 숫자(크레딧/매크로/날짜/가격); Lucide-식 라인 아이콘(@expo/vector-icons Ionicons)으로 chrome 이모지 대체(탭바·EmptyState·Settings chevron·온보딩/시트 글리프); 풀블리드 토프 셀럽 타일; 절제된 다크 "ink" 주얼 카드(≤1/화면); News 에디토리얼 히어로 카드.
+- **QA 버그픽스**: (1) 소셜 버튼 빈 빨간 박스 — FormErrorBox 가 clear 신호('')를 빈 박스로 렌더 → 공백 미렌더(Login/Signup 동시). (2) 계정 삭제 placeholder → 실제 DELETE /api/users/me + 삭제 후 로그아웃. (3) 식단 생성 시트 상단 잘림 — RN Modal 내 SafeAreaProvider 재래핑. (4) 메트릭 모노 숫자 클리핑 — lineHeight headroom.
+- **dev 전용 Replay onboarding**: __DEV__ 빌드 Settings 에 온보딩 모달 재오픈 행(삭제 없이 온보딩 확인). saveBioProfile 은 upsert(ON CONFLICT user_id)라 재제출 안전.
+- **테스트**: FormErrorBox(신규)/SettingsScreen(삭제 정상·실패 경로) 포함 mobile 193 PASS, 스냅샷 6, 번들 200.
+- **Review tier**: L2 (단일 클라이언트 presentation; 계약/PHI/스키마 무변경; raw hex 0 게이트 유지).
+- **spec.md 무영향**: 순수 presentation — 제품 동작/계약 변경 없음(sign-off).
+### 미완료: ⚠️ 실기 시각 QA(PR 리뷰 — 작성자 시각검증 불가). 공식 4색 Google 로고(react-native-svg + 네이티브 리빌드 필요 — deferred). content 실데이터(셀럽/뉴스 mock). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/ui/**, apps/mobile/src/screens/**, apps/mobile/src/components/**, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/App.tsx, packages/design-tokens/tokens.css
+
+---
+date: 2026-05-24
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: FEAT-APPLE-REVOKE-001
+commit_sha: d2575ff
+files_changed:
+  - db/migrations/0023_users_apple_refresh_token.sql
+  - services/user-service/src/services/apple-oauth.ts
+  - services/user-service/src/services/apple-token-store.ts
+  - services/user-service/src/services/user.service.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/routes/user.routes.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/lib/auth-log.ts
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - packages/shared-types/src/schemas/auth.ts
+  - packages/service-core/src/logger.ts
+  - apps/mobile/src/services/social-auth.ts
+verified_by: claude-opus-4-7 + advisor (user-svc 200 tests; apple-oauth 10 + apple-token-store 5; BFF mobile-auth 7; ⚠️ staging Apple 실기 E2E 는 배포 후)
+---
+### 완료: Sign in with Apple 토큰 revocation on 계정 삭제 (App Store 4.8.1) (FEAT-APPLE-REVOKE-001)
+- **배경**: Apple Guideline 4.8.1 — Sign in with Apple 제공 앱은 계정 삭제 시 Apple 토큰 revoke 의무. 클라이언트 revoke API 부재(expo-apple-authentication) → 서버측 appleid.apple.com/auth/revoke.
+- **흐름**: signInWithApple credential.authorizationCode 캡처(mobile) → BFF LoginRequestSchema forward → user-service Apple /auth/token 교환 → refresh_token AES-256(per-user DEK) 암호화 저장(users.apple_refresh_token_enc, migration 0023) → DELETE /users/me 시 복호화 → /auth/revoke → soft-delete.
+- **apple-oauth.ts**: ES256 client_secret JWT(5분 TTL, 호출마다; kid/iss/sub/aud), exchange + revoke, sanitized 에러(code/secret/token 미누출), 미설정 시 null. client_id = 앱 Bundle ID(네이티브 SiwA).
+- **best-effort + 감사**: store/revoke 는 throw 안 함(로그인/삭제 미차단), emitAuthLog outcome enum(exchanged/exchange_failed/revoked/revoke_failed/no_token_stored). exchange 실패 시 기존 토큰 no-clobber.
+- **보안**: env all-or-nothing boot 가드(trio + BUNDLE_ID); apple_authorization_code + apple_refresh_token_enc pino redact 추가.
+- **테스트**: apple-oauth 10(throwaway ES256 키로 client_secret claims 검증) + apple-token-store 5(실 AES 라운드트립 + mocked repo + injected client). user-svc 전체 200 PASS.
+- **Review tier**: L3 (인증/시크릿/PHI 키) — advisor 2-pass + Claude self-review. #163 으로 editorial 에 머지.
+### 미완료: ⚠️ staging 배포(migration 0023 먼저) 후 Apple 실기 E2E(로그인→삭제→Apple ID 앱 사라짐 + token_revoked outcome=revoked 로그). 감사로그 retention(CloudWatch). login-store/delete-revoke 결선 통합테스트. spec.md §9.3 Apple-revoke 단계 patch(drift). record-log-sha.sh.
+### 연관 파일: services/user-service/src/services/apple-oauth.ts, services/user-service/src/services/apple-token-store.ts, db/migrations/0023_users_apple_refresh_token.sql, services/user-service/src/routes/**, packages/shared-types/src/schemas/auth.ts, packages/service-core/src/logger.ts, apps/mobile/src/services/social-auth.ts
