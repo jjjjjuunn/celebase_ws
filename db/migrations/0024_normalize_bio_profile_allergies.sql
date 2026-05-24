@@ -37,7 +37,7 @@ SET allergies = (
         WHEN lower(trim(elem)) IN ('milk', 'milk / dairy', 'dairy') THEN ARRAY['dairy']
         WHEN lower(trim(elem)) IN ('wheat (gluten)', 'wheat / gluten', 'wheat', 'gluten') THEN ARRAY['gluten', 'wheat']
         WHEN lower(trim(elem)) = 'peanuts' THEN ARRAY['peanuts']
-        WHEN lower(trim(elem)) = 'tree nuts' THEN ARRAY['tree nuts']
+        WHEN lower(trim(elem)) IN ('tree nuts', 'tree_nuts') THEN ARRAY['tree nuts']
         WHEN lower(trim(elem)) = 'eggs' THEN ARRAY['eggs']
         WHEN lower(trim(elem)) = 'soy' THEN ARRAY['soy']
         WHEN lower(trim(elem)) = 'shellfish' THEN ARRAY['shellfish']
@@ -46,6 +46,7 @@ SET allergies = (
         ELSE ARRAY[trim(elem)]
       END
     ) AS canonical
+    ORDER BY canonical
   )
 )
 WHERE allergies IS NOT NULL AND array_length(allergies, 1) > 0;
@@ -60,7 +61,7 @@ SET intolerances = (
         WHEN lower(trim(elem)) IN ('milk', 'milk / dairy', 'dairy') THEN ARRAY['dairy']
         WHEN lower(trim(elem)) IN ('wheat (gluten)', 'wheat / gluten', 'wheat', 'gluten') THEN ARRAY['gluten', 'wheat']
         WHEN lower(trim(elem)) = 'peanuts' THEN ARRAY['peanuts']
-        WHEN lower(trim(elem)) = 'tree nuts' THEN ARRAY['tree nuts']
+        WHEN lower(trim(elem)) IN ('tree nuts', 'tree_nuts') THEN ARRAY['tree nuts']
         WHEN lower(trim(elem)) = 'eggs' THEN ARRAY['eggs']
         WHEN lower(trim(elem)) = 'soy' THEN ARRAY['soy']
         WHEN lower(trim(elem)) = 'shellfish' THEN ARRAY['shellfish']
@@ -69,6 +70,7 @@ SET intolerances = (
         ELSE ARRAY[trim(elem)]
       END
     ) AS canonical
+    ORDER BY canonical
   )
 )
 WHERE intolerances IS NOT NULL AND array_length(intolerances, 1) > 0;
