@@ -11,26 +11,13 @@ import { OnboardingFlow } from '../../src/onboarding/OnboardingFlow';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
 import { ThemeProvider } from '../../src/ui';
 
-// Steps now consume useTheme() — every render must be inside ThemeProvider.
+// Onboarding v2 — linear one-question-per-screen flow (IMPL-MOBILE-ONBOARDING-V2-001).
+// Pickers (birth year / height / weight) resolve to their default on mount, so a
+// picker screen advances via Continue without simulating a scroll gesture.
+
 function renderScreen(ui: ReactElement): ReturnType<typeof render> {
   return render(<ThemeProvider>{ui}</ThemeProvider>);
 }
-
-const CELEB = {
-  id: '018d1a6a-0000-7000-8000-000000000040',
-  slug: 'beyonce',
-  display_name: 'Beyoncé',
-  short_bio: null,
-  avatar_url: 'https://example.com/avatar.jpg',
-  cover_image_url: null,
-  category: 'diet' as const,
-  tags: [],
-  is_featured: true,
-  sort_order: 1,
-  is_active: true,
-  created_at: '2026-04-15T00:00:00.000Z',
-  updated_at: '2026-04-15T00:00:00.000Z',
-};
 
 function makeResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -39,29 +26,83 @@ function makeResponse(status: number, body: unknown): Response {
   });
 }
 
-function mockCelebrities(fetchSpy: jest.SpyInstance): void {
-  fetchSpy.mockResolvedValueOnce(
-    makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
-  );
-}
+// Schema-valid bio-profile response (saveBioProfile parses with Zod — a partial
+// stub would throw a ZodError and surface as a generic "Network error").
+const BIO_PROFILE_OK = {
+  bio_profile: {
+    id: '01927000-0000-7000-8000-aaaaaaaaaaaa',
+    user_id: '01927000-0000-7000-8000-bbbbbbbbbbbb',
+    birth_year: 1995,
+    sex: 'male',
+    height_cm: 172.7,
+    weight_kg: 68,
+    waist_cm: null,
+    body_fat_pct: null,
+    activity_level: 'moderate',
+    sleep_hours_avg: null,
+    stress_level: null,
+    allergies: ['Peanuts'],
+    intolerances: [],
+    medical_conditions: [],
+    medications: [],
+    biomarkers: {},
+    primary_goal: 'weight_loss',
+    secondary_goals: [],
+    exercise_sessions: [],
+    goal_pace: 'moderate',
+    diet_type: null,
+    cuisine_preferences: [],
+    disliked_ingredients: [],
+    bmr_kcal: 1500,
+    tdee_kcal: 2100,
+    target_kcal: 1800,
+    macro_targets: { protein_g: 130, carbs_g: 200, fat_g: 55 },
+    version: 1,
+    created_at: '2026-05-24T00:00:00.000Z',
+    updated_at: '2026-05-24T00:00:00.000Z',
+  },
+};
 
-// S2 → S5 진입까지 진행. happy path 테스트의 공용 도구.
-// Imperial 단위 (5'7" ≈ 170cm, 143 lb ≈ 65kg).
-function advanceThroughS2toS4(): void {
-  fireEvent.press(screen.getByLabelText('Select Beyoncé'));
-  // S2 → S3
-  fireEvent.press(screen.getByLabelText('Continue'));
+// Walk name → … → prefs(Finish) → reveal. `glp1Label` selects the GLP-1 answer.
+async function advanceToReveal(glp1Label: 'No' | 'Yes, I take one' = 'No'): Promise<void> {
+  // 0 — name
   fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
-  fireEvent.changeText(screen.getByLabelText('Birth year'), '1995');
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 1 — birth year (drum default 1995)
+  await screen.findByText('When were you born?');
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 2 — sex
+  await screen.findByText("What's your sex?");
   fireEvent.press(screen.getByLabelText('Male'));
   fireEvent.press(screen.getByLabelText('Continue'));
-  fireEvent.changeText(screen.getByLabelText('Height in feet'), '5');
-  fireEvent.changeText(screen.getByLabelText('Height in inches'), '7');
-  fireEvent.changeText(screen.getByLabelText('Weight in pounds'), '143');
+  // 3 — height (drums default 5'8")
+  await screen.findByText('How tall are you?');
   fireEvent.press(screen.getByLabelText('Continue'));
+  // 4 — weight (drum default 150 lb)
+  await screen.findByText("What's your weight?");
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 5 — activity
+  await screen.findByText('How active are you?');
+  fireEvent.press(screen.getByLabelText('Moderate'));
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 6 — allergies (optional; pick one)
+  await screen.findByText('Any allergies?');
+  fireEvent.press(screen.getByLabelText('Peanuts'));
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 7 — GLP-1
+  await screen.findByText('GLP-1 medication?');
+  fireEvent.press(screen.getByLabelText(glp1Label));
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 8 — primary goal
+  await screen.findByText("What's your main goal?");
+  fireEvent.press(screen.getByLabelText('Weight loss'));
+  fireEvent.press(screen.getByLabelText('Continue'));
+  // 9 — preferences (optional) → Finish
+  await screen.findByText('Any preferences?');
+  fireEvent.press(screen.getByLabelText('Finish'));
 }
 
-describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
+describe('<OnboardingFlow /> one-question flow', () => {
   let fetchSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -76,237 +117,87 @@ describe('<OnboardingFlow /> S2~S4 기본 흐름', () => {
     fetchSpy.mockRestore();
   });
 
-  it('S2 셀럽 그리드 로드 → 카드 노출', async () => {
-    mockCelebrities(fetchSpy);
-
+  it('renders the first step (name)', () => {
     renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-
-    expect(await screen.findByLabelText('Select Beyoncé')).toBeTruthy();
+    expect(screen.getByText('What should we call you?')).toBeTruthy();
+    expect(screen.getByLabelText('Name')).toBeTruthy();
   });
 
-  it('S2~S4 통과 → S5 (활동량 화면) 렌더', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-
-    advanceThroughS2toS4();
-
-    expect(await screen.findByText('Activity & health')).toBeTruthy();
-  });
-
-  it('S3 빈 이름 → validation 에러, 진행 안 함', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    expect(screen.getByText('Please enter your name.')).toBeTruthy();
-  });
-
-  it('S4 키 범위 밖 → validation 에러', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-    fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
-    fireEvent.changeText(screen.getByLabelText('Birth year'), '1995');
-    fireEvent.press(screen.getByLabelText('Female'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    // 2 ft = out of range (must be 3-8 ft)
-    fireEvent.changeText(screen.getByLabelText('Height in feet'), '2');
-    fireEvent.changeText(screen.getByLabelText('Height in inches'), '0');
-    fireEvent.changeText(screen.getByLabelText('Weight in pounds'), '143');
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    expect(screen.getByText(/3 and 8 feet/i)).toBeTruthy();
-  });
-
-  it('✕ Close → onClose 콜백', async () => {
-    mockCelebrities(fetchSpy);
+  it('✕ Close → onClose', () => {
     const onClose = jest.fn();
-
     renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={onClose} />);
-    await screen.findByLabelText('Select Beyoncé');
-
     fireEvent.press(screen.getByLabelText('Close'));
-
     expect(onClose).toHaveBeenCalledTimes(1);
   });
-});
 
-describe('<OnboardingFlow /> S5~S7 PHI + 최종 POST', () => {
-  let fetchSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    __resetPendingRefresh();
-    process.env['EXPO_PUBLIC_BFF_BASE_URL'] = 'http://localhost:3000';
-    process.env['EXPO_PUBLIC_USER_SERVICE_URL'] = 'http://localhost:3001';
-    fetchSpy = jest.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    fetchSpy.mockRestore();
-  });
-
-  it('S5 Health Disclaimer 노출 (accessibility role="alert")', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-    advanceThroughS2toS4();
-    await screen.findByText('Activity & health');
-
-    expect(screen.getByLabelText('Health disclaimer')).toBeTruthy();
-    expect(screen.getByText(/educational purposes only/i)).toBeTruthy();
-  });
-
-  it('S5 activity_level 미선택 → validation 에러', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-    advanceThroughS2toS4();
-    await screen.findByText('Activity & health');
-
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    expect(screen.getByText('Please select your activity level.')).toBeTruthy();
-  });
-
-  it('S6 primary_goal 미선택 → validation 에러', async () => {
-    mockCelebrities(fetchSpy);
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-    advanceThroughS2toS4();
-    await screen.findByText('Activity & health');
-    fireEvent.press(screen.getByLabelText('Moderate'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    await screen.findByText('Goals & diet');
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    expect(screen.getByText('Please choose your primary goal.')).toBeTruthy();
-  });
-
-  it('S2→S7 happy path: PHI 포함 단일 POST + onDone', async () => {
-    const bioProfileBody = {
-      bio_profile: {
-        id: '01927000-0000-7000-8000-aaaaaaaaaaaa',
-        user_id: '01927000-0000-7000-8000-bbbbbbbbbbbb',
-        birth_year: 1995,
-        sex: 'male',
-        height_cm: 170,
-        weight_kg: 65,
-        waist_cm: null,
-        body_fat_pct: null,
-        activity_level: 'moderate',
-        sleep_hours_avg: null,
-        stress_level: null,
-        allergies: ['땅콩'],
-        intolerances: [],
-        medical_conditions: ['고혈압'],
-        medications: ['아스피린'],
-        biomarkers: {},
-        primary_goal: 'weight_loss',
-        secondary_goals: [],
-        exercise_sessions: [],
-        goal_pace: 'moderate',
-        diet_type: null,
-        cuisine_preferences: [],
-        disliked_ingredients: [],
-        bmr_kcal: 1500,
-        tdee_kcal: 2100,
-        target_kcal: 1800,
-        macro_targets: { protein_g: 130, carbs_g: 200, fat_g: 55 },
-        version: 1,
-        created_at: '2026-05-12T00:00:00.000Z',
-        updated_at: '2026-05-12T00:00:00.000Z',
-      },
-    };
-
-    // URL pattern 별 응답 매칭 (mockResolvedValueOnce chaining 대신, 순서/횟수 무관).
-    fetchSpy.mockImplementation((url: string) => {
-      if (typeof url === 'string' && url.includes('/api/celebrities')) {
-        return Promise.resolve(
-          makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
-        );
-      }
-      if (typeof url === 'string' && url.includes('/api/users/me/bio-profile')) {
-        return Promise.resolve(makeResponse(201, bioProfileBody));
-      }
-      return Promise.reject(new Error(`Unmocked fetch: ${url}`));
-    });
-
+  it('happy path → single bio-profile POST (data-min) + onDone', async () => {
+    fetchSpy.mockImplementation((url: unknown) =>
+      typeof url === 'string' && url.includes('/api/users/me/bio-profile')
+        ? Promise.resolve(makeResponse(201, BIO_PROFILE_OK))
+        : Promise.reject(new Error(`Unmocked fetch: ${String(url)}`)),
+    );
     const onDone = jest.fn();
 
     renderScreen(<OnboardingFlow onDone={onDone} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-    advanceThroughS2toS4();
+    await advanceToReveal();
 
-    // S5
-    await screen.findByText('Activity & health');
-    fireEvent.press(screen.getByLabelText('Moderate'));
-    fireEvent.press(screen.getByLabelText('Peanuts'));
-    fireEvent.changeText(screen.getByLabelText('Medical conditions'), 'hypertension');
-    fireEvent.changeText(screen.getByLabelText('Medications'), 'aspirin');
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    // S6
-    await screen.findByText('Goals & diet');
-    fireEvent.press(screen.getByLabelText('Weight loss'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-
-    // S7 — saveBioProfile POST 호출 후 success → onDone
-    await screen.findByText("You're all set!");
-    fireEvent.press(screen.getByLabelText('Go to home'));
-
+    await screen.findByText(/You're all set/);
+    fireEvent.press(screen.getByLabelText('Enter Celebase'));
     expect(onDone).toHaveBeenCalledTimes(1);
 
-    // POST body 검증: PHI 필드 (medical_conditions, medications) 포함, S2 의 persona slug 미포함.
     const calls = fetchSpy.mock.calls as Array<[string, RequestInit]>;
     const postCall = calls.find(
-      ([url, init]) =>
-        url.endsWith('/api/users/me/bio-profile') && init.method === 'POST',
+      ([url, init]) => url.endsWith('/api/users/me/bio-profile') && init.method === 'POST',
     );
     expect(postCall).toBeDefined();
     if (postCall === undefined) return;
-    const init = postCall[1];
-    const body = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(body.medical_conditions).toEqual(['hypertension']);
-    expect(body.medications).toEqual(['aspirin']);
+    const body = JSON.parse(postCall[1].body as string) as Record<string, unknown>;
+    // Data minimization: medical_conditions never collected; GLP-1 'No' → no meds.
+    expect(body.medical_conditions).toEqual([]);
+    expect(body.medications).toEqual([]);
     expect(body.allergies).toEqual(['Peanuts']);
+    expect(body.sex).toBe('male');
+    expect(body.birth_year).toBe(1995);
     expect(body.activity_level).toBe('moderate');
     expect(body.primary_goal).toBe('weight_loss');
-    // 5'7" → 170.18 cm; 143 lb → 64.9 kg. round-tripped via lib/units.
-    expect(body.height_cm).toBe(170.2);
-    expect(body.weight_kg).toBe(64.9);
-    // persona slug 는 bio-profile body 에 절대 포함되지 않아야 한다 (별도 endpoint).
+    expect(body.height_cm).toBe(172.7); // 5'8" via lib/units
+    expect(body.weight_kg).toBe(68); // 150 lb
+    // persona removed — slug must never appear in the bio-profile body.
     expect(body.preferred_celebrity_slug).toBeUndefined();
   });
 
-  it('S7 POST 5xx → 에러 화면 + 재시도 버튼', async () => {
-    mockCelebrities(fetchSpy);
-    fetchSpy.mockResolvedValueOnce(
-      makeResponse(500, { error: { code: 'AUDIT_LOG_FAILURE', message: 'fail-closed' } }),
+  it('GLP-1 = Yes → medications ["glp1"] (the only signal the engine consumes)', async () => {
+    fetchSpy.mockImplementation((url: unknown) =>
+      typeof url === 'string' && url.includes('/api/users/me/bio-profile')
+        ? Promise.resolve(makeResponse(201, BIO_PROFILE_OK))
+        : Promise.reject(new Error(`Unmocked fetch: ${String(url)}`)),
     );
 
     renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await screen.findByLabelText('Select Beyoncé');
-    advanceThroughS2toS4();
-    await screen.findByText('Activity & health');
-    fireEvent.press(screen.getByLabelText('Moderate'));
-    fireEvent.press(screen.getByLabelText('Continue'));
-    await screen.findByText('Goals & diet');
-    fireEvent.press(screen.getByLabelText('Weight loss'));
-    fireEvent.press(screen.getByLabelText('Continue'));
+    await advanceToReveal('Yes, I take one');
+    await screen.findByText(/You're all set/);
+
+    const calls = fetchSpy.mock.calls as Array<[string, RequestInit]>;
+    const postCall = calls.find(
+      ([url, init]) => url.endsWith('/api/users/me/bio-profile') && init.method === 'POST',
+    );
+    expect(postCall).toBeDefined();
+    if (postCall === undefined) return;
+    const body = JSON.parse(postCall[1].body as string) as Record<string, unknown>;
+    expect(body.medications).toEqual(['glp1']);
+  });
+
+  it('POST 5xx → error screen + retry button', async () => {
+    fetchSpy.mockImplementation((url: unknown) =>
+      typeof url === 'string' && url.includes('/api/users/me/bio-profile')
+        ? Promise.resolve(
+            makeResponse(500, { error: { code: 'AUDIT_LOG_FAILURE', message: 'fail-closed' } }),
+          )
+        : Promise.reject(new Error(`Unmocked fetch: ${String(url)}`)),
+    );
+
+    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
+    await advanceToReveal();
 
     await waitFor(() => {
       expect(screen.getByText('Save failed')).toBeTruthy();
