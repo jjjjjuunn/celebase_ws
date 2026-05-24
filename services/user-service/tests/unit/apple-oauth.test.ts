@@ -25,7 +25,7 @@ beforeAll(async () => {
   config = {
     teamId: 'TEAM123',
     keyId: 'KEY123',
-    servicesId: 'com.celebbase.svc',
+    clientId: 'com.celebase.mobile',
     privateKeyPem: await exportPKCS8(privateKey),
   };
   publicKeyPem = await exportSPKI(publicKey);
@@ -56,14 +56,19 @@ describe('appleOAuthConfigFromEnv', () => {
     ).toBeNull();
   });
 
-  it('returns config when all four set', () => {
+  it('returns config when all four set (client_id = Bundle ID)', () => {
     const cfg = appleOAuthConfigFromEnv({
       APPLE_TEAM_ID: 'T',
       APPLE_KEY_ID: 'K',
-      APPLE_SERVICES_ID: 'S',
+      APPLE_BUNDLE_ID: 'com.celebase.mobile',
       APPLE_PRIVATE_KEY: 'P',
     });
-    expect(cfg).toEqual({ teamId: 'T', keyId: 'K', servicesId: 'S', privateKeyPem: 'P' });
+    expect(cfg).toEqual({
+      teamId: 'T',
+      keyId: 'K',
+      clientId: 'com.celebase.mobile',
+      privateKeyPem: 'P',
+    });
   });
 });
 
@@ -101,7 +106,7 @@ describe('AppleOAuthClient', () => {
     const body = lastBody(fetchSpy);
     expect(body.get('grant_type')).toBe('authorization_code');
     expect(body.get('code')).toBe('CODE-XYZ');
-    expect(body.get('client_id')).toBe('com.celebbase.svc');
+    expect(body.get('client_id')).toBe('com.celebase.mobile');
 
     const clientSecret = body.get('client_secret');
     if (clientSecret === null) throw new Error('missing client_secret');
@@ -112,7 +117,7 @@ describe('AppleOAuthClient', () => {
     });
     expect(protectedHeader.alg).toBe('ES256');
     expect(protectedHeader.kid).toBe('KEY123');
-    expect(payload.sub).toBe('com.celebbase.svc');
+    expect(payload.sub).toBe('com.celebase.mobile');
     expect(typeof payload.exp).toBe('number');
     expect(typeof payload.iat).toBe('number');
     // 5-minute TTL (advisor): exp - iat == 300.
@@ -163,7 +168,7 @@ describe('AppleOAuthClient', () => {
     const body = lastBody(fetchSpy);
     expect(body.get('token')).toBe('r-456');
     expect(body.get('token_type_hint')).toBe('refresh_token');
-    expect(body.get('client_id')).toBe('com.celebbase.svc');
+    expect(body.get('client_id')).toBe('com.celebase.mobile');
   });
 
   it('revoke: throws sanitized error on non-200', async () => {

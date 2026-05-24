@@ -33,8 +33,12 @@ export interface AppleOAuthConfig {
   teamId: string;
   /** Key ID of the Sign-in-with-Apple .p8 key (JWT header `kid`). */
   keyId: string;
-  /** Services ID / client_id (client_secret `sub` + the OAuth client_id). */
-  servicesId: string;
+  /**
+   * OAuth client_id (client_secret `sub` + the `client_id` form field). For
+   * NATIVE Sign in with Apple this is the app's Bundle ID (the same value used
+   * as the identityToken `aud`), NOT a web Services ID.
+   */
+  clientId: string;
   /** PKCS#8 PEM of the .p8 private key. Literal "\n" escapes are normalized. */
   privateKeyPem: string;
 }
@@ -59,17 +63,20 @@ export interface AppleOAuthClient {
 export function appleOAuthConfigFromEnv(env: {
   APPLE_TEAM_ID?: string | undefined;
   APPLE_KEY_ID?: string | undefined;
-  APPLE_SERVICES_ID?: string | undefined;
+  APPLE_BUNDLE_ID?: string | undefined;
   APPLE_PRIVATE_KEY?: string | undefined;
 }): AppleOAuthConfig | null {
-  const { APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_SERVICES_ID, APPLE_PRIVATE_KEY } = env;
-  if (!APPLE_TEAM_ID || !APPLE_KEY_ID || !APPLE_SERVICES_ID || !APPLE_PRIVATE_KEY) {
+  const { APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_BUNDLE_ID, APPLE_PRIVATE_KEY } = env;
+  // Native Sign in with Apple → client_id is the Bundle ID. The env.ts boot
+  // guard enforces the trio + APPLE_BUNDLE_ID together; this returns null unless
+  // all are present.
+  if (!APPLE_TEAM_ID || !APPLE_KEY_ID || !APPLE_BUNDLE_ID || !APPLE_PRIVATE_KEY) {
     return null;
   }
   return {
     teamId: APPLE_TEAM_ID,
     keyId: APPLE_KEY_ID,
-    servicesId: APPLE_SERVICES_ID,
+    clientId: APPLE_BUNDLE_ID,
     privateKeyPem: APPLE_PRIVATE_KEY,
   };
 }
@@ -90,7 +97,7 @@ class AppleOAuthClientImpl implements AppleOAuthClient {
     return new SignJWT({})
       .setProtectedHeader({ alg: 'ES256', kid: this.config.keyId, typ: 'JWT' })
       .setIssuer(this.config.teamId)
-      .setSubject(this.config.servicesId)
+      .setSubject(this.config.clientId)
       .setAudience(APPLE_AUDIENCE)
       .setIssuedAt(now)
       .setExpirationTime(now + CLIENT_SECRET_TTL_SEC)
@@ -100,7 +107,7 @@ class AppleOAuthClientImpl implements AppleOAuthClient {
   async exchangeAuthorizationCode(code: string): Promise<string> {
     const clientSecret = await this.buildClientSecret();
     const body = new URLSearchParams({
-      client_id: this.config.servicesId,
+      client_id: this.config.clientId,
       client_secret: clientSecret,
       code,
       grant_type: 'authorization_code',
@@ -116,7 +123,7 @@ class AppleOAuthClientImpl implements AppleOAuthClient {
   async revokeRefreshToken(refreshToken: string): Promise<void> {
     const clientSecret = await this.buildClientSecret();
     const body = new URLSearchParams({
-      client_id: this.config.servicesId,
+      client_id: this.config.clientId,
       client_secret: clientSecret,
       token: refreshToken,
       token_type_hint: 'refresh_token',
