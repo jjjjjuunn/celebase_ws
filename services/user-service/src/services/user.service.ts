@@ -1,7 +1,19 @@
 import type pg from 'pg';
 import type { User, UserPreferencesPatch } from '@celebbase/shared-types';
-import { NotFoundError, UnauthorizedError } from '@celebbase/service-core';
+import { NotFoundError, UnauthorizedError, type PhiKeyProvider } from '@celebbase/service-core';
 import * as userRepo from '../repositories/user.repository.js';
+import type { AuthLogger } from '../lib/auth-log.js';
+import type { AppleOAuthClient } from './apple-oauth.js';
+import { revokeAppleRefreshToken } from './apple-token-store.js';
+
+// FEAT-APPLE-REVOKE-001 — optional deps so deleteMe can revoke the user's Apple
+// token before soft-delete. Absent (or appleOAuth null) → revoke is skipped.
+export interface AppleRevokeDeps {
+  appleOAuth: AppleOAuthClient;
+  keyProvider: PhiKeyProvider;
+  log: AuthLogger;
+  requestId: string;
+}
 
 type UpdateableUserFields = {
   display_name?: string | undefined;
@@ -27,8 +39,17 @@ export async function updateMe(
   return userRepo.updateUser(pool, userId, data);
 }
 
-export async function deleteMe(pool: pg.Pool, userId: string): Promise<void> {
+export async function deleteMe(
+  pool: pg.Pool,
+  userId: string,
+  appleRevoke?: AppleRevokeDeps,
+): Promise<void> {
   await getMe(pool, userId); // ensure exists
+  // Revoke the Apple token (best-effort, audited) before soft-delete so an
+  // Apple/SiwA user's token is invalidated per App Store 4.8.1. Never throws.
+  if (appleRevoke) {
+    await revokeAppleRefreshToken({ pool, userId, ...appleRevoke });
+  }
   await userRepo.softDelete(pool, userId);
 }
 
