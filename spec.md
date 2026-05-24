@@ -216,6 +216,14 @@ CREATE TABLE bio_profiles (
     intolerances    TEXT[] DEFAULT '{}',
     medical_conditions TEXT[] DEFAULT '{}',
     medications     TEXT[] DEFAULT '{}',
+    -- Mobile onboarding v2 (IMPL-MOBILE-ONBOARDING-V2-001, 2026-05-24): the
+    -- 10-step one-question flow collects ONLY engine-consumed fields. It does
+    -- NOT populate medical_conditions — the engine never reads it (§5.7 below),
+    -- so collecting it is unused PHI/liability, and condition-specific dieting
+    -- crosses FDA's wellness→medical-device line. medications is reduced to a
+    -- single GLP-1 flag (['glp1']) — the only signal macro_rebalance consumes.
+    -- allergies is kept (allergen_filter). waist_cm/persona also dropped from
+    -- collection (unused). Server schema is unchanged (web/admin/future may use).
     
     -- Biomarkers (optional, from lab results)
     biomarkers      JSONB DEFAULT '{}',
