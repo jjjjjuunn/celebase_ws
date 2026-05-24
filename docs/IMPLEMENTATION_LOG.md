@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
 task_id: CHORE-ALLERGEN-VOCAB-001
-commit_sha: PENDING
+commit_sha: f8d4e08
 files_changed:
   - packages/shared-types/src/allergens.ts
   - packages/shared-types/src/allergens.test.ts
