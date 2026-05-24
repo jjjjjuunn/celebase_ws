@@ -29,7 +29,11 @@ export function NewsDetailScreen({ id, onBack }: NewsDetailScreenProps): React.J
       </View>
 
       {article === undefined ? (
-        <EmptyState glyph="📰" title="Article not found" body="We couldn't find this article." />
+        <EmptyState
+          icon="newspaper-outline"
+          title="Article not found"
+          body="We couldn't find this article."
+        />
       ) : (
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
           <Text variant="label" tone="brand">

@@ -229,7 +229,11 @@ export function MealPlanScreen({
         <Text variant="h1" style={styles.screenTitle}>
           Your Plan
         </Text>
-        <EmptyState glyph="⚠️" title="식단을 불러오지 못했어요" body="잠시 후 다시 시도해주세요." />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="식단을 불러오지 못했어요"
+          body="잠시 후 다시 시도해주세요."
+        />
       </SafeAreaView>
     );
   }
@@ -245,7 +249,7 @@ export function MealPlanScreen({
           Your Plan
         </Text>
         <EmptyState
-          glyph="🥗"
+          icon="leaf-outline"
           title="프로필을 완성하세요"
           body="온보딩을 마치면 무료 식단 크레딧 3개를 드려요. 좋아하는 셀럽의 식단으로 시작해보세요."
           ctaLabel="온보딩하고 크레딧 3개 받기"
@@ -332,18 +336,31 @@ function CreditsHeader({ credits, remaining }: CreditsHeaderProps): React.JSX.El
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const tierLabel = credits?.tier ?? 'free';
   const unlimited = credits !== null && credits.credits_total === null;
-  const totalLabel = unlimited
-    ? '무제한'
-    : `${String(remaining)} / ${String(credits?.credits_total ?? 0)}`;
   const resetAt = credits?.credits_reset_at ?? null;
 
+  // Dark "ink" feature card (reference Profile/Plan hero cards): the credit
+  // balance is the screen's headline number → ink surface + gold metric + cream
+  // supporting text reads as the premium "wow" moment.
   return (
-    <Card variant="surface" style={styles.creditsCard}>
+    <Card variant="surface" style={[styles.creditsCard, styles.creditsCardDark]}>
       <View style={styles.creditsRow}>
         <Badge label={tierLabel.toUpperCase()} tone="subtle" />
-        <Text variant="h4">{unlimited ? '무제한' : `${totalLabel} 크레딧`}</Text>
+        {unlimited ? (
+          <Text variant="h4" style={{ color: theme.color.onInk }}>
+            무제한
+          </Text>
+        ) : (
+          <View style={styles.creditsCount}>
+            <Text variant="metricLg" style={{ color: theme.color.gold }}>
+              {String(remaining)}
+            </Text>
+            <Text variant="bodySm" style={[styles.creditsSuffix, styles.onDark]}>
+              {`/ ${String(credits?.credits_total ?? 0)} 크레딧`}
+            </Text>
+          </View>
+        )}
       </View>
-      <Text variant="caption" tone="muted">
+      <Text variant="caption" style={styles.onDark}>
         {resetAt !== null ? `다음 리셋: ${resetAt.slice(0, 10)}` : '온보딩 무료 크레딧 (1회성)'}
       </Text>
     </Card>
@@ -378,7 +395,7 @@ function DateStrip({ days, selectedDate, onSelect }: DateStripProps): React.JSX.
             accessibilityState={{ selected: isSel }}
             style={[styles.datePill, isSel ? styles.datePillSelected : styles.datePillUnselected]}
           >
-            <Text variant="bodySm" tone={isSel ? 'brand' : 'default'} style={styles.datePillDate}>
+            <Text variant="metricSm" tone={isSel ? 'brand' : 'default'} style={styles.datePillDate}>
               {d.date.slice(5)}
             </Text>
             {d.celebName !== null ? (
@@ -408,7 +425,7 @@ function DayDetail({
         <Text variant="h3" tone="brand">
           {day.celebName ?? 'My Plan'}
         </Text>
-        <Text variant="bodySm" tone="muted">
+        <Text variant="metricSm" tone="muted">
           {day.date}
         </Text>
         <View style={styles.macrosRow}>
@@ -444,9 +461,7 @@ function MacroBox({ label, value }: { label: string; value: string }): React.JSX
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.macroBox}>
-      <Text variant="body" style={styles.macroValue}>
-        {value}
-      </Text>
+      <Text variant="metricMd">{value}</Text>
       <Text variant="caption" tone="muted" style={styles.macroLabel}>
         {label}
       </Text>
@@ -472,8 +487,8 @@ function MealCard({ meal, title }: { meal: DailyMeal; title?: string }): React.J
           {capitalize(meal.meal_type)}
         </Text>
         {typeof kcal === 'number' ? (
-          <Text variant="caption" tone="muted">
-            {String(Math.round(kcal))} kcal
+          <Text variant="metricSm" tone="muted">
+            {`${String(Math.round(kcal))} kcal`}
           </Text>
         ) : null}
       </View>
@@ -506,7 +521,11 @@ function makeStyles(theme: Theme) {
       marginBottom: theme.space(3),
       gap: theme.space(2),
     },
+    creditsCardDark: { backgroundColor: theme.color.ink },
     creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    creditsCount: { flexDirection: 'row', alignItems: 'baseline', gap: theme.space(1) },
+    creditsSuffix: { paddingBottom: 2 },
+    onDark: { color: theme.color.onInk, opacity: 0.7 },
     dateStrip: {
       paddingHorizontal: theme.space(4),
       gap: theme.space(2),
@@ -542,7 +561,6 @@ function makeStyles(theme: Theme) {
       paddingVertical: theme.space(2),
       alignItems: 'center',
     },
-    macroValue: { fontWeight: '700' },
     macroLabel: { textTransform: 'uppercase', letterSpacing: 0.5 },
     sectionTitle: {
       paddingHorizontal: theme.space(4),

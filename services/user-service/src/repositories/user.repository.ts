@@ -136,6 +136,25 @@ export async function softDelete(pool: pg.Pool, id: string): Promise<void> {
   await pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [id]);
 }
 
+// FEAT-APPLE-REVOKE-001 — Apple refresh_token, stored as an encrypted envelope
+// (AES-256-GCM via service-core encryptField) so DELETE /users/me can revoke it
+// at Apple. Written from the Apple login path; read once at deletion.
+export async function setAppleRefreshToken(
+  pool: pg.Pool,
+  id: string,
+  enc: string,
+): Promise<void> {
+  await pool.query('UPDATE users SET apple_refresh_token_enc = $1 WHERE id = $2', [enc, id]);
+}
+
+export async function getAppleRefreshToken(pool: pg.Pool, id: string): Promise<string | null> {
+  const { rows } = await pool.query<{ apple_refresh_token_enc: string | null }>(
+    'SELECT apple_refresh_token_enc FROM users WHERE id = $1 LIMIT 1',
+    [id],
+  );
+  return rows[0]?.apple_refresh_token_enc ?? null;
+}
+
 /**
  * Plan 22-vast-adleman · Phase C1 — RFC 7396 merge-patch on users.preferences.
  *

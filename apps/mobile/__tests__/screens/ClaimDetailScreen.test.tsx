@@ -80,7 +80,7 @@ describe('<ClaimDetailScreen />', () => {
 
     expect(await screen.findByText('celery juice ritual')).toBeTruthy();
     expect(screen.getByText('morning routine since 2019')).toBeTruthy();
-    expect(screen.getByText('→ Vogue (2024)')).toBeTruthy();
+    expect(screen.getByText('Vogue (2024)')).toBeTruthy();
   });
 
   it('disclaimer 조건: trust_grade D → 노출', async () => {

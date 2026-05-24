@@ -1,9 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type pg from 'pg';
 import { z } from 'zod';
-import { ValidationError } from '@celebbase/service-core';
+import { ValidationError, type PhiKeyProvider } from '@celebbase/service-core';
 import { UserPreferencesPatchSchema } from '@celebbase/shared-types';
 import * as userService from '../services/user.service.js';
+import type { AppleOAuthClient } from '../services/apple-oauth.js';
 import { hashId } from '../lib/auth-log.js';
 
 const UpdateMeSchema = z.object({
@@ -24,8 +25,17 @@ const UpdateMeSchema = z.object({
 }).strict();
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function userRoutes(app: FastifyInstance, options: { pool: pg.Pool }): Promise<void> {
-  const { pool } = options;
+export async function userRoutes(
+  app: FastifyInstance,
+  options: {
+    pool: pg.Pool;
+    // FEAT-APPLE-REVOKE-001 — when both present, DELETE /users/me revokes the
+    // user's Apple token. Absent (unconfigured) → revoke skipped (soft-delete only).
+    appleOAuth?: AppleOAuthClient | null;
+    phiKeyProvider?: PhiKeyProvider;
+  },
+): Promise<void> {
+  const { pool, appleOAuth, phiKeyProvider } = options;
 
   app.get('/users/me', async (request: FastifyRequest) => {
     return userService.getMe(pool, request.userId);
@@ -43,7 +53,11 @@ export async function userRoutes(app: FastifyInstance, options: { pool: pg.Pool 
   });
 
   app.delete('/users/me', async (request: FastifyRequest, reply: FastifyReply) => {
-    await userService.deleteMe(pool, request.userId);
+    const appleRevoke =
+      appleOAuth && phiKeyProvider
+        ? { appleOAuth, keyProvider: phiKeyProvider, log: request.log, requestId: request.id }
+        : undefined;
+    await userService.deleteMe(pool, request.userId, appleRevoke);
     return reply.status(204).send();
   });
 

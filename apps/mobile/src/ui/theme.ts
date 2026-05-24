@@ -24,6 +24,11 @@ export interface Theme {
     brandBg: string;
     brandSubtle: string;
     onBrand: string;
+    /** Primary action fill (Editorial Luxe ink) + its label color. */
+    ink: string;
+    onInk: string;
+    /** Bright signature gold (brand-500) — luminous CTA fill paired with dark text. */
+    gold: string;
     error: string;
     skeletonBase: string;
     skeletonShimmer: string;
@@ -50,10 +55,17 @@ export interface Theme {
     body: number;
     bodySm: number;
     caption: number;
+    /** JetBrains Mono numeral scale (tabular). Numbers only — never body copy. */
+    metricXl: number;
+    metricLg: number;
+    metricMd: number;
+    metricSm: number;
   };
   font: {
     display: string;
     body: string;
+    /** Monospace numerals (JetBrains Mono). Pair with fontVariant tabular-nums. */
+    mono: string;
   };
   weight: {
     regular: TextWeight;
@@ -118,6 +130,9 @@ function buildTheme(mode: ThemeMode): Theme {
       brandBg: resolveToken(mode, '--cb-color-brand-bg'),
       brandSubtle: resolveToken(mode, '--cb-color-brand-subtle'),
       onBrand: resolveToken(mode, '--cb-color-on-brand'),
+      ink: resolveToken(mode, '--cb-color-ink'),
+      onInk: resolveToken(mode, '--cb-color-on-ink'),
+      gold: resolveToken(mode, '--cb-brand-500'),
       error: resolveToken(mode, '--cb-color-error'),
       skeletonBase: resolveToken(mode, '--cb-skeleton-base'),
       skeletonShimmer: resolveToken(mode, '--cb-skeleton-shimmer'),
@@ -149,10 +164,15 @@ function buildTheme(mode: ThemeMode): Theme {
       body: num(mode, '--cb-body-md'),
       bodySm: num(mode, '--cb-body-sm'),
       caption: num(mode, '--cb-caption'),
+      metricXl: num(mode, '--cb-metric-xl'),
+      metricLg: num(mode, '--cb-metric-lg'),
+      metricMd: num(mode, '--cb-metric-md'),
+      metricSm: num(mode, '--cb-metric-sm'),
     },
     font: {
       display: firstFamily(resolveToken(mode, '--cb-font-family-display')),
       body: firstFamily(resolveToken(mode, '--cb-font-family-body')),
+      mono: firstFamily(resolveToken(mode, '--cb-font-family-mono')),
     },
     weight: {
       regular: weight(mode, '--cb-font-weight-regular'),

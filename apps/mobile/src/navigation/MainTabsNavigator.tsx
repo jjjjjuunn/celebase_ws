@@ -6,11 +6,12 @@
 //
 // 사용자 스펙 (2026-05-14): 하단 4탭 — 좌→우 Celebrities / Meal & Routine / News / Settings.
 
-import { useMemo } from 'react';
+import { useMemo, type ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { Text, useTheme, type Theme } from '../ui';
+import { useTheme, type Theme } from '../ui';
 import { CelebritiesNavigator } from './CelebritiesNavigator';
 import { NewsNavigator } from './NewsNavigator';
 import { PlanNavigator } from './PlanNavigator';
@@ -19,15 +20,6 @@ import type { MainTabsParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
-// Emoji icons — 디자인 시스템 정식 아이콘 도입 전 임시.
-// CHORE-MOBILE-TAB-ICONS-001 백로그: SVG icon set 으로 교체.
-const TAB_ICONS = {
-  Celebrities: '⭐',
-  Plan: '🥗',
-  News: '📰',
-  SettingsTab: '⚙️',
-} as const;
-
 const TAB_LABELS = {
   Celebrities: 'Celebrities',
   Plan: 'Meal & Routine',
@@ -35,14 +27,18 @@ const TAB_LABELS = {
   SettingsTab: 'Settings',
 } as const;
 
-type TabStyles = ReturnType<typeof makeStyles>;
+// Ionicons outline line-icons (thin, Lucide-adjacent) replace the placeholder
+// emoji. Font-based (@expo/vector-icons) → loaded at runtime, no native rebuild.
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
+const TAB_ICONS: Record<keyof typeof TAB_LABELS, IoniconName> = {
+  Celebrities: 'star-outline',
+  Plan: 'restaurant-outline',
+  News: 'newspaper-outline',
+  SettingsTab: 'settings-outline',
+};
 
-function tabIcon(
-  name: keyof typeof TAB_ICONS,
-  focused: boolean,
-  styles: TabStyles,
-): React.JSX.Element {
-  return <Text style={[styles.icon, focused ? styles.iconFocused : null]}>{TAB_ICONS[name]}</Text>;
+function tabIcon(name: keyof typeof TAB_LABELS, color: string, size: number): React.JSX.Element {
+  return <Ionicons name={TAB_ICONS[name]} size={size} color={color} />;
 }
 
 export function MainTabsNavigator(): React.JSX.Element {
@@ -64,7 +60,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={CelebritiesNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Celebrities,
-          tabBarIcon: ({ focused }) => tabIcon('Celebrities', focused, styles),
+          tabBarIcon: ({ color, size }) => tabIcon('Celebrities', color, size),
         }}
       />
       <Tab.Screen
@@ -72,7 +68,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={PlanNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Plan,
-          tabBarIcon: ({ focused }) => tabIcon('Plan', focused, styles),
+          tabBarIcon: ({ color, size }) => tabIcon('Plan', color, size),
         }}
       />
       <Tab.Screen
@@ -80,7 +76,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={NewsNavigator}
         options={{
           tabBarLabel: TAB_LABELS.News,
-          tabBarIcon: ({ focused }) => tabIcon('News', focused, styles),
+          tabBarIcon: ({ color, size }) => tabIcon('News', color, size),
         }}
       />
       <Tab.Screen
@@ -88,7 +84,7 @@ export function MainTabsNavigator(): React.JSX.Element {
         component={SettingsNavigator}
         options={{
           tabBarLabel: TAB_LABELS.SettingsTab,
-          tabBarIcon: ({ focused }) => tabIcon('SettingsTab', focused, styles),
+          tabBarIcon: ({ color, size }) => tabIcon('SettingsTab', color, size),
         }}
       />
     </Tab.Navigator>
@@ -99,7 +95,5 @@ function makeStyles(theme: Theme) {
   return StyleSheet.create({
     tabBar: { backgroundColor: theme.color.surface, borderTopColor: theme.color.border },
     label: { fontSize: theme.type.caption, fontWeight: theme.weight.semibold },
-    icon: { fontSize: 20, opacity: 0.6 },
-    iconFocused: { opacity: 1 },
   });
 }

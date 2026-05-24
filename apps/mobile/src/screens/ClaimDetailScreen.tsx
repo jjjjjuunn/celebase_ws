@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { schemas } from '@celebbase/shared-types';
 
@@ -70,7 +71,11 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
         </View>
       ) : state.phase === 'error' ? (
         <View style={styles.centered}>
-          <EmptyState glyph="⚠️" title="Couldn't load this claim." body="잠시 후 다시 시도해주세요." />
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Couldn't load this claim."
+            body="잠시 후 다시 시도해주세요."
+          />
         </View>
       ) : (
         <DetailBody data={state.data} />
@@ -116,8 +121,14 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 
       {showDisclaimer ? (
         <View style={styles.disclaimer}>
+          <Ionicons
+            name="information-circle-outline"
+            size={16}
+            color={theme.color.textMuted}
+            style={styles.disclaimerIcon}
+          />
           <Text variant="bodySm" style={styles.disclaimerText}>
-            ⚠ {HEALTH_DISCLAIMER}
+            {HEALTH_DISCLAIMER}
           </Text>
         </View>
       ) : null}
@@ -169,8 +180,9 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
       accessibilityLabel={`Open ${source.outlet} link`}
       style={styles.sourceRow}
     >
+      <Ionicons name="open-outline" size={15} color={theme.color.brand} />
       <Text variant="body" tone="brand">
-        → {source.outlet}
+        {source.outlet}
         {date !== null ? ` (${date})` : ''}
       </Text>
     </TouchableOpacity>
@@ -192,16 +204,25 @@ function makeStyles(theme: Theme) {
       gap: theme.space(2),
     },
     sectionTitle: { fontWeight: theme.weight.bold, textTransform: 'uppercase', marginBottom: theme.space(2) },
-    sourceRow: { paddingVertical: theme.space(2) },
+    sourceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(2),
+      paddingVertical: theme.space(2),
+    },
     sourceRowDisabled: { paddingVertical: theme.space(2), gap: 2 },
     disclaimer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: theme.space(2),
       marginHorizontal: theme.space(4),
       marginTop: theme.space(3),
       padding: theme.space(3),
       backgroundColor: theme.color.surface,
       borderRadius: theme.radius.sm,
     },
-    disclaimerText: { lineHeight: theme.type.bodySm + 6 },
+    disclaimerIcon: { marginTop: 1 },
+    disclaimerText: { flex: 1, lineHeight: theme.type.bodySm + 6 },
     ctaDisabled: {
       marginHorizontal: theme.space(4),
       marginTop: theme.space(4),

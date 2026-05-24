@@ -2,13 +2,13 @@ import { px, resolveToken } from '../../src/lib/tokens';
 
 describe('resolveToken', () => {
   it('직접 값 (var() 없음) 토큰은 그대로 반환', () => {
-    expect(resolveToken('light', '--cb-brand-700')).toBe('#6B5420');
+    expect(resolveToken('light', '--cb-brand-700')).toBe('#7C5A14');
     expect(resolveToken('light', '--cb-accent-aspirational')).toBe('#D4654A');
   });
 
   it('var() 참조를 재귀적으로 풀어서 raw 값 반환', () => {
-    // --cb-color-brand → var(--cb-brand-700) → '#6B5420'
-    expect(resolveToken('light', '--cb-color-brand')).toBe('#6B5420');
+    // --cb-color-brand → var(--cb-brand-700) → '#7C5A14'
+    expect(resolveToken('light', '--cb-color-brand')).toBe('#7C5A14');
     // --cb-color-bg → var(--cb-neutral-0) → '#FAFAF8'
     expect(resolveToken('light', '--cb-color-bg')).toBe('#FAFAF8');
     // --cb-color-text → var(--cb-neutral-900) → '#1A1917'

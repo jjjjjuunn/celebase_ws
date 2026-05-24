@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { CelebrityPicker } from '../components/CelebrityPicker';
 import { Button, Text, useTheme, type Theme } from '../ui';
@@ -32,9 +33,7 @@ export function PersonaSelectStep({
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
-          <Text tone="muted" style={styles.navIcon}>
-            ✕
-          </Text>
+          <Ionicons name="close" size={24} color={theme.color.textMuted} />
         </TouchableOpacity>
         <Text variant="bodySm" tone="muted" style={styles.stepLabel}>
           1 / 3

@@ -39,7 +39,11 @@ export function CelebrityDetailScreen({
       </View>
 
       {celeb === undefined ? (
-        <EmptyState glyph="🔍" title="Celebrity not found" body="We couldn't find this profile." />
+        <EmptyState
+          icon="search-outline"
+          title="Celebrity not found"
+          body="We couldn't find this profile."
+        />
       ) : (
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
           <View style={styles.heroSection}>
@@ -111,7 +115,7 @@ function Stat({ value, label }: { value: string; label: string }): React.JSX.Ele
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.statBox}>
-      <Text variant="h3">{value}</Text>
+      <Text variant="metricMd">{value}</Text>
       <Text variant="caption" tone="muted">
         {label}
       </Text>

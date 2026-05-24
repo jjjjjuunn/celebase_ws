@@ -237,7 +237,9 @@ describe('<MealPlanScreen />', () => {
     renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
 
     expect(await screen.findByLabelText('Open generate sheet')).toBeTruthy();
-    expect(screen.getByText('14 / 15 크레딧')).toBeTruthy();
+    // credits 헤더: 잔량(mono metric) + 분리된 suffix.
+    expect(screen.getByText('14')).toBeTruthy();
+    expect(screen.getByText('/ 15 크레딧')).toBeTruthy();
     // 캘린더: base_diet → 셀럽 로컬 조인으로 'Beyoncé' 노출 (날짜 pill + 상세 헤더 양쪽).
     expect((await screen.findAllByText('Beyoncé')).length).toBeGreaterThan(0);
     // 식사: recipe_id → content-service 제목 로컬 조인. placeholder('Recipe #...') 아님.
@@ -313,13 +315,13 @@ describe('<MealPlanScreen />', () => {
 
     renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
 
-    expect(await screen.findByText('14 / 15 크레딧')).toBeTruthy();
+    expect(await screen.findByText('14')).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Open generate sheet'));
     fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
     fireEvent.press(screen.getByLabelText('Generate plan'));
 
     // onGenerated → reloadCounter 증가 → 전체 refetch → credits 헤더가 13 으로 갱신.
-    expect(await screen.findByText('13 / 15 크레딧')).toBeTruthy();
+    expect(await screen.findByText('13')).toBeTruthy();
   });
 
   it('reloadKey 변경(focus refresh) → 잔량 0 → 결제 후 식단 만들기 로 갱신', async () => {

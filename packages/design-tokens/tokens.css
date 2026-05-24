@@ -17,8 +17,8 @@
   --cb-brand-50:  #FAF4E0;   /* tint */
   --cb-brand-100: #F3E4B0;
   --cb-brand-500: #C9A84C;   /* signature gold — decoration/hero accents */
-  --cb-brand-600: #8B6D2F;   /* PRIMARY CTA bg — 6.2:1 vs #FAFAF8 (WCAG AA) */
-  --cb-brand-700: #6B5420;   /* pressed / brand text on light bg — 8.9:1 vs #FAFAF8 */
+  --cb-brand-600: #8E6417;   /* warm amber-bronze — gold accent fills (chips/selected); ≥4.5:1 vs cream */
+  --cb-brand-700: #7C5A14;   /* warm bronze — brand text/links/eyebrows on light bg */
 
   /* Neutral spine (warm, yellow-brown undertones) */
   --cb-neutral-0:   #FAFAF8;
@@ -87,6 +87,8 @@
   --cb-color-brand-bg:     var(--cb-brand-600);      /* decoration/CTA bg usage (gold) */
   --cb-color-brand-subtle: var(--cb-brand-50);      /* tinted brand bg */
   --cb-color-on-brand:     #FAFAF8;                  /* white text on gold bg — WCAG AA 6.2:1 */
+  --cb-color-ink:          #1F1A14;                  /* PRIMARY action fill — warm near-black (Editorial Luxe: ink 주연) */
+  --cb-color-on-ink:       #FBF8F1;                  /* warm cream label on ink */
   --cb-color-error:        var(--cb-danger-600);     /* error state alias */
   --cb-color-neutral-100:  var(--cb-neutral-100);   /* direct palette alias */
   --cb-cta-text:           #FAFAF8;                  /* white text on gold CTA */
@@ -277,6 +279,8 @@
   --cb-color-brand:        var(--cb-brand-500);
   --cb-color-brand-subtle: var(--cb-brand-100);
   --cb-color-on-brand:     #1A1917;
+  --cb-color-ink:          #F2F0EB;   /* dark: primary action inverts to light for contrast */
+  --cb-color-on-ink:       #1A1917;
   --cb-color-error:        var(--cb-danger-600);
 
   --cb-shadow-1:          none;

@@ -6,6 +6,7 @@
 
 import { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { schemas } from '@celebbase/shared-types';
 
@@ -63,7 +64,7 @@ export function ClaimCard({
       ) : null}
       {locked ? (
         <View style={styles.lockOverlay}>
-          <Text variant="body">🔒</Text>
+          <Ionicons name="lock-closed" size={18} color={theme.color.brand} />
           <Text variant="bodySm" tone="brand" style={styles.lockLabel}>
             Premium · Tap to unlock
           </Text>

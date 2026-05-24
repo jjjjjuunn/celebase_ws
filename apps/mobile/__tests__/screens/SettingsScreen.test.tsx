@@ -100,6 +100,61 @@ describe('<SettingsScreen />', () => {
     );
   });
 
+  it('Delete 확인 → deleteAccount 성공 → signOut + signalLogout 호출 (Auth 복귀)', async () => {
+    const deleteMock = jest.spyOn(usersService, 'deleteAccount').mockResolvedValue(undefined);
+    const signOutMock = jest.spyOn(authService, 'signOut').mockResolvedValue(undefined);
+    const signalLogoutMock = jest
+      .spyOn(authEvents, 'signalLogout')
+      .mockImplementation(() => undefined);
+
+    // confirm Alert 의 destructive 'Delete' 버튼 onPress 자동 호출.
+    alertSpy.mockImplementation((title, _msg, buttons) => {
+      if (title === 'Delete account') {
+        const list = buttons as { text: string; onPress?: () => void }[] | undefined;
+        list?.find((b) => b.text === 'Delete')?.onPress?.();
+      }
+    });
+
+    renderScreen(<SettingsScreen />);
+    fireEvent.press(screen.getByTestId('settings-delete-account'));
+
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledTimes(1);
+      expect(signOutMock).toHaveBeenCalledTimes(1);
+      expect(signalLogoutMock).toHaveBeenCalledWith('expired_or_missing');
+    });
+  });
+
+  it('Delete 실패 → 세션 유지 (signOut/signalLogout 미호출) + 에러 Alert', async () => {
+    const deleteMock = jest
+      .spyOn(usersService, 'deleteAccount')
+      .mockRejectedValue(new Error('boom'));
+    const signOutMock = jest.spyOn(authService, 'signOut').mockResolvedValue(undefined);
+    const signalLogoutMock = jest
+      .spyOn(authEvents, 'signalLogout')
+      .mockImplementation(() => undefined);
+
+    alertSpy.mockImplementation((title, _msg, buttons) => {
+      if (title === 'Delete account') {
+        const list = buttons as { text: string; onPress?: () => void }[] | undefined;
+        list?.find((b) => b.text === 'Delete')?.onPress?.();
+      }
+    });
+
+    renderScreen(<SettingsScreen />);
+    fireEvent.press(screen.getByTestId('settings-delete-account'));
+
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledTimes(1);
+    });
+    expect(signOutMock).not.toHaveBeenCalled();
+    expect(signalLogoutMock).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Couldn't delete account",
+      expect.stringContaining('contact'),
+    );
+  });
+
   it('Terms / Privacy / Support 탭 → Linking.openURL 호출', () => {
     renderScreen(<SettingsScreen />);
 

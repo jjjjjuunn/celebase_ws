@@ -35,6 +35,10 @@ export const LoginRequestSchema = z.object({
   email: z.string().email().max(255).optional(),
   id_token: z.string().optional(),
   provider: AuthProviderKindSchema.optional(),
+  // Sign in with Apple ONLY — one-time authorization code (see SignupRequest).
+  // Apple returns a fresh code on every native sign-in, so the stored refresh
+  // token is refreshed on each Apple login (enables later revocation on delete).
+  apple_authorization_code: z.string().optional(),
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 

@@ -13,6 +13,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
 import { ApiError } from '../lib/api-client';
@@ -120,9 +121,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
           accessibilityRole="button"
           accessibilityLabel="Close"
         >
-          <Text tone="muted" style={styles.closeButton}>
-            ✕
-          </Text>
+          <Ionicons name="close" size={26} color={theme.color.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -158,13 +157,13 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         {phase.state === 'dev_preview' ? (
           <View style={styles.packageList}>
             <View style={styles.packageCard}>
-              <Text tone="onBrand" style={styles.packagePrice}>
+              <Text variant="metricXl" style={styles.packagePrice}>
                 $34.99
               </Text>
-              <Text variant="body" tone="onBrand" style={styles.packagePeriod}>
+              <Text variant="body" style={styles.packagePeriod}>
                 per month
               </Text>
-              <Text variant="body" tone="onBrand" style={styles.packageCta}>
+              <Text variant="body" style={styles.packageCta}>
                 Subscribe
               </Text>
             </View>
@@ -196,7 +195,7 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
 
         {phase.state === 'success' ? (
           <View style={styles.successCard}>
-            <Text style={styles.successEmoji}>🎉</Text>
+            <Ionicons name="sparkles" size={56} color={theme.color.gold} />
             <Text variant="h1" tone="brand" center style={styles.successTitle}>
               You&apos;re now {phase.result.tier}!
             </Text>
@@ -308,16 +307,16 @@ function PackageCard({ pkg, active, busy, onPress }: PackageCardProps): React.JS
       accessibilityState={{ selected: active, disabled: busy }}
       style={[styles.packageCard, active ? styles.packageCardActive : null]}
     >
-      <Text tone="onBrand" style={styles.packagePrice}>
+      <Text variant="metricXl" style={styles.packagePrice}>
         {product.priceString}
       </Text>
-      <Text variant="body" tone="onBrand" style={styles.packagePeriod}>
+      <Text variant="body" style={styles.packagePeriod}>
         per month
       </Text>
       {showBusy ? (
-        <ActivityIndicator color={theme.color.onBrand} style={styles.packageBusy} />
+        <ActivityIndicator color={theme.color.gold} style={styles.packageBusy} />
       ) : (
-        <Text variant="body" tone="onBrand" style={styles.packageCta}>
+        <Text variant="body" style={styles.packageCta}>
           Subscribe
         </Text>
       )}
@@ -334,9 +333,12 @@ function BenefitRow({ text }: BenefitRowProps): React.JSX.Element {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.benefitRow}>
-      <Text variant="body" tone="brand" style={styles.benefitCheck}>
-        ✓
-      </Text>
+      <Ionicons
+        name="checkmark-circle"
+        size={20}
+        color={theme.color.brand}
+        style={styles.benefitCheck}
+      />
       <Text variant="body" style={styles.benefitText}>
         {text}
       </Text>
@@ -374,7 +376,6 @@ function makeStyles(theme: Theme) {
       paddingHorizontal: theme.space(4),
       paddingVertical: theme.space(3),
     },
-    closeButton: { fontSize: 24 },
     body: {
       paddingHorizontal: theme.space(4),
       paddingBottom: theme.space(5),
@@ -383,25 +384,31 @@ function makeStyles(theme: Theme) {
     subtitle: { lineHeight: theme.type.body + 6 },
     benefits: { gap: theme.space(2), paddingVertical: theme.space(3) },
     benefitRow: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(2) },
-    benefitCheck: { fontWeight: theme.weight.bold },
+    benefitCheck: { marginTop: 2 },
     benefitText: { flex: 1, lineHeight: theme.type.body + 6 },
     packageList: { gap: theme.space(3) },
     packageCard: {
       padding: theme.space(5),
       borderRadius: theme.radius.lg,
-      backgroundColor: theme.color.brand,
+      backgroundColor: theme.color.ink,
+      borderWidth: 2,
+      borderColor: theme.color.ink,
       alignItems: 'center',
       gap: 4,
     },
-    packageCardActive: { opacity: 0.85 },
-    packagePrice: { fontSize: 40, fontWeight: '800' },
-    packagePeriod: { opacity: 0.85, marginBottom: theme.space(3) },
-    packageCta: { fontWeight: theme.weight.bold, textTransform: 'uppercase', letterSpacing: 1 },
+    packageCardActive: { borderColor: theme.color.gold },
+    packagePrice: { color: theme.color.gold },
+    packagePeriod: { color: theme.color.onInk, opacity: 0.7, marginBottom: theme.space(3) },
+    packageCta: {
+      color: theme.color.gold,
+      fontWeight: theme.weight.bold,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
     packageBusy: { marginTop: theme.space(2) },
     devPreviewNote: { marginTop: theme.space(2), fontStyle: 'italic' },
     centered: { alignItems: 'center', justifyContent: 'center', padding: theme.space(4), gap: theme.space(3) },
     successCard: { alignItems: 'center', padding: theme.space(4), gap: theme.space(3) },
-    successEmoji: { fontSize: 64 },
     successTitle: { textTransform: 'capitalize' },
     successCta: { alignSelf: 'stretch', paddingHorizontal: theme.space(6) },
     errorCta: { alignSelf: 'stretch', paddingHorizontal: theme.space(6) },

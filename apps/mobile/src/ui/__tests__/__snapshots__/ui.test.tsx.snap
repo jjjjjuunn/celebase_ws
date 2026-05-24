@@ -78,12 +78,17 @@ exports[`design system — dark theme Button fires onPress and renders variants 
             "lineHeight": 24,
           },
           {
-            "color": "#1A1917",
+            "color": "#F2F0EB",
           },
           false,
-          {
-            "fontWeight": "700",
-          },
+          [
+            {
+              "fontWeight": "700",
+            },
+            {
+              "color": "#F2F0EB",
+            },
+          ],
         ]
       }
     >
@@ -196,26 +201,25 @@ exports[`design system — dark theme Card / Badge / Skeleton / EmptyState rende
     }
   >
     <Text
+      allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
-            "color": "#F2F0EB",
-            "fontFamily": "Plus Jakarta Sans",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "lineHeight": 24,
+            "color": "#6D6A64",
+            "fontSize": 36,
           },
+          undefined,
           {
-            "color": "#F2F0EB",
+            "fontFamily": "ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
-          false,
-          {
-            "fontSize": 56,
-          },
+          {},
         ]
       }
     >
-      🥗
+      
     </Text>
     <Text
       style={
@@ -411,8 +415,8 @@ exports[`design system — light theme Button fires onPress and renders variants
           "paddingVertical": 16,
         },
         {
-          "backgroundColor": "#6B5420",
-          "borderColor": "#6B5420",
+          "backgroundColor": "#C9A84C",
+          "borderColor": "#C9A84C",
         },
         false,
       ]
@@ -429,12 +433,17 @@ exports[`design system — light theme Button fires onPress and renders variants
             "lineHeight": 24,
           },
           {
-            "color": "#FAFAF8",
+            "color": "#1A1917",
           },
           false,
-          {
-            "fontWeight": "700",
-          },
+          [
+            {
+              "fontWeight": "700",
+            },
+            {
+              "color": "#1A1917",
+            },
+          ],
         ]
       }
     >
@@ -477,7 +486,7 @@ exports[`design system — light theme Card / Badge / Skeleton / EmptyState rend
           "paddingVertical": 4,
         },
         {
-          "backgroundColor": "#6B5420",
+          "backgroundColor": "#7C5A14",
         },
       ]
     }
@@ -547,26 +556,25 @@ exports[`design system — light theme Card / Badge / Skeleton / EmptyState rend
     }
   >
     <Text
+      allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
-            "color": "#1A1917",
-            "fontFamily": "Plus Jakarta Sans",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "lineHeight": 24,
+            "color": "#8A8780",
+            "fontSize": 36,
           },
+          undefined,
           {
-            "color": "#1A1917",
+            "fontFamily": "ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
-          false,
-          {
-            "fontSize": 56,
-          },
+          {},
         ]
       }
     >
-      🥗
+      
     </Text>
     <Text
       style={
@@ -690,7 +698,7 @@ exports[`design system — light theme Text renders all variants 1`] = `
           "textTransform": "uppercase",
         },
         {
-          "color": "#6B5420",
+          "color": "#7C5A14",
         },
         false,
         undefined,

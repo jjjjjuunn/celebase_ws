@@ -61,6 +61,19 @@ export const EnvSchema = z
     APPLE_BUNDLE_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_IDS: z.string().min(1).optional(),
 
+    // Apple token revocation (FEAT-APPLE-REVOKE-001, App Store Guideline 4.8.1).
+    // Needed ONLY to revoke Apple refresh tokens on account deletion. The
+    // TEAM_ID + KEY_ID + PRIVATE_KEY trio is required together (guard below),
+    // plus APPLE_BUNDLE_ID as the OAuth client_id (native Sign in with Apple
+    // uses the app's Bundle ID — same value already verified as the identityToken
+    // aud, not a separate Services ID). When the trio is unset the Apple OAuth
+    // client is not constructed and exchange/revoke are skipped (deletion still
+    // soft-deletes; the auth identity path is unaffected — no silent fallback).
+    // APPLE_PRIVATE_KEY is the PKCS#8 PEM of the .p8 key (literal "\n" normalized).
+    APPLE_TEAM_ID: z.string().min(1).optional(),
+    APPLE_KEY_ID: z.string().min(1).optional(),
+    APPLE_PRIVATE_KEY: z.string().min(1).optional(),
+
     // Per-route rate-limit overrides (Plan v5 §58, IMPL-MOBILE-AUTH-002b
     // DECISION §3). Defaults reflect the post-mobile-pivot baseline:
     // signup 3/min (unchanged), login 10/min (5→10 — mobile SRP needs
@@ -153,6 +166,29 @@ export const EnvSchema = z
           path: ['GOOGLE_CLIENT_IDS'],
         });
       }
+    }
+
+    // Apple revocation config is all-or-nothing — a partial set would build a
+    // broken client that throws only at exchange/revoke time. Fail closed at boot.
+    // The signing trio (team/key/private) must be complete, and APPLE_BUNDLE_ID
+    // (the native client_id) must accompany it.
+    const appleRevokeTrio = [env.APPLE_TEAM_ID, env.APPLE_KEY_ID, env.APPLE_PRIVATE_KEY];
+    const trioSet = appleRevokeTrio.filter((v) => v !== undefined && v !== '').length;
+    if (trioSet > 0 && trioSet < appleRevokeTrio.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY must all be set together for Apple token revocation, or all unset',
+        path: ['APPLE_TEAM_ID'],
+      });
+    }
+    if (trioSet === appleRevokeTrio.length && !env.APPLE_BUNDLE_ID) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'APPLE_BUNDLE_ID is required when Apple token revocation is configured (it is the native Sign in with Apple client_id)',
+        path: ['APPLE_BUNDLE_ID'],
+      });
     }
 
     // COGNITO_LIVE_JWKS staging guard
