@@ -344,7 +344,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
                 persona_id=llm_context.get("persona_id", ""),
                 plan_id=plan_id,
                 user_id_hash=llm_context.get("user_id_hash", ""),
-                user_allergies=user_allergies,
+                # The LLM reranker may swap in any recipe from candidate_pool
+                # (Gate 2 only checks pool membership, not intolerance-safety), so
+                # the fail-closed allergen gate must enforce the SAME blocked set
+                # filter_allergens used — allergies AND intolerances. A gate
+                # violation falls back to the (already-filtered) varied_plan, so
+                # this only adds safety; it never hard-fails generation.
+                user_allergies=_union_lists(user_allergies, user_intolerances),
                 redis_client=redis_client,
             )
         except Exception:  # noqa: BLE001

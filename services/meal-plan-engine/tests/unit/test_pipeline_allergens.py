@@ -15,6 +15,7 @@ from unittest.mock import patch
 import pytest
 
 from src.engine.allergen_filter import RecipeSlot
+from src.engine.llm_schema import LlmProvenance, LlmRerankResult
 from src.engine.pipeline import _union_lists, run_pipeline
 
 
@@ -88,6 +89,44 @@ async def test_bio_profile_and_preferences_allergies_are_unioned() -> None:
 
     # bio first (order preserved), legacy preferences appended, "peanuts" de-duped.
     assert captured["allergies"] == ["dairy", "peanuts", "gluten"]
+
+
+@pytest.mark.asyncio
+async def test_llm_safety_gate_receives_allergies_and_intolerances() -> None:
+    """The LLM reranker can swap in any pool recipe, so the fail-closed gate must
+    enforce allergies AND intolerances (the same blocked set filter_allergens uses)."""
+    bio = {
+        "weight_kg": 70,
+        "activity_level": "moderate",
+        "tdee": 2200,
+        "primary_goal": "maintenance",
+        "allergies": ["dairy"],
+        "intolerances": ["soy"],
+    }
+    inputs = _inputs(bio, {"allergies": [], "intolerances": []})
+    provenance = LlmProvenance(
+        model="gpt-4.1-mini", prompt_hash="a" * 16, output_hash="b" * 16, mode="llm"
+    )
+    fake_result = LlmRerankResult(
+        ranked_plan=[[inputs["candidate_pool"][0]]] * inputs["duration_days"],
+        mode="llm",
+        provenance=provenance,
+        quota_exceeded=False,
+    )
+    with (
+        patch("src.engine.pipeline.settings.ENABLE_LLM_MEAL_PLANNER", True),
+        patch(
+            "src.engine.pipeline.llm_rerank_and_narrate", return_value=fake_result
+        ) as mock_llm,
+    ):
+        await run_pipeline(
+            **inputs,
+            redis_client=object(),
+            llm_context={"persona_id": "p1", "user_id_hash": "h1"},
+        )
+
+    passed = mock_llm.call_args.kwargs["user_allergies"]
+    assert "dairy" in passed and "soy" in passed
 
 
 def test_union_lists_dedupes_preserves_order_and_ignores_non_lists() -> None:
