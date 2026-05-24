@@ -177,6 +177,7 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
           {...backProps}
           title="When were you born?"
           subtitle="Used to tailor your nutrition targets."
+          centerContent
           continueDisabled={draft.birth_year === undefined}
         >
           <View style={styles.pickerWrap}>
@@ -219,6 +220,7 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
           {...common}
           {...backProps}
           title="How tall are you?"
+          centerContent
           continueDisabled={draft.height_ft === undefined || draft.height_in === undefined}
         >
           <View style={styles.dualPicker}>
@@ -265,6 +267,7 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
           {...backProps}
           title="What's your weight?"
           subtitle="In pounds (lb)."
+          centerContent
           continueDisabled={draft.weight_lb === undefined}
         >
           <View style={styles.pickerWrap}>

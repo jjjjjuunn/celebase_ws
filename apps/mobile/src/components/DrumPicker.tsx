@@ -28,7 +28,7 @@ import {
 
 import { Text, useTheme, type Theme } from '../ui';
 
-const ITEM_HEIGHT = 44;
+const ITEM_HEIGHT = 48;
 const DEFAULT_VISIBLE_COUNT = 5; // odd → a true center row
 
 export interface DrumPickerProps {
@@ -190,14 +190,17 @@ export function DrumPicker({
             (index + 1) * ITEM_HEIGHT,
             (index + 2) * ITEM_HEIGHT,
           ];
+          // Strong telescoping falloff: the centered value sits large and crisp
+          // while neighbours shrink + fade away — the value visibly "grows" into
+          // focus as you scroll (premium iOS / Cal AI feel, native-driven).
           const scale = scrollY.interpolate({
             inputRange,
-            outputRange: [0.78, 0.9, 1, 0.9, 0.78],
+            outputRange: [0.5, 0.72, 1, 0.72, 0.5],
             extrapolate: 'clamp',
           });
           const opacity = scrollY.interpolate({
             inputRange,
-            outputRange: [0.3, 0.6, 1, 0.6, 0.3],
+            outputRange: [0.15, 0.45, 1, 0.45, 0.15],
             extrapolate: 'clamp',
           });
           return (
@@ -218,25 +221,23 @@ const ACCESSIBILITY_ACTIONS = [{ name: 'increment' }, { name: 'decrement' }] as 
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
+    // Borderless + transparent: the wheel reads as airy numerals on the page,
+    // not a boxed input. The large centered value + faded neighbours + the gold
+    // selection hairlines convey the control (the old filled band read cheap).
     viewport: {
       alignSelf: 'stretch',
-      borderWidth: 1,
-      borderColor: theme.color.border,
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.color.surface,
       overflow: 'hidden',
     },
-    // The selection "lens" — a calm band marking the centered row, iOS-style.
-    // Explicit zIndex (0) keeps it BEHIND the scrolling items (zIndex 1) so the
-    // centered value renders on top — independent of JSX order.
+    // Selection affordance — two thin gold hairlines bracketing the centered
+    // row (no fill). zIndex 0 keeps them behind the scrolling items (zIndex 1)
+    // so the focused value renders crisply on top, independent of JSX order.
     lens: {
       position: 'absolute',
-      left: theme.space(3),
-      right: theme.space(3),
+      left: theme.space(5),
+      right: theme.space(5),
       borderTopWidth: 1,
       borderBottomWidth: 1,
-      borderColor: theme.color.border,
-      backgroundColor: theme.color.brandSubtle,
+      borderColor: theme.color.gold,
       zIndex: 0,
     },
     scroll: { zIndex: 1 },
@@ -244,8 +245,9 @@ function makeStyles(theme: Theme) {
     itemText: {
       fontFamily: theme.font.mono,
       fontVariant: ['tabular-nums'],
-      fontSize: theme.type.h3,
-      lineHeight: theme.type.h3 * 1.1,
+      fontSize: theme.type.metricLg,
+      lineHeight: theme.type.metricLg * 1.05,
+      fontWeight: theme.weight.semibold,
       color: theme.color.text,
     },
   });
