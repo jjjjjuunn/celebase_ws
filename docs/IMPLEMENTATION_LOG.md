@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: IMPL-MOBILE-ONBOARDING-V2-001
-commit_sha: PENDING
+commit_sha: 8d5a022
 files_changed:
   - apps/mobile/src/components/DrumPicker.tsx
   - apps/mobile/src/components/OptionChips.tsx
