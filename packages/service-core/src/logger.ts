@@ -8,6 +8,9 @@ const PHI_REDACT_PATHS = [
   '*.cookie',
   '*.access_token',
   '*.refresh_token',
+  // FEAT-APPLE-REVOKE-001 — Apple one-time code + stored refresh token envelope.
+  '*.apple_authorization_code',
+  '*.apple_refresh_token_enc',
   '*.biomarkers',
   '*.height',
   '*.height_cm',
