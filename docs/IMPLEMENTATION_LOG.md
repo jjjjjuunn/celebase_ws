@@ -28,6 +28,33 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-24
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: IMPL-MOBILE-ONBOARDING-V2-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/components/DrumPicker.tsx
+  - apps/mobile/src/components/OptionChips.tsx
+  - apps/mobile/src/onboarding/OnboardingScaffold.tsx
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+  - apps/mobile/src/onboarding/RevealStep.tsx
+  - apps/mobile/src/onboarding/types.ts
+  - apps/mobile/src/services/bio-profile.ts
+  - apps/mobile/src/screens/ProfileScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-7 + advisor (mobile tsc/eslint)
+---
+### 완료: 온보딩 전면 개편 v2 — 한 질문씩 10화면 + 휠 피커 + 데이터 최소화 (IMPL-MOBILE-ONBOARDING-V2-001)
+- **구조**: 단일 화면 다필드 → linear 10-step one-question flow(이름→생년→성별→키→몸무게→활동→알레르기→GLP-1→목표→선호→Reveal). `OnboardingScaffold` 가 골드 진행바로 step 표시 → 하드코딩 "N/3" 카운터 버그 **구조적 제거**(화면이 자기 번호를 안 들고 있음).
+- **신규 컴포넌트**: `DrumPicker`(iOS식 스크롤 휠 — pure-JS Animated, 네이티브 모듈 없음 → reload-safe; 명시적 zIndex 로 선택값을 lens 위에 렌더; 마운트 RAF scrollTo 로 Android 초기 위치), `OptionChips`(재사용 칩 select, generic).
+- **데이터 최소화**(advisor + FDA 리서치): `medical_conditions` 수집 중단 — 엔진 phi_minimizer 4개 태스크 어디에도 없음(미사용 PHI), 질환별 식이 = FDA "치료/완화 의도" medical-device 경계. medications → GLP-1 불리언만(`['glp1']`, 엔진 `_has_glp1()` 가 유일 소비). waist_cm/persona 화면 제거(둘 다 미사용). allergies 유지(allergen_filter). `buildBioProfileBody` 가 `medical_conditions:[]` 전송 — **서버 스키마 불변**.
+- **Reveal/프리미엄**: `sparkles` 아이콘(AI 클리셰) 제거 → 골드 헤어라인 + Fraunces 헤드라인(이름 그리팅). 이름 입력칸 박스 → 골드 밑줄+큰 타이포. scaffold 컨트롤 세로중앙 정렬(하단 여백 해소).
+- **회귀 정리**: Profile "Following" 행 제거(persona 제거로 항상 비어있던 dead row). 재진입 안전 — bio-profile POST = `ON CONFLICT (user_id) DO UPDATE` upsert(dev Replay 경로 409/500 없음).
+- **검증**: mobile `tsc --noEmit` 0, `eslint "**/*.{ts,tsx}" --max-warnings=0` 0. 구 step 파일 5개 삭제(import 깨짐 0). 런타임 시각 검증은 dev 빌드(iOS sim)에서 사용자 진행 중.
+### 미완료: display_name 영속화(PATCH /users/me 라우트 부재 — 현재 그리팅용만), 햅틱(expo-haptics, 1회 dev-client 리빌드), 알레르겐 태그 정규화(#80 BE — canonical vocab + 레시피 커버리지, 입력 자동완성 선행조건), DOB 풀버전(연도만 유지로 결정 — BMR 영향 ≤5kcal).
+### 연관 파일: apps/mobile/src/onboarding/OnboardingFlow.tsx, apps/mobile/src/onboarding/OnboardingScaffold.tsx, apps/mobile/src/components/DrumPicker.tsx, apps/mobile/src/components/OptionChips.tsx, apps/mobile/src/services/bio-profile.ts, spec.md
+
+---
 date: 2026-05-22
 agent: claude-opus-4-7
 task_id: FEAT-MEAL-CONSECUTIVE-DATES-001

@@ -10,32 +10,46 @@
 import { schemas } from '@celebbase/shared-types';
 
 import { authedFetch } from '../lib/fetch-with-refresh';
-import type { OnboardingDraftComplete } from '../onboarding/types';
+import { feetInchesToCm, lbToKg } from '../lib/units';
+import type { OnboardingDraft } from '../onboarding/types';
 
 /**
  * 온보딩 완성 draft → bio-profile POST request body 매핑.
- * shared-types `CreateBioProfileRequestSchema` 의 partial shape 에 맞춰 필드 선택.
- * S2 의 persona slug 는 별도 endpoint (`PATCH /api/users/me`) 영역이라
- * 본 함수는 bio-profile 필드만 다룬다.
+ *
+ * 필수 필드가 미설정이면 null 반환 (방어적 — wizard 가 각 step 을 게이트하므로
+ * 실제로는 발생하지 않음). 호출자(OnboardingFlow)가 null 가드 후 reveal 진입.
+ *
+ * 데이터 최소화 (2026-05-24): medical_conditions 는 항상 [] (미수집 — 엔진
+ * 미사용 PHI), medications 는 엔진이 읽는 GLP-1 플래그만 담는다 (`['glp1']`).
+ * imperial(ft/in/lb) → metric(cm/kg) 변환은 여기서 일괄 수행.
  */
-export function draftToBioProfileBody(
-  draft: OnboardingDraftComplete,
-): schemas.CreateBioProfileRequest {
+export function buildBioProfileBody(
+  draft: OnboardingDraft,
+): schemas.CreateBioProfileRequest | null {
+  const { birth_year, sex, height_ft, height_in, weight_lb, activity_level, primary_goal } = draft;
+  if (
+    birth_year === undefined ||
+    sex === undefined ||
+    height_ft === undefined ||
+    height_in === undefined ||
+    weight_lb === undefined ||
+    activity_level === undefined ||
+    primary_goal === undefined
+  ) {
+    return null;
+  }
   return {
-    birth_year: draft.basicInfo.birth_year,
-    sex: draft.basicInfo.sex,
-    height_cm: draft.bodyMetrics.height_cm,
-    weight_kg: draft.bodyMetrics.weight_kg,
-    ...(draft.bodyMetrics.waist_cm !== undefined
-      ? { waist_cm: draft.bodyMetrics.waist_cm }
-      : {}),
-    activity_level: draft.activityHealth.activity_level,
-    allergies: draft.activityHealth.allergies,
-    medical_conditions: draft.activityHealth.medical_conditions,
-    medications: draft.activityHealth.medications,
-    primary_goal: draft.goals.primary_goal,
-    secondary_goals: draft.goals.secondary_goals,
-    ...(draft.goals.diet_type !== null ? { diet_type: draft.goals.diet_type } : {}),
+    birth_year,
+    sex,
+    height_cm: feetInchesToCm(height_ft, height_in),
+    weight_kg: lbToKg(weight_lb),
+    activity_level,
+    allergies: draft.allergies,
+    medical_conditions: [],
+    medications: draft.has_glp1 === true ? ['glp1'] : [],
+    primary_goal,
+    secondary_goals: draft.secondary_goals,
+    ...(draft.diet_type !== null ? { diet_type: draft.diet_type } : {}),
   };
 }
 

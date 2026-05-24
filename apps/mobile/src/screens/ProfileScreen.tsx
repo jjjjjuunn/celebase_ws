@@ -106,7 +106,6 @@ export function ProfileScreen({
           </Text>
           <View style={styles.sectionBody}>
             <Row label="Joined" value={joinedDate} />
-            <Row label="Following" value={user.preferred_celebrity_slug ?? 'None yet'} />
             <Row label="Language" value={user.locale} />
           </View>
         </View>

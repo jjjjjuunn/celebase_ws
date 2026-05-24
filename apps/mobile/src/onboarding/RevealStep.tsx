@@ -7,22 +7,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
+
+import type { schemas } from '@celebbase/shared-types';
 
 import { ApiError } from '../lib/api-client';
-import { draftToBioProfileBody, saveBioProfile } from '../services/bio-profile';
+import { saveBioProfile } from '../services/bio-profile';
 import { Button, Text, useTheme, type Theme } from '../ui';
-import type { OnboardingDraftComplete } from './types';
 
 interface RevealStepProps {
-  draft: OnboardingDraftComplete;
+  /** Prebuilt bio-profile body (stable reference — built once by the flow). */
+  body: schemas.CreateBioProfileRequest;
+  /** First name for the greeting; omitted → generic copy. */
+  greetingName?: string;
   onDone: () => void;
   onBack: () => void;
 }
 
 type Phase = { state: 'saving' } | { state: 'success' } | { state: 'error'; message: string };
 
-export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JSX.Element {
+export function RevealStep({ body, greetingName, onDone, onBack }: RevealStepProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'saving' });
@@ -31,7 +34,6 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
     let cancelled = false;
     setPhase({ state: 'saving' });
 
-    const body = draftToBioProfileBody(draft);
     saveBioProfile(body)
       .then(() => {
         if (cancelled) return;
@@ -50,11 +52,10 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
     return (): void => {
       cancelled = true;
     };
-  }, [draft]);
+  }, [body]);
 
   function retry(): void {
     setPhase({ state: 'saving' });
-    const body = draftToBioProfileBody(draft);
     saveBioProfile(body)
       .then(() => {
         setPhase({ state: 'success' });
@@ -96,19 +97,29 @@ export function RevealStep({ draft, onDone, onBack }: RevealStepProps): React.JS
     );
   }
 
+  // Editorial completion moment — no celebratory glyph (sparkles/confetti read
+  // as an AI cliché). A thin gold rule + small-caps kicker + Fraunces headline
+  // carries the premium register of the rest of the app.
+  const headline =
+    greetingName !== undefined && greetingName.trim() !== ''
+      ? `You're all set, ${greetingName.trim()}`
+      : "You're all set";
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.centered}>
-        <Ionicons name="sparkles" size={56} color={theme.color.gold} />
-        <Text variant="h1" tone="brand" center>
-          You&apos;re all set!
+        <View style={styles.rule} />
+        <Text variant="label" tone="brand" center style={styles.kicker}>
+          Welcome
         </Text>
-        <Text variant="body" center>
-          We&apos;re preparing your personalized celebrity-inspired plan. See you on the inside.
+        <Text variant="h1" center numberOfLines={2}>
+          {headline}
+        </Text>
+        <Text variant="body" tone="muted" center style={styles.dek}>
+          We&apos;re preparing your personalized, celebrity-inspired plan. See you on the inside.
         </Text>
       </View>
       <View style={styles.footer}>
-        <Button label="Go to home" onPress={onDone} />
+        <Button label="Enter Celebase" onPress={onDone} />
       </View>
     </SafeAreaView>
   );
@@ -124,6 +135,9 @@ function makeStyles(theme: Theme) {
       padding: theme.space(4),
       gap: theme.space(3),
     },
+    rule: { width: 48, height: 1, backgroundColor: theme.color.gold },
+    kicker: { letterSpacing: 1.5 },
+    dek: { paddingHorizontal: theme.space(4), lineHeight: theme.type.body * 1.6 },
     footer: { padding: theme.space(4), gap: theme.space(2) },
   });
 }
