@@ -7574,3 +7574,29 @@ verified_by: claude-opus-4-7 + advisor (user-svc 200 tests; apple-oauth 10 + app
 - **Review tier**: L3 (인증/시크릿/PHI 키) — advisor 2-pass + Claude self-review. #163 으로 editorial 에 머지.
 ### 미완료: ⚠️ staging 배포(migration 0023 먼저) 후 Apple 실기 E2E(로그인→삭제→Apple ID 앱 사라짐 + token_revoked outcome=revoked 로그). 감사로그 retention(CloudWatch). login-store/delete-revoke 결선 통합테스트. spec.md §9.3 Apple-revoke 단계 patch(drift). record-log-sha.sh.
 ### 연관 파일: services/user-service/src/services/apple-oauth.ts, services/user-service/src/services/apple-token-store.ts, db/migrations/0023_users_apple_refresh_token.sql, services/user-service/src/routes/**, packages/shared-types/src/schemas/auth.ts, packages/service-core/src/logger.ts, apps/mobile/src/services/social-auth.ts
+
+---
+date: 2026-05-25
+agent: claude-opus-4-7
+task_id: FEAT-MOBILE-MEALPLAN-CARD-001
+commit_sha: 82cdbcb
+files_changed:
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/src/components/MealPhoto.tsx
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - db/seeds/loaders/celebrityLoader.ts
+  - db/seeds/types.ts
+  - db/seeds/data (10 celebrity recipe JSON files)
+  - db/migrations/0025_backfill_recipe_descriptions.sql
+verified_by: claude-opus-4-7 (mobile typecheck + lint clean; jest 7/7; iOS Simulator iPhone 17 Pro 시각 확인)
+---
+### 완료: Meal Plan 카드 snap-scroll redesign + recipe description 데이터 (FEAT-MOBILE-MEALPLAN-CARD-001)
+- **모바일**: Plan 탭 본문을 탭-셀렉터 → 하루치 끼니 세로 snap-scroll 로 전환. 사진 본문 ~56%, 소요시간 pill(prep+cook) 사진 우상단, 이름 옆 칼로리, 한줄 recipe overview(이름 바로 아래). 좌측 기둥(아이콘+라벨 1.5×)은 스크롤 위치 인디케이터 — 현재 끼니 강조 + 탭 시 해당 끼니로 jump. 상단 검색바 제거 + "Based on <celeb>" 표기.
+- **칼로리 fallback**: meal.adjusted_nutrition 부재 시 recipe.nutrition.calories 로 fallback — staging 기존 데이터로 즉시 표시(배포 불필요).
+- **데이터**: 180개 recipe 에 재료/조리 기반 1줄 description 작성(효능 주장 X — content.md 면책 규칙 준수). seed 로더가 description 을 recipes INSERT 에서 누락하던 버그 수정.
+- **마이그레이션 0025**: 로더 수정 이전 시드 환경(staging) 백필 — 로더 slugify 와 동일 slug 매칭 + `description IS NULL` 가드(idempotent, fresh seed 에선 no-op). 180 UPDATE.
+- **테스트**: jest 7/7 (기둥 4 라벨 + 활성/disabled state, 420 kcal, 5 min, overview 텍스트, "Based on Beyoncé").
+### 미완료: staging 배포("CD — Staging Deploy" 수동 트리거)로 0025 적용 시 overview 가 실데이터로 표시(배포 전까지 카드 overview 미표시 — 칼로리/시간/셀럽은 기존 데이터로 표시됨). meal.adjusted_nutrition(영양값) 공백 별도 백필. 마이그레이션 0025 실 DB 적용 검증(슬러그 매칭은 로더 로직 동일성으로 정적 검증). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/components/MealPhoto.tsx, db/seeds/loaders/celebrityLoader.ts, db/migrations/0025_backfill_recipe_descriptions.sql
