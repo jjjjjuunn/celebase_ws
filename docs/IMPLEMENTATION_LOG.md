@@ -7600,3 +7600,29 @@ verified_by: claude-opus-4-7 (mobile typecheck + lint clean; jest 7/7; iOS Simul
 - **테스트**: jest 7/7 (기둥 4 라벨 + 활성/disabled state, 420 kcal, 5 min, overview 텍스트, "Based on Beyoncé").
 ### 미완료: staging 배포("CD — Staging Deploy" 수동 트리거)로 0025 적용 시 overview 가 실데이터로 표시(배포 전까지 카드 overview 미표시 — 칼로리/시간/셀럽은 기존 데이터로 표시됨). meal.adjusted_nutrition(영양값) 공백 별도 백필. 마이그레이션 0025 실 DB 적용 검증(슬러그 매칭은 로더 로직 동일성으로 정적 검증). record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/components/MealPhoto.tsx, db/seeds/loaders/celebrityLoader.ts, db/migrations/0025_backfill_recipe_descriptions.sql
+
+---
+date: 2026-05-25
+agent: claude-opus-4-7 (1M context)
+task_id: FEAT-MOBILE-RECIPE-DETAIL-001
+commit_sha: 9e3e531
+files_changed:
+  - services/content-service/src/index.ts
+  - packages/shared-types/src/schemas/recipes.ts
+  - apps/web/src/app/api/recipes/[id]/route.ts
+  - apps/mobile/src/services/recipes.ts
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/src/navigation/PlanNavigator.tsx
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/src/navigation/types.ts
+verified_by: claude-opus-4-7 (shared-types build + content-svc/web/mobile typecheck + mobile lint clean; iOS Simulator iPhone 17 Pro 실행 확인 — 번들 평가/네비 정상)
+---
+### 완료: Recipe Detail 식재료(ingredients) 표시 — 끼니 카드 → 레시피 상세 결선 (FEAT-MOBILE-RECIPE-DETAIL-001)
+- **배경**: Plan 탭 끼니 카드를 탭해도 식재료가 안 떴다. content-service `/recipes/:id` 핸들러 + `recipe_ingredients` join 은 이미 배포돼 있으나 **protected** 라, internal token 을 못 만드는 public BFF 가 401 → mobile 이 batch 엔드포인트로 fallback 하며 ingredients 를 빈 배열로 둠.
+- **content-service**: `publicPaths` 에 `/recipes/*` 추가 — `/recipes/:id` (detail) + `/recipes/:id/personalized` 를 celebrities/base-diets 와 동일한 미인증 공개 카탈로그 read 로 개방. 핸들러/레포 join 변경 없음(이미 존재).
+- **shared-types**: `RecipeDetailContentSchema` (recipe_ingredients join 형상) + `RecipeDetailResponseSchema { recipe, ingredients }` 추가.
+- **web BFF**: `GET /api/recipes/:id` 를 `createPublicRoute` 로 전환 + content 의 `recipe_ingredients` join 을 lean·`sort_order` 정렬 `ingredients` 배열로 매핑.
+- **mobile**: `getRecipeDetail()` — 상세 엔드포인트 우선, 배포 전엔 공개 batch 로 graceful fallback(ingredients 빈 배열). 신규 `RecipeDetailScreen`(풀블리드 hero + 영양 카드 + Ingredients/Recipe 탭 + 면책 고지). `MealPlanScreen` 끼니 카드 → `onNavigateRecipe`, `PlanNavigator` 에 `RecipeDetail` route + `types.ts` param.
+- **검증**: shared-types build / content-svc·web·mobile typecheck / mobile lint 전부 clean. iOS Simulator(iPhone 17 Pro) 실행으로 번들 평가·네비 동작 확인. PR #170.
+### 미완료: ⚠️ 식재료가 **실제로 표시되려면** content-service(`/recipes/*` public) + web BFF 가 staging 에 배포돼야 함 — 배포 전까지 Ingredients 탭은 "재료 정보는 곧 제공돼요" empty state(레시피/영양/조리단계는 기존 API 로 표시). `RecipeDetailScreen` 단위 테스트 미작성(RN 화면 — typecheck + 수동 실행으로 검증). 프로필 편집/아바타(Feature B)는 별도 PR.
+### 연관 파일: services/content-service/src/index.ts, packages/shared-types/src/schemas/recipes.ts, apps/web/src/app/api/recipes/[id]/route.ts, apps/mobile/src/services/recipes.ts, apps/mobile/src/screens/RecipeDetailScreen.tsx, apps/mobile/src/navigation/PlanNavigator.tsx, apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/navigation/types.ts

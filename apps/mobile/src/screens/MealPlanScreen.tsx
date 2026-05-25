@@ -44,6 +44,8 @@ type IoniconName = ComponentProps<typeof Ionicons>['name'];
 interface MealPlanScreenProps {
   onNavigateOnboarding: () => void;
   onNavigatePaywall: () => void;
+  /** 끼니 카드 탭 → recipe 상세. PlanNavigator 가 주입(선택적 — 테스트는 미주입). */
+  onNavigateRecipe?: (recipeId: string) => void;
   /** PlanNavigator focus refresh 트리거 — 값이 바뀌면 전체 reload. */
   reloadKey?: number;
 }
@@ -285,6 +287,7 @@ function pickMealName(meal: DailyMeal, meta?: RecipeMeta): string {
 export function MealPlanScreen({
   onNavigateOnboarding,
   onNavigatePaywall,
+  onNavigateRecipe,
   reloadKey = 0,
 }: MealPlanScreenProps): React.JSX.Element {
   const theme = useTheme();
@@ -443,7 +446,15 @@ export function MealPlanScreen({
     const timeText = formatPrepTime(meta);
     const overview = mealOverview(item, meta);
     return (
-      <View style={[styles.card, { height: itemHeight }]}>
+      <TouchableOpacity
+        onPress={() => {
+          onNavigateRecipe?.(item.recipe_id);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`View recipe: ${mealName}`}
+        activeOpacity={0.85}
+        style={[styles.card, { height: itemHeight }]}
+      >
         <Text variant="label" tone="muted" style={styles.cardKicker}>
           {label}
         </Text>
@@ -477,7 +488,7 @@ export function MealPlanScreen({
             </Text>
           ) : null}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

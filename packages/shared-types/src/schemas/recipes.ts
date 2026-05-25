@@ -46,10 +46,45 @@ export const RecipeListResponseSchema = z.object({
 });
 export type RecipeListResponse = z.infer<typeof RecipeListResponseSchema>;
 
+// Lean ingredient shape for the recipe detail screen (mobile). Derived from the
+// recipe_ingredients join — name from the linked ingredient, plus per-recipe
+// quantity/unit/preparation/optional flag.
+export const RecipeIngredientWireSchema = z.object({
+  name: z.string().min(1),
+  quantity: z.number(),
+  unit: z.string(),
+  preparation: z.string().nullable(),
+  is_optional: z.boolean(),
+});
+export type RecipeIngredientWire = z.infer<typeof RecipeIngredientWireSchema>;
+
 export const RecipeDetailResponseSchema = z.object({
   recipe: RecipeWireSchema,
+  // BFF maps the recipe_ingredients join → lean list. `.default([])` keeps the
+  // pre-deploy / batch-fallback shape (recipe-only) valid.
+  ingredients: z.array(RecipeIngredientWireSchema).default([]),
 });
 export type RecipeDetailResponse = z.infer<typeof RecipeDetailResponseSchema>;
+
+// content-service `GET /recipes/:id` returns the recipe with a nested
+// recipe_ingredients join (RecipeWithIngredients). The BFF parses with this to
+// retain the join (RecipeWireSchema alone strips it), then maps to the lean
+// `ingredients` array above.
+export const RecipeDetailContentSchema = RecipeWireSchema.extend({
+  recipe_ingredients: z
+    .array(
+      z.object({
+        quantity: z.number(),
+        unit: z.string(),
+        preparation: z.string().nullable().optional(),
+        is_optional: z.boolean(),
+        sort_order: z.number().int(),
+        ingredient: z.object({ name: z.string().min(1) }).passthrough(),
+      }),
+    )
+    .default([]),
+});
+export type RecipeDetailContent = z.infer<typeof RecipeDetailContentSchema>;
 
 // Plan 22 · Phase D3 — batch lookup response for `GET /recipes?ids=...`.
 // Unordered; not paginated. Callers reassemble by id.

@@ -55,6 +55,7 @@ export type NewsStackParamList = {
 // ── Plan / Profile / Settings stacks (single screen each for now) ────
 export type PlanStackParamList = {
   MealPlan: undefined;
+  RecipeDetail: { recipeId: string };
 };
 
 export type ProfileStackParamList = {

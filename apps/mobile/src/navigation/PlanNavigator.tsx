@@ -8,7 +8,8 @@ import {
 } from '@react-navigation/native-stack';
 
 import { MealPlanScreen } from '../screens/MealPlanScreen';
-import type { PlanStackParamList, RootStackParamList } from './types';
+import { RecipeDetailScreen } from '../screens/RecipeDetailScreen';
+import type { PlanStackParamList, PlanStackScreenProps, RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<PlanStackParamList>();
 
@@ -16,6 +17,7 @@ const Stack = createNativeStackNavigator<PlanStackParamList>();
 // 화면 자체는 nav 비의존(테스트 용이) — 콜백 주입 + reloadKey prop 으로 통신.
 function MealPlanRoute(): React.JSX.Element {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const planNav = useNavigation<NativeStackNavigationProp<PlanStackParamList>>();
   const [reloadKey, setReloadKey] = useState(0);
   const firstFocus = useRef(true);
 
@@ -40,6 +42,24 @@ function MealPlanRoute(): React.JSX.Element {
       onNavigatePaywall={() => {
         rootNav.navigate('Paywall');
       }}
+      onNavigateRecipe={(recipeId) => {
+        planNav.navigate('RecipeDetail', { recipeId });
+      }}
+    />
+  );
+}
+
+// 끼니 탭 → recipe 상세. recipeId 를 route param 에서 꺼내 nav 비의존 화면에 주입.
+function RecipeDetailRoute({
+  route,
+  navigation,
+}: PlanStackScreenProps<'RecipeDetail'>): React.JSX.Element {
+  return (
+    <RecipeDetailScreen
+      recipeId={route.params.recipeId}
+      onBack={() => {
+        navigation.goBack();
+      }}
     />
   );
 }
@@ -48,6 +68,7 @@ export function PlanNavigator(): React.JSX.Element {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MealPlan" component={MealPlanRoute} />
+      <Stack.Screen name="RecipeDetail" component={RecipeDetailRoute} />
     </Stack.Navigator>
   );
 }
