@@ -1,10 +1,11 @@
 // Main 4-tab bottom navigator — 로그인 후 진입.
 //   - Celebrities: 셀럽 그리드 + 셀럽/claim 디테일
-//   - Plan: 식단 및 루틴 (Meal & Routine)
+//   - Plan: 식단 (Meal Plan)
 //   - News: 아티클 피드
 //   - SettingsTab: account/subscription/legal (+ 사용자 프로필 병합 예정)
 //
-// 사용자 스펙 (2026-05-14): 하단 4탭 — 좌→우 Celebrities / Meal & Routine / News / Settings.
+// 사용자 스펙 (2026-05-24): 하단 4탭 — 좌→우 Celebrities / Meal Plan / News / Settings.
+// (2026-05-14 원안의 "Meal & Routine" → routine 미노출 결정으로 "Meal Plan" 으로 변경)
 
 import { useMemo, type ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
@@ -22,7 +23,7 @@ const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TAB_LABELS = {
   Celebrities: 'Celebrities',
-  Plan: 'Meal & Routine',
+  Plan: 'Meal Plan',
   News: 'News',
   SettingsTab: 'Settings',
 } as const;
