@@ -66,7 +66,7 @@ export type SettingsStackParamList = {
 };
 
 // ── Main tabs ───────────────────────────────────────────────
-// 활성 4탭: Celebrities / Plan(Meal & Routine) / News / SettingsTab.
+// 활성 4탭: Celebrities / Plan(Meal Plan) / News / SettingsTab.
 // Discover / ProfileTab 은 orphan navigator 의 타입 호환 유지용 — 정리 시 제거.
 export type MainTabsParamList = {
   Celebrities: NavigatorScreenParams<CelebritiesStackParamList>;

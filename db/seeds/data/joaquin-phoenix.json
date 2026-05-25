@@ -68,6 +68,7 @@
   "recipes": [
     {
       "title": "Raw Fruit and Nut Bowl",
+      "description": "Fresh fruit with walnuts and pumpkin seeds",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -131,6 +132,7 @@
     },
     {
       "title": "Raw Oat and Seed Muesli",
+      "description": "Raw oat muesli with apple and seeds",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -188,6 +190,7 @@
     },
     {
       "title": "Avocado and Sprout Toast",
+      "description": "Avocado and sprouts on Ezekiel toast",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 3,
@@ -247,6 +250,7 @@
     },
     {
       "title": "Chia Pudding with Mango",
+      "description": "Coconut chia pudding with mango",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -304,6 +308,7 @@
     },
     {
       "title": "Raw Veggie Nori Wraps",
+      "description": "Nori wraps with hummus and raw veggies",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -373,6 +378,7 @@
     },
     {
       "title": "Raw Kale and Avocado Salad",
+      "description": "Massaged kale salad with avocado and seeds",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -438,6 +444,7 @@
     },
     {
       "title": "Lentil and Raw Veggie Bowl",
+      "description": "Lentils with raw veggies and tahini",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -502,6 +509,7 @@
     },
     {
       "title": "Zucchini Noodle and Pesto Bowl",
+      "description": "Zucchini noodles with pine-nut pesto",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -576,6 +584,7 @@
     },
     {
       "title": "Sweet Potato and Black Bean Chili",
+      "description": "Sweet potato and black bean chili",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -662,6 +671,7 @@
     },
     {
       "title": "Raw Cashew Pad Thai",
+      "description": "Raw veggie noodles with cashew-lime sauce",
       "meal_type": "dinner",
       "prep_time_min": 20,
       "cook_time_min": 0,
@@ -743,6 +753,7 @@
     },
     {
       "title": "Roasted Cauliflower with Chickpeas and Tahini",
+      "description": "Roasted cauliflower and chickpeas with tahini",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -813,6 +824,7 @@
     },
     {
       "title": "Simple Vegetable and Lentil Soup",
+      "description": "Simple lentil soup with carrot and celery",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -893,6 +905,7 @@
     },
     {
       "title": "Raw Cashew and Date Bites",
+      "description": "No-bake cashew and date bites",
       "meal_type": "snack",
       "prep_time_min": 10,
       "cook_time_min": 0,
@@ -935,6 +948,7 @@
     },
     {
       "title": "Sliced Veggies with Tahini",
+      "description": "Raw veggie sticks with tahini",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -983,6 +997,7 @@
     },
     {
       "title": "Fresh Fruit Plate",
+      "description": "Apple, orange, and kiwi plate",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1027,6 +1042,7 @@
     },
     {
       "title": "Nuts and Seeds Mix",
+      "description": "Mixed nuts with hemp and pumpkin seeds",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -1073,6 +1089,7 @@
     },
     {
       "title": "Green Apple Ginger Smoothie",
+      "description": "Green apple and ginger smoothie",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1131,6 +1148,7 @@
     },
     {
       "title": "Raw Cacao and Banana Smoothie",
+      "description": "Raw cacao banana smoothie with dates",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

@@ -66,6 +66,7 @@
   "recipes": [
     {
       "title": "Avocado and Smoked Salmon Toast",
+      "description": "Smoked salmon and avocado on Ezekiel toast",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 3,
@@ -135,6 +136,7 @@
     },
     {
       "title": "Green Vegetable Frittata",
+      "description": "Frittata with spinach, zucchini, and leek",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -204,6 +206,7 @@
     },
     {
       "title": "Grain-Free Granola Bowl",
+      "description": "Grain-free nut granola with coconut yogurt",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -277,6 +280,7 @@
     },
     {
       "title": "Sweet Potato and Kale Hash with Eggs",
+      "description": "Sweet potato and kale hash with eggs",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -345,6 +349,7 @@
     },
     {
       "title": "Wild Salmon and Arugula Salad",
+      "description": "Wild salmon over arugula with fennel",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -414,6 +419,7 @@
     },
     {
       "title": "Bone Broth and Vegetable Soup",
+      "description": "Bone broth soup with sweet potato and kale",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -495,6 +501,7 @@
     },
     {
       "title": "Turkey and Avocado Lettuce Wraps",
+      "description": "Seasoned turkey and avocado in lettuce wraps",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 10,
@@ -579,6 +586,7 @@
     },
     {
       "title": "Roasted Beet and Goat Cheese Salad",
+      "description": "Roasted beets with goat cheese and walnuts",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 40,
@@ -647,6 +655,7 @@
     },
     {
       "title": "Herb-Crusted Salmon with Roasted Vegetables",
+      "description": "Herb salmon with asparagus and zucchini",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 25,
@@ -723,6 +732,7 @@
     },
     {
       "title": "Chicken and Vegetable Stir-Fry",
+      "description": "Chicken stir-fry with broccoli and peppers",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 15,
@@ -808,6 +818,7 @@
     },
     {
       "title": "Cauliflower Rice Risotto with Mushrooms",
+      "description": "Cauliflower-rice risotto with mushrooms",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -894,6 +905,7 @@
     },
     {
       "title": "Lemon-Herb Roasted Chicken with Sweet Potato",
+      "description": "Lemon-herb chicken with sweet potato",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 35,
@@ -975,6 +987,7 @@
     },
     {
       "title": "Almond-Crusted Protein Bites",
+      "description": "Date and almond butter bites",
       "meal_type": "snack",
       "prep_time_min": 10,
       "cook_time_min": 0,
@@ -1033,6 +1046,7 @@
     },
     {
       "title": "Cucumber Avocado Bites",
+      "description": "Cucumber rounds topped with avocado",
       "meal_type": "snack",
       "prep_time_min": 10,
       "cook_time_min": 0,
@@ -1086,6 +1100,7 @@
     },
     {
       "title": "Mixed Nuts and Berries",
+      "description": "Almonds and walnuts with blueberries",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -1127,6 +1142,7 @@
     },
     {
       "title": "Bone Broth Sipping Cup",
+      "description": "Warm bone broth with turmeric",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 5,
@@ -1173,6 +1189,7 @@
     },
     {
       "title": "Green Detox Smoothie",
+      "description": "Green smoothie with cucumber, apple, and ginger",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1236,6 +1253,7 @@
     },
     {
       "title": "Berry Collagen Smoothie",
+      "description": "Berry collagen smoothie with almond butter",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

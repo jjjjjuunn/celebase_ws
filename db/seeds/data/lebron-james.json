@@ -66,6 +66,7 @@
   "recipes": [
     {
       "title": "Power Egg Scramble with Sweet Potato",
+      "description": "Egg scramble with sweet potato and spinach",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 15,
@@ -118,6 +119,7 @@
     },
     {
       "title": "Protein Pancakes with Berries",
+      "description": "Oat-protein pancakes with banana and blueberries",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -184,6 +186,7 @@
     },
     {
       "title": "Avocado Toast with Smoked Salmon and Eggs",
+      "description": "Smoked salmon, egg, and avocado toast",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 5,
@@ -243,6 +246,7 @@
     },
     {
       "title": "Steel-Cut Oats with Nut Butter",
+      "description": "Steel-cut oats with almond butter and banana",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 20,
@@ -295,6 +299,7 @@
     },
     {
       "title": "Grilled Chicken and Avocado Wrap",
+      "description": "Grilled chicken and avocado wrap with spinach",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -358,6 +363,7 @@
     },
     {
       "title": "Salmon Rice Bowl with Greens",
+      "description": "Salmon and brown rice bowl with greens",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -427,6 +433,7 @@
     },
     {
       "title": "Turkey and Quinoa Stuffed Peppers",
+      "description": "Peppers stuffed with turkey and quinoa",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 30,
@@ -496,6 +503,7 @@
     },
     {
       "title": "Chicken Bone Broth Noodle Soup",
+      "description": "Chicken noodle soup in bone broth",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -572,6 +580,7 @@
     },
     {
       "title": "Herb-Grilled Chicken with Quinoa Salad",
+      "description": "Herb chicken with quinoa-tomato salad",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 18,
@@ -658,6 +667,7 @@
     },
     {
       "title": "Pan-Seared Salmon with Sweet Potato and Broccoli",
+      "description": "Salmon with sweet potato and broccoli",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -722,6 +732,7 @@
     },
     {
       "title": "Lean Steak with Roasted Vegetables",
+      "description": "Lean steak with sprouts and sweet potato",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -786,6 +797,7 @@
     },
     {
       "title": "Baked Chicken Thighs with Root Vegetables",
+      "description": "Baked chicken with carrot and sweet potato",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 35,
@@ -861,6 +873,7 @@
     },
     {
       "title": "Almond Butter and Banana Rice Cake",
+      "description": "Rice cake with almond butter and banana",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -903,6 +916,7 @@
     },
     {
       "title": "Trail Mix Power Pack",
+      "description": "Nuts, cranberries, and dark chocolate trail mix",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -950,6 +964,7 @@
     },
     {
       "title": "Protein Bar Smoothie Bowl",
+      "description": "Protein smoothie bowl with granola and strawberries",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1007,6 +1022,7 @@
     },
     {
       "title": "Greek Yogurt Protein Shake",
+      "description": "Greek yogurt shake with berries and honey",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -1048,6 +1064,7 @@
     },
     {
       "title": "Green Recovery Smoothie",
+      "description": "Spinach-banana recovery smoothie with protein",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1099,6 +1116,7 @@
     },
     {
       "title": "Tropical Performance Smoothie",
+      "description": "Mango-pineapple smoothie with protein",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

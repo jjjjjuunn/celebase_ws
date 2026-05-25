@@ -67,6 +67,7 @@
   "recipes": [
     {
       "title": "Steak and Eggs Breakfast",
+      "description": "Pan-seared sirloin with egg whites and avocado",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 15,
@@ -123,6 +124,7 @@
     },
     {
       "title": "Cod and Sweet Potato Breakfast",
+      "description": "Baked cod with sweet potato and asparagus",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 18,
@@ -181,6 +183,7 @@
     },
     {
       "title": "Egg White Omelette with Vegetables",
+      "description": "Egg-white omelette with mushrooms, spinach, and peppers",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 10,
@@ -239,6 +242,7 @@
     },
     {
       "title": "Protein Oats with Egg Whites",
+      "description": "Rolled oats with egg whites and blueberries",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 12,
@@ -291,6 +295,7 @@
     },
     {
       "title": "Cod with White Rice and Broccoli",
+      "description": "Baked cod with white rice and broccoli",
       "meal_type": "lunch",
       "prep_time_min": 5,
       "cook_time_min": 20,
@@ -345,6 +350,7 @@
     },
     {
       "title": "Chicken Breast with Basmati Rice",
+      "description": "Chicken breast with basmati rice and asparagus",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 18,
@@ -398,6 +404,7 @@
     },
     {
       "title": "Ground Bison and Rice Bowl",
+      "description": "Ground bison and rice with mushrooms",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -458,6 +465,7 @@
     },
     {
       "title": "Turkey Breast and Sweet Potato Plate",
+      "description": "Turkey breast with sweet potato and green beans",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -511,6 +519,7 @@
     },
     {
       "title": "Grilled Sirloin with Potato and Veggies",
+      "description": "Grilled sirloin with potato and broccoli",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -564,6 +573,7 @@
     },
     {
       "title": "Cod with Rice and Mixed Greens",
+      "description": "Baked cod with rice and mixed greens",
       "meal_type": "dinner",
       "prep_time_min": 5,
       "cook_time_min": 18,
@@ -622,6 +632,7 @@
     },
     {
       "title": "Chicken and Quinoa Power Plate",
+      "description": "Chicken and quinoa with Brussels sprouts",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -675,6 +686,7 @@
     },
     {
       "title": "Salmon with Sweet Potato Mash",
+      "description": "Salmon with sweet potato mash and asparagus",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -733,6 +745,7 @@
     },
     {
       "title": "Peanut Butter Rice Cakes",
+      "description": "Rice cakes with peanut butter and honey",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -774,6 +787,7 @@
     },
     {
       "title": "Egg Whites and Toast",
+      "description": "Egg whites on Ezekiel toast",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 5,
@@ -811,6 +825,7 @@
     },
     {
       "title": "Protein Pudding",
+      "description": "Whey protein pudding with strawberries",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -858,6 +873,7 @@
     },
     {
       "title": "Almonds and Dried Fruit",
+      "description": "Almonds with dried apricots",
       "meal_type": "snack",
       "prep_time_min": 1,
       "cook_time_min": 0,
@@ -894,6 +910,7 @@
     },
     {
       "title": "Mass Gain Shake",
+      "description": "High-calorie shake with oats and peanut butter",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -945,6 +962,7 @@
     },
     {
       "title": "Chocolate Protein Smoothie",
+      "description": "Chocolate whey smoothie with almond butter",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

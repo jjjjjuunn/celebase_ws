@@ -71,6 +71,7 @@
   "recipes": [
     {
       "title": "TB12 Sunrise Bowl",
+      "description": "Steel-cut oats with banana, walnuts, and hemp",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 10,
@@ -129,6 +130,7 @@
     },
     {
       "title": "Avocado and Egg Bowl (No Nightshades)",
+      "description": "Eggs with avocado, mushrooms, and sweet potato",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 8,
@@ -193,6 +195,7 @@
     },
     {
       "title": "Protein Smoothie Bowl",
+      "description": "Plant-protein smoothie bowl with granola",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -254,6 +257,7 @@
     },
     {
       "title": "Quinoa Porridge with Seeds",
+      "description": "Quinoa porridge with chia and hemp seeds",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 15,
@@ -310,6 +314,7 @@
     },
     {
       "title": "Wild Salmon and Brown Rice Bowl",
+      "description": "Wild salmon and brown rice with avocado",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -369,6 +374,7 @@
     },
     {
       "title": "Bone Broth and Vegetable Bowl",
+      "description": "Bone broth bowl with root vegetables",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -450,6 +456,7 @@
     },
     {
       "title": "Chicken and Quinoa Salad",
+      "description": "Chicken and quinoa salad with spinach",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -519,6 +526,7 @@
     },
     {
       "title": "Sweet Potato and Lentil Soup",
+      "description": "Sweet potato and red lentil soup",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -599,6 +607,7 @@
     },
     {
       "title": "Herb-Grilled Chicken with Root Vegetables",
+      "description": "Herb chicken with sweet potato and carrot",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 30,
@@ -662,6 +671,7 @@
     },
     {
       "title": "Baked Salmon with Steamed Greens",
+      "description": "Baked salmon with broccoli and kale",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 18,
@@ -727,6 +737,7 @@
     },
     {
       "title": "Quinoa-Stuffed Butternut Squash",
+      "description": "Butternut squash stuffed with quinoa and pecans",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 45,
@@ -796,6 +807,7 @@
     },
     {
       "title": "Lean Chicken and Brown Rice Plate",
+      "description": "Lean chicken with brown rice and asparagus",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 18,
@@ -854,6 +866,7 @@
     },
     {
       "title": "TB12 Protein Bites",
+      "description": "Date and almond butter oat bites",
       "meal_type": "snack",
       "prep_time_min": 10,
       "cook_time_min": 0,
@@ -906,6 +919,7 @@
     },
     {
       "title": "Avocado and Seeds Snack",
+      "description": "Avocado with pumpkin seeds and salt",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -947,6 +961,7 @@
     },
     {
       "title": "Mixed Nuts and Dried Fruit",
+      "description": "Almonds and pecans with cranberries",
       "meal_type": "snack",
       "prep_time_min": 1,
       "cook_time_min": 0,
@@ -988,6 +1003,7 @@
     },
     {
       "title": "Bone Broth Cup",
+      "description": "Warm bone broth with turmeric",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 5,
@@ -1029,6 +1045,7 @@
     },
     {
       "title": "TB12 Performance Smoothie",
+      "description": "Plant-protein smoothie with spinach and almond butter",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1080,6 +1097,7 @@
     },
     {
       "title": "Blueberry Anti-Inflammatory Smoothie",
+      "description": "Blueberry smoothie with flaxseed and turmeric",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

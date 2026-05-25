@@ -81,11 +81,11 @@ async function upsertRecipe(
   if (existing.rows[0]) return;
 
   const { rows } = await client.query<{ id: string }>(
-    `INSERT INTO recipes (base_diet_id, title, slug, meal_type, prep_time_min, cook_time_min, servings, difficulty, nutrition, instructions, tips)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `INSERT INTO recipes (base_diet_id, title, slug, description, meal_type, prep_time_min, cook_time_min, servings, difficulty, nutrition, instructions, tips)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING id`,
     [
-      baseDietId, recipe.title, recipeSlug, recipe.meal_type,
+      baseDietId, recipe.title, recipeSlug, recipe.description ?? null, recipe.meal_type,
       recipe.prep_time_min, recipe.cook_time_min, recipe.servings, recipe.difficulty,
       JSON.stringify(recipe.nutrition), JSON.stringify(recipe.instructions),
       recipe.tips ?? null,
