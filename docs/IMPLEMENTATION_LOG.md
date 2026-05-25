@@ -29,6 +29,27 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-24
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/repositories/recipe.repository.ts
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/schemas/recipes.ts
+  - services/content-service/tests/unit/recipe.repository.test.ts
+verified_by: claude-opus-4-7 + advisor (content-svc 92 tests incl. 3 new repo; tsc/eslint/web-typecheck clean; staging SQL agg CR7 14/18 allergens·9 dgw; ⚠️ live engine E2E post-deploy)
+---
+### 완료: 레시피 allergen 을 엔진에 노출 — content-service 리스트 쿼리 집계 (FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001)
+- **Layer 2 갭 (#166 CHORE-ALLERGEN-VOCAB-001 의 staging 런타임 E2E 중 발견)**: #166 이 유저쪽 allergies 를 필터에 배선(Layer 0)·정규화·백필했으나, content-service `GET /base-diets/:id/recipes` 가 `SELECT * FROM recipes`(allergen JOIN 없음; recipes 테이블에 allergen 컬럼 없음, allergen 은 ingredients 에만)라 엔진이 받는 레시피 dict 에 `allergens` 부재 → `RecipeSlot.allergens=[]` → `filter_allergens` + `llm_safety` gate 양쪽 레시피쪽 데이터가 비어 **end-to-end no-op**. 유저가 무엇을 입력해도 누출. #166 이전부터 존재한 2차 배선 갭 (코드리뷰+SQL 로는 미검출, 런타임 E2E 가 적발).
+- **수정**: `findByBaseDietId` 쿼리에 상관 서브쿼리로 레시피별 ingredient allergen 집계(`array_agg(DISTINCT a) … CROSS JOIN LATERAL unnest(i.allergens) … WHERE ri.recipe_id=r.id`, COALESCE 빈배열) → top-level `allergens: string[]` 노출. 엔진은 이미 `r.get("allergens", [])` 를 읽으므로 **엔진 코드 변경 0**. candidate_pool + base_diet.recipes 둘 다 hydrate → 필터 + 게이트 동시 활성.
+- **계약**: `shared-types` Recipe entity `allergens?`(list 경로에서만 채워짐 — 중첩 detail `findById/findByIds` 는 ingredient 하위 유지, 미변경) + `RecipeWireSchema` `allergens: z.array(z.string()).default([])`(rolling deploy 중 stale BE 응답 허용).
+- **검증**: content-service 92 tests PASS(신규 recipe.repository 3 — SQL 집계 회귀 가드 + allergens passthrough). staging DB 로 집계 쿼리 사전검증 — CR7 18 레시피 중 14 allergen 보유 / 9 가 dairy·gluten·wheat. tsc/eslint clean, web(BFF) typecheck clean.
+- **Review tier**: L3 (알레르겐 안전 + 서비스 경계 + shared-types 계약) — advisor 2-pass(설계 + 발견 확정) + Claude self-review.
+### 미완료: ⚠️ 배포 후 라이브 엔진 E2E 재실행(`/tmp/engine_allergen_test.py` — before≥9 → after=0 기대로 누출 차단 최종 확인). findById/findByIds 중첩 detail 은 미변경(opportunistic, 누출 무관). record-log-sha.sh.
+### 연관 파일: services/content-service/src/repositories/recipe.repository.ts, packages/shared-types/src/entities.ts, packages/shared-types/src/schemas/recipes.ts, services/content-service/tests/unit/recipe.repository.test.ts
+
+---
+date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
 task_id: CHORE-ALLERGEN-VOCAB-001
 commit_sha: f8d4e08
