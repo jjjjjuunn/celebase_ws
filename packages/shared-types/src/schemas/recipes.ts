@@ -28,6 +28,10 @@ export const RecipeWireSchema = z.object({
   image_url: z.string().url().nullable(),
   video_url: z.string().url().nullable(),
   citations: z.array(CitationSchema),
+  // FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001 — derived flat allergen set the meal-plan
+  // engine filters against. `.default([])` keeps consumers tolerant of a stale BE
+  // response (omitting the field) during a rolling deploy.
+  allergens: z.array(z.string()).default([]),
   narrative: z.string().nullable().optional(),
   is_active: z.boolean(),
   created_at: IsoDateTime,

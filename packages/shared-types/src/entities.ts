@@ -183,6 +183,14 @@ export interface Recipe {
   video_url: string | null;
   /** spec §5.8 LLM Enhancement Layer — citations JSONB (migration 0011). */
   citations: Citation[];
+  /**
+   * FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001 — derived flat allergen set: the DISTINCT
+   * union of this recipe's ingredients' allergen tags. Optional because only the
+   * base-diet list query (the meal-plan engine's source) aggregates it; the nested
+   * detail shape (`RecipeWithIngredients`) carries allergens under each ingredient
+   * instead. The allergen filter is a no-op unless this reaches the engine.
+   */
+  allergens?: string[];
   /** CelebBase P0 — recipe nutrition 출처 추적 (migration 0019). */
   nutrition_source: 'derived_from_ingredients' | 'manual_verified' | 'manual_legacy';
   is_active: boolean;

@@ -255,22 +255,39 @@ export async function findByBaseDietId(
 ): Promise<ListResult<Recipe>> {
   const limit = Math.min(Math.max(opts.limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE);
 
-  const whereClauses: string[] = ['base_diet_id = $1', 'is_active = TRUE'];
+  const whereClauses: string[] = ['r.base_diet_id = $1', 'r.is_active = TRUE'];
   const values: unknown[] = [baseDietId];
 
   if (opts.meal_type !== undefined) {
     values.push(opts.meal_type);
-    whereClauses.push(`meal_type = $${String(values.length)}`);
+    whereClauses.push(`r.meal_type = $${String(values.length)}`);
   }
   if (opts.cursor !== undefined) {
     values.push(opts.cursor);
-    whereClauses.push(`id > $${String(values.length)}`);
+    whereClauses.push(`r.id > $${String(values.length)}`);
   }
 
   values.push(limit + 1);
   const limitParam = `$${String(values.length)}`;
 
-  const sql = `SELECT * FROM recipes WHERE ${whereClauses.join(' AND ')} ORDER BY id ASC LIMIT ${limitParam}`;
+  // FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001 — aggregate each recipe's allergen tags
+  // (DISTINCT union of its ingredients' `ingredients.allergens`) into a top-level
+  // `allergens` array. The meal-plan engine reads `recipe.allergens` to drive the
+  // allergen filter + safety gate; without this the list endpoint returned bare
+  // `recipes` rows (no allergen column) so the filter matched against [] (no-op).
+  const sql = `
+    SELECT r.*,
+           COALESCE((
+             SELECT array_agg(DISTINCT a ORDER BY a)
+             FROM recipe_ingredients ri
+             JOIN ingredients i ON i.id = ri.ingredient_id AND i.is_active = TRUE
+             CROSS JOIN LATERAL unnest(i.allergens) AS a
+             WHERE ri.recipe_id = r.id
+           ), ARRAY[]::text[]) AS allergens
+    FROM recipes r
+    WHERE ${whereClauses.join(' AND ')}
+    ORDER BY r.id ASC
+    LIMIT ${limitParam}`;
 
   const { rows } = await pool.query<Recipe>(sql, values);
 
