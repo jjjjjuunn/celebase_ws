@@ -34,3 +34,23 @@ export async function getRecipesByIds(ids: string[]): Promise<schemas.RecipeBatc
 
   return { recipes: responses.flatMap((r) => r.recipes) };
 }
+
+/**
+ * 단일 recipe 상세 조회 (재료 포함). 상세 엔드포인트(`/api/recipes/:id`)가 recipe + 재료를
+ * 반환한다. content `/recipes/:id` 공개화 배포 전에는 401 이 날 수 있어, 공개 batch
+ * 엔드포인트로 fallback 한다 (재료는 빈 배열 — 카탈로그/영양/조리단계는 그대로 표시).
+ *
+ * @throws Error 미존재 / ApiError BFF 4xx·5xx (둘 다 실패 시)
+ */
+export async function getRecipeDetail(id: string): Promise<schemas.RecipeDetailResponse> {
+  try {
+    const raw = await authedFetch<unknown>(`/api/recipes/${encodeURIComponent(id)}`);
+    return schemas.RecipeDetailResponseSchema.parse(raw);
+  } catch {
+    const { recipes } = await getRecipesByIds([id]);
+    if (recipes.length === 0) {
+      throw new Error(`Recipe not found: ${id}`);
+    }
+    return { recipe: recipes[0], ingredients: [] };
+  }
+}

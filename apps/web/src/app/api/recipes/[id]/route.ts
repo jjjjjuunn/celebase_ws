@@ -14,14 +14,26 @@ export async function GET(
     const forwardedFor = innerReq.headers.get('x-forwarded-for') ?? undefined;
     const result = await fetchBff('content', `/recipes/${encodeURIComponent(id)}`, {
       method: 'GET',
-      schema: schemas.RecipeWireSchema,
+      schema: schemas.RecipeDetailContentSchema,
       requestId,
       forwardedFor,
     });
     if (!result.ok) {
       return toBffErrorResponse(result.error, requestId);
     }
-    return new Response(JSON.stringify({ recipe: result.data }), {
+    // Map the nested recipe_ingredients join → lean, sorted `ingredients` array,
+    // and drop the join from the recipe payload (mobile parses RecipeDetailResponse).
+    const { recipe_ingredients, ...recipe } = result.data;
+    const ingredients = [...(recipe_ingredients ?? [])]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((ri) => ({
+        name: ri.ingredient.name,
+        quantity: ri.quantity,
+        unit: ri.unit,
+        preparation: ri.preparation ?? null,
+        is_optional: ri.is_optional,
+      }));
+    return new Response(JSON.stringify({ recipe, ingredients }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId },
     });
