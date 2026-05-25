@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001
-commit_sha: PENDING
+commit_sha: 5610d15
 files_changed:
   - services/content-service/src/repositories/recipe.repository.ts
   - packages/shared-types/src/entities.ts
