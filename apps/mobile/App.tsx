@@ -15,9 +15,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureCognito } from './src/lib/cognito';
 import { configureRevenueCat } from './src/lib/revenuecat';
+import { initSentry } from './src/lib/sentry';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { ThemeProvider } from './src/ui';
 
+// Sentry 를 가장 먼저 init — 이후 configure / 렌더 단계의 에러도 포착한다.
+// DSN 미설정 시 no-op (fail-open). PHI/PII 는 beforeSend 에서 스크러빙.
+initSentry();
 // Amplify v6 의 Cognito User Pool 설정을 module load 시점에 1회 적용한다.
 // signIn / signUp 호출 전에 반드시 configure 되어 있어야 한다.
 configureCognito();

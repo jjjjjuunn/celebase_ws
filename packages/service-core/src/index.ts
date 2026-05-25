@@ -17,6 +17,8 @@ export {
 } from './errors.js';
 export { BaseConfigSchema, type BaseConfig } from './config.js';
 export { createLogger } from './logger.js';
+export { initSentry, captureException, isSentryInitialized } from './sentry.js';
+export { scrubSentryEvent, type ScrubbableEvent, type ScrubOptions } from './sentry-scrub.js';
 export { createPool } from './database.js';
 export { createRedis } from './redis.js';
 export { writePhiAuditLog, createPhiAuditHook } from './middleware/phi-audit.js';

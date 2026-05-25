@@ -20,7 +20,8 @@ module.exports = ({ config }) => {
     return (
       name !== 'expo-apple-authentication' &&
       name !== '@react-native-google-signin/google-signin' &&
-      name !== 'expo-image-picker'
+      name !== 'expo-image-picker' &&
+      name !== '@sentry/react-native'
     );
   });
 
@@ -38,6 +39,14 @@ module.exports = ({ config }) => {
   const iosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
   if (iosUrlScheme) {
     plugins.push(['@react-native-google-signin/google-signin', { iosUrlScheme }]);
+  }
+
+  // Sentry native crash symbolication + source-map upload at prebuild. Added only
+  // when a DSN is configured (CHORE-SENTRY-PHI-REDACTION-001) — without it the app
+  // still prebuilds + runs and Sentry stays dormant. Source-map upload also needs
+  // build-time SENTRY_AUTH_TOKEN / org / project (see docs handoff).
+  if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+    plugins.push('@sentry/react-native');
   }
 
   return { ...config, plugins };

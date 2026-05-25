@@ -17,9 +17,16 @@ const PHI_REDACT_PATHS = [
   '*.weight',
   '*.weight_kg',
   '*.body_fat_pct',
+  '*.waist_cm',
   '*.medical_conditions',
   '*.medications',
   '*.allergies',
+  '*.intolerances',
+  // Non-PHI but user-entered personal data — cheap to lose from logs, rarely
+  // needed for debugging. Redact by default; flip in handoff if a debug need arises.
+  '*.birth_year',
+  '*.sex',
+  '*.activity_level',
   'DATABASE_URL',
 ];
 

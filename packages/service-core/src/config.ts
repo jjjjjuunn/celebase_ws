@@ -13,5 +13,8 @@ export const BaseConfigSchema = z.object({
     .string()
     .default('http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8000')
     .transform((s) => s.split(',').map((o) => o.trim()).filter(Boolean)),
+  // Sentry error tracking. Unset until the user provisions a project + DSN
+  // (CHORE-OBSERVABILITY-001); createApp() then inits Sentry fail-open.
+  SENTRY_DSN: z.string().url().optional(),
 });
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;
