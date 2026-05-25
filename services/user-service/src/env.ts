@@ -86,6 +86,15 @@ export const EnvSchema = z
     AUTH_RATE_LIMIT_LOGIN: z.coerce.number().int().min(1).max(1000).default(10),
     AUTH_RATE_LIMIT_REFRESH: z.coerce.number().int().min(1).max(1000).default(30),
     AUTH_RATE_LIMIT_LOGOUT: z.coerce.number().int().min(1).max(1000).default(20),
+
+    // Avatar uploads (FEAT-PROFILE-EDIT). Optional — when AVATARS_BUCKET is
+    // unset the upload-url route fails closed with 503 AVATAR_UPLOAD_NOT_CONFIGURED
+    // (local dev without S3). When set, AWS_REGION + AVATARS_PUBLIC_BASE_URL are
+    // required together (guard below). AVATAR_MAX_BYTES is a client-enforced cap.
+    AVATARS_BUCKET: z.string().min(1).optional(),
+    AVATARS_PUBLIC_BASE_URL: z.string().url().optional(),
+    AVATAR_MAX_BYTES: z.coerce.number().int().min(1).max(20_000_000).default(5_000_000),
+    AVATAR_UPLOAD_URL_TTL: z.coerce.number().int().min(30).max(3600).default(300),
   })
   .superRefine((env, ctx) => {
     // prod guard: AUTH_PROVIDER must be cognito in production
@@ -189,6 +198,26 @@ export const EnvSchema = z
           'APPLE_BUNDLE_ID is required when Apple token revocation is configured (it is the native Sign in with Apple client_id)',
         path: ['APPLE_BUNDLE_ID'],
       });
+    }
+
+    // Avatar upload config is all-or-nothing: the bucket needs a region to sign
+    // against and a public base URL to construct the stored avatar_url. Fail
+    // closed at boot rather than 500ing at request time.
+    if (env.AVATARS_BUCKET) {
+      if (!env.AWS_REGION) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'AWS_REGION is required when AVATARS_BUCKET is set',
+          path: ['AWS_REGION'],
+        });
+      }
+      if (!env.AVATARS_PUBLIC_BASE_URL) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'AVATARS_PUBLIC_BASE_URL is required when AVATARS_BUCKET is set',
+          path: ['AVATARS_PUBLIC_BASE_URL'],
+        });
+      }
     }
 
     // COGNITO_LIVE_JWKS staging guard

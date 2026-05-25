@@ -64,6 +64,7 @@ export type ProfileStackParamList = {
 
 export type SettingsStackParamList = {
   Settings: undefined;
+  EditProfile: undefined;
 };
 
 // ── Main tabs ───────────────────────────────────────────────

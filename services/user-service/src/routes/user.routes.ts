@@ -1,10 +1,11 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type pg from 'pg';
 import { z } from 'zod';
-import { ValidationError, type PhiKeyProvider } from '@celebbase/service-core';
-import { UserPreferencesPatchSchema } from '@celebbase/shared-types';
+import { AppError, ValidationError, type PhiKeyProvider } from '@celebbase/service-core';
+import { UserPreferencesPatchSchema, schemas } from '@celebbase/shared-types';
 import * as userService from '../services/user.service.js';
 import type { AppleOAuthClient } from '../services/apple-oauth.js';
+import type { AvatarUploader } from '../services/avatar.service.js';
 import { hashId } from '../lib/auth-log.js';
 
 const UpdateMeSchema = z.object({
@@ -33,9 +34,12 @@ export async function userRoutes(
     // user's Apple token. Absent (unconfigured) → revoke skipped (soft-delete only).
     appleOAuth?: AppleOAuthClient | null;
     phiKeyProvider?: PhiKeyProvider;
+    // FEAT-PROFILE-EDIT — present only when AVATARS_BUCKET is configured (index.ts).
+    // Absent → the avatar upload-url route fails closed with 503.
+    avatarUploader?: AvatarUploader | null;
   },
 ): Promise<void> {
-  const { pool, appleOAuth, phiKeyProvider } = options;
+  const { pool, appleOAuth, phiKeyProvider, avatarUploader } = options;
 
   app.get('/users/me', async (request: FastifyRequest) => {
     return userService.getMe(pool, request.userId);
@@ -50,6 +54,27 @@ export async function userRoutes(
       })));
     }
     return userService.updateMe(pool, request.userId, parsed.data);
+  });
+
+  // FEAT-PROFILE-EDIT — issue a presigned S3 PUT URL for the avatar image. The
+  // client uploads bytes directly to S3 then PATCHes /users/me { avatar_url }.
+  // Fails closed (503) when avatar uploads are not configured for this env.
+  app.post('/users/me/avatar/upload-url', async (request: FastifyRequest) => {
+    if (!avatarUploader) {
+      throw new AppError(
+        'Avatar uploads are not configured',
+        503,
+        'AVATAR_UPLOAD_NOT_CONFIGURED',
+      );
+    }
+    const parsed = schemas.AvatarUploadUrlRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new ValidationError(
+        'Invalid input',
+        parsed.error.errors.map((e) => ({ field: e.path.join('.'), issue: e.message })),
+      );
+    }
+    return avatarUploader.presignUpload(request.userId, parsed.data.content_type);
   });
 
   app.delete('/users/me', async (request: FastifyRequest, reply: FastifyReply) => {

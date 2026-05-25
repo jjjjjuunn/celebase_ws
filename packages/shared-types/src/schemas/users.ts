@@ -58,6 +58,34 @@ export const UpdateMeRequestSchema = z
   .strict();
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;
 
+// Avatar upload (FEAT-PROFILE-EDIT). Direct-to-S3 via a short-lived presigned
+// PUT URL: client requests this, uploads the image bytes itself, then PATCHes
+// /users/me with `avatar_url = public_url`. The content type is allowlisted
+// server-side; the key is namespaced per user.
+export const AvatarContentTypeSchema = z.enum(['image/jpeg', 'image/png', 'image/webp']);
+export type AvatarContentType = z.infer<typeof AvatarContentTypeSchema>;
+
+export const AvatarUploadUrlRequestSchema = z
+  .object({
+    content_type: AvatarContentTypeSchema,
+  })
+  .strict();
+export type AvatarUploadUrlRequest = z.infer<typeof AvatarUploadUrlRequestSchema>;
+
+export const AvatarUploadUrlResponseSchema = z.object({
+  /** Short-lived presigned S3 PUT URL — upload the raw image bytes here. */
+  upload_url: z.string().url(),
+  /** Public GET URL to persist via PATCH /users/me { avatar_url }. */
+  public_url: z.string().url(),
+  /** S3 object key (avatars/{user_id}/{uuid}.{ext}). */
+  key: z.string().min(1),
+  /** Presign validity window, seconds. */
+  expires_in: z.number().int().positive(),
+  /** Max upload size the client must enforce before PUT (bytes). */
+  max_bytes: z.number().int().positive(),
+});
+export type AvatarUploadUrlResponse = z.infer<typeof AvatarUploadUrlResponseSchema>;
+
 // Auth flow response envelopes that wrap UserWire + AuthTokens.
 // Split from `auth.ts` so `auth.ts` doesn't import `users.ts` (avoids forward cycle).
 export const SignupResponseSchema = AuthTokensSchema.extend({

@@ -20,6 +20,7 @@ import {
   parseGoogleClientIds,
 } from './services/social-auth.provider.js';
 import { appleOAuthConfigFromEnv, createAppleOAuthClient } from './services/apple-oauth.js';
+import { createAvatarUploader, type AvatarUploader } from './services/avatar.service.js';
 
 const start = async (): Promise<void> => {
   const env = EnvSchema.parse(process.env);
@@ -138,7 +139,22 @@ const start = async (): Promise<void> => {
     },
   });
 
-  await app.register(userRoutes, { pool, appleOAuth, phiKeyProvider });
+  // Avatar uploads (FEAT-PROFILE-EDIT). Wired only when AVATARS_BUCKET is set
+  // (env.ts guarantees AWS_REGION + AVATARS_PUBLIC_BASE_URL are present too).
+  // Unwired → the upload-url route fails closed with 503.
+  let avatarUploader: AvatarUploader | null = null;
+  if (env.AVATARS_BUCKET && env.AWS_REGION && env.AVATARS_PUBLIC_BASE_URL) {
+    avatarUploader = createAvatarUploader({
+      bucket: env.AVATARS_BUCKET,
+      region: env.AWS_REGION,
+      publicBaseUrl: env.AVATARS_PUBLIC_BASE_URL,
+      maxBytes: env.AVATAR_MAX_BYTES,
+      ttlSeconds: env.AVATAR_UPLOAD_URL_TTL,
+    });
+    app.log.info('Avatar uploads: enabled');
+  }
+
+  await app.register(userRoutes, { pool, appleOAuth, phiKeyProvider, avatarUploader });
   await app.register(bioProfileRoutes, { pool, phiKeyProvider });
   await app.register(wsTicketRoutes, { redis });
   await app.register(internalRoutes, { pool });

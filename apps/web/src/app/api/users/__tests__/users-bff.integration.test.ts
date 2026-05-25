@@ -33,6 +33,7 @@ import {
   VALID_SESSION_PAYLOAD,
 } from '../../_lib/__tests__/test-helpers';
 import { GET as meGET, PATCH as mePATCH } from '../me/route';
+import { POST as avatarUploadUrlPOST } from '../me/avatar/upload-url/route';
 
 const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
 
@@ -171,5 +172,77 @@ describe('BFF integration — PATCH /api/users/me', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     const body = await res.json() as { error: { code: string } };
     expect(body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('BFF integration — POST /api/users/me/avatar/upload-url', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  const PRESIGN_PAYLOAD = {
+    upload_url: 'https://celebbase-avatars-test.s3.us-east-1.amazonaws.com/avatars/u/abc.png?sig=1',
+    public_url: 'https://avatars.example.com/avatars/u/abc.png',
+    key: 'avatars/u/abc.png',
+    expires_in: 300,
+    max_bytes: 5_000_000,
+  };
+
+  beforeEach(() => {
+    resetRateLimitBucketsForTest();
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('200 — forwards a valid content_type to user-service and returns the presign', async () => {
+    validSession();
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(PRESIGN_PAYLOAD, 200));
+    const req = makeRequest({ cookie: 'valid-access', body: { content_type: 'image/png' } });
+    const res = await avatarUploadUrlPOST(req);
+
+    expect(res.status).toBe(200);
+    const calledUrl = fetchSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toBe('http://localhost:3001/users/me/avatar/upload-url');
+    const calledInit = fetchSpy.mock.calls[0][1] as RequestInit;
+    expect(calledInit.method).toBe('POST');
+    const body = await res.json() as { upload_url: string; public_url: string };
+    expect(body.public_url).toBe(PRESIGN_PAYLOAD.public_url);
+    expect(body.upload_url).toContain('sig=');
+  });
+
+  it('400 VALIDATION_ERROR for a disallowed content_type (no upstream call)', async () => {
+    validSession();
+    const req = makeRequest({ cookie: 'valid-access', body: { content_type: 'image/gif' } });
+    const res = await avatarUploadUrlPOST(req);
+
+    expect(res.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('401 UNAUTHORIZED when cb_access missing (no upstream call)', async () => {
+    const req = makeRequest({ body: { content_type: 'image/png' } });
+    const res = await avatarUploadUrlPOST(req);
+
+    expect(res.status).toBe(401);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('forwards upstream 503 AVATAR_UPLOAD_NOT_CONFIGURED unchanged', async () => {
+    validSession();
+    fetchSpy.mockResolvedValueOnce(
+      upstreamResponse(
+        { error: { code: 'AVATAR_UPLOAD_NOT_CONFIGURED', message: 'Avatar uploads are not configured' } },
+        503,
+      ),
+    );
+    const req = makeRequest({ cookie: 'valid-access', body: { content_type: 'image/jpeg' } });
+    const res = await avatarUploadUrlPOST(req);
+
+    expect(res.status).toBe(503);
+    const body = await res.json() as { error: { code: string } };
+    expect(body.error.code).toBe('AVATAR_UPLOAD_NOT_CONFIGURED');
   });
 });
