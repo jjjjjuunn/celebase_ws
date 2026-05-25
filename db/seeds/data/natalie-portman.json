@@ -68,6 +68,7 @@
   "recipes": [
     {
       "title": "Berry and Granola Smoothie Bowl",
+      "description": "Berry smoothie bowl with granola and chia",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -130,6 +131,7 @@
     },
     {
       "title": "Avocado Toast with Chickpea Spread",
+      "description": "Mashed chickpea and avocado toast",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 3,
@@ -206,6 +208,7 @@
     },
     {
       "title": "Tofu Scramble with Vegetables",
+      "description": "Turmeric tofu scramble with peppers and spinach",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -281,6 +284,7 @@
     },
     {
       "title": "Overnight Oats with Walnuts and Banana",
+      "description": "Overnight oats with walnuts and banana",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -344,6 +348,7 @@
     },
     {
       "title": "Lentil and Vegetable Stew",
+      "description": "Hearty lentil stew with kale and carrot",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -441,6 +446,7 @@
     },
     {
       "title": "Quinoa Tabbouleh",
+      "description": "Quinoa tabbouleh with parsley and mint",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -513,6 +519,7 @@
     },
     {
       "title": "Chickpea and Roasted Veggie Wrap",
+      "description": "Chickpea and roasted veggie wrap with hummus",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -587,6 +594,7 @@
     },
     {
       "title": "Tempeh Buddha Bowl",
+      "description": "Tempeh bowl with sweet potato and tahini",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -668,6 +676,7 @@
     },
     {
       "title": "Coconut Chickpea Curry",
+      "description": "Coconut chickpea curry over basmati rice",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -760,6 +769,7 @@
     },
     {
       "title": "Stuffed Sweet Potatoes with Black Beans",
+      "description": "Sweet potatoes stuffed with black beans",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 45,
@@ -825,6 +835,7 @@
     },
     {
       "title": "Mushroom and Walnut Bolognese",
+      "description": "Mushroom-walnut bolognese over whole wheat pasta",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -916,6 +927,7 @@
     },
     {
       "title": "Tofu Stir-Fry with Vegetables",
+      "description": "Tofu stir-fry with broccoli over brown rice",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 12,
@@ -998,6 +1010,7 @@
     },
     {
       "title": "Almond Energy Bites",
+      "description": "Date and almond butter oat bites",
       "meal_type": "snack",
       "prep_time_min": 10,
       "cook_time_min": 0,
@@ -1050,6 +1063,7 @@
     },
     {
       "title": "Hummus and Veggie Plate",
+      "description": "Hummus with carrot, cucumber, and peppers",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1099,6 +1113,7 @@
     },
     {
       "title": "Apple with Peanut Butter",
+      "description": "Apple slices with peanut butter",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -1136,6 +1151,7 @@
     },
     {
       "title": "Trail Mix with Dried Fruit",
+      "description": "Nuts with cranberries and raisins",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -1182,6 +1198,7 @@
     },
     {
       "title": "Green Goddess Smoothie",
+      "description": "Banana-spinach smoothie with hemp seeds",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1233,6 +1250,7 @@
     },
     {
       "title": "Mango Turmeric Smoothie",
+      "description": "Mango turmeric smoothie with ginger",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

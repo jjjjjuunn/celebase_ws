@@ -65,6 +65,7 @@
   "recipes": [
     {
       "title": "Smoked Salmon and Egg Plate",
+      "description": "Eggs and smoked salmon with avocado",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 8,
@@ -122,6 +123,7 @@
     },
     {
       "title": "Greek Yogurt Parfait",
+      "description": "Greek yogurt parfait with granola and berries",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -174,6 +176,7 @@
     },
     {
       "title": "Veggie Omelette with Feta",
+      "description": "Omelette with spinach, tomato, and feta",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 10,
@@ -243,6 +246,7 @@
     },
     {
       "title": "Collagen Coffee Smoothie",
+      "description": "Banana coffee smoothie with collagen",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -294,6 +298,7 @@
     },
     {
       "title": "Mediterranean Salmon Salad",
+      "description": "Salmon salad with olives, feta, and cucumber",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -374,6 +379,7 @@
     },
     {
       "title": "Quinoa and Grilled Veggie Bowl",
+      "description": "Quinoa with grilled zucchini and peppers",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -446,6 +452,7 @@
     },
     {
       "title": "Tuna Niçoise Salad",
+      "description": "Tuna nicoise with egg, beans, and olives",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 12,
@@ -526,6 +533,7 @@
     },
     {
       "title": "Sardine and Avocado Toast",
+      "description": "Sardines and avocado on sourdough",
       "meal_type": "lunch",
       "prep_time_min": 5,
       "cook_time_min": 3,
@@ -586,6 +594,7 @@
     },
     {
       "title": "Baked Salmon with Roasted Vegetables",
+      "description": "Baked salmon with asparagus and tomatoes",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -660,6 +669,7 @@
     },
     {
       "title": "Shrimp and Quinoa Bowl",
+      "description": "Paprika shrimp over quinoa and arugula",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -736,6 +746,7 @@
     },
     {
       "title": "Herb-Baked Cod with Artichokes",
+      "description": "Herb-baked cod with artichokes and olives",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -805,6 +816,7 @@
     },
     {
       "title": "Grilled Chicken with Mediterranean Salad",
+      "description": "Grilled chicken with cucumber-feta salad",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -880,6 +892,7 @@
     },
     {
       "title": "Almonds and Dark Chocolate",
+      "description": "Almonds with dark chocolate",
       "meal_type": "snack",
       "prep_time_min": 1,
       "cook_time_min": 0,
@@ -916,6 +929,7 @@
     },
     {
       "title": "Greek Yogurt with Cucumber and Dill",
+      "description": "Greek yogurt with cucumber and dill",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -965,6 +979,7 @@
     },
     {
       "title": "Olives and Hummus Plate",
+      "description": "Olives and hummus with veggie sticks",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -1013,6 +1028,7 @@
     },
     {
       "title": "Apple and Walnut Snack",
+      "description": "Apple slices with walnuts",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -1050,6 +1066,7 @@
     },
     {
       "title": "Green Mediterranean Smoothie",
+      "description": "Banana-spinach smoothie with collagen and walnuts",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1101,6 +1118,7 @@
     },
     {
       "title": "Berry and Flax Smoothie",
+      "description": "Mixed berry smoothie with flaxseed",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

@@ -18,6 +18,8 @@ export interface SeedRecipeIngredient {
 
 export interface SeedRecipe {
   title: string;
+  /** One-line dish overview (ingredients/method, no health-efficacy claims). Optional. */
+  description?: string;
   meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'smoothie';
   prep_time_min: number;
   cook_time_min: number;

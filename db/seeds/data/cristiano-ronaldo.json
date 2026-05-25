@@ -66,6 +66,7 @@
   "recipes": [
     {
       "title": "Egg White and Avocado Breakfast Plate",
+      "description": "Egg whites and avocado on whole-wheat toast",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 8,
@@ -124,6 +125,7 @@
     },
     {
       "title": "Protein Oatmeal with Berries",
+      "description": "Protein steel-cut oats with mixed berries",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 10,
@@ -186,6 +188,7 @@
     },
     {
       "title": "Whole Wheat Toast with Eggs and Spinach",
+      "description": "Eggs and spinach on whole-wheat toast",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 10,
@@ -248,6 +251,7 @@
     },
     {
       "title": "Sweet Potato and Turkey Sausage Scramble",
+      "description": "Turkey and egg-white scramble with sweet potato",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -310,6 +314,7 @@
     },
     {
       "title": "Grilled Chicken and Quinoa Power Bowl",
+      "description": "Grilled chicken and quinoa with broccoli",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -390,6 +395,7 @@
     },
     {
       "title": "Tuna Steak with Brown Rice and Vegetables",
+      "description": "Seared tuna with brown rice and asparagus",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 12,
@@ -458,6 +464,7 @@
     },
     {
       "title": "Chicken Caesar Salad (No Croutons)",
+      "description": "Grilled chicken Caesar without croutons",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -523,6 +530,7 @@
     },
     {
       "title": "Turkey and Sweet Potato Meal Prep Bowl",
+      "description": "Ground turkey with sweet potato and broccoli",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -591,6 +599,7 @@
     },
     {
       "title": "Grilled Salmon with Asparagus",
+      "description": "Grilled salmon with asparagus and dill",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -654,6 +663,7 @@
     },
     {
       "title": "Lean Beef Sirloin with Brown Rice",
+      "description": "Lean sirloin with brown rice and green beans",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -722,6 +732,7 @@
     },
     {
       "title": "Baked Cod with Roasted Vegetables",
+      "description": "Baked cod with zucchini and peppers",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 20,
@@ -791,6 +802,7 @@
     },
     {
       "title": "Chicken Breast with Sweet Potato Mash",
+      "description": "Chicken breast with sweet potato mash",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 25,
@@ -860,6 +872,7 @@
     },
     {
       "title": "Cottage Cheese and Fruit Bowl",
+      "description": "Cottage cheese with berries and pumpkin seeds",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -912,6 +925,7 @@
     },
     {
       "title": "Greek Yogurt with Honey and Walnuts",
+      "description": "Greek yogurt with honey and walnuts",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 0,
@@ -954,6 +968,7 @@
     },
     {
       "title": "Hard-Boiled Eggs with Avocado",
+      "description": "Hard-boiled eggs with sliced avocado",
       "meal_type": "snack",
       "prep_time_min": 2,
       "cook_time_min": 12,
@@ -1001,6 +1016,7 @@
     },
     {
       "title": "Protein Shake with Banana",
+      "description": "Whey protein shake with banana",
       "meal_type": "snack",
       "prep_time_min": 3,
       "cook_time_min": 0,
@@ -1042,6 +1058,7 @@
     },
     {
       "title": "Post-Workout Recovery Smoothie",
+      "description": "Whey, banana, and peanut butter shake",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1093,6 +1110,7 @@
     },
     {
       "title": "Berry Protein Blast",
+      "description": "Whey protein smoothie with mixed berries",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,

@@ -65,6 +65,7 @@
   "recipes": [
     {
       "title": "Quinoa Breakfast Bowl",
+      "description": "Quinoa with almond milk, banana, and walnuts",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 15,
@@ -128,6 +129,7 @@
     },
     {
       "title": "Sweet Potato Toast with Avocado",
+      "description": "Sweet potato toast with avocado and lime",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 20,
@@ -192,6 +194,7 @@
     },
     {
       "title": "Overnight Oats with Berries",
+      "description": "Overnight oats with chia and strawberries",
       "meal_type": "breakfast",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -259,6 +262,7 @@
     },
     {
       "title": "Green Power Pancakes",
+      "description": "Oat-banana pancakes blended with spinach and blueberries",
       "meal_type": "breakfast",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -340,6 +344,7 @@
     },
     {
       "title": "Lentil and Sweet Potato Soup",
+      "description": "Spiced red lentil and sweet potato soup",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -436,6 +441,7 @@
     },
     {
       "title": "Chickpea and Quinoa Power Salad",
+      "description": "Quinoa-chickpea salad with avocado and lemon",
       "meal_type": "lunch",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -530,6 +536,7 @@
     },
     {
       "title": "Black Bean Tacos",
+      "description": "Black bean tacos with guacamole and salsa",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 10,
@@ -609,6 +616,7 @@
     },
     {
       "title": "Kale Caesar with Chickpea Croutons",
+      "description": "Kale Caesar with crispy chickpea croutons",
       "meal_type": "lunch",
       "prep_time_min": 10,
       "cook_time_min": 15,
@@ -688,6 +696,7 @@
     },
     {
       "title": "Stuffed Bell Peppers with Quinoa and Black Beans",
+      "description": "Peppers stuffed with quinoa and black beans",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 35,
@@ -773,6 +782,7 @@
     },
     {
       "title": "Coconut Curry Lentil Stew",
+      "description": "Coconut lentil curry over brown rice",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -889,6 +899,7 @@
     },
     {
       "title": "Cauliflower and Chickpea Bake",
+      "description": "Spiced cauliflower and chickpea bake with tahini",
       "meal_type": "dinner",
       "prep_time_min": 15,
       "cook_time_min": 35,
@@ -974,6 +985,7 @@
     },
     {
       "title": "Mushroom and Lentil Bolognese",
+      "description": "Mushroom-lentil bolognese over whole wheat pasta",
       "meal_type": "dinner",
       "prep_time_min": 10,
       "cook_time_min": 30,
@@ -1065,6 +1077,7 @@
     },
     {
       "title": "Spiced Roasted Chickpeas",
+      "description": "Smoky paprika roasted chickpeas",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 25,
@@ -1127,6 +1140,7 @@
     },
     {
       "title": "Energy Date Balls",
+      "description": "Date and oat balls with almond butter",
       "meal_type": "snack",
       "prep_time_min": 15,
       "cook_time_min": 0,
@@ -1189,6 +1203,7 @@
     },
     {
       "title": "Apple Slices with Cashew Butter",
+      "description": "Apple slices with cashew butter and cinnamon",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1236,6 +1251,7 @@
     },
     {
       "title": "Veggies and Hummus Plate",
+      "description": "Fresh veggies with hummus",
       "meal_type": "snack",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1290,6 +1306,7 @@
     },
     {
       "title": "Tropical Green Smoothie",
+      "description": "Mango-pineapple green smoothie with spinach",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
@@ -1352,6 +1369,7 @@
     },
     {
       "title": "Chocolate Peanut Butter Power Smoothie",
+      "description": "Chocolate peanut butter smoothie with dates",
       "meal_type": "smoothie",
       "prep_time_min": 5,
       "cook_time_min": 0,
