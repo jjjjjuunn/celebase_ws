@@ -19,11 +19,21 @@ module.exports = ({ config }) => {
     const name = Array.isArray(p) ? p[0] : p;
     return (
       name !== 'expo-apple-authentication' &&
-      name !== '@react-native-google-signin/google-signin'
+      name !== '@react-native-google-signin/google-signin' &&
+      name !== 'expo-image-picker'
     );
   });
 
   plugins.push('expo-apple-authentication');
+
+  // FEAT-PROFILE-EDIT — profile photo picking. iOS Info.plist photo-library
+  // usage string is set here; no camera permission (gallery only).
+  plugins.push([
+    'expo-image-picker',
+    {
+      photosPermission: 'Celebase uses your photos so you can set a profile picture.',
+    },
+  ]);
 
   const iosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME;
   if (iosUrlScheme) {

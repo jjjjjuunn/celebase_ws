@@ -102,6 +102,12 @@ services:
       STRIPE_SUCCESS_URL: http://localhost:3000/checkout/success
       STRIPE_CANCEL_URL: http://localhost:3000/checkout/cancel
       LOG_LEVEL: info
+      # Avatar uploads (FEAT-PROFILE-EDIT). Left unset locally → the
+      # /users/me/avatar/upload-url route fails closed with 503 (no S3 in dev).
+      # To exercise uploads against a real bucket, set all three (see infra/avatars):
+      #   AVATARS_BUCKET: celebbase-avatars-staging
+      #   AVATARS_PUBLIC_BASE_URL: https://celebbase-avatars-staging.s3.us-west-2.amazonaws.com
+      #   AWS_REGION: us-west-2
     depends_on:
       postgres:
         condition: service_healthy
