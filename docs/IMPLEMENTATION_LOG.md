@@ -7626,3 +7626,36 @@ verified_by: claude-opus-4-7 (shared-types build + content-svc/web/mobile typech
 - **검증**: shared-types build / content-svc·web·mobile typecheck / mobile lint 전부 clean. iOS Simulator(iPhone 17 Pro) 실행으로 번들 평가·네비 동작 확인. PR #170.
 ### 미완료: ⚠️ 식재료가 **실제로 표시되려면** content-service(`/recipes/*` public) + web BFF 가 staging 에 배포돼야 함 — 배포 전까지 Ingredients 탭은 "재료 정보는 곧 제공돼요" empty state(레시피/영양/조리단계는 기존 API 로 표시). `RecipeDetailScreen` 단위 테스트 미작성(RN 화면 — typecheck + 수동 실행으로 검증). 프로필 편집/아바타(Feature B)는 별도 PR.
 ### 연관 파일: services/content-service/src/index.ts, packages/shared-types/src/schemas/recipes.ts, apps/web/src/app/api/recipes/[id]/route.ts, apps/mobile/src/services/recipes.ts, apps/mobile/src/screens/RecipeDetailScreen.tsx, apps/mobile/src/navigation/PlanNavigator.tsx, apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/src/navigation/types.ts
+
+---
+date: 2026-05-25
+agent: claude-opus-4-7 (1M context)
+task_id: FEAT-MOBILE-PROFILE-EDIT-001
+commit_sha: 20e7631
+files_changed:
+  - apps/mobile/src/screens/EditProfileScreen.tsx
+  - apps/mobile/src/screens/SettingsScreen.tsx
+  - apps/mobile/src/navigation/SettingsNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/services/users.ts
+  - apps/mobile/app.config.js
+  - apps/web/src/app/api/users/me/avatar/upload-url/route.ts
+  - packages/shared-types/src/schemas/users.ts
+  - services/user-service/src/services/avatar.service.ts
+  - services/user-service/src/routes/user.routes.ts
+  - services/user-service/src/env.ts
+  - services/user-service/src/index.ts
+  - infra/avatars/main.tf
+verified_by: claude-opus-4-7 (user-svc/web/mobile typecheck clean; avatar.service unit 5/5; EditProfileScreen 5/5; mobile lint clean; iOS Simulator iPhone 17 Pro 실행 확인)
+---
+### 완료: 인앱 프로필 편집 — display name + 아바타 업로드 (FEAT-MOBILE-PROFILE-EDIT-001)
+- **배경**: Settings 에서 프로필(이름/사진)을 편집할 경로가 없었다. display name PATCH + 프로필 사진 업로드(expo-image-picker → presigned S3 PUT → PATCH /users/me { avatar_url })를 추가.
+- **mobile**: 신규 `EditProfileScreen`(아바타 picker + display name 입력, 변경된 필드만 PATCH). Settings 프로필 카드 → EditProfile push. `SettingsScreen` 은 포커스 복귀 시 프로필 재조회(`useIsFocused` 주입) — 이름/사진 수정이 돌아왔을 때 반영(이전엔 mount-only useEffect 라 stale). `types.ts` 에 `EditProfile` route param.
+- **user-service**: `avatar.service.ts` — presigned S3 PUT URL 발급(content-type allowlist: jpeg/png/webp, 5MB cap, per-user key prefix). `POST /users/me/avatar/upload-url` route(AVATARS_BUCKET 미설정 시 503 fail-closed). env 추가(`AVATARS_BUCKET` 등).
+- **web BFF**: `POST /api/users/me/avatar/upload-url` (createProtectedRoute, Bearer fallback) → user-service forward.
+- **shared-types**: avatar upload request/response Zod 스키마 + content-type union.
+- **infra**: `infra/avatars` — S3 버킷 Terraform(공개 read, CORS PUT).
+- **검증**: user-svc/web/mobile typecheck clean, avatar.service unit 5/5, EditProfileScreen 5/5, mobile lint clean. iOS Simulator 실행 확인.
+- **스택**: feat/recipe-ingredients-detail(FEAT-MOBILE-RECIPE-DETAIL-001 / PR #170) 위에 stacked.
+### 미완료: ⚠️ 아바타 업로드 end-to-end(실 S3 PUT → 표시)는 `infra/avatars` apply + user-service `AVATARS_BUCKET` env staging 배포 후 검증. HEIC→JPEG 트랜스코드(현재 HEIC 는 JPEG 로 선언, 서버 allowlist 강제)는 follow-up. record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/EditProfileScreen.tsx, apps/mobile/src/screens/SettingsScreen.tsx, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/src/services/users.ts, apps/web/src/app/api/users/me/avatar/upload-url/route.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/avatar.service.ts, infra/avatars/
