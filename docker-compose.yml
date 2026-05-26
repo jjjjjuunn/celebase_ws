@@ -207,6 +207,7 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       LOG_LEVEL: INFO
       SQS_VISIBILITY_TIMEOUT: "10"
+      SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
       postgres:
         condition: service_healthy
