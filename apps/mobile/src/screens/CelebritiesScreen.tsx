@@ -6,13 +6,34 @@
 // 사진 시드 후 컬러 블록 → 풀블리드 이미지로 교체 (backlog). 탭 → CelebrityDetail.
 // 데이터는 mock-data (content-service 실 셀럽 + 풍부 프로필 시드 후 교체 — backlog).
 
-import { useMemo, useRef } from 'react';
-import { Animated, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Animated,
+  Easing,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getMockCelebritiesByGender, type MockCelebrity } from '../lib/mock-data';
 import { resolveToken } from '../lib/tokens';
 import { monogramIndex, Text, useTheme, type Theme } from '../ui';
+
+// 히어로에 표시되는 featured 셀럽을 자동 순환시키는 주기 (ms).
+const HERO_ROTATION_MS = 5000;
+// 히어로 carousel 전환 애니메이션 (현재 카드 좌측 슬라이드아웃 → 새 카드 우측 슬라이드인).
+const HERO_SLIDE_OUT_MS = 260;
+const HERO_SLIDE_IN_MS = 320;
+// 화면 높이 대비 섹션 비율 — 히어로 40%, Women/Men rail 각 25%.
+// 히어로를 40% 로 줄여 Women rail 아래로 Men 섹션 일부가 fold 위에 peek 되도록 한다.
+const HERO_HEIGHT_RATIO = 0.4;
+const RAIL_HEIGHT_RATIO = 0.25;
+// 가로 rail 에서 다음(3번째) 카드가 살짝 보이도록 남기는 폭(px) — "2개 full + peek".
+const RAIL_CARD_PEEK = 44;
 
 interface CelebritiesScreenProps {
   /** 카드/히어로 탭 시 — CelebrityDetail 로 이동. */
@@ -40,35 +61,93 @@ function tileShade(theme: Theme, name: string): string {
   return resolveToken(theme.mode, TILE_SHADES[monogramIndex(name, TILE_SHADES.length)]);
 }
 
-function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void }): React.JSX.Element {
+function Hero({
+  celeb,
+  height,
+  onPress,
+}: {
+  celeb: MockCelebrity;
+  height: number;
+  onPress: (slug: string) => void;
+}): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const press = usePressScale();
+  const { width: screenW } = useWindowDimensions();
+  // 슬라이드 거리 — 화면 폭의 절반 이상만큼 좌측으로 빠지고 우측 밖에서 들어온다.
+  const slide = Math.round(screenW * 0.55);
+
+  // 실제로 그려지는 셀럽. featured(prop)가 바뀌면 좌→우 carousel 전환 뒤 갱신한다.
+  const [displayed, setDisplayed] = useState(celeb);
+  const translateX = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (celeb.id === displayed.id) {
+      return;
+    }
+    // 1) 현재 카드를 왼쪽으로 밀어내며 페이드아웃 →
+    // 2) 새 카드를 오른쪽 밖에서 제자리로 슬라이드인.
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: -slide,
+        duration: HERO_SLIDE_OUT_MS,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: HERO_SLIDE_OUT_MS,
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (!finished) {
+        return;
+      }
+      setDisplayed(celeb);
+      translateX.setValue(slide);
+      Animated.parallel([
+        Animated.timing(translateX, {
+          toValue: 0,
+          duration: HERO_SLIDE_IN_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: HERO_SLIDE_IN_MS,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [celeb, displayed.id, slide, translateX, opacity]);
 
   return (
-    <Animated.View style={{ transform: [{ scale: press.scale }] }}>
+    <Animated.View style={{ transform: [{ translateX }, { scale: press.scale }], opacity }}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${celeb.name} — view profile`}
-        onPress={onPress}
+        accessibilityLabel={`${displayed.name} — view profile`}
+        onPress={() => {
+          onPress(displayed.slug);
+        }}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        style={[styles.hero, { backgroundColor: tileShade(theme, celeb.name) }]}
+        style={[styles.hero, { height, backgroundColor: tileShade(theme, displayed.name) }]}
       >
         <View style={styles.heroScrim} />
-        {celeb.hashtags.length > 0 ? (
+        {displayed.hashtags.length > 0 ? (
           <View style={styles.heroChip}>
             <Text variant="caption" style={[styles.heroChipText, { color: theme.color.onInk }]}>
-              {celeb.hashtags[0].toUpperCase()}
+              {displayed.hashtags[0].toUpperCase()}
             </Text>
           </View>
         ) : null}
         <View style={styles.heroTextWrap}>
           <Text variant="display" tone="onBrand" style={{ fontFamily: theme.font.display }}>
-            {celeb.name}
+            {displayed.name}
           </Text>
           <View style={styles.heroTags}>
-            {celeb.hashtags.slice(0, 3).map((tag) => (
+            {displayed.hashtags.slice(0, 3).map((tag) => (
               <Text key={tag} variant="caption" tone="onBrand" style={styles.heroTag}>
                 #{tag}
               </Text>
@@ -80,7 +159,17 @@ function Hero({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void })
   );
 }
 
-function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => void }): React.JSX.Element {
+function RailCard({
+  celeb,
+  width,
+  height,
+  onPress,
+}: {
+  celeb: MockCelebrity;
+  width: number;
+  height: number;
+  onPress: () => void;
+}): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const press = usePressScale();
@@ -93,9 +182,9 @@ function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => voi
         onPress={onPress}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        style={styles.railCard}
+        style={[styles.railCard, { width }]}
       >
-        <View style={[styles.railPanel, { backgroundColor: tileShade(theme, celeb.name) }]}>
+        <View style={[styles.railPanel, { width, height, backgroundColor: tileShade(theme, celeb.name) }]}>
           <View style={styles.railScrim} />
           <View style={styles.railTextWrap}>
             <Text
@@ -119,16 +208,25 @@ function RailCard({ celeb, onPress }: { celeb: MockCelebrity; onPress: () => voi
 function Rail({
   title,
   celebs,
+  sectionHeight,
+  cardWidth,
   onCelebPress,
 }: {
   title: string;
   celebs: ReadonlyArray<MockCelebrity>;
+  /** rail 섹션 전체 높이 — 화면의 25% (제목 + 카드 포함). */
+  sectionHeight: number;
+  /** rail 카드 1장의 폭 — 2장 full + 다음 카드 peek 가 보이도록 계산됨. */
+  cardWidth: number;
   onCelebPress: (slug: string) => void;
 }): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // 카드 높이 = 섹션 높이 − (상단 패딩 + 제목줄 + 제목/카드 간격).
+  const titleBlock = theme.space(5) + Math.round(theme.type.h3 * 1.4) + theme.space(3);
+  const cardHeight = Math.max(120, sectionHeight - titleBlock);
   return (
-    <View style={styles.rail}>
+    <View style={[styles.rail, { height: sectionHeight }]}>
       <Text variant="h3" style={styles.railTitle}>
         {title}
       </Text>
@@ -141,6 +239,8 @@ function Rail({
         renderItem={({ item }) => (
           <RailCard
             celeb={item}
+            width={cardWidth}
+            height={cardHeight}
             onPress={() => {
               onCelebPress(item.slug);
             }}
@@ -154,10 +254,34 @@ function Rail({
 export function CelebritiesScreen({ onCelebPress }: CelebritiesScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const { width: screenW, height: screenH } = useWindowDimensions();
+
+  // 화면 높이 기준 섹션 크기 — 히어로 40%, 각 rail 25%.
+  const heroHeight = Math.round(screenH * HERO_HEIGHT_RATIO);
+  const railSectionHeight = Math.round(screenH * RAIL_HEIGHT_RATIO);
+  // rail 카드 폭 — 좌측 패딩 + 카드 2장 + 간격 2개 + peek 가 화면 폭에 맞도록 역산.
+  const railGutter = theme.space(4);
+  const railGap = theme.space(3);
+  const railCardWidth = Math.round((screenW - railGutter - railGap * 2 - RAIL_CARD_PEEK) / 2);
 
   const women = useMemo(() => getMockCelebritiesByGender('women'), []);
   const men = useMemo(() => getMockCelebritiesByGender('men'), []);
-  const featured = women[0]; // mock always has Women entries
+
+  // 히어로는 전체 셀럽(여성+남성)을 HERO_ROTATION_MS 주기로 순환 노출한다.
+  const heroPool = useMemo(() => [...women, ...men], [women, men]);
+  const [heroIndex, setHeroIndex] = useState(0);
+  useEffect(() => {
+    if (heroPool.length <= 1) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroPool.length);
+    }, HERO_ROTATION_MS);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [heroPool.length]);
+  const featured = heroPool[heroIndex] ?? heroPool[0]; // mock always has entries
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -169,15 +293,22 @@ export function CelebritiesScreen({ onCelebPress }: CelebritiesScreenProps): Rea
           </Text>
         </View>
 
-        <Hero
-          celeb={featured}
-          onPress={() => {
-            onCelebPress(featured.slug);
-          }}
-        />
+        <Hero celeb={featured} height={heroHeight} onPress={onCelebPress} />
 
-        <Rail title="Women" celebs={women} onCelebPress={onCelebPress} />
-        <Rail title="Men" celebs={men} onCelebPress={onCelebPress} />
+        <Rail
+          title="Women"
+          celebs={women}
+          sectionHeight={railSectionHeight}
+          cardWidth={railCardWidth}
+          onCelebPress={onCelebPress}
+        />
+        <Rail
+          title="Men"
+          celebs={men}
+          sectionHeight={railSectionHeight}
+          cardWidth={railCardWidth}
+          onCelebPress={onCelebPress}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -194,8 +325,8 @@ function makeStyles(theme: Theme) {
       gap: theme.space(1),
     },
     // Hero — full-bleed editorial color block (placeholder for licensed photo).
+    // height 는 화면의 40% 로 런타임 주입 (CelebritiesScreen).
     hero: {
-      height: 380,
       marginHorizontal: theme.space(4),
       borderRadius: theme.radius.xl,
       overflow: 'hidden',
@@ -230,13 +361,12 @@ function makeStyles(theme: Theme) {
     heroTags: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(3) },
     heroTag: { opacity: 0.88 },
     // Rails — horizontal category carousels of overlaid color tiles.
+    // height (섹션) · card width/height 는 화면 비율로 런타임 주입.
     rail: { paddingTop: theme.space(5), gap: theme.space(3) },
     railTitle: { paddingHorizontal: theme.space(4) },
     railContent: { paddingHorizontal: theme.space(4), gap: theme.space(3) },
-    railCard: { width: 140 },
+    railCard: {},
     railPanel: {
-      width: 140,
-      height: 180,
       borderRadius: theme.radius.lg,
       overflow: 'hidden',
       justifyContent: 'flex-end',
