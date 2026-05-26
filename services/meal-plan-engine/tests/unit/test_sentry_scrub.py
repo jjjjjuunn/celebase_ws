@@ -151,6 +151,31 @@ def test_exception_frame_vars_dropped() -> None:
     assert frame["function"] == "run_pipeline"  # non-PHI frame data survives
 
 
+def test_thread_frame_vars_dropped() -> None:
+    # ThreadingIntegration can populate event["threads"] for the MPE's concurrent
+    # FastAPI app + SQS consumer + WebSocket router.
+    ev = {
+        "threads": {
+            "values": [
+                {
+                    "stacktrace": {
+                        "frames": [
+                            {
+                                "function": "consume",
+                                "vars": {"bio": {"weight_kg": WEIGHT}},
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+    scrub_event(ev)
+    frame = ev["threads"]["values"][0]["stacktrace"]["frames"][0]
+    assert "vars" not in frame
+    assert WEIGHT not in json.dumps(ev)
+
+
 def test_request_headers_and_data() -> None:
     ev = _full_event()
     scrub_event(ev)

@@ -147,6 +147,28 @@ def _hash_id(raw_id: str, salt: str) -> str:
     return hashlib.sha256(f"{salt}:{raw_id}".encode()).hexdigest()[:8]
 
 
+def _drop_frame_vars(container: Any) -> None:
+    """Drop local variables from every stack frame of an exception/thread
+    container ({"values": [{"stacktrace": {"frames": [{"vars": ...}]}}]})."""
+    if not isinstance(container, dict):
+        return
+    values = container.get("values")
+    if not isinstance(values, list):
+        return
+    for val in values:
+        if not isinstance(val, dict):
+            continue
+        stacktrace = val.get("stacktrace")
+        if not isinstance(stacktrace, dict):
+            continue
+        frames = stacktrace.get("frames")
+        if not isinstance(frames, list):
+            continue
+        for frame in frames:
+            if isinstance(frame, dict):
+                frame.pop("vars", None)
+
+
 def scrub_event(
     event: dict[str, Any], hint: dict[str, Any] | None = None
 ) -> dict[str, Any]:
@@ -174,23 +196,13 @@ def scrub_event(
         if "params" in logentry:
             logentry["params"] = _deep_scrub(logentry["params"])
 
-    # 2. exception frame locals — drop entirely (can hold the full bio_profile)
-    exception = event.get("exception")
-    if isinstance(exception, dict):
-        values = exception.get("values")
-        if isinstance(values, list):
-            for val in values:
-                if not isinstance(val, dict):
-                    continue
-                stacktrace = val.get("stacktrace")
-                if not isinstance(stacktrace, dict):
-                    continue
-                frames = stacktrace.get("frames")
-                if not isinstance(frames, list):
-                    continue
-                for frame in frames:
-                    if isinstance(frame, dict):
-                        frame.pop("vars", None)
+    # 2. exception + thread frame locals — drop entirely (can hold the full
+    #    bio_profile). include_local_variables=False already prevents capture;
+    #    this is belt-and-suspenders if that flag is ever flipped, and covers the
+    #    threads path the ThreadingIntegration can populate (MPE runs the FastAPI
+    #    app + SQS consumer + WebSocket router concurrently).
+    _drop_frame_vars(event.get("exception"))
+    _drop_frame_vars(event.get("threads"))
 
     # 3. request — url (drop query + user-id UUIDs), query_string, cookies,
     #    headers (authorization/cookie), data (POST/SQS body lands here)

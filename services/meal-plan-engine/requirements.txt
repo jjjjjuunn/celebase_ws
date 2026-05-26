@@ -8,8 +8,10 @@ httpx==0.28.1
 redis==5.2.1
 boto3==1.35.99
 python-json-logger==2.0.7
-# Error monitoring (CHORE-SENTRY-PHI-REDACTION-001) — errors-only + PHI scrub
-sentry-sdk>=2.18.0
+# Error monitoring (CHORE-SENTRY-PHI-REDACTION-001) — errors-only + PHI scrub.
+# Cap below 3.x: init kwargs include_local_variables / max_request_body_size could
+# change semantics across a major bump.
+sentry-sdk>=2.18.0,<3.0.0
 pytest==8.3.4
 pytest-asyncio==0.25.2
 pytest-timeout==2.3.1
