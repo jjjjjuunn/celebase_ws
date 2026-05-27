@@ -7659,3 +7659,20 @@ verified_by: claude-opus-4-7 (user-svc/web/mobile typecheck clean; avatar.servic
 - **스택**: feat/recipe-ingredients-detail(FEAT-MOBILE-RECIPE-DETAIL-001 / PR #170) 위에 stacked.
 ### 미완료: ⚠️ 아바타 업로드 end-to-end(실 S3 PUT → 표시)는 `infra/avatars` apply + user-service `AVATARS_BUCKET` env staging 배포 후 검증. HEIC→JPEG 트랜스코드(현재 HEIC 는 JPEG 로 선언, 서버 allowlist 강제)는 follow-up. record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/screens/EditProfileScreen.tsx, apps/mobile/src/screens/SettingsScreen.tsx, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/src/services/users.ts, apps/web/src/app/api/users/me/avatar/upload-url/route.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/avatar.service.ts, infra/avatars/
+
+---
+date: 2026-05-26
+agent: claude-opus-4-7 (1M context)
+task_id: FEAT-MOBILE-CELEB-HERO-001
+commit_sha: cc12a02
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + eslint --max-warnings=0 clean; iOS Simulator iPhone 17 Pro 연속 40프레임 캡처로 슬라이드 전환·Men peek 확인)
+---
+### 완료: Celebrities 히어로 — Men rail peek + 좌측 슬라이드 전환 (FEAT-MOBILE-CELEB-HERO-001)
+- **레이아웃**: 히어로 높이 비율 0.5 → 0.4 로 축소. hero 50% + Women rail 25% 에 밀려 fold 아래로 완전히 숨던 Men 섹션(타이틀 + 카드 상단)이 이제 fold 위로 peek.
+- **전환 애니메이션**: 5초 자동 회전 시 crossfade → left-slide carousel. 현재 카드 좌측 슬라이드아웃+페이드아웃(260ms, `Easing.in(cubic)`) → 새 카드 우측 밖에서 슬라이드인+페이드인(320ms, `Easing.out(cubic)`), translateX+opacity 모두 `useNativeDriver`. `Hero` 가 내부 `displayed` state 로 표시 셀럽 관리 → 부모 `key={featured.id}` remount 제거(슬라이드아웃 위해 컴포넌트 persist).
+- **함께 랜딩(선행 WIP)**: 고정 380px/140px → `useWindowDimensions` 기반 화면 비율 hero/rail 사이징 + 전체 셀럽 풀(여성+남성) 5초 순환 재설계도 같은 diff 로 머지(같은 화면의 한 논리 단위).
+- **검증**: mobile typecheck + eslint(`--max-warnings=0`) clean. iOS Simulator(iPhone 17 Pro, iOS 26.3) 실행 — 40프레임 연속 캡처로 전환 시퀀스(Madison Beer 좌측 슬라이드아웃 → Chris Hemsworth 우측 슬라이드인) + Men 섹션 peek 확인. PR #172.
+### 미완료: 셀럽 사진은 여전히 컬러 블록 placeholder(라이선스 hold — backlog). 히어로 회전 수동 제어(스와이프/도트 인디케이터) 미구현. CelebritiesScreen RN 화면 단위 테스트 미작성(typecheck + 수동 실행으로 검증).
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
