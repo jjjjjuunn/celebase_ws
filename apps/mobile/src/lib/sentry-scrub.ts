@@ -112,7 +112,7 @@ function scrubExceptionContainer(container: unknown): void {
       for (const ctxKey of ['pre_context', 'post_context'] as const) {
         const ctx = f[ctxKey];
         if (Array.isArray(ctx)) {
-          f[ctxKey] = ctx.map((line) => (typeof line === 'string' ? scrubString(line) : line));
+          f[ctxKey] = ctx.map((line: unknown) => (typeof line === 'string' ? scrubString(line) : line));
         }
       }
     }

@@ -91,9 +91,9 @@ describe('mobile scrubEvent', () => {
     expect(json).not.toContain(JWT);
     const val = (
       ev['exception'] as { values: { value: string; stacktrace: { frames: { vars?: unknown }[] } }[] }
-    ).values[0]!;
+    ).values[0];
     expect(val.value).toBe('boom for [REDACTED]');
-    expect('vars' in val.stacktrace.frames[0]!).toBe(false);
+    expect('vars' in val.stacktrace.frames[0]).toBe(false);
   });
 
   it('preserves safe fields + correlation id', () => {
