@@ -81,6 +81,21 @@ describe('authService.signup', () => {
     }));
   });
 
+  it('fills the neutral default when display_name is omitted (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001)', async () => {
+    mockFindByEmail.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce({ ...baseUser, display_name: 'User' });
+
+    const result = await signup(mockPool, devProvider, {
+      email: 'noname@example.com',
+    });
+
+    expect(result.user.display_name).toBe('User');
+    expect(mockCreate).toHaveBeenCalledWith(
+      mockPool,
+      expect.objectContaining({ display_name: 'User' }),
+    );
+  });
+
   it('throws ValidationError if email already exists', async () => {
     mockFindByEmail.mockResolvedValueOnce(baseUser);
 
@@ -135,6 +150,10 @@ describe('authService.signup email-bridge', () => {
     expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
       mockPool, 'legacy@example.com', 'cognito-real-sub',
     );
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: the bridge returns the EXISTING user
+    // unchanged — it must NOT overwrite their display_name with the input or the
+    // 'User' default (bridge path bypasses userRepo.create entirely).
+    expect(result.user.display_name).toBe('Test User');
   });
 
   it('rejects conflict when existing user already has a real cognito_sub', async () => {
@@ -275,7 +294,7 @@ describe('authService.login lazy provisioning', () => {
       id: 'lazy-uuid-1',
       email: 'newuser@example.com',
       cognito_sub: 'cognito-real-sub',
-      display_name: 'newuser',
+      display_name: 'User',
     };
     mockCreate.mockResolvedValueOnce(lazyUser);
     const log = makeMockLog();
@@ -289,7 +308,9 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(result.user.cognito_sub).toBe('cognito-real-sub');
-    expect(result.user.display_name).toBe('newuser');
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: lazy-provision uses the neutral default
+    // 'User' (no longer the email local-part) — no email leak in the UI.
+    expect(result.user.display_name).toBe('User');
     // IMPL-MOBILE-SOCIAL-SELECTION-001: a genuinely lazy-provisioned account is
     // the ONLY path that flags is_new_user=true (drives social-first Selection).
     expect(result.is_new_user).toBe(true);
@@ -300,7 +321,7 @@ describe('authService.login lazy provisioning', () => {
     expect(mockCreate).toHaveBeenCalledWith(mockPool, {
       cognito_sub: 'cognito-real-sub',
       email: 'newuser@example.com',
-      display_name: 'newuser',
+      display_name: 'User',
     });
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -312,12 +333,12 @@ describe('authService.login lazy provisioning', () => {
     );
   });
 
-  it('falls back to "User" display_name when email local-part is empty', async () => {
+  it('lazy-provision uses the neutral default display_name regardless of email', async () => {
     class EmptyLocalPartProvider {
       async verifyIdToken(): Promise<{ sub: string; email: string }> {
-        // Defense-in-depth: DB VARCHAR(100) NOT NULL would block empty string,
-        // but the code-level fallback ensures we never even attempt the INSERT
-        // with '' for display_name.
+        // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: display_name is always the neutral
+        // 'User' default now — the email (even a malformed one) never feeds it,
+        // so no fragment of the address leaks into the UI.
         return Promise.resolve({ sub: 'sub-empty', email: '@malformed.example' });
       }
       async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {

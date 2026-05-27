@@ -100,18 +100,19 @@ export async function signIn(params: { email: string; password: string }): Promi
 export async function signUp(params: {
   email: string;
   password: string;
-  display_name: string;
 }): Promise<{ nextStep: 'CONFIRM_SIGN_UP' | 'DONE' }> {
-  const { email, password, display_name } = params;
+  const { email, password } = params;
 
   await clearStaleSession();
+  // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: no `name` attribute — signup no longer
+  // collects a display name (server fills a neutral default; user sets it during
+  // onboarding or in EditProfile). Cognito does not require `name`.
   const result = await amplifySignUp({
     username: email,
     password,
     options: {
       userAttributes: {
         email,
-        name: display_name,
       },
     },
   });
@@ -141,9 +142,8 @@ export async function confirmSignUpAndLogin(params: {
   email: string;
   code: string;
   password: string;
-  display_name: string;
 }): Promise<schemas.AuthTokens> {
-  const { email, code, password, display_name } = params;
+  const { email, code, password } = params;
 
   await amplifyConfirmSignUp({ username: email, confirmationCode: code });
 
@@ -163,7 +163,7 @@ export async function confirmSignUpAndLogin(params: {
   }
 
   // BE 가 우리 DB 의 users 테이블에 user 레코드 생성 + internal JWT 발급
-  const body: schemas.SignupRequest = { email, display_name, id_token: idToken };
+  const body: schemas.SignupRequest = { email, id_token: idToken };
   const tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/signup', body);
 
   if (tokens.access_token === '' || tokens.refresh_token === '') {

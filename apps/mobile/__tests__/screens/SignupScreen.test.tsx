@@ -1,6 +1,7 @@
 // SignupScreen smoke — 컴포넌트 렌더 + 기본 elements + validation/gate 동작 검증.
-// 새 폼 UI: Display name / Email / Password 필드 + PasswordRequirements + Sign up
-// 버튼은 비밀번호 정책(12자+대/소문자+숫자) 미달 시 disabled (서버 round-trip 전 차단).
+// 폼 UI: Email / Password 필드 + PasswordRequirements + Sign up (IMPL-MOBILE-SIGNUP-
+// DISPLAYNAME-001 — 이름 필드 제거). 버튼은 비밀번호 정책(12자+대/소문자+숫자) 미달 시
+// disabled (서버 round-trip 전 차단).
 
 jest.mock('aws-amplify/auth', () => ({
   signIn: jest.fn(),
@@ -31,14 +32,15 @@ function renderScreen(ui: ReactElement): ReturnType<typeof render> {
 const VALID_PASSWORD = 'Password1234';
 
 describe('SignupScreen', () => {
-  it('form step: 타이틀 + 이름/이메일/비밀번호 input + 가입 버튼을 렌더한다', () => {
+  it('form step: 타이틀 + 이메일/비밀번호 input + 가입 버튼을 렌더한다', () => {
     const onSuccess = jest.fn();
     const onBackToLogin = jest.fn();
     renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
     expect(screen.getByText('Create account')).toBeTruthy();
     expect(screen.getByText('Get started with CelebBase')).toBeTruthy();
-    expect(screen.getByLabelText('Display name')).toBeTruthy();
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: the name field is gone — regression guard.
+    expect(screen.queryByLabelText('Display name')).toBeNull();
     expect(screen.getByLabelText('Email')).toBeTruthy();
     expect(screen.getByLabelText('Password')).toBeTruthy();
     expect(screen.getByLabelText('Sign up')).toBeTruthy();
@@ -50,7 +52,6 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    fireEvent.changeText(screen.getByLabelText('Display name'), 'Alice');
     fireEvent.changeText(screen.getByLabelText('Email'), 'a@b.co');
     fireEvent.changeText(screen.getByLabelText('Password'), 'short');
 
@@ -66,7 +67,6 @@ describe('SignupScreen', () => {
     const onBackToLogin = jest.fn();
     renderScreen(<SignupScreen onSuccess={onSuccess} onBackToLogin={onBackToLogin} />);
 
-    fireEvent.changeText(screen.getByLabelText('Display name'), 'Alice');
     fireEvent.changeText(screen.getByLabelText('Email'), 'not-an-email');
     fireEvent.changeText(screen.getByLabelText('Password'), VALID_PASSWORD);
     fireEvent.press(screen.getByLabelText('Sign up'));

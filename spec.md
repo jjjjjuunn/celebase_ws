@@ -1820,6 +1820,14 @@ Content Service에 아래 인터페이스를 미리 설계하여 Phase 2 플러�
 >
 > 아래 §7.1 본문(S0~S7, persona-first web wizard)은 web-first 시점 작성이다. 모바일 실제 onboarding 은 one-question `OnboardingFlow`(#165)이며, 본 selection 분기가 그 앞단이다.
 
+#### Display name lifecycle *(IMPL-MOBILE-SIGNUP-DISPLAYNAME-001, mobile)*
+
+> 모바일 signup 은 **display name 을 수집하지 않는다** (가입 마찰 제거). user-service `signup()` 과 social lazy-provision 은 둘 다 중립 기본값 `'User'` 로 채운다 — 이메일 local-part 를 쓰지 않으므로 UI 에 이메일 일부가 노출되지 않는다 (프라이버시). 실제 이름은 두 경로로 들어온다:
+> - **개인화(온보딩) 경로**: step 0 "What should we call you?" 입력값을 `RevealStep` 완료 시 `PATCH /users/me { display_name }` 로 단 1회 저장 (bio-profile POST 성공 후 best-effort — 실패해도 진입 비차단).
+> - **trend-only / 미설정 유저**: 기본값 `'User'` 유지, 언제든 EditProfile 에서 변경. (기본값이 여전히 `'User'` 일 때 Profile/Settings nudge 는 후속 `CHORE-PROFILE-NAME-NUDGE-001`.)
+>
+> 계약: shared-types `SignupRequestSchema.display_name` + user-service `SignupSchema` 는 `.optional()` (존재 시 `.min(1).max(100)`). Cognito `name` 속성은 미전송 (pool 비필수, infra/cognito/main.tf). DB `users.display_name` 은 `NOT NULL` 유지 — 서버 폴백이 항상 비어있지 않은 값 주입.
+
 ```
 [S0: Welcome]
   ↓  "Get Started"

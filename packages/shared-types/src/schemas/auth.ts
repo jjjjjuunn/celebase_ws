@@ -9,7 +9,11 @@ import { z } from 'zod';
 
 export const SignupRequestSchema = z.object({
   email: z.string().email().max(255),
-  display_name: z.string().min(1).max(100),
+  // Optional (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001): mobile signup no longer
+  // collects a name. When absent the server fills a neutral default; the user
+  // sets a real name during onboarding or in EditProfile. Still `.min(1)` WHEN
+  // present (reject an explicit empty string).
+  display_name: z.string().min(1).max(100).optional(),
   id_token: z.string().optional(),
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;

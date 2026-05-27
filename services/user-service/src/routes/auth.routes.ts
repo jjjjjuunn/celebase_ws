@@ -17,7 +17,9 @@ import { emitAuthLog, hashId } from '../lib/auth-log.js';
 
 const SignupSchema = z.object({
   email: z.string().email().max(255),
-  display_name: z.string().min(1).max(100),
+  // Optional (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001) — mirrors shared-types
+  // SignupRequestSchema. When absent the service fills a neutral default.
+  display_name: z.string().min(1).max(100).optional(),
   id_token: z.string().optional(),
 });
 

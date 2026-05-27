@@ -25,7 +25,9 @@ import type { ActivityLevel, DietType, PrimaryGoal, Sex } from '@celebbase/share
  * required field is populated.
  */
 export interface OnboardingDraft {
-  /** Used for the in-flow greeting only — not yet persisted (no PATCH route). */
+  /** In-flow greeting + persisted once at onboarding completion via
+   * PATCH /users/me (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001 — signup no longer
+   * collects a name; this step is the personalized-path collection point). */
   display_name: string;
   birth_year?: number;
   sex?: Sex;

@@ -159,12 +159,30 @@ describe('BFF integration — POST /api/auth/mobile/signup', () => {
     expect(body.refresh_token).toBe('refresh-xyz');
   });
 
-  it('400 VALIDATION_ERROR when display_name missing — no upstream call', async () => {
-    const req = makeRequest({ body: { email: 'x@y.com' } });
+  // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: display_name is now OPTIONAL — signup no
+  // longer collects a name; the server fills a neutral default. A body without it
+  // forwards upstream (no longer a 400).
+  it('forwards signup without display_name upstream (now optional)', async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(TOKEN_PAYLOAD, 201));
+    const req = makeRequest({ body: { email: 'x@y.com', id_token: 't' } });
+    const res = await mobileSignupPOST(req);
+
+    expect(res.status).toBe(201);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect((fetchSpy.mock.calls[0][0] as string)).toBe('http://localhost:3001/auth/signup');
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  // …but an explicit EMPTY display_name is still rejected (.min(1) when present)
+  // before any upstream call.
+  it('400 VALIDATION_ERROR when display_name is an empty string — no upstream call', async () => {
+    const req = makeRequest({ body: { email: 'x@y.com', display_name: '', id_token: 't' } });
     const res = await mobileSignupPOST(req);
 
     expect(res.status).toBe(400);
     expect(fetchSpy).not.toHaveBeenCalled();
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('VALIDATION_ERROR');
     expect(res.headers.getSetCookie()).toHaveLength(0);
   });
 });
