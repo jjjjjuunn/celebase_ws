@@ -15,8 +15,7 @@ interface CognitoEnv {
   region: string;
 }
 
-function requireEnv(name: CognitoEnvName): string {
-  const raw: unknown = process.env[name];
+function requireEnv(name: CognitoEnvName, raw: unknown): string {
   if (typeof raw !== 'string' || raw === '') {
     throw new Error(
       '[cognito] Missing required env vars. Required: ' +
@@ -27,10 +26,20 @@ function requireEnv(name: CognitoEnvName): string {
 }
 
 function readCognitoEnv(): CognitoEnv {
+  // Static `process.env['EXPO_PUBLIC_*']` literal access so Expo's Babel transform
+  // inlines the values into the Release/production bundle. Dynamic access
+  // (process.env[name]) is NOT inlined and resolves to undefined in Release,
+  // which crashed the app at startup (white screen).
   return {
-    userPoolId: requireEnv('EXPO_PUBLIC_COGNITO_USER_POOL_ID'),
-    userPoolClientId: requireEnv('EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID'),
-    region: requireEnv('EXPO_PUBLIC_AWS_REGION'),
+    userPoolId: requireEnv(
+      'EXPO_PUBLIC_COGNITO_USER_POOL_ID',
+      process.env['EXPO_PUBLIC_COGNITO_USER_POOL_ID'],
+    ),
+    userPoolClientId: requireEnv(
+      'EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID',
+      process.env['EXPO_PUBLIC_COGNITO_MOBILE_CLIENT_ID'],
+    ),
+    region: requireEnv('EXPO_PUBLIC_AWS_REGION', process.env['EXPO_PUBLIC_AWS_REGION']),
   };
 }
 
