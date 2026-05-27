@@ -1808,6 +1808,16 @@ Content Service에 아래 인터페이스를 미리 설계하여 Phase 2 플러�
 
 ### 7.1 Onboarding Flow (Persona-First · Plan 20 Phase C-1)
 
+#### Post-signup path selection *(IMPL-MOBILE-ONBOARDING-ROUTING-001, mobile · Gate G2)*
+
+> 모바일(active client)은 **회원가입 직후** 경로 선택 화면(`SelectionScreen`, modal)을 1회 표시하여 아래 wizard 진입 전에 분기한다:
+> - **Personalized** → bio-profile onboarding 진입 (non-PHI v1: allergies + body basics + activity. medical_conditions/medications 미수집 — PROD-DEPLOY-ROADMAP Decision A).
+> - **Trend-only** → onboarding 을 건너뛰고 main(celebrity claim feed) 진입. personalization 은 추후 Profile / claim feed CTA 의 기존 진입점으로 시작.
+>
+> 트리거: `LoginReason==='signup'`(이메일 가입). `RootNavigator` 가 `phase='main'` 커밋 **후** `Selection` modal 을 present 한다 — 같은 tick 의 navigate 는 navigator race 를 유발 (BUG-MOBILE-AUTH-LOGIN-SIGNAL 교훈). Social 첫 로그인은 매 로그인마다 신호가 와서 new-user 판별이 별도 필요 — 후속(`GET /users/me/bio-profile` 404 기반). 결선 회귀 보호: `apps/mobile/__tests__/screens/SelectionScreen.test.tsx`.
+>
+> 아래 §7.1 본문(S0~S7, persona-first web wizard)은 web-first 시점 작성이다. 모바일 실제 onboarding 은 one-question `OnboardingFlow`(#165)이며, 본 selection 분기가 그 앞단이다.
+
 ```
 [S0: Welcome]
   ↓  "Get Started"

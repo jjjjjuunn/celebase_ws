@@ -17,6 +17,7 @@
 //           └── SettingsTab (Stack)
 //                 └── Settings
 //     └── Modal screens (presentation: 'modal')
+//           ├── Selection   — post-signup path picker (personalized | trend-only)
 //           ├── Onboarding
 //           └── Paywall
 
@@ -83,6 +84,7 @@ export type MainTabsParamList = {
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabsParamList>;
+  Selection: undefined;
   Onboarding: undefined;
   Paywall: undefined;
 };

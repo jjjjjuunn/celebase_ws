@@ -9,6 +9,7 @@ import { onLoginSignal, onLogoutSignal, type LogoutReason } from '../lib/auth-ev
 import { bootstrapSession } from '../services/auth-bootstrap';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
 import { PaywallScreen } from '../screens/PaywallScreen';
+import { SelectionScreen } from '../screens/SelectionScreen';
 import { useTheme, type Theme } from '../ui';
 import { AuthNavigator } from './AuthNavigator';
 import { MainTabsNavigator } from './MainTabsNavigator';
@@ -57,11 +58,28 @@ function PaywallRoute({ navigation }: RootStackScreenProps<'Paywall'>): React.JS
   );
 }
 
+function SelectionRoute({ navigation }: RootStackScreenProps<'Selection'>): React.JSX.Element {
+  return (
+    <SelectionScreen
+      onPersonalized={() => {
+        // replace (not navigate) so Onboarding's back returns to Main, not here.
+        navigation.replace('Onboarding');
+      }}
+      onTrendOnly={() => {
+        navigation.goBack();
+      }}
+    />
+  );
+}
+
 export function RootNavigator(): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<'loading' | 'auth' | 'main'>('loading');
   const navRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+  // Set when a fresh sign-up should see the path-selection screen; consumed by the
+  // phase-watch effect once 'Main' has mounted (see below).
+  const wantSelectionRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +101,11 @@ export function RootNavigator(): React.JSX.Element {
     // 'main' 으로 전환되어야 navigator 에 'Main' screen 이 등록된다.
     // 이전 구현은 LoginScreen.onSuccess 가 직접 reset('Main') 했으나 phase 미전환
     // 상태에선 'Main' 이 등록되지 않아 navigator 가 거절. signal 기반으로 전환.
-    const offLogin = onLoginSignal(() => {
+    const offLogin = onLoginSignal((reason) => {
+      // Fresh email sign-up → present the path picker once 'Main' is mounted.
+      // (Social first-login also lazy-provisions but fires on every social login;
+      // gating it needs a new-user check — deferred, see handoff.)
+      if (reason === 'signup') wantSelectionRef.current = true;
       setPhase('main');
     });
 
@@ -93,6 +115,16 @@ export function RootNavigator(): React.JSX.Element {
       offLogin();
     };
   }, []);
+
+  // Present the post-signup Selection modal only after the phase flip to 'main'
+  // has committed (so 'Main' is registered) — navigating during the same tick
+  // races the navigator, the failure mode behind BUG-MOBILE-AUTH-LOGIN-SIGNAL.
+  useEffect(() => {
+    if (phase === 'main' && wantSelectionRef.current) {
+      wantSelectionRef.current = false;
+      navRef.current?.navigate('Selection');
+    }
+  }, [phase]);
 
   if (phase === 'loading') {
     return (
@@ -110,6 +142,11 @@ export function RootNavigator(): React.JSX.Element {
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}
+        <Stack.Screen
+          name="Selection"
+          component={SelectionRoute}
+          options={{ presentation: 'modal', gestureEnabled: false }}
+        />
         <Stack.Screen name="Onboarding" component={OnboardingRoute} options={{ presentation: 'modal' }} />
         <Stack.Screen name="Paywall" component={PaywallRoute} options={{ presentation: 'modal' }} />
       </Stack.Navigator>
