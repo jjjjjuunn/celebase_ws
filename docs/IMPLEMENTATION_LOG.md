@@ -7841,3 +7841,23 @@ verified_by: claude-opus-4-7 (mobile 200/200 incl. signIn ACCOUNT_DELETED→Acco
 - **검증**: mobile 200/200 (신규 signIn ACCOUNT_DELETED→AccountDeletedError(idToken carry) + restoreAccount POST/store + empty-token throw); tsc + eslint(--max-warnings=0) clean.
 ### 미완료: ⚠️ device E2E (삭제→로그인→복구 패널→복구→데이터 유지 / 재가입→"sign in to restore" 안내→로그인→복구). 소셜 복구는 dev build 에서 native 검증. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh (BE #180 + 본 mobile).
 ### 연관 파일: apps/mobile/src/lib/auth-errors.ts, apps/mobile/src/lib/restore.ts, apps/mobile/src/services/auth.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/components/SocialAuthButtons.tsx, apps/mobile/__tests__/services/auth.test.ts
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-MOBILE-RELEASE-ENV-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/api-client.ts
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/src/lib/fetch-with-refresh.ts
+  - apps/mobile/src/services/auth-refresh.ts
+verified_by: claude-opus-4-7 (mobile tsc + eslint --max-warnings=0; jest 200/200)
+---
+### 완료: Release 번들 env 인라인 — 정적 process.env['EXPO_PUBLIC_*'] 접근 (CHORE-MOBILE-RELEASE-ENV-001)
+- 동적 `process.env[var]` 는 Expo Babel 트랜스폼이 Release 번들에 인라인하지 않아 undefined → standalone 빌드 부팅 시 흰 화면 크래시. 4개 env reader (BFF base URL, user-service URL, Cognito userPoolId/clientId/region) 를 정적 `process.env['리터럴']` 접근으로 전환.
+- cognito.ts `requireEnv(name, raw)` 로 시그니처 변경 — 호출부가 정적 리터럴 값을 직접 전달.
+- 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
+- App.tsx RevenueCat configure 비활성화(데모 standalone — 키 미발급)는 본 PR 제외 — 로컬 유지(main 부적합).
+### 미완료: record-log-sha.sh. RevenueCat 키 발급 후 App.tsx configureRevenueCat 복원.
+### 연관 파일: apps/mobile/src/lib/api-client.ts, apps/mobile/src/lib/cognito.ts, apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/services/auth-refresh.ts
