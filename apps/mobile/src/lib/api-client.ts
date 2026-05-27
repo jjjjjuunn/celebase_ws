@@ -6,7 +6,8 @@
 const BFF_BASE_URL_ENV = 'EXPO_PUBLIC_BFF_BASE_URL';
 
 function getBffBaseUrl(): string {
-  const raw: unknown = process.env[BFF_BASE_URL_ENV];
+  // Static literal access — inlined into the Release bundle (dynamic process.env[var] is not).
+  const raw: unknown = process.env['EXPO_PUBLIC_BFF_BASE_URL'];
   if (typeof raw !== 'string' || raw === '') {
     throw new Error(
       `[api-client] Missing required env var: ${BFF_BASE_URL_ENV}. ` +
