@@ -4,7 +4,7 @@
 // PHI 감사 로그도 한 번만 발생. 실패 시 (특히 audit log fail) 사용자에게
 // 명확한 에러 + 재시도 — silent fallback 절대 금지 (spec.md §9.3).
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import type { schemas } from '@celebbase/shared-types';
 
 import { ApiError } from '../lib/api-client';
 import { saveBioProfile } from '../services/bio-profile';
+import { updateMe } from '../services/users';
 import { Button, Text, useTheme, type Theme } from '../ui';
 
 interface RevealStepProps {
@@ -30,11 +31,31 @@ export function RevealStep({ body, greetingName, onDone, onBack }: RevealStepPro
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [phase, setPhase] = useState<Phase>({ state: 'saving' });
 
+  // Persist the bio-profile (critical) then best-effort the onboarding-entered
+  // name (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001 — signup no longer collects it; the
+  // "What should we call you?" step feeds `greetingName`). A failed name PATCH
+  // must NOT block entry: the profile (the important write) already succeeded and
+  // the user can set the name later in EditProfile.
+  const persist = useCallback(async (): Promise<void> => {
+    await saveBioProfile(body);
+    const name = greetingName?.trim();
+    if (name !== undefined && name !== '') {
+      try {
+        await updateMe({ display_name: name });
+      } catch (e) {
+        if (process.env['NODE_ENV'] !== 'production') {
+          // eslint-disable-next-line no-console
+          console.warn('[onboarding] display_name persist failed (non-fatal):', e);
+        }
+      }
+    }
+  }, [body, greetingName]);
+
   useEffect(() => {
     let cancelled = false;
     setPhase({ state: 'saving' });
 
-    saveBioProfile(body)
+    persist()
       .then(() => {
         if (cancelled) return;
         setPhase({ state: 'success' });
@@ -52,11 +73,11 @@ export function RevealStep({ body, greetingName, onDone, onBack }: RevealStepPro
     return (): void => {
       cancelled = true;
     };
-  }, [body]);
+  }, [persist]);
 
   function retry(): void {
     setPhase({ state: 'saving' });
-    saveBioProfile(body)
+    persist()
       .then(() => {
         setPhase({ state: 'success' });
       })

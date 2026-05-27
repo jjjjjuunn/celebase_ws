@@ -190,14 +190,15 @@ describe('auth.signUp()', () => {
       nextStep: { signUpStep: 'CONFIRM_SIGN_UP' },
     } as Awaited<ReturnType<typeof amplifySignUp>>);
 
-    const result = await signUp({ email: 'a@b.co', password: 'Pass123!', display_name: 'Alice' });
+    const result = await signUp({ email: 'a@b.co', password: 'Pass123!' });
 
     expect(result.nextStep).toBe('CONFIRM_SIGN_UP');
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: no `name` attribute sent to Cognito.
     expect(amplifySignUpMock).toHaveBeenCalledWith({
       username: 'a@b.co',
       password: 'Pass123!',
       options: {
-        userAttributes: { email: 'a@b.co', name: 'Alice' },
+        userAttributes: { email: 'a@b.co' },
       },
     });
   });
@@ -208,7 +209,7 @@ describe('auth.signUp()', () => {
       nextStep: { signUpStep: 'DONE' },
     } as Awaited<ReturnType<typeof amplifySignUp>>);
 
-    const result = await signUp({ email: 'a@b.co', password: 'P', display_name: 'A' });
+    const result = await signUp({ email: 'a@b.co', password: 'P' });
     expect(result.nextStep).toBe('DONE');
   });
 
@@ -218,7 +219,7 @@ describe('auth.signUp()', () => {
     );
 
     await expect(
-      signUp({ email: 'a@b.co', password: 'p', display_name: 'A' }),
+      signUp({ email: 'a@b.co', password: 'p' }),
     ).rejects.toThrow(/email exists/);
   });
 });
@@ -264,7 +265,6 @@ describe('auth.confirmSignUpAndLogin()', () => {
       email: 'a@b.co',
       code: '123456',
       password: 'pw',
-      display_name: 'Alice',
     });
 
     expect(tokens.access_token).toBe('access-X');
@@ -274,11 +274,11 @@ describe('auth.confirmSignUpAndLogin()', () => {
     });
     expect(amplifySignInMock).toHaveBeenCalledWith({ username: 'a@b.co', password: 'pw' });
 
-    // BFF /signup 호출 — body 에 email, display_name, id_token
+    // BFF /signup 호출 — body 에 email, id_token (display_name 미전송)
     const [calledUrl, calledInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(calledUrl).toBe('http://localhost:3000/api/auth/mobile/signup');
     const sentBody: unknown = JSON.parse(calledInit.body as string);
-    expect(sentBody).toEqual({ email: 'a@b.co', display_name: 'Alice', id_token: 'id-token-X' });
+    expect(sentBody).toEqual({ email: 'a@b.co', id_token: 'id-token-X' });
 
     expect(await getAccessToken()).toBe('access-X');
     expect(await getRefreshToken()).toBe('refresh-X');
@@ -290,7 +290,7 @@ describe('auth.confirmSignUpAndLogin()', () => {
     );
 
     await expect(
-      confirmSignUpAndLogin({ email: 'a@b.co', code: 'wrong', password: 'pw', display_name: 'A' }),
+      confirmSignUpAndLogin({ email: 'a@b.co', code: 'wrong', password: 'pw' }),
     ).rejects.toThrow(/Invalid verification code/);
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(await getAccessToken()).toBeNull();
@@ -310,7 +310,7 @@ describe('auth.confirmSignUpAndLogin()', () => {
     );
 
     await expect(
-      confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw', display_name: 'A' }),
+      confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw' }),
     ).rejects.toBeInstanceOf(ApiError);
     expect(await getAccessToken()).toBeNull();
   });

@@ -7741,3 +7741,29 @@ verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 4 n
 - **검증**: shared-types build; user-service 208/208 (신규 is_new_user 4-case: 기존 false / lazy true / race false / email-bridge false); mobile tsc + eslint(--max-warnings=0) clean + 관련 39 테스트 PASS. spec.md §7.1 sync.
 ### 미완료: ⚠️ 배포 후 device social-first-login E2E (신규 Google 계정→Selection 1회; 재로그인→미등장). record-log-sha.sh.
 ### 연관 파일: packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/navigation/RootNavigator.tsx, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-MOBILE-SIGNUP-DISPLAYNAME-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/auth.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/src/onboarding/RevealStep.tsx
+  - apps/mobile/src/onboarding/types.ts
+  - spec.md
+verified_by: claude-opus-4-7 (shared-types build; user-service 209/209 incl. signup-default + lazy-default cases; mobile tsc + eslint --max-warnings=0 clean + 45 auth/signup/onboarding tests; Cognito name-claim consumer grep=0; ⚠️ device signup→onboarding-name-persist E2E post-deploy)
+---
+### 완료: 가입폼 display name 제거 — 서버 중립 기본값 + 온보딩 저장 (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001)
+- **배경**: 모바일 signup 이 이름을 필수로 받아 가입 마찰. 이름은 나중에 받아도 됨 → signup 에서 제거, 서버가 중립 기본값으로 채우고 실제 이름은 온보딩/EditProfile 에서 수집.
+- **결정 (사용자 2026-05-27)**: 기본값 = 중립 `'User'` (value-B) — 이메일 local-part 를 쓰지 않아 UI 에 이메일 일부 노출 방지(프라이버시; Gemini/advisor 권고). nudge 는 후속 `CHORE-PROFILE-NAME-NUDGE-001` (value-disc-1).
+- **contract**: shared-types `SignupRequestSchema.display_name` + user-service `SignupSchema` → `.optional()` (존재 시 `.min(1).max(100)`). DB migration 없음 — `users.display_name NOT NULL` 유지, 서버 폴백이 항상 non-empty 주입.
+- **user-service**: 공유 `DEFAULT_DISPLAY_NAME='User'` 상수. `signup()` = `input.display_name?.trim() || DEFAULT`. social lazy-provision site(`login()`) 도 email-split 폴백 → `DEFAULT` 로 정렬(일관성 + 프라이버시). 둘 다 중립 기본값.
+- **mobile**: `SignupScreen` 이름 FormField + Zod + state 제거. `auth.ts` `signUp` 이 Cognito `name` 속성 미전송(pool 비필수, infra/cognito/main.tf 확인) + `confirmSignUpAndLogin` 이 BFF body 에 display_name 미전송. 온보딩 step 0 "What should we call you?" 는 유지 — `RevealStep` 완료 시 `updateMe({display_name})` 로 1회 best-effort 저장(bio-profile POST 성공 후; 실패해도 진입 비차단, EditProfile 로 위임).
+- **검증**: shared-types build; user-service 209/209 (신규 "omit→default" signup + "lazy uses neutral default regardless of email"); mobile tsc + eslint(--max-warnings=0) clean + 45 테스트(auth/Signup/onboarding/Reveal); SignupScreen.test 가 이름 필드 부재 회귀 가드(queryByLabelText null). Cognito token `name`-claim 소비처 grep 0. spec.md §7.1 Display name lifecycle sync.
+### 미완료: ⚠️ 배포 후 device E2E (이름없이 가입→성공→온보딩 이름 입력→Profile 반영 / trend-only→'User' 유지→EditProfile 변경). nudge 후속 CHORE-PROFILE-NAME-NUDGE-001. record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/auth.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/services/auth.service.ts, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/services/auth.ts, apps/mobile/src/onboarding/RevealStep.tsx, apps/mobile/src/onboarding/types.ts, spec.md

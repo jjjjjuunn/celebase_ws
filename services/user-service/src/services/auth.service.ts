@@ -214,9 +214,16 @@ function toSubject(user: User): AuthTokenSubject {
   return { sub: user.id, email: user.email, cognito_sub: user.cognito_sub };
 }
 
+// IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: signup no longer collects a name, and the
+// social lazy-provision path no longer derives one from the email local-part
+// (that leaked part of the email into any UI that renders display_name). Both
+// fall back to one neutral default; users set a real name during onboarding or
+// in EditProfile (PATCH /users/me).
+const DEFAULT_DISPLAY_NAME = 'User';
+
 interface SignupInput {
   email: string;
-  display_name: string;
+  display_name?: string | undefined;
   id_token?: string | undefined;
 }
 
@@ -270,7 +277,7 @@ export async function signup(
   const user = await userRepo.create(pool, {
     cognito_sub: cognitoSub,
     email,
-    display_name: input.display_name,
+    display_name: input.display_name?.trim() || DEFAULT_DISPLAY_NAME,
   });
 
   // Atomic guard: DB unique constraint caught as null (TOCTOU race on email/cognito_sub)
@@ -350,7 +357,7 @@ export async function login(
           [{ field: 'email', issue: 'APPLE_EMAIL_REQUIRED' }],
         );
       }
-      const displayName = payload.email.split('@')[0] || 'User';
+      const displayName = DEFAULT_DISPLAY_NAME;
       const created = await userRepo.create(pool, {
         cognito_sub: payload.sub,
         email: payload.email,
