@@ -356,7 +356,7 @@ describe('authService.login lazy provisioning', () => {
       cognito_sub: 'cognito-real-sub',
     });
 
-    await login(
+    const result = await login(
       mockPool,
       new FakeCognitoProvider(),
       { email: 'newuser@example.com', id_token: 'fake.id.token' },
@@ -365,6 +365,10 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(mockCreate).not.toHaveBeenCalled();
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: an email-bridged legacy user is attached
+    // to a new cognito_sub but is NOT a new account — guards the branch adjacent
+    // to lazy-provision from accidentally flipping isNewUser=true.
+    expect(result.is_new_user).toBe(false);
   });
 
   it('recovers from race when create returns null and re-read by sub succeeds', async () => {

@@ -7730,7 +7730,7 @@ files_changed:
   - apps/mobile/src/services/social-auth.ts
   - apps/mobile/src/navigation/RootNavigator.tsx
   - spec.md
-verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 3 new is_new_user cases; mobile tsc + eslint --max-warnings=0 clean + 39 auth/nav/selection tests; ⚠️ device social-first-login E2E post-deploy)
+verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 4 new is_new_user cases; mobile tsc + eslint --max-warnings=0 clean + 39 auth/nav/selection tests; ⚠️ device social-first-login E2E post-deploy)
 ---
 ### 완료: 소셜 첫 로그인 Selection gating — server is_new_user 플래그 (IMPL-MOBILE-SOCIAL-SELECTION-001)
 - **배경**: 가입 후 Selection modal 이 이메일 가입(`reason='signup'`)에서만 떴고, 소셜(Google/Apple)은 매 로그인 `signalLogin('social')` 이라 첫 로그인 판별이 불가 → 신규 소셜 유저가 Selection 을 못 봄 (RootNavigator 코드 주석에 deferred 로 명시돼 있던 갭).
@@ -7738,6 +7738,6 @@ verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 3 n
 - **shared-types**: `LoginResponseSchema` 를 `SignupResponseSchema` 별칭에서 분리해 `is_new_user: z.boolean().optional()` 확장 (login 만; 이메일 signup 은 `reason='signup'` 유지). `.optional()` = rolling-deploy 안전(구 BE 생략→undefined→false).
 - **user-service**: `login()` 반환에 `is_new_user` 추가 — lazy-provision `created` 분기만 true, 그 외(기존 sub 발견·email-bridge·race 재조회·dev stub) false. 라우트는 `result` passthrough(응답 스키마 없음), BFF 는 `LoginResponseSchema` 검증으로 known optional key 보존.
 - **mobile**: `LoginReason` 에 `'social_new'` 추가. `social-auth.ts` 가 `LoginResponse` 파싱 후 `is_new_user===true` 면 `signalLogin('social_new')`, 아니면 `'social'`. `RootNavigator` 게이트를 `reason==='signup' || reason==='social_new'` 로 확장. Apple 재로그인은 `findByCognitoSub` 로 1회만 신규 판정.
-- **검증**: shared-types build; user-service 208/208 (신규 is_new_user 3-case: 기존 false / lazy true / race false); mobile tsc + eslint(--max-warnings=0) clean + 관련 39 테스트 PASS. spec.md §7.1 sync.
+- **검증**: shared-types build; user-service 208/208 (신규 is_new_user 4-case: 기존 false / lazy true / race false / email-bridge false); mobile tsc + eslint(--max-warnings=0) clean + 관련 39 테스트 PASS. spec.md §7.1 sync.
 ### 미완료: ⚠️ 배포 후 device social-first-login E2E (신규 Google 계정→Selection 1회; 재로그인→미등장). record-log-sha.sh.
 ### 연관 파일: packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/navigation/RootNavigator.tsx, spec.md
