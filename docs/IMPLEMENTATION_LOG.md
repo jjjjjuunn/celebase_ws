@@ -7770,3 +7770,29 @@ verified_by: claude-opus-4-7 (shared-types build; user-service 209/209 incl. sig
 - **BFF 계약 회귀 (CI 적발)**: web BFF 통합 테스트 2건 (`mobile-auth.integration`, `auth-bff.integration`) 이 옛 계약("signup display_name 누락 → 400")을 단언 → optional 전환으로 CI Tests 잡 fail. "누락 → upstream forwards / 빈 문자열 → 400(.min(1) when present)" 으로 교체. web 191/191. (로컬 검증 시 web 스위트 누락 → CI 가 적발한 교훈.)
 ### 미완료: ⚠️ 배포 후 device E2E (이름없이 가입→성공→온보딩 이름 입력→Profile 반영 / trend-only→'User' 유지→EditProfile 변경). nudge 후속 CHORE-PROFILE-NAME-NUDGE-001. record-log-sha.sh.
 ### 연관 파일: packages/shared-types/src/schemas/auth.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/services/auth.service.ts, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/services/auth.ts, apps/mobile/src/onboarding/RevealStep.tsx, apps/mobile/src/onboarding/types.ts, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-ACCOUNT-RESTORE-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/auth.ts
+  - packages/shared-types/src/schemas/users.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/lib/auth-log.ts
+  - apps/web/src/app/api/auth/mobile/restore/route.ts
+  - .claude/rules/security.md
+verified_by: claude-opus-4-7 + advisor (user-service 213→ incl. 5 restore cases; web 195/195 incl. 4 BFF restore; shared-types build; user-svc+web tsc clean; ⚠️ 3b-mobile UX + device E2E follow-up)
+---
+### 완료: 계정삭제 막다른길(G2) — within-grace restore 엔드포인트 + ACCOUNT_DELETED 로그인 코드 (IMPL-ACCOUNT-RESTORE-001, BE 기반 = 3a+3b-BE)
+- **3a (로그인 코드)**: `login()` 의 soft-deleted 분기가 generic `UnauthorizedError(UNAUTHORIZED)` 대신 **`AccountDeletedError(ACCOUNT_DELETED)`** 를 던진다 → 모바일 `LoginScreen` 의 기존(죽어있던) `ACCOUNT_DELETED` 케이스가 살아나 막다른 raw 메시지 제거.
+- **3b-BE (복구 엔드포인트)**: 신규 **public `POST /auth/restore`**. login 과 동일 provider verifier 로 id_token full claim(RS256+iss+aud+exp+token_use) 검증 → **verified `sub`** 로 행 조회 → `clearSoftDelete` (atomic `UPDATE … SET deleted_at=NULL WHERE cognito_sub=$1 AND deleted_at IS NOT NULL RETURNING *`). 미존재 시 NotFound, 이미 active 면 멱등. publicPaths 등록, login rate-limit, `auth.account.restored` 감사(hashed id + optional ip/user_agent). BFF `/api/auth/mobile/restore` proxy.
+- **보안**: ① 위조/replay 토큰은 verifier 가 거부(타 계정 복구 불가) ② `clearSoftDelete` 는 `deleted_at` 만 변경 → **tier 미상승**(무료 권한 재부여 차단, 테스트 가드) ③ FEAT-APPLE-REVOKE-001 — restore 도 Apple authorization_code 재캡처(restore→delete 시 Apple revoke 보장; advisor 적발).
+- **grace-410 미적용 (현 릴리스)**: hard-delete 배치(CHORE-PHI-DELETE-COMPLIANCE-001) 부재 상태에서 410 을 켜면 30일 초과 유저 영구 고립 → 배치와 동시 활성화. DEK 는 유예중 보존(security.md 명확화, 사용자 확정).
+- **검증**: user-service 213→ (restore 5-case: 복구·멱등·NotFound·ValidationError·**Apple-no-email sub 해소**); web 195/195 (BFF restore 4); shared-types build; user-svc+web tsc clean.
+### 미완료: **3b-mobile UX (후속 PR)** — typed `AccountDeletedError`(id_token+provider carry) + `restoreAccount` + LoginScreen 복구 버튼 + SignupScreen "log in to restore" CTA(존재누출 없이). ⚠️ device E2E. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/auth.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/index.ts, services/user-service/src/repositories/user.repository.ts, services/user-service/src/lib/auth-log.ts, apps/web/src/app/api/auth/mobile/restore/route.ts, .claude/rules/security.md

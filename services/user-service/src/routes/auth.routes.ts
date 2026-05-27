@@ -216,6 +216,26 @@ export async function authRoutes(
         request.id,
         { ip: request.ip, ...(typeof userAgent === 'string' ? { userAgent } : {}) },
       );
+      // FEAT-APPLE-REVOKE-001 — mirror the login route: re-capture the Apple
+      // refresh_token on restore too, else a restore→delete sequence couldn't
+      // revoke at Apple (App Store 4.8.1) until the user's next normal login.
+      // Best-effort + audited; never blocks the restore response.
+      if (
+        parsed.data.provider === 'apple' &&
+        parsed.data.apple_authorization_code &&
+        appleOAuth &&
+        phiKeyProvider
+      ) {
+        await storeAppleRefreshToken({
+          pool,
+          userId: result.user.id,
+          authorizationCode: parsed.data.apple_authorization_code,
+          appleOAuth,
+          keyProvider: phiKeyProvider,
+          log: request.log,
+          requestId: request.id,
+        });
+      }
       emitAuthLog(request.log, 'auth.internal_token.issued', {
         flow: 'restore',
         provider: parsed.data.provider ?? 'cognito',

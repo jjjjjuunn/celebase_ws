@@ -163,13 +163,15 @@ const isLocalDev = nodeEnv === 'development' || nodeEnv === 'test';
 ## 계정 삭제 (Right to Deletion)
 
 사용자 삭제 요청 시 **즉시 처리**:
-1. `users.deleted_at` 세팅 (로그인 차단)
-2. `bio_profiles` ePHI 필드 DEK 즉시 폐기
+1. `users.deleted_at` 세팅 (로그인 차단 — 즉시 `ACCOUNT_DELETED`)
+2. `bio_profiles` ePHI DEK 는 **30일 유예 동안 보존** — 복구 시 PHI 를 되살리기 위함. 폐기는 유예 후 배치에서 수행. (IMPL-ACCOUNT-RESTORE-001 / CHORE-PHI-DELETE-COMPLIANCE-001 — 종전 "DEK 즉시 폐기" 문구의 명확화: **계정 로그인은 즉시 차단하되 키는 유예 동안 유지**. 사용자 확정 2026-05-27.)
 3. `subscriptions.status` = `'expired'`, Stripe 구독 해지
 4. S3 `celebbase-phi/{user_id}/` 삭제 예약
 
 **30일 유예** (복구 요청 대비):
-- 복구 시 DEK 재발급 + `deleted_at` 해제
+- **복구 엔드포인트 `POST /auth/restore` (IMPL-ACCOUNT-RESTORE-001)**: public route. 사용자가 Cognito/social `id_token` 으로 재인증 → 서버가 full claim(RS256 + iss + aud + exp + token_use) 검증 후 **verified `sub`** 로 행을 찾아 `deleted_at` 을 atomic 하게 해제(`clearSoftDelete`). `subscription_tier` 는 미변경(무료 권한 재부여 방지). 그 전까지 로그인은 `ACCOUNT_DELETED` 로 차단되며 모바일이 이 복구 경로를 제시한다.
+- DEK 는 유예 동안 보존되므로 복구 시 재발급 불필요(현 `EnvPhiKeyProvider` 는 master+userId HKDF 파생 — 행이 살아있는 한 즉시 복호).
+- **grace-410 미적용 (현 릴리스)**: 30일 경과 행에 410 을 강제하지 않는다 — hard-delete 배치(CHORE-PHI-DELETE-COMPLIANCE-001) 부재 상태에서 410 을 켜면 30일 초과 유저가 영구 고립(로그인·복구·재가입 모두 차단). 배치 도입과 **동시에** grace-410 활성화.
 
 **유예 후 배치 처리**:
 5. `bio_profiles` hard delete

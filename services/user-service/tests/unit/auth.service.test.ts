@@ -697,6 +697,33 @@ describe('authService.restore', () => {
     expect(mockClearSoftDelete).not.toHaveBeenCalled();
   });
 
+  it('Apple restore with NO email claim resolves by verified sub (email is never read)', async () => {
+    // Apple omits email on re-sign-in (the verifier yields email=''); restore()
+    // resolves the user by `sub` only, so this must succeed with zero email use.
+    class AppleNoEmailProvider {
+      async verifyIdToken(): Promise<{ sub: string; email: string }> {
+        return Promise.resolve({ sub: 'apple-restore-sub', email: '' });
+      }
+      async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+        return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+      }
+    }
+    const appleDeleted = { ...deletedUser, cognito_sub: 'apple-restore-sub' };
+    mockFindByCognitoSub.mockResolvedValueOnce(appleDeleted);
+    mockClearSoftDelete.mockResolvedValueOnce({ ...appleDeleted, deleted_at: null });
+
+    const result = await restore(
+      mockPool,
+      new AppleNoEmailProvider(),
+      { id_token: 'apple.jwt', provider: 'apple' },
+      makeMockLog(),
+      'req-restore-apple',
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(mockClearSoftDelete).toHaveBeenCalledWith(mockPool, 'apple-restore-sub');
+  });
+
   it('throws ValidationError when id_token is missing', async () => {
     await expect(
       restore(mockPool, new FakeCognitoProvider(), {}, makeMockLog(), 'req-restore-4'),
