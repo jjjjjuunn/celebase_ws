@@ -29,6 +29,24 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-24
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-ONBOARDING-POLISH-001
+commit_sha: 0de9556
+files_changed:
+  - apps/mobile/src/components/DrumPicker.tsx
+  - apps/mobile/src/onboarding/OnboardingScaffold.tsx
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+verified_by: claude-opus-4-7 (mobile tsc/eslint/jest)
+---
+### 완료: 온보딩 v2 시각 폴리시 — 드럼 피커 고급화 + 칩 floating 해소 (CHORE-ONBOARDING-POLISH-001)
+- **DrumPicker 프리미엄 리디자인**(사용자 "싼 느낌" 피드백): 박스/필 lens 제거 → 테두리 없는 airy 휠 + 골드 selection 헤어라인. scale falloff 강화(0.78→1.0 → 0.5→1.0), opacity(0.3→1 → 0.15→1) → 중앙 값이 크게 "자라나며" 포커스되는 tactile 상호작용("글씨가 커진다" 요청 직접 반영). 중앙 폰트 metricLg + semibold, ITEM_HEIGHT 44→48. 전부 native-driver Animated, reload-safe(네이티브 모듈 없음).
+- **칩 floating 해소**(사용자 "중앙에 붕 떠있는" 피드백): OnboardingScaffold 가 컨텐츠를 dead-center 하던 것 → top-align 기본(질문 바로 아래 흐름, Noom/Cal AI 패턴). 작은 칩 클러스터(sex/GLP-1)가 화면 중앙에 떠보이던 문제 제거. tall 컨트롤(피커 birth/height/weight)은 `centerContent` prop 으로 중앙 유지(이전 하단 여백 회귀 방지).
+- **검증**: mobile `tsc --noEmit` 0, `eslint` 0, jest 5/5(OnboardingFlow). 시각 검증은 dev 빌드(iOS sim)에서 사용자 진행.
+### 미완료: 햅틱(expo-haptics — item tick 촉각, 네이티브 모듈이라 dev-client 1회 rebuild 필요 → reload-safe 유지 위해 미포함, opt-in 제안). 단일선택 소수옵션(sex)을 full-width 행으로 전환하는 대안(칩 대신) — 사용자 선택 시 후속.
+### 연관 파일: apps/mobile/src/components/DrumPicker.tsx, apps/mobile/src/onboarding/OnboardingScaffold.tsx
+
+---
+date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001
 commit_sha: 5610d15

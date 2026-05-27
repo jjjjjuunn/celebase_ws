@@ -25,11 +25,19 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { Text, useTheme, type Theme } from '../ui';
 
-const ITEM_HEIGHT = 44;
+const ITEM_HEIGHT = 48;
 const DEFAULT_VISIBLE_COUNT = 5; // odd → a true center row
+
+// Light "tick" as each value crosses the selection line — the tactile signature
+// of a native wheel. Fire-and-forget; no-ops on the simulator / if the native
+// module isn't linked yet (non-critical feedback, never block the UI).
+function tickHaptic(): void {
+  void Haptics.selectionAsync().catch(() => undefined);
+}
 
 export interface DrumPickerProps {
   /** Inclusive lower bound. */
@@ -96,6 +104,29 @@ export function DrumPicker({
   const scrollY = useRef(new Animated.Value(activeIndex * ITEM_HEIGHT)).current;
   const scrollRef = useRef<ScrollView>(null);
   const lastEmitted = useRef<number | undefined>(value);
+  // Initial scroll offset, captured ONCE. `contentOffset` must NOT track `value`
+  // reactively: a value change mid-fling (or any re-render) would re-apply the
+  // prop and yank the wheel back to that row, fighting the user's scroll. Initial
+  // positioning is set here; later external changes go through the sync effect.
+  const initialOffset = useRef(activeIndex * ITEM_HEIGHT).current;
+  // Last row index that fired a haptic — so we tick once per item crossed.
+  const hapticIndex = useRef(activeIndex);
+
+  // Haptic tick per item as the wheel scrolls past the selection line. The
+  // native-driven scrollY still notifies JS listeners; we debounce to integer
+  // index changes so it's one tick per value, not per frame.
+  useEffect(() => {
+    const id = scrollY.addListener(({ value: y }) => {
+      const idx = Math.round(y / ITEM_HEIGHT);
+      if (idx !== hapticIndex.current) {
+        hapticIndex.current = idx;
+        tickHaptic();
+      }
+    });
+    return () => {
+      scrollY.removeListener(id);
+    };
+  }, [scrollY]);
 
   // Resolve to a concrete value once on mount so the wheel is never "empty".
   // Mount-only by design; external changes are handled by the controlled-sync
@@ -137,8 +168,18 @@ export function DrumPicker({
     }
   }
 
+  // Emit on momentum end — by then snapToInterval has settled the offset on an
+  // exact item boundary, so the rounded index is the truly-centered value.
   function handleSettle(e: NativeSyntheticEvent<NativeScrollEvent>): void {
     emitForOffset(e.nativeEvent.contentOffset.y);
+  }
+
+  // Drag release with ~no velocity won't produce a momentum phase (so
+  // onMomentumScrollEnd never fires) — emit here. With velocity, defer to the
+  // momentum handler; emitting the mid-fling offset would pick a wrong value.
+  function handleScrollEndDrag(e: NativeSyntheticEvent<NativeScrollEvent>): void {
+    const velocityY = e.nativeEvent.velocity?.y ?? 0;
+    if (Math.abs(velocityY) < 0.05) emitForOffset(e.nativeEvent.contentOffset.y);
   }
 
   function adjust(direction: 1 | -1): void {
@@ -147,7 +188,9 @@ export function DrumPicker({
     const next = items[nextIdx];
     if (next !== value) {
       lastEmitted.current = next;
+      hapticIndex.current = nextIdx;
       onChange(next);
+      tickHaptic();
       scrollRef.current?.scrollTo({ y: nextIdx * ITEM_HEIGHT, animated: true });
     }
   }
@@ -174,13 +217,13 @@ export function DrumPicker({
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
         scrollEventThrottle={16}
-        contentOffset={{ x: 0, y: activeIndex * ITEM_HEIGHT }}
+        contentOffset={{ x: 0, y: initialOffset }}
         contentContainerStyle={{ paddingVertical: pad }}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: true,
         })}
         onMomentumScrollEnd={handleSettle}
-        onScrollEndDrag={handleSettle}
+        onScrollEndDrag={handleScrollEndDrag}
       >
         {items.map((v, index) => {
           const inputRange = [
@@ -190,14 +233,17 @@ export function DrumPicker({
             (index + 1) * ITEM_HEIGHT,
             (index + 2) * ITEM_HEIGHT,
           ];
+          // Strong telescoping falloff: the centered value sits large and crisp
+          // while neighbours shrink + fade away — the value visibly "grows" into
+          // focus as you scroll (premium iOS / Cal AI feel, native-driven).
           const scale = scrollY.interpolate({
             inputRange,
-            outputRange: [0.78, 0.9, 1, 0.9, 0.78],
+            outputRange: [0.5, 0.72, 1, 0.72, 0.5],
             extrapolate: 'clamp',
           });
           const opacity = scrollY.interpolate({
             inputRange,
-            outputRange: [0.3, 0.6, 1, 0.6, 0.3],
+            outputRange: [0.15, 0.45, 1, 0.45, 0.15],
             extrapolate: 'clamp',
           });
           return (
@@ -218,25 +264,23 @@ const ACCESSIBILITY_ACTIONS = [{ name: 'increment' }, { name: 'decrement' }] as 
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
+    // Borderless + transparent: the wheel reads as airy numerals on the page,
+    // not a boxed input. The large centered value + faded neighbours + the gold
+    // selection hairlines convey the control (the old filled band read cheap).
     viewport: {
       alignSelf: 'stretch',
-      borderWidth: 1,
-      borderColor: theme.color.border,
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.color.surface,
       overflow: 'hidden',
     },
-    // The selection "lens" — a calm band marking the centered row, iOS-style.
-    // Explicit zIndex (0) keeps it BEHIND the scrolling items (zIndex 1) so the
-    // centered value renders on top — independent of JSX order.
+    // Selection affordance — two thin gold hairlines bracketing the centered
+    // row (no fill). zIndex 0 keeps them behind the scrolling items (zIndex 1)
+    // so the focused value renders crisply on top, independent of JSX order.
     lens: {
       position: 'absolute',
-      left: theme.space(3),
-      right: theme.space(3),
+      left: theme.space(5),
+      right: theme.space(5),
       borderTopWidth: 1,
       borderBottomWidth: 1,
-      borderColor: theme.color.border,
-      backgroundColor: theme.color.brandSubtle,
+      borderColor: theme.color.gold,
       zIndex: 0,
     },
     scroll: { zIndex: 1 },
@@ -244,8 +288,9 @@ function makeStyles(theme: Theme) {
     itemText: {
       fontFamily: theme.font.mono,
       fontVariant: ['tabular-nums'],
-      fontSize: theme.type.h3,
-      lineHeight: theme.type.h3 * 1.1,
+      fontSize: theme.type.metricLg,
+      lineHeight: theme.type.metricLg * 1.05,
+      fontWeight: theme.weight.semibold,
       color: theme.color.text,
     },
   });
