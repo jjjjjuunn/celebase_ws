@@ -11,6 +11,7 @@ import { resetRateLimitBucketsForTest } from '../../../_lib/bff-fetch';
 import { makeRequest, upstreamResponse } from '../../../_lib/__tests__/test-helpers';
 import { POST as mobileLoginPOST } from '../login/route';
 import { POST as mobileSignupPOST } from '../signup/route';
+import { POST as mobileRestorePOST } from '../restore/route';
 
 const VALID_LOGIN_BODY = { email: 'alice@example.com' };
 const VALID_SIGNUP_BODY = { email: 'bob@example.com', display_name: 'Bob' };
@@ -184,5 +185,63 @@ describe('BFF integration — POST /api/auth/mobile/signup', () => {
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe('VALIDATION_ERROR');
     expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+});
+
+// IMPL-ACCOUNT-RESTORE-001 — BFF mobile restore route (public, JSON tokens, no cookies).
+describe('BFF integration — POST /api/auth/mobile/restore', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetRateLimitBucketsForTest();
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('200 on valid body — forwards to user-service /auth/restore, returns JSON tokens, NO cookies', async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(TOKEN_PAYLOAD, 200));
+    const req = makeRequest({ body: { id_token: 'apple.jwt', provider: 'apple' } });
+    const res = await mobileRestorePOST(req);
+
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0][0] as string).toBe('http://localhost:3001/auth/restore');
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('400 VALIDATION_ERROR when email is malformed — no upstream call', async () => {
+    const req = makeRequest({ body: { id_token: 't', email: 'not-an-email' } });
+    const res = await mobileRestorePOST(req);
+
+    expect(res.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('forwards upstream 404 (no account to restore) envelope', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      upstreamResponse({ error: { code: 'NOT_FOUND', message: 'No account found to restore' } }, 404),
+    );
+    const req = makeRequest({ body: { id_token: 'apple.jwt', provider: 'apple' } });
+    const res = await mobileRestorePOST(req);
+
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('NOT_FOUND');
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('502 UPSTREAM_UNREACHABLE on network error', async () => {
+    fetchSpy.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+    const req = makeRequest({ body: { id_token: 'apple.jwt', provider: 'apple' } });
+    const res = await mobileRestorePOST(req);
+
+    expect(res.status).toBe(502);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('UPSTREAM_UNREACHABLE');
   });
 });

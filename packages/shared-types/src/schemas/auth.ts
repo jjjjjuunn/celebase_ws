@@ -46,6 +46,15 @@ export const LoginRequestSchema = z.object({
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
+// IMPL-ACCOUNT-RESTORE-001 — within-grace account restore. A user who deleted
+// their account is blocked at login (ACCOUNT_DELETED) but the Cognito identity
+// still exists, so they re-authenticate and POST the SAME verified id_token here
+// to clear `deleted_at`. Shape mirrors LoginRequest: the server verifies the
+// id_token (RS256 + iss + aud + exp + token_use) and resolves the user by the
+// verified provider `sub` (works for native Apple re-sign-in with no email).
+export const RestoreRequestSchema = LoginRequestSchema;
+export type RestoreRequest = z.infer<typeof RestoreRequestSchema>;
+
 export const RefreshRequestSchema = z.object({
   refresh_token: z.string().min(1),
 });

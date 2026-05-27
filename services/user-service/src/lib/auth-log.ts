@@ -29,7 +29,7 @@ export interface CognitoVerifyFields {
 }
 
 export interface InternalTokenIssuedFields {
-  flow: 'login' | 'signup' | 'refresh';
+  flow: 'login' | 'signup' | 'refresh' | 'restore';
   // Which verifier issued the login (IMPL-MOBILE-SOCIAL-NATIVE-001). Defaults
   // to 'cognito' for the email+password / web path; 'apple' / 'google' for
   // native social sign-in.
@@ -107,12 +107,24 @@ export interface AppleTokenRevokedFields {
   requestId: string;
 }
 
+// IMPL-ACCOUNT-RESTORE-001 — emitted when /auth/restore clears a within-grace
+// soft-delete. Security-sensitive state change → carries optional forensic
+// ip/user_agent plus hashed ids only (Rule #8). Logged at 'warn' for visibility.
+export interface AccountRestoredFields {
+  user_id_hash: string;
+  cognito_sub_hash: string;
+  requestId: string;
+  ip?: string;
+  user_agent?: string;
+}
+
 export interface AuthLogFieldMap {
   'auth.cognito.verify': CognitoVerifyFields;
   'auth.internal_token.issued': InternalTokenIssuedFields;
   'auth.email_bridge.applied': EmailBridgeFields;
   'auth.user.lazy_provisioned': LazyProvisionedFields;
   'auth.account.provider_collision': ProviderCollisionFields;
+  'auth.account.restored': AccountRestoredFields;
   'auth.logout': LogoutFields;
   'auth.refresh.rotated': RefreshRotatedFields;
   'auth.refresh.expired_or_missing': RefreshExpiredOrMissingFields;

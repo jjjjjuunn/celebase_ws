@@ -105,6 +105,11 @@ export const LoginResponseSchema = SignupResponseSchema.extend({
 });
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
+// Restore (IMPL-ACCOUNT-RESTORE-001) returns the same envelope as signup
+// (tokens + user). No `is_new_user` — a restored account is by definition not new.
+export const RestoreResponseSchema = SignupResponseSchema;
+export type RestoreResponse = z.infer<typeof RestoreResponseSchema>;
+
 // Wire↔Row parity guard (D1): typecheck fails if `entities.User` drifts.
 // `satisfies` is a value-level operator, so we cast a phantom value through
 // `UserWire` and check it against the row-flavored shape. Dates are

@@ -184,6 +184,67 @@ export async function authRoutes(
     },
   );
 
+  // IMPL-ACCOUNT-RESTORE-001 — within-grace restore. Public route (registered in
+  // index.ts publicPaths); the verified id_token IS the auth. Same rate-limit as
+  // login (it can probe account existence). Body shape mirrors login.
+  app.post(
+    '/auth/restore',
+    {
+      config: {
+        rateLimit: {
+          max: rateLimits.login,
+          timeWindow: '1 minute',
+          allowList: testAllowList,
+        },
+      },
+    },
+    async (request: FastifyRequest) => {
+      const parsed = LoginSchema.safeParse(request.body);
+      if (!parsed.success) {
+        throw new ValidationError('Invalid input', parsed.error.errors.map((e) => ({
+          field: e.path.join('.'),
+          issue: e.message,
+        })));
+      }
+      const provider = pickLoginProvider(parsed.data.provider);
+      const userAgent = request.headers['user-agent'];
+      const result = await authService.restore(
+        pool,
+        provider,
+        parsed.data,
+        request.log,
+        request.id,
+        { ip: request.ip, ...(typeof userAgent === 'string' ? { userAgent } : {}) },
+      );
+      // FEAT-APPLE-REVOKE-001 — mirror the login route: re-capture the Apple
+      // refresh_token on restore too, else a restore→delete sequence couldn't
+      // revoke at Apple (App Store 4.8.1) until the user's next normal login.
+      // Best-effort + audited; never blocks the restore response.
+      if (
+        parsed.data.provider === 'apple' &&
+        parsed.data.apple_authorization_code &&
+        appleOAuth &&
+        phiKeyProvider
+      ) {
+        await storeAppleRefreshToken({
+          pool,
+          userId: result.user.id,
+          authorizationCode: parsed.data.apple_authorization_code,
+          appleOAuth,
+          keyProvider: phiKeyProvider,
+          log: request.log,
+          requestId: request.id,
+        });
+      }
+      emitAuthLog(request.log, 'auth.internal_token.issued', {
+        flow: 'restore',
+        provider: parsed.data.provider ?? 'cognito',
+        requestId: request.id,
+      });
+      return result;
+    },
+  );
+
   app.post(
     '/auth/refresh',
     {
