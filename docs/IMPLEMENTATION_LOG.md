@@ -7845,6 +7845,25 @@ verified_by: claude-opus-4-7 (mobile 200/200 incl. signIn ACCOUNT_DELETED→Acco
 ---
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
+task_id: CHORE-WEB-LEGAL-HOMEPAGE-001
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/page.tsx
+  - apps/web/src/app/terms/page.tsx
+  - apps/web/src/app/privacy/page.tsx
+verified_by: claude-opus-4-7 (web tsc 0 + eslint 0 + next build OK; fe_token_hardcode pass)
+---
+### 완료: celebase.app 랜딩 + /terms + /privacy (draft) (CHORE-WEB-LEGAL-HOMEPAGE-001)
+- 루트 `app/page.tsx` 를 `/login` redirect → 공개 랜딩으로 교체 (앱명 + 태그라인 + "App Store/Play 출시 예정" + Terms/Privacy/Sign in 링크). 미들웨어 PROTECTED_PREFIXES 에 `/` 미포함 → 비로그인도 렌더. e2e (login/dashboard 직접 이동) 영향 없음.
+- `app/terms/page.tsx` (draft ToS) + `app/privacy/page.tsx` (draft Privacy) — 신규 top-level 공개 라우트. 모두 "Draft — 법무 검토 필요" 배너. Privacy 는 docs/runbooks/APP-PRIVACY-MAPPING.md 의 실제 데이터 관행 기반 (email/Cognito, health&fitness, purchases via store/RevenueCat, Sentry diagnostics PHI-redacted, AES-256 sensitive, in-app 삭제 + 30일 grace + restore).
+- 인라인 스타일 + `var(--cb-*)` 토큰만 (raw-hex 게이트 통과). 서버 컴포넌트 (정적, no 'use client'). frozen route group (app|auth|marketing|slice) 밖 — 신규 top-level 라우트.
+- 모바일 Settings/Paywall 의 celebase.app/terms·/privacy 링크(#182)가 이제 실제 페이지로 연결됨. prod celebase.app 컷오버 전엔 staging.celebase.app 서빙.
+### 미완료: 법적 문구는 draft — 법무 검토 후 확정 필요. i18n 미적용(en 하드코딩 — 후속). prod celebase.app DNS/배포는 컷오버 시. record-log-sha.sh.
+### 연관 파일: apps/web/src/app/page.tsx, apps/web/src/app/terms/page.tsx, apps/web/src/app/privacy/page.tsx
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
 task_id: CHORE-MOBILE-RELEASE-ENV-001
 commit_sha: PENDING
 files_changed:
