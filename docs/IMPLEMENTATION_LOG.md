@@ -7880,3 +7880,24 @@ verified_by: claude-opus-4-7 (mobile tsc + eslint --max-warnings=0; jest 200/200
 - App.tsx RevenueCat configure 비활성화(데모 standalone — 키 미발급)는 본 PR 제외 — 로컬 유지(main 부적합).
 ### 미완료: record-log-sha.sh. RevenueCat 키 발급 후 App.tsx configureRevenueCat 복원.
 ### 연관 파일: apps/mobile/src/lib/api-client.ts, apps/mobile/src/lib/cognito.ts, apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/services/auth-refresh.ts
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: CHORE-SENTRY-PHI-REDACTION-001
+commit_sha: PENDING
+files_changed:
+  - packages/service-core/src/sentry.ts
+  - packages/service-core/src/sentry-scrub.ts
+  - apps/mobile/src/lib/sentry.ts
+  - apps/mobile/src/lib/sentry-scrub.ts
+  - services/meal-plan-engine/src/sentry_config.py
+verified_by: claude-opus-4-7 (origin/main 머지 후 재검증 — service-core 71/71, mobile tsc 0 + jest 207/207, MPE sentry-scrub 15/15)
+---
+### 완료: errors-only Sentry + beforeSend PHI 스크러버 — 5개 BE 서비스(service-core 경유 4 TS + MPE Python) + mobile (CHORE-SENTRY-PHI-REDACTION-001)
+- 모든 이벤트 경로에 `beforeSend` PHI 스크러버. **DSN 미설정 시 no-op (fail-open)** — DSN 없으면 Sentry dormant → dormant 배포 안전.
+- service-core 공유 init + scrub (4 TS 서비스 자동 적용), mobile RN init + scrub, MPE Python `sentry_config` (init + scrub). `SENTRY_DSN`(BE) / `EXPO_PUBLIC_SENTRY_DSN`(mobile) 은 배포 시 주입 — 커밋 안 함.
+- **real-SDK 하니스 검증으로 unit test 69개가 놓친 실누출 발견·수정**: PHI 가 `exception.values[].value` + ContextLines source snippet + `event.transaction`(resolved dynamic route) 에 생존 → 3개 스크러버 전부 보강, 0 PHI sentinel 재확인. MPE thread-frame scrub + sentry-sdk `<3` pin.
+- **origin/main 머지 후 로컬 재검증** (이 브랜치는 11 커밋 stale 였음 — advisor 권고로 stale "all pass" 주장 불신, 직접 재실행): service-core 71/71, mobile tsc 0 + jest 207/207, MPE sentry-scrub 15/15 PASS. 머지 충돌 0 (package.json·pnpm-lock·LOG ort 자동 병합).
+### 미완료: ⚠️ 머지 시 cd.yml 이 MPE + service-core 의존 서비스 staging 배포 트리거 — 사용자 승인 필요 + (이상적으로) `SENTRY_DSN` 주입과 동시 머지. record-log-sha.sh.
+### 연관 파일: packages/service-core/src/sentry.ts, packages/service-core/src/sentry-scrub.ts, apps/mobile/src/lib/sentry.ts, apps/mobile/src/lib/sentry-scrub.ts, services/meal-plan-engine/src/sentry_config.py
