@@ -297,8 +297,13 @@ export async function login(
   input: LoginInput,
   log: AuthLogger,
   requestId: string,
-): Promise<{ user: User } & AuthTokens> {
+): Promise<{ user: User; is_new_user: boolean } & AuthTokens> {
   let user: User | null;
+  // True ONLY when this login lazily provisions a brand-new account (the
+  // `created` branch below). Every other path — found by sub, email-bridge,
+  // concurrent-create re-read, dev-stub — is an existing user. Drives the
+  // social first-login Selection modal (IMPL-MOBILE-SOCIAL-SELECTION-001).
+  let isNewUser = false;
 
   if (input.id_token) {
     const payload = await provider.verifyIdToken(input.id_token);
@@ -353,6 +358,7 @@ export async function login(
       });
       if (created) {
         user = created;
+        isNewUser = true;
         emitAuthLog(log, 'auth.user.lazy_provisioned', {
           user_id_hash: hashId(created.id),
           cognito_sub_hash: hashId(payload.sub),
@@ -418,7 +424,7 @@ export async function login(
   }
 
   const tokens = await provider.issueTokens(pool, toSubject(user));
-  return { user, ...tokens };
+  return { user, is_new_user: isNewUser, ...tokens };
 }
 
 // ── Phase C: stateful rotation ────────────────────────────────────────────

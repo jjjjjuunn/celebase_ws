@@ -66,16 +66,22 @@ async function exchangeAndStore(
       ? { apple_authorization_code: appleAuthorizationCode }
       : {}),
   };
-  const tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/login', body);
-  if (tokens.access_token === '' || tokens.refresh_token === '') {
+  // LoginResponse (not AuthTokens) so we can read the server-derived
+  // `is_new_user` flag — true only when this login lazy-provisioned a brand-new
+  // social account (IMPL-MOBILE-SOCIAL-SELECTION-001). Tokens are persisted the
+  // same way; the `user` field on the wire is intentionally unused here.
+  const res = await postJson<schemas.LoginResponse>('/api/auth/mobile/login', body);
+  if (res.access_token === '' || res.refresh_token === '') {
     throw new Error('[social-auth] BFF 응답에 빈 토큰 — 서버 측 계약 위반.');
   }
   await setTokens({
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
+    access_token: res.access_token,
+    refresh_token: res.refresh_token,
   });
-  signalLogin('social');
-  return tokens;
+  // 소셜 첫 로그인만 Selection 트리거 ('social_new'); 재로그인은 'social'.
+  // is_new_user 부재(rolling deploy 중 구 BE)는 undefined → 'social' (스푸리어스 방지).
+  signalLogin(res.is_new_user === true ? 'social_new' : 'social');
+  return res;
 }
 
 /** ERR_REQUEST_CANCELED is thrown by expo-apple-authentication on dismissal. */

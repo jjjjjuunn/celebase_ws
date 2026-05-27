@@ -93,7 +93,16 @@ export const SignupResponseSchema = AuthTokensSchema.extend({
 });
 export type SignupResponse = z.infer<typeof SignupResponseSchema>;
 
-export const LoginResponseSchema = SignupResponseSchema;
+// Login carries an extra server-derived `is_new_user` flag that signup does not:
+// true ONLY when this login lazily provisioned a brand-new (social) account, so
+// the client can present the first-login Selection modal for social sign-in
+// (IMPL-MOBILE-SOCIAL-SELECTION-001). It is server-authoritative (never client-
+// supplied) and `.optional()` for rolling-deploy safety — an older BE omits it
+// and clients treat `undefined` as `false` (no spurious Selection). Email signup
+// keeps its own `SignupResponse` (no flag) and the `reason='signup'` signal.
+export const LoginResponseSchema = SignupResponseSchema.extend({
+  is_new_user: z.boolean().optional(),
+});
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
 // Wire↔Row parity guard (D1): typecheck fails if `entities.User` drifts.

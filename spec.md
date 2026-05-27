@@ -1814,7 +1814,9 @@ Content Service에 아래 인터페이스를 미리 설계하여 Phase 2 플러�
 > - **Personalized** → bio-profile onboarding 진입 (non-PHI v1: allergies + body basics + activity. medical_conditions/medications 미수집 — PROD-DEPLOY-ROADMAP Decision A).
 > - **Trend-only** → onboarding 을 건너뛰고 main(celebrity claim feed) 진입. personalization 은 추후 Profile / claim feed CTA 의 기존 진입점으로 시작.
 >
-> 트리거: `LoginReason==='signup'`(이메일 가입). `RootNavigator` 가 `phase='main'` 커밋 **후** `Selection` modal 을 present 한다 — 같은 tick 의 navigate 는 navigator race 를 유발 (BUG-MOBILE-AUTH-LOGIN-SIGNAL 교훈). Social 첫 로그인은 매 로그인마다 신호가 와서 new-user 판별이 별도 필요 — 후속(`GET /users/me/bio-profile` 404 기반). 결선 회귀 보호: `apps/mobile/__tests__/screens/SelectionScreen.test.tsx`.
+> 트리거: `LoginReason==='signup'`(이메일 가입) **또는 `'social_new'`(소셜 첫 로그인)**. `RootNavigator` 가 `phase='main'` 커밋 **후** `Selection` modal 을 present 한다 — 같은 tick 의 navigate 는 navigator race 를 유발 (BUG-MOBILE-AUTH-LOGIN-SIGNAL 교훈).
+>
+> **소셜 첫 로그인 판별 (IMPL-MOBILE-SOCIAL-SELECTION-001)**: user-service `login()` 의 lazy-provision 분기가 신규 계정 생성을 단정적으로 알므로, login 응답에 server-derived `is_new_user: boolean` 을 실어보낸다 (`LoginResponseSchema` — `SignupResponseSchema` 에서 de-alias 후 `.optional()` 확장; rolling-deploy 중 구 BE 가 생략하면 클라이언트는 `undefined`→`false` 로 간주해 스푸리어스 Selection 방지). `social-auth.ts` 는 `is_new_user===true` 일 때만 `signalLogin('social_new')`, 아니면 `'social'`. 재로그인(`'social'`)·기존 이메일 로그인(`'manual'`)·세션 복원은 미트리거. Apple 재로그인은 `findByCognitoSub` 로 1회만 신규 판정되어 정확. (이전 후속안이던 `GET /users/me/bio-profile` 404 probe 는 trend-only 소셜 유저를 매 로그인 재노출 + PHI 감사로그 부작용으로 기각.) 결선 회귀 보호: `apps/mobile/__tests__/screens/SelectionScreen.test.tsx` + user-service `auth.service.test.ts` (is_new_user 4-case: 기존 false / lazy-provision true / race re-read false / email-bridge false).
 >
 > 아래 §7.1 본문(S0~S7, persona-first web wizard)은 web-first 시점 작성이다. 모바일 실제 onboarding 은 one-question `OnboardingFlow`(#165)이며, 본 selection 분기가 그 앞단이다.
 
