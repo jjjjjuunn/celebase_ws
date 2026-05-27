@@ -7698,3 +7698,21 @@ verified_by: claude-opus-4-7 (mobile typecheck clean; SelectionScreen 3/3; iOS S
 - **검증**: mobile typecheck clean, SelectionScreen 3/3 단위테스트, iOS Simulator 기기 검증 — 6항목 중 5 통과(① signup→Selection ② Personalize→Onboarding→back→Main(replace 불변식, 이미지 확인) ③ trend-only→Main ④ 재로그인→Selection 미등장 ⑤ 재시작 후 로그인→Selection 미등장). 항목 ⑥(modal swipe-dismiss 억제)은 gestureEnabled:false 코드 강제 — 잔여 10초 확인.
 ### 미완료: 소셜 첫 로그인 new-user 판별(현재 'signup'=이메일 전용; social 은 매 로그인 신호 → GET /users/me/bio-profile 404 기반 판별 후속). Display name 가입폼 제거 + EditProfile/소셜 충당은 별도 follow-up 합의(2026-05-27). record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/screens/SelectionScreen.tsx, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/__tests__/screens/SelectionScreen.test.tsx, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: PAYWALL-DEVPREVIEW-PRICE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/PaywallScreen.tsx
+  - apps/mobile/__tests__/decisions.test.ts
+verified_by: claude-opus-4-7 (mobile typecheck/lint/test CI green; decisions.test.ts 더미가격 재유입 가드 PASS)
+---
+### 완료: Paywall dev-preview 더미가격($34.99) 제거 — 가격은 RevenueCat/스토어 런타임 (PAYWALL-DEVPREVIEW-PRICE-001)
+- **배경 (G1, Codex HIGH)**: `PaywallScreen` 의 `dev_preview` 분기가 하드코딩된 `$34.99 / per month / Subscribe` 패키지 카드를 렌더 → 더미 가격이 device 빌드에 실리거나 QA 를 오도할 위험. 실제 구독 가격/티어 구조는 IAP product 등록 시 RevenueCat dashboard 에서 확정하며 코드에 하드코딩하지 않는다.
+- **변경**: dev_preview 분기를 가격 없는 안내 문구로 교체 — "Subscription options load from the App Store / Play Store in a device build." + "(Preview build — live pricing is unavailable in Expo Go)". 하드코딩 숫자 가격 카드 제거.
+- **회귀 가드**: `decisions.test.ts` 의 기존 "$34.99 invariant" 결정 테스트를 폐기하고, `PaywallScreen.tsx` 소스에 `$NN.NN` 리터럴이 없음을 단언하는 가드로 교체 (이전 결정 `memory/project_pricing_single_tier_3499.md` 대체). 더미 가격 재유입 시 즉시 실패.
+- **검증**: Mobile Lint/Typecheck/Test CI green. 무배포 — apps/mobile 한정이라 cd.yml staging 트리거(services/**·apps/web/**) 미해당.
+### 미완료: 실제 IAP product (단일 vs Premium/Elite) RevenueCat 등록 — IAP/native 검증은 dev build 필요 (별도 G1 후속). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/PaywallScreen.tsx, apps/mobile/__tests__/decisions.test.ts

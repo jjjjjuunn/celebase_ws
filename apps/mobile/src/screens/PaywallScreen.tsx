@@ -155,20 +155,14 @@ export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Elemen
         ) : null}
 
         {phase.state === 'dev_preview' ? (
-          <View style={styles.packageList}>
-            <View style={styles.packageCard}>
-              <Text variant="metricXl" style={styles.packagePrice}>
-                $34.99
-              </Text>
-              <Text variant="body" style={styles.packagePeriod}>
-                per month
-              </Text>
-              <Text variant="body" style={styles.packageCta}>
-                Subscribe
-              </Text>
-            </View>
+          // No hard-coded price: real pricing comes from RevenueCat / the store at
+          // runtime (Codex HIGH — a dummy price must never ship or mislead QA).
+          <View style={styles.centered}>
+            <Text variant="body" tone="muted" center>
+              Subscription options load from the App Store / Play Store in a device build.
+            </Text>
             <Text variant="caption" tone="muted" center style={styles.devPreviewNote}>
-              (Preview — real purchase available in production build)
+              (Preview build — live pricing is unavailable in Expo Go)
             </Text>
           </View>
         ) : null}
