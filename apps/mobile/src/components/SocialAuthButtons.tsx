@@ -155,7 +155,9 @@ const GENERIC_SOCIAL_ERROR = 'Social sign-in failed. Please try again.';
 function mapSocialError(err: unknown): string | null {
   if (err instanceof ApiError) {
     if (err.code === 'ACCOUNT_EXISTS_WITH_DIFFERENT_PROVIDER') {
-      return 'This email is already registered with a different sign-in method. Sign in with your original method, then link it in Settings.';
+      // No account-linking feature exists yet, so do not promise one. Tell the
+      // user to sign in the way they originally signed up.
+      return 'This email is already registered with a different sign-in method. Please sign in the way you first signed up.';
     }
     // 빈 message 를 그대로 내보내면 FormErrorBox 가 빈 박스를 띄운다 — generic 으로 대체.
     return err.message !== '' ? err.message : GENERIC_SOCIAL_ERROR;

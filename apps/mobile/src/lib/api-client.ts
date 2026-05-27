@@ -10,7 +10,7 @@ function getBffBaseUrl(): string {
   if (typeof raw !== 'string' || raw === '') {
     throw new Error(
       `[api-client] Missing required env var: ${BFF_BASE_URL_ENV}. ` +
-        '로컬은 http://localhost:3000 또는 LAN IP, prod 는 https://app.celebbase.com.',
+        '로컬은 http://localhost:3000 또는 LAN IP, prod 는 https://celebase.app.',
     );
   }
   return raw;

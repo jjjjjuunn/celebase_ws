@@ -26,7 +26,7 @@ function getUserServiceUrl(): string {
   if (typeof raw !== 'string' || raw === '') {
     throw new Error(
       `[auth-refresh] Missing required env var: ${USER_SERVICE_URL_ENV}. ` +
-        '로컬은 http://localhost:3001, prod 는 https://user.celebbase.com (또는 internal mesh URL).',
+        '로컬은 http://localhost:3001, prod 는 https://celebase.app (또는 internal mesh URL).',
     );
   }
   return raw;
