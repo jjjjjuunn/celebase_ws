@@ -215,6 +215,10 @@ def scrub_event(
         if "params" in logentry:
             logentry["params"] = _deep_scrub(logentry["params"])
 
+    # transaction name — can carry a resolved dynamic route (e.g. /users/<email>/x)
+    if isinstance(event.get("transaction"), str):
+        event["transaction"] = _scrub_string(event["transaction"])
+
     # 2. exception + thread frames — scrub the message (value), drop frame locals,
     #    scrub ContextLines source snippets. The SDK puts the exception message in
     #    exception.values[].value (NOT event["message"]); ContextLines fills

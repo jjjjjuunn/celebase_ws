@@ -11,6 +11,7 @@ function makeDirtyEvent(): ScrubbableEvent {
   return {
     platform: 'react-native',
     message: `login failed for ${EMAIL} token ${JWT}`,
+    transaction: `POST /users/${EMAIL}/profile`, // resolved dynamic route — top-level field
     exception: {
       values: [
         {

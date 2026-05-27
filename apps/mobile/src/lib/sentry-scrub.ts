@@ -134,6 +134,11 @@ export function scrubEvent(event: ScrubbableEvent): ScrubbableEvent {
     event['message'] = deepScrub(event['message']);
   }
 
+  // transaction name — can carry a resolved dynamic route (e.g. /users/<email>/x)
+  if (typeof event['transaction'] === 'string') {
+    event['transaction'] = scrubString(event['transaction']);
+  }
+
   // exception + thread frames — scrub message (value), drop frame locals, scrub
   // ContextLines source snippets. The SDK puts the exception message in
   // exception.values[].value, NOT event.message.

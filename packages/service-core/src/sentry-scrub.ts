@@ -165,6 +165,11 @@ export function scrubSentryEvent(event: ScrubbableEvent, opts: ScrubOptions = {}
     if (typeof le['message'] === 'string') le['message'] = scrubString(le['message']);
   }
 
+  // transaction name — can carry a resolved dynamic route (e.g. /users/<email>/x)
+  if (typeof event['transaction'] === 'string') {
+    event['transaction'] = scrubString(event['transaction']);
+  }
+
   // 2. exception + thread frames — scrub the message (value), drop frame locals,
   //    scrub ContextLines source snippets. The SDK puts the exception message in
   //    exception.values[].value (NOT event.message); threads is filled by the

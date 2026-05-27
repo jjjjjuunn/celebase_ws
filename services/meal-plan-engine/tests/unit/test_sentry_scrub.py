@@ -44,6 +44,7 @@ def _full_event() -> dict:
     """A Sentry event with synthetic PHI seeded into every scrubbed path."""
     return {
         "message": f"login failed for {EMAIL} token={BEARER}",
+        "transaction": f"POST /users/{EMAIL}/profile",
         "logentry": {
             "message": f"user {EMAIL} hit error",
             "params": [EMAIL, BEARER],

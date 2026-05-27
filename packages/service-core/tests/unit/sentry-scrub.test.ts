@@ -18,6 +18,7 @@ function makeDirtyEvent(): ScrubbableEvent {
     platform: 'node', // safe Sentry field — must survive
     timestamp: 1700000000,
     message: `login failed for ${EMAIL} token ${JWT}`,
+    transaction: `POST /users/${EMAIL}/profile`, // resolved dynamic route — top-level field
     exception: {
       values: [
         {
