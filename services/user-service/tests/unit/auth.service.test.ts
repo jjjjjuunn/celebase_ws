@@ -150,6 +150,10 @@ describe('authService.signup email-bridge', () => {
     expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
       mockPool, 'legacy@example.com', 'cognito-real-sub',
     );
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: the bridge returns the EXISTING user
+    // unchanged — it must NOT overwrite their display_name with the input or the
+    // 'User' default (bridge path bypasses userRepo.create entirely).
+    expect(result.user.display_name).toBe('Test User');
   });
 
   it('rejects conflict when existing user already has a real cognito_sub', async () => {
