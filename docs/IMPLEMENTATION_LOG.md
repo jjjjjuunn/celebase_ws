@@ -7860,3 +7860,23 @@ verified_by: claude-opus-4-7 (web tsc 0 + eslint 0 + next build OK; fe_token_har
 - 모바일 Settings/Paywall 의 celebase.app/terms·/privacy 링크(#182)가 이제 실제 페이지로 연결됨. prod celebase.app 컷오버 전엔 staging.celebase.app 서빙.
 ### 미완료: 법적 문구는 draft — 법무 검토 후 확정 필요. i18n 미적용(en 하드코딩 — 후속). prod celebase.app DNS/배포는 컷오버 시. record-log-sha.sh.
 ### 연관 파일: apps/web/src/app/page.tsx, apps/web/src/app/terms/page.tsx, apps/web/src/app/privacy/page.tsx
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-MOBILE-RELEASE-ENV-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/api-client.ts
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/src/lib/fetch-with-refresh.ts
+  - apps/mobile/src/services/auth-refresh.ts
+verified_by: claude-opus-4-7 (mobile tsc + eslint --max-warnings=0; jest 200/200)
+---
+### 완료: Release 번들 env 인라인 — 정적 process.env['EXPO_PUBLIC_*'] 접근 (CHORE-MOBILE-RELEASE-ENV-001)
+- 동적 `process.env[var]` 는 Expo Babel 트랜스폼이 Release 번들에 인라인하지 않아 undefined → standalone 빌드 부팅 시 흰 화면 크래시. 4개 env reader (BFF base URL, user-service URL, Cognito userPoolId/clientId/region) 를 정적 `process.env['리터럴']` 접근으로 전환.
+- cognito.ts `requireEnv(name, raw)` 로 시그니처 변경 — 호출부가 정적 리터럴 값을 직접 전달.
+- 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
+- App.tsx RevenueCat configure 비활성화(데모 standalone — 키 미발급)는 본 PR 제외 — 로컬 유지(main 부적합).
+### 미완료: record-log-sha.sh. RevenueCat 키 발급 후 App.tsx configureRevenueCat 복원.
+### 연관 파일: apps/mobile/src/lib/api-client.ts, apps/mobile/src/lib/cognito.ts, apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/services/auth-refresh.ts
