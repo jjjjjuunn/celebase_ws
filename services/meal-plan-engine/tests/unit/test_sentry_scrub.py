@@ -52,11 +52,14 @@ def _full_event() -> dict:
             "values": [
                 {
                     "type": "ValueError",
-                    "value": "pipeline boom",
+                    "value": f"pipeline boom for {EMAIL}",
                     "stacktrace": {
                         "frames": [
                             {
                                 "function": "run_pipeline",
+                                "context_line": f"    auth = '{BEARER}'",
+                                "pre_context": [f"    user_email = '{EMAIL}'"],
+                                "post_context": ["    return auth"],
                                 "vars": {
                                     "bio_profile": {
                                         "weight_kg": WEIGHT,
@@ -149,6 +152,38 @@ def test_exception_frame_vars_dropped() -> None:
     frame = ev["exception"]["values"][0]["stacktrace"]["frames"][0]
     assert "vars" not in frame
     assert frame["function"] == "run_pipeline"  # non-PHI frame data survives
+
+
+def test_exception_value_and_context_lines_scrubbed() -> None:
+    # The SDK puts the exception message in value (NOT event["message"]); the
+    # ContextLines integration fills context_line/pre_context/post_context. This
+    # is the path the real-SDK verification harness caught leaking.
+    ev = {
+        "exception": {
+            "values": [
+                {
+                    "value": f"generate failed for {EMAIL}",
+                    "stacktrace": {
+                        "frames": [
+                            {
+                                "context_line": f"    headers['authorization'] = '{BEARER}'",
+                                "pre_context": [f"    email = '{EMAIL}'"],
+                                "post_context": ["    return headers"],
+                                "vars": {"weight_kg": WEIGHT},
+                            }
+                        ]
+                    },
+                }
+            ]
+        }
+    }
+    scrub_event(ev)
+    val = ev["exception"]["values"][0]
+    frame = val["stacktrace"]["frames"][0]
+    assert val["value"] == "generate failed for [REDACTED]"
+    assert "vars" not in frame
+    assert EMAIL not in json.dumps(ev)
+    assert BEARER not in json.dumps(ev)
 
 
 def test_thread_frame_vars_dropped() -> None:

@@ -22,8 +22,16 @@ function makeDirtyEvent(): ScrubbableEvent {
       values: [
         {
           type: 'Error',
+          value: `generate failed for ${EMAIL}`, // SDK puts the message here, not event.message
           stacktrace: {
-            frames: [{ filename: 'auth.ts', vars: { password: 'hunter2', email: EMAIL } }],
+            frames: [
+              {
+                filename: 'auth.ts',
+                context_line: `  headers.authorization = 'Bearer ${JWT}';`, // ContextLines source snippet
+                pre_context: [`  const email = '${EMAIL}';`],
+                vars: { password: 'hunter2', email: EMAIL },
+              },
+            ],
           },
         },
       ],
@@ -117,6 +125,50 @@ describe('scrubSentryEvent — per-path coverage', () => {
     const frame = (ev['exception'] as { values: { stacktrace: { frames: { vars?: unknown }[] } }[] })
       .values[0]!.stacktrace.frames[0]!;
     expect('vars' in frame).toBe(false);
+  });
+
+  it('2b. exception value + frame context lines: message + source snippets scrubbed', () => {
+    // The SDK puts the exception message in exception.values[].value (NOT
+    // event.message), and the ContextLines integration fills context_line/
+    // pre_context/post_context. Caught by the real-SDK verification harness.
+    const ev = scrubSentryEvent({
+      exception: {
+        values: [
+          {
+            value: `boom for ${EMAIL}`,
+            stacktrace: {
+              frames: [
+                {
+                  context_line: `  headers.authorization = 'Bearer ${JWT}';`,
+                  pre_context: [`  const email = '${EMAIL}';`],
+                  post_context: ['  return headers;'],
+                  vars: { x: EMAIL },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+    const json = JSON.stringify(ev);
+    expect(json).not.toContain(EMAIL);
+    expect(json).not.toContain(JWT);
+    const val = (
+      ev['exception'] as { values: { value: string; stacktrace: { frames: { vars?: unknown }[] } }[] }
+    ).values[0]!;
+    expect(val.value).toBe('boom for [REDACTED]');
+    expect('vars' in val.stacktrace.frames[0]!).toBe(false);
+  });
+
+  it('2c. threads frames: vars dropped + source context scrubbed', () => {
+    const ev = scrubSentryEvent({
+      threads: {
+        values: [{ stacktrace: { frames: [{ context_line: `t = 'Bearer ${JWT}'`, vars: { x: EMAIL } }] } }],
+      },
+    });
+    const json = JSON.stringify(ev);
+    expect(json).not.toContain(EMAIL);
+    expect(json).not.toContain(JWT);
   });
 
   it('3. request.data: redacts PHI keys, keeps non-sensitive', () => {

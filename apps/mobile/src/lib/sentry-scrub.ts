@@ -89,6 +89,36 @@ function deepScrub(value: unknown): unknown {
   return scrubValue(value, 0, new WeakSet());
 }
 
+// Scrub an exception/thread container: the message (`value` — the SDK puts the
+// exception string here, NOT in event.message), frame locals (`vars`, dropped),
+// and ContextLines source snippets (context_line/pre_context/post_context).
+function scrubExceptionContainer(container: unknown): void {
+  if (container === null || typeof container !== 'object') return;
+  const values = (container as Record<string, unknown>)['values'];
+  if (!Array.isArray(values)) return;
+  for (const val of values) {
+    if (val === null || typeof val !== 'object') continue;
+    const v = val as Record<string, unknown>;
+    if (typeof v['value'] === 'string') v['value'] = scrubString(v['value']);
+    const stacktrace = v['stacktrace'];
+    if (stacktrace === null || typeof stacktrace !== 'object') continue;
+    const frames = (stacktrace as Record<string, unknown>)['frames'];
+    if (!Array.isArray(frames)) continue;
+    for (const frame of frames) {
+      if (frame === null || typeof frame !== 'object') continue;
+      const f = frame as Record<string, unknown>;
+      delete f['vars'];
+      if (typeof f['context_line'] === 'string') f['context_line'] = scrubString(f['context_line']);
+      for (const ctxKey of ['pre_context', 'post_context'] as const) {
+        const ctx = f[ctxKey];
+        if (Array.isArray(ctx)) {
+          f[ctxKey] = ctx.map((line) => (typeof line === 'string' ? scrubString(line) : line));
+        }
+      }
+    }
+  }
+}
+
 export interface ScrubbableEvent {
   [key: string]: unknown;
 }
@@ -104,24 +134,11 @@ export function scrubEvent(event: ScrubbableEvent): ScrubbableEvent {
     event['message'] = deepScrub(event['message']);
   }
 
-  const exception = event['exception'];
-  if (exception !== null && typeof exception === 'object') {
-    const values = (exception as Record<string, unknown>)['values'];
-    if (Array.isArray(values)) {
-      for (const val of values) {
-        if (val === null || typeof val !== 'object') continue;
-        const stacktrace = (val as Record<string, unknown>)['stacktrace'];
-        if (stacktrace === null || typeof stacktrace !== 'object') continue;
-        const frames = (stacktrace as Record<string, unknown>)['frames'];
-        if (!Array.isArray(frames)) continue;
-        for (const frame of frames) {
-          if (frame !== null && typeof frame === 'object') {
-            delete (frame as Record<string, unknown>)['vars'];
-          }
-        }
-      }
-    }
-  }
+  // exception + thread frames — scrub message (value), drop frame locals, scrub
+  // ContextLines source snippets. The SDK puts the exception message in
+  // exception.values[].value, NOT event.message.
+  scrubExceptionContainer(event['exception']);
+  scrubExceptionContainer(event['threads']);
 
   const request = event['request'];
   if (request !== null && typeof request === 'object') {

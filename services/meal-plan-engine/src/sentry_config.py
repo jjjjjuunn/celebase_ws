@@ -147,9 +147,16 @@ def _hash_id(raw_id: str, salt: str) -> str:
     return hashlib.sha256(f"{salt}:{raw_id}".encode()).hexdigest()[:8]
 
 
-def _drop_frame_vars(container: Any) -> None:
-    """Drop local variables from every stack frame of an exception/thread
-    container ({"values": [{"stacktrace": {"frames": [{"vars": ...}]}}]})."""
+def _scrub_exception_container(container: Any) -> None:
+    """Scrub an exception/thread container in place. Shape:
+    {"values": [{"value": <msg>, "stacktrace": {"frames": [{...}]}}]}.
+
+    - value: the exception message — runtime error strings routinely interpolate
+      PHI (the SDK puts it here, NOT in event["message"]).
+    - frame vars: dropped entirely (can hold the full bio_profile).
+    - frame context_line / pre_context / post_context: the ContextLines
+      integration captures source snippets that can embed credentials/emails.
+    """
     if not isinstance(container, dict):
         return
     values = container.get("values")
@@ -158,6 +165,8 @@ def _drop_frame_vars(container: Any) -> None:
     for val in values:
         if not isinstance(val, dict):
             continue
+        if isinstance(val.get("value"), str):
+            val["value"] = _scrub_string(val["value"])
         stacktrace = val.get("stacktrace")
         if not isinstance(stacktrace, dict):
             continue
@@ -165,8 +174,18 @@ def _drop_frame_vars(container: Any) -> None:
         if not isinstance(frames, list):
             continue
         for frame in frames:
-            if isinstance(frame, dict):
-                frame.pop("vars", None)
+            if not isinstance(frame, dict):
+                continue
+            frame.pop("vars", None)
+            if isinstance(frame.get("context_line"), str):
+                frame["context_line"] = _scrub_string(frame["context_line"])
+            for ctx_key in ("pre_context", "post_context"):
+                ctx = frame.get(ctx_key)
+                if isinstance(ctx, list):
+                    frame[ctx_key] = [
+                        _scrub_string(line) if isinstance(line, str) else line
+                        for line in ctx
+                    ]
 
 
 def scrub_event(
@@ -196,13 +215,13 @@ def scrub_event(
         if "params" in logentry:
             logentry["params"] = _deep_scrub(logentry["params"])
 
-    # 2. exception + thread frame locals — drop entirely (can hold the full
-    #    bio_profile). include_local_variables=False already prevents capture;
-    #    this is belt-and-suspenders if that flag is ever flipped, and covers the
-    #    threads path the ThreadingIntegration can populate (MPE runs the FastAPI
-    #    app + SQS consumer + WebSocket router concurrently).
-    _drop_frame_vars(event.get("exception"))
-    _drop_frame_vars(event.get("threads"))
+    # 2. exception + thread frames — scrub the message (value), drop frame locals,
+    #    scrub ContextLines source snippets. The SDK puts the exception message in
+    #    exception.values[].value (NOT event["message"]); ContextLines fills
+    #    context_line/pre_context/post_context. Threads is populated by the
+    #    ThreadingIntegration (MPE runs FastAPI + SQS consumer + WebSocket).
+    _scrub_exception_container(event.get("exception"))
+    _scrub_exception_container(event.get("threads"))
 
     # 3. request — url (drop query + user-id UUIDs), query_string, cookies,
     #    headers (authorization/cookie), data (POST/SQS body lands here)

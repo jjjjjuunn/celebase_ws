@@ -12,7 +12,21 @@ function makeDirtyEvent(): ScrubbableEvent {
     platform: 'react-native',
     message: `login failed for ${EMAIL} token ${JWT}`,
     exception: {
-      values: [{ stacktrace: { frames: [{ filename: 'auth.ts', vars: { email: EMAIL } }] } }],
+      values: [
+        {
+          value: `generate failed for ${EMAIL}`, // SDK puts the message here, not event.message
+          stacktrace: {
+            frames: [
+              {
+                filename: 'auth.ts',
+                context_line: `  auth = 'Bearer ${JWT}';`, // ContextLines source snippet
+                pre_context: [`  const email = '${EMAIL}';`],
+                vars: { email: EMAIL },
+              },
+            ],
+          },
+        },
+      ],
     },
     request: {
       url: `https://api.celebase.app/users/${URL_USER_UUID}/bio-profile?email=${EMAIL}`,
@@ -50,6 +64,35 @@ describe('mobile scrubEvent', () => {
   it('drops the user object wholesale (no id retained on device)', () => {
     const ev = scrubEvent(makeDirtyEvent());
     expect(ev['user']).toBeUndefined();
+  });
+
+  it('scrubs exception value + frame context lines + threads (real-SDK paths)', () => {
+    // The SDK puts the exception message in exception.values[].value (NOT
+    // event.message) and the ContextLines integration fills context_line/
+    // pre_context/post_context. Caught by the server-side real-SDK harness.
+    const ev = scrubEvent({
+      exception: {
+        values: [
+          {
+            value: `boom for ${EMAIL}`,
+            stacktrace: {
+              frames: [
+                { context_line: `auth = 'Bearer ${JWT}'`, pre_context: [`e = '${EMAIL}'`], vars: { x: EMAIL } },
+              ],
+            },
+          },
+        ],
+      },
+      threads: { values: [{ stacktrace: { frames: [{ context_line: `t = 'Bearer ${JWT}'`, vars: { y: EMAIL } }] } }] },
+    });
+    const json = JSON.stringify(ev);
+    expect(json).not.toContain(EMAIL);
+    expect(json).not.toContain(JWT);
+    const val = (
+      ev['exception'] as { values: { value: string; stacktrace: { frames: { vars?: unknown }[] } }[] }
+    ).values[0]!;
+    expect(val.value).toBe('boom for [REDACTED]');
+    expect('vars' in val.stacktrace.frames[0]!).toBe(false);
   });
 
   it('preserves safe fields + correlation id', () => {
