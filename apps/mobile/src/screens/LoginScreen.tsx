@@ -79,6 +79,10 @@ export function LoginScreen({
       await restoreAccount(restoreCtx.idToken, restoreCtx.provider);
       onSuccess();
     } catch (err) {
+      // Restore failed (e.g. NOT_FOUND if a hard-delete raced, RATE_LIMITED, or an
+      // expired id_token). Dismiss the panel and surface the message — codes not in
+      // mapErrorToMessage fall through to err.message by design (no per-code mapping
+      // for these edge failures; the user can re-tap Sign in to retry).
       setRestoreCtx(null);
       setError(mapErrorToMessage(err));
     } finally {
