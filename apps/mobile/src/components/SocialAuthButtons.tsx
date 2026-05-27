@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 
 import { ApiError } from '../lib/api-client';
+import { AccountDeletedError } from '../lib/auth-errors';
 import { isAppleConfigured, isGoogleConfigured, type SocialProvider } from '../lib/social-config';
 import { signInWithSocial } from '../services/social-auth';
 import { Text, useTheme, type Theme } from '../ui';
@@ -39,6 +40,10 @@ interface SocialAuthButtonsProps {
   onSuccess: () => void;
   /** Called with a user-facing message on failure (empty = clear/no message). */
   onError: (message: string) => void;
+  /** IMPL-ACCOUNT-RESTORE-001: a soft-deleted social account hit ACCOUNT_DELETED.
+   * The error carries the verified id_token so the parent can offer restore. If
+   * omitted, the deletion surfaces as a plain error message instead. */
+  onAccountDeleted?: (err: AccountDeletedError) => void;
 }
 
 // Apple first (HIG), then Google. Filtered to the configured providers.
@@ -53,6 +58,7 @@ export function SocialAuthButtons({
   disabled = false,
   onSuccess,
   onError,
+  onAccountDeleted,
 }: SocialAuthButtonsProps): React.JSX.Element | null {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -72,6 +78,12 @@ export function SocialAuthButtons({
       await signInWithSocial(provider);
       onSuccess();
     } catch (err) {
+      // IMPL-ACCOUNT-RESTORE-001: route a soft-deleted social account to the
+      // parent's restore handler (carries the verified id_token) when provided.
+      if (err instanceof AccountDeletedError && onAccountDeleted !== undefined) {
+        onAccountDeleted(err);
+        return;
+      }
       const message = mapSocialError(err);
       if (message !== null) onError(message);
     } finally {

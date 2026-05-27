@@ -166,7 +166,15 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
             />
           </View>
 
-          <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+          <SocialAuthButtons
+            disabled={submitting}
+            onSuccess={onSuccess}
+            onError={setError}
+            onAccountDeleted={() => {
+              // No restore panel on signup — route to Sign in, where restore lives.
+              setError('This account is scheduled for deletion. Sign in to restore it.');
+            }}
+          />
         </View>
 
         <View style={styles.switchRow}>
@@ -236,7 +244,7 @@ function mapErrorToMessage(err: unknown): string {
   if (err instanceof ApiError) {
     switch (err.code) {
       case 'EMAIL_ALREADY_EXISTS':
-        return 'This email is already registered.';
+        return 'This email is already registered. If you deleted this account, sign in to restore it.';
       case 'INVALID_CREDENTIALS':
         return 'The information you entered is invalid.';
       default:
@@ -244,7 +252,12 @@ function mapErrorToMessage(err: unknown): string {
     }
   }
   if (err instanceof Error) {
-    if (err.name === 'UsernameExistsException') return 'This email is already registered.';
+    // IMPL-ACCOUNT-RESTORE-001: a deleted account keeps its Cognito identity, so
+    // re-signup hits this. Point them to Sign in, where the restore path lives —
+    // without disclosing whether the email is in a deleted state (no existence leak).
+    if (err.name === 'UsernameExistsException') {
+      return 'This email is already registered. If you deleted this account, sign in to restore it.';
+    }
     if (err.name === 'InvalidPasswordException') {
       return 'Password must be at least 12 characters and include uppercase, lowercase, and a number.';
     }

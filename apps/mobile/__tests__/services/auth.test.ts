@@ -38,6 +38,8 @@ import {
 import * as SecureStore from 'expo-secure-store';
 
 import { ApiError } from '../../src/lib/api-client';
+import { AccountDeletedError } from '../../src/lib/auth-errors';
+import { restoreAccount } from '../../src/lib/restore';
 import { getAccessToken, getRefreshToken } from '../../src/lib/secure-store';
 import { confirmSignUpAndLogin, signIn, signOut, signUp } from '../../src/services/auth';
 
@@ -132,6 +134,28 @@ describe('auth.signIn()', () => {
         expect(err.status).toBe(401);
         expect(err.code).toBe('INVALID_CREDENTIALS');
       }
+    }
+    expect(await getAccessToken()).toBeNull();
+  });
+
+  // IMPL-ACCOUNT-RESTORE-001: a soft-deleted account 401s as ACCOUNT_DELETED.
+  it('BFF 401 ACCOUNT_DELETED → AccountDeletedError carrying the verified id_token', async () => {
+    mockCognitoSignInSuccess('cognito-id-token-DEL');
+    mockBffJsonResponse(401, { error: { code: 'ACCOUNT_DELETED', message: 'Account has been deleted' } });
+
+    // Single call — the mocked Response body is read once (a second signIn would
+    // hit a consumed-body TypeError, not the real error).
+    let caught: unknown;
+    try {
+      await signIn({ email: 'a@b.co', password: 'pw' });
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(AccountDeletedError);
+    if (caught instanceof AccountDeletedError) {
+      // id_token obtained at the 401 is carried → restore needs no Cognito redo.
+      expect(caught.idToken).toBe('cognito-id-token-DEL');
+      expect(caught.provider).toBe('cognito');
     }
     expect(await getAccessToken()).toBeNull();
   });
@@ -313,5 +337,51 @@ describe('auth.confirmSignUpAndLogin()', () => {
       confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw' }),
     ).rejects.toBeInstanceOf(ApiError);
     expect(await getAccessToken()).toBeNull();
+  });
+});
+
+// IMPL-ACCOUNT-RESTORE-001 (3b-mobile) — within-grace restore.
+describe('lib.restoreAccount()', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSecureStoreMemory();
+    process.env['EXPO_PUBLIC_BFF_BASE_URL'] = 'http://localhost:3000';
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it('POSTs the id_token to /api/auth/mobile/restore and stores the returned tokens', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: 'acc-R', refresh_token: 'ref-R', user: { id: 'u1' } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const res = await restoreAccount('apple.jwt', 'apple');
+
+    expect(res.access_token).toBe('acc-R');
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('http://localhost:3000/api/auth/mobile/restore');
+    const sentBody: unknown = JSON.parse(init.body as string);
+    expect(sentBody).toEqual({ id_token: 'apple.jwt', provider: 'apple' });
+    expect(await getAccessToken()).toBe('acc-R');
+    expect(await getRefreshToken()).toBe('ref-R');
+  });
+
+  it('throws on an empty-token response (server contract violation)', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ access_token: '', refresh_token: '', user: { id: 'u1' } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await expect(restoreAccount('t', 'cognito')).rejects.toThrow(/빈 토큰/);
   });
 });
