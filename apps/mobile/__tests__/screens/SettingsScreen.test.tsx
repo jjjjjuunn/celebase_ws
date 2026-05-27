@@ -159,13 +159,13 @@ describe('<SettingsScreen />', () => {
     renderScreen(<SettingsScreen />);
 
     fireEvent.press(screen.getByTestId('settings-terms'));
-    expect(linkingSpy).toHaveBeenCalledWith('https://celebbase.com/terms');
+    expect(linkingSpy).toHaveBeenCalledWith('https://celebase.app/terms');
 
     fireEvent.press(screen.getByTestId('settings-privacy'));
-    expect(linkingSpy).toHaveBeenCalledWith('https://celebbase.com/privacy');
+    expect(linkingSpy).toHaveBeenCalledWith('https://celebase.app/privacy');
 
     fireEvent.press(screen.getByTestId('settings-support'));
-    expect(linkingSpy).toHaveBeenCalledWith('mailto:support@celebbase.com');
+    expect(linkingSpy).toHaveBeenCalledWith('mailto:support@celebase.app');
   });
 
   it('premium tier → Manage subscription 노출 + 탭 시 Apple deep link 호출', () => {

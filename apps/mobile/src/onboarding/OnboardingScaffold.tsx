@@ -36,6 +36,9 @@ interface OnboardingScaffoldProps {
   continueDisabled?: boolean;
   /** Long content (chip grids, activity cards) scrolls; pickers stay static. */
   scroll?: boolean;
+  /** Vertically center the control (tall pickers fill the space). Chips/inputs
+   *  stay top-aligned by default so small clusters don't float mid-screen. */
+  centerContent?: boolean;
   children: React.ReactNode;
 }
 
@@ -50,6 +53,7 @@ export function OnboardingScaffold({
   continueLabel = 'Continue',
   continueDisabled = false,
   scroll = false,
+  centerContent = false,
   children,
 }: OnboardingScaffoldProps): React.JSX.Element {
   const theme = useTheme();
@@ -114,7 +118,9 @@ export function OnboardingScaffold({
             {children}
           </ScrollView>
         ) : (
-          <View style={styles.staticBody}>{children}</View>
+          <View style={[styles.staticBody, centerContent ? styles.staticBodyCenter : null]}>
+            {children}
+          </View>
         )}
 
         <View style={styles.footer}>
@@ -154,12 +160,14 @@ function makeStyles(theme: Theme) {
       gap: theme.space(2),
     },
     subtitle: { lineHeight: theme.type.body * 1.5 },
-    // Vertically center the single control so short screens read as intentional
-    // negative space rather than top-crammed with a big empty bottom.
-    staticBody: { flex: 1, justifyContent: 'center', paddingHorizontal: theme.space(4) },
+    // Default: content flows from just under the question (premium one-question
+    // pattern — Noom/Cal AI), CTA anchored at the bottom. Small chip clusters no
+    // longer float dead-center. Tall controls (pickers) opt into centering.
+    staticBody: { flex: 1, paddingTop: theme.space(2), paddingHorizontal: theme.space(4) },
+    staticBodyCenter: { justifyContent: 'center', paddingTop: 0 },
     scrollBody: {
       flexGrow: 1,
-      justifyContent: 'center',
+      paddingTop: theme.space(2),
       paddingHorizontal: theme.space(4),
       paddingBottom: theme.space(6),
       gap: theme.space(4),

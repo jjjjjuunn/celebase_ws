@@ -39,9 +39,9 @@ type Phase =
   | { state: 'error'; message: string; offering: PurchasesOffering | null }
   | { state: 'dev_preview' };
 
-// 실제 운영 시 spec.md / legal 페이지 URL 로 교체. CHORE-MOBILE-LEGAL-001 백로그.
-const TERMS_URL = 'https://celebbase.com/terms';
-const PRIVACY_URL = 'https://celebbase.com/privacy';
+// 운영 도메인 celebase.app 의 legal 페이지 (apps/web). prod 컷오버 전엔 staging.celebase.app 서빙.
+const TERMS_URL = 'https://celebase.app/terms';
+const PRIVACY_URL = 'https://celebase.app/privacy';
 
 export function PaywallScreen({ onClose }: PaywallScreenProps): React.JSX.Element {
   const theme = useTheme();

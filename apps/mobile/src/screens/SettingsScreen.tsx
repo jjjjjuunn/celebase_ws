@@ -24,9 +24,9 @@ import { signOut } from '../services/auth';
 import { deleteAccount, getCurrentUser } from '../services/users';
 import { Avatar, Badge, Card, Text, useTheme, type Theme } from '../ui';
 
-const TERMS_URL = 'https://celebbase.com/terms';
-const PRIVACY_URL = 'https://celebbase.com/privacy';
-const SUPPORT_EMAIL = 'support@celebbase.com';
+const TERMS_URL = 'https://celebase.app/terms';
+const PRIVACY_URL = 'https://celebase.app/privacy';
+const SUPPORT_EMAIL = 'support@celebase.app';
 
 // Apple / Play 의 subscription 관리 시스템 설정 deep link.
 // CHORE-MOBILE-PLATFORM-LINK-001 백로그: Platform.OS 분기로 _PLAY_SUBSCRIPTIONS_URL 활성화.
