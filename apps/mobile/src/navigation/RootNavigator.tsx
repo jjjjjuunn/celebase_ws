@@ -102,10 +102,11 @@ export function RootNavigator(): React.JSX.Element {
     // 이전 구현은 LoginScreen.onSuccess 가 직접 reset('Main') 했으나 phase 미전환
     // 상태에선 'Main' 이 등록되지 않아 navigator 가 거절. signal 기반으로 전환.
     const offLogin = onLoginSignal((reason) => {
-      // Fresh email sign-up → present the path picker once 'Main' is mounted.
-      // (Social first-login also lazy-provisions but fires on every social login;
-      // gating it needs a new-user check — deferred, see handoff.)
-      if (reason === 'signup') wantSelectionRef.current = true;
+      // Fresh email sign-up ('signup') OR social first-login ('social_new',
+      // gated server-side by is_new_user — IMPL-MOBILE-SOCIAL-SELECTION-001) →
+      // present the path picker once 'Main' is mounted. Returning users
+      // ('manual' / 'social') skip it.
+      if (reason === 'signup' || reason === 'social_new') wantSelectionRef.current = true;
       setPhase('main');
     });
 

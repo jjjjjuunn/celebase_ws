@@ -7716,3 +7716,28 @@ verified_by: claude-opus-4-7 (mobile typecheck/lint/test CI green; decisions.tes
 - **검증**: Mobile Lint/Typecheck/Test CI green. 무배포 — apps/mobile 한정이라 cd.yml staging 트리거(services/**·apps/web/**) 미해당.
 ### 미완료: 실제 IAP product (단일 vs Premium/Elite) RevenueCat 등록 — IAP/native 검증은 dev build 필요 (별도 G1 후속). record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/screens/PaywallScreen.tsx, apps/mobile/__tests__/decisions.test.ts
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-MOBILE-SOCIAL-SELECTION-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/users.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 3 new is_new_user cases; mobile tsc + eslint --max-warnings=0 clean + 39 auth/nav/selection tests; ⚠️ device social-first-login E2E post-deploy)
+---
+### 완료: 소셜 첫 로그인 Selection gating — server is_new_user 플래그 (IMPL-MOBILE-SOCIAL-SELECTION-001)
+- **배경**: 가입 후 Selection modal 이 이메일 가입(`reason='signup'`)에서만 떴고, 소셜(Google/Apple)은 매 로그인 `signalLogin('social')` 이라 첫 로그인 판별이 불가 → 신규 소셜 유저가 Selection 을 못 봄 (RootNavigator 코드 주석에 deferred 로 명시돼 있던 갭).
+- **신호 선택**: 견고한 first-login 판별은 user-service `login()` 의 lazy-provision 분기(`created` 성공, auth.service.ts)가 단정적으로 안다. created_at 휴리스틱(시계 오차)·bio-profile 404 probe(trend-only 소셜 유저 매 로그인 재노출 + PHI 감사로그 부작용) 대신 **server-derived `is_new_user`** 채택.
+- **shared-types**: `LoginResponseSchema` 를 `SignupResponseSchema` 별칭에서 분리해 `is_new_user: z.boolean().optional()` 확장 (login 만; 이메일 signup 은 `reason='signup'` 유지). `.optional()` = rolling-deploy 안전(구 BE 생략→undefined→false).
+- **user-service**: `login()` 반환에 `is_new_user` 추가 — lazy-provision `created` 분기만 true, 그 외(기존 sub 발견·email-bridge·race 재조회·dev stub) false. 라우트는 `result` passthrough(응답 스키마 없음), BFF 는 `LoginResponseSchema` 검증으로 known optional key 보존.
+- **mobile**: `LoginReason` 에 `'social_new'` 추가. `social-auth.ts` 가 `LoginResponse` 파싱 후 `is_new_user===true` 면 `signalLogin('social_new')`, 아니면 `'social'`. `RootNavigator` 게이트를 `reason==='signup' || reason==='social_new'` 로 확장. Apple 재로그인은 `findByCognitoSub` 로 1회만 신규 판정.
+- **검증**: shared-types build; user-service 208/208 (신규 is_new_user 3-case: 기존 false / lazy true / race false); mobile tsc + eslint(--max-warnings=0) clean + 관련 39 테스트 PASS. spec.md §7.1 sync.
+### 미완료: ⚠️ 배포 후 device social-first-login E2E (신규 Google 계정→Selection 1회; 재로그인→미등장). record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/navigation/RootNavigator.tsx, spec.md

@@ -218,6 +218,8 @@ describe('authService.login', () => {
     expect(result.user).toEqual(baseUser);
     expect(result.access_token).toBeTruthy();
     expect(result.refresh_token).toBeTruthy();
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: an existing user is never flagged new.
+    expect(result.is_new_user).toBe(false);
   });
 
   it('throws UnauthorizedError if user not found', async () => {
@@ -288,6 +290,9 @@ describe('authService.login lazy provisioning', () => {
 
     expect(result.user.cognito_sub).toBe('cognito-real-sub');
     expect(result.user.display_name).toBe('newuser');
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: a genuinely lazy-provisioned account is
+    // the ONLY path that flags is_new_user=true (drives social-first Selection).
+    expect(result.is_new_user).toBe(true);
     // Defense-in-depth: lazy-provisioned user must inherit the DB default
     // subscription_tier ('free'). Guards against future code accidentally
     // assigning a non-default tier in the lazy create payload.
@@ -384,6 +389,9 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(result.user.id).toBe('race-winner-1');
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: a race re-read attaches to an existing
+    // row → NOT new (create returned null, so isNewUser stayed false).
+    expect(result.is_new_user).toBe(false);
     // lazy_provisioned event should NOT fire — the row was created by the winning tx.
     expect(log.info).not.toHaveBeenCalledWith(
       expect.objectContaining({ event: 'auth.user.lazy_provisioned' }),
