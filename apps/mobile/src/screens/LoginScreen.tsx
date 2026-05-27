@@ -11,6 +11,8 @@ import { FormErrorBox } from '../components/FormErrorBox';
 import { FormField } from '../components/FormField';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { ApiError } from '../lib/api-client';
+import { AccountDeletedError } from '../lib/auth-errors';
+import { restoreAccount } from '../lib/restore';
 import { signIn } from '../services/auth';
 import { Button, Text, useTheme, type Theme } from '../ui';
 
@@ -39,9 +41,14 @@ export function LoginScreen({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // IMPL-ACCOUNT-RESTORE-001: set when login hits a soft-deleted account; renders
+  // the restore affordance and carries the verified id_token for the restore call.
+  const [restoreCtx, setRestoreCtx] = useState<AccountDeletedError | null>(null);
+  const [restoring, setRestoring] = useState(false);
 
   async function handleSubmit(): Promise<void> {
     setError(null);
+    setRestoreCtx(null);
 
     const parsed = LoginFormSchema.safeParse({ email, password });
     if (!parsed.success) {
@@ -54,9 +61,28 @@ export function LoginScreen({
       await signIn({ email: parsed.data.email, password: parsed.data.password });
       onSuccess();
     } catch (err) {
-      setError(mapErrorToMessage(err));
+      // Soft-deleted account → offer in-place restore instead of a dead-end error.
+      if (err instanceof AccountDeletedError) {
+        setRestoreCtx(err);
+      } else {
+        setError(mapErrorToMessage(err));
+      }
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleRestore(): Promise<void> {
+    if (restoreCtx === null) return;
+    setRestoring(true);
+    try {
+      await restoreAccount(restoreCtx.idToken, restoreCtx.provider);
+      onSuccess();
+    } catch (err) {
+      setRestoreCtx(null);
+      setError(mapErrorToMessage(err));
+    } finally {
+      setRestoring(false);
     }
   }
 
@@ -72,7 +98,36 @@ export function LoginScreen({
       </View>
 
       <View style={styles.form}>
-        <FormErrorBox message={error} />
+        {restoreCtx !== null ? (
+          <View style={styles.restorePanel} testID="login-restore-panel">
+            <Text variant="bodySm">
+              This account is scheduled for deletion. Restore it to sign back in.
+            </Text>
+            <Button
+              label="Restore account"
+              testID="login-restore-submit"
+              loading={restoring}
+              disabled={restoring}
+              onPress={() => {
+                void handleRestore();
+              }}
+            />
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Cancel restore"
+              disabled={restoring}
+              onPress={() => {
+                setRestoreCtx(null);
+              }}
+            >
+              <Text variant="bodySm" tone="muted" center>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FormErrorBox message={error} />
+        )}
 
         <FormField
           id="login-email"
@@ -129,7 +184,12 @@ export function LoginScreen({
           />
         </View>
 
-        <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+        <SocialAuthButtons
+          disabled={submitting}
+          onSuccess={onSuccess}
+          onError={setError}
+          onAccountDeleted={setRestoreCtx}
+        />
       </View>
 
       <View style={styles.switchRow}>
@@ -176,6 +236,14 @@ function makeStyles(theme: Theme) {
     intro: { gap: theme.space(2) },
     form: { gap: theme.space(3) },
     forgotLink: { alignSelf: 'flex-end', paddingVertical: 2 },
+    restorePanel: {
+      gap: theme.space(2),
+      padding: theme.space(3),
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.color.surface,
+      borderWidth: 1,
+      borderColor: theme.color.border,
+    },
     submitWrap: { marginTop: theme.space(2) },
     switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'baseline' },
     linkBold: { fontWeight: theme.weight.semibold },

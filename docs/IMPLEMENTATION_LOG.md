@@ -7796,3 +7796,30 @@ verified_by: claude-opus-4-7 + advisor (user-service 213→ incl. 5 restore case
 - **검증**: user-service 213→ (restore 5-case: 복구·멱등·NotFound·ValidationError·**Apple-no-email sub 해소**); web 195/195 (BFF restore 4); shared-types build; user-svc+web tsc clean.
 ### 미완료: **3b-mobile UX (후속 PR)** — typed `AccountDeletedError`(id_token+provider carry) + `restoreAccount` + LoginScreen 복구 버튼 + SignupScreen "log in to restore" CTA(존재누출 없이). ⚠️ device E2E. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh.
 ### 연관 파일: packages/shared-types/src/schemas/auth.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/index.ts, services/user-service/src/repositories/user.repository.ts, services/user-service/src/lib/auth-log.ts, apps/web/src/app/api/auth/mobile/restore/route.ts, .claude/rules/security.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: IMPL-ACCOUNT-RESTORE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/auth-errors.ts
+  - apps/mobile/src/lib/restore.ts
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/components/SocialAuthButtons.tsx
+  - apps/mobile/__tests__/services/auth.test.ts
+verified_by: claude-opus-4-7 (mobile 200/200 incl. signIn ACCOUNT_DELETED→AccountDeletedError + restoreAccount 2-case; tsc + eslint --max-warnings=0 clean; ⚠️ device E2E)
+---
+### 완료: 계정삭제 막다른길(G2) — 모바일 복구 UX (IMPL-ACCOUNT-RESTORE-001, 3b-mobile)
+- **재사용 코어** (amplify 무관 lib — social-auth 가 amplify barrel 회피하므로): `lib/auth-errors.ts` `AccountDeletedError`(verified id_token + provider carry) + `lib/restore.ts` `restoreAccount(idToken, provider)`(POST /api/auth/mobile/restore → setTokens → `signalLogin('manual')`, 복구는 returning user 라 Selection 미트리거).
+- **서비스 배선**: `auth.ts signIn()` 과 `social-auth.ts exchangeAndStore()` 가 BFF 401 `ACCOUNT_DELETED` 를 catch → 이미 확보한 id_token 을 실어 `AccountDeletedError` 재throw (Cognito/OAuth 재실행 없이 복구 가능).
+- **LoginScreen**: `AccountDeletedError` catch → 복구 패널(testID `login-restore-panel`) — "Restore account" 버튼이 `restoreAccount` 호출 → onSuccess. 일반 에러는 기존 경로.
+- **SocialAuthButtons**: `onAccountDeleted?` prop 추가 — 소셜 401 ACCOUNT_DELETED 를 부모(LoginScreen)의 복구 핸들러로 라우팅(id_token carry).
+- **SignupScreen**: `UsernameExistsException` / `EMAIL_ALREADY_EXISTS` 메시지에 "sign in to restore" 안내(존재누출 없이 — 삭제상태 비공개, 로그인으로 유도). 소셜 onAccountDeleted 는 로그인 유도 메시지.
+- **무배포**: apps/mobile 한정 → cd.yml staging 트리거(services/**·apps/web/**) 미해당. restore 계약(#180)은 이미 main.
+- **검증**: mobile 200/200 (신규 signIn ACCOUNT_DELETED→AccountDeletedError(idToken carry) + restoreAccount POST/store + empty-token throw); tsc + eslint(--max-warnings=0) clean.
+### 미완료: ⚠️ device E2E (삭제→로그인→복구 패널→복구→데이터 유지 / 재가입→"sign in to restore" 안내→로그인→복구). 소셜 복구는 dev build 에서 native 검증. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh (BE #180 + 본 mobile).
+### 연관 파일: apps/mobile/src/lib/auth-errors.ts, apps/mobile/src/lib/restore.ts, apps/mobile/src/services/auth.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/components/SocialAuthButtons.tsx, apps/mobile/__tests__/services/auth.test.ts

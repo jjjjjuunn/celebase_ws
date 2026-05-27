@@ -28,9 +28,10 @@ import {
 } from '@react-native-google-signin/google-signin';
 import type { schemas } from '@celebbase/shared-types';
 
-import { postJson } from '../lib/api-client';
+import { ApiError, postJson } from '../lib/api-client';
 import { setTokens } from '../lib/secure-store';
 import { signalLogin } from '../lib/auth-events';
+import { AccountDeletedError } from '../lib/auth-errors';
 import { readGoogleNativeConfig, type SocialProvider } from '../lib/social-config';
 
 /**
@@ -70,7 +71,18 @@ async function exchangeAndStore(
   // `is_new_user` flag — true only when this login lazy-provisioned a brand-new
   // social account (IMPL-MOBILE-SOCIAL-SELECTION-001). Tokens are persisted the
   // same way; the `user` field on the wire is intentionally unused here.
-  const res = await postJson<schemas.LoginResponse>('/api/auth/mobile/login', body);
+  let res: schemas.LoginResponse;
+  try {
+    res = await postJson<schemas.LoginResponse>('/api/auth/mobile/login', body);
+  } catch (err) {
+    // IMPL-ACCOUNT-RESTORE-001: a soft-deleted social account 401s here. Re-throw
+    // a typed error carrying the verified id_token + provider so the UI can offer
+    // restore WITHOUT re-running the native picker.
+    if (err instanceof ApiError && err.code === 'ACCOUNT_DELETED') {
+      throw new AccountDeletedError(idToken, provider);
+    }
+    throw err;
+  }
   if (res.access_token === '' || res.refresh_token === '') {
     throw new Error('[social-auth] BFF 응답에 빈 토큰 — 서버 측 계약 위반.');
   }
