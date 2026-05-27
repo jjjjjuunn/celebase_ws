@@ -7676,3 +7676,25 @@ verified_by: claude-opus-4-7 (mobile typecheck + eslint --max-warnings=0 clean; 
 - **검증**: mobile typecheck + eslint(`--max-warnings=0`) clean. iOS Simulator(iPhone 17 Pro, iOS 26.3) 실행 — 40프레임 연속 캡처로 전환 시퀀스(Madison Beer 좌측 슬라이드아웃 → Chris Hemsworth 우측 슬라이드인) + Men 섹션 peek 확인. PR #172.
 ### 미완료: 셀럽 사진은 여전히 컬러 블록 placeholder(라이선스 hold — backlog). 히어로 회전 수동 제어(스와이프/도트 인디케이터) 미구현. CelebritiesScreen RN 화면 단위 테스트 미작성(typecheck + 수동 실행으로 검증).
 ### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: IMPL-MOBILE-ONBOARDING-ROUTING-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/SelectionScreen.tsx
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/__tests__/screens/SelectionScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (mobile typecheck clean; SelectionScreen 3/3; iOS Simulator 기기 검증 5/6 통과)
+---
+### 완료: 가입 후 경로 선택(Selection) 라우팅 — personalized | trend-only (IMPL-MOBILE-ONBOARDING-ROUTING-001)
+- **배경**: 이메일 신규 가입 직후 "맞춤 식단(온보딩)" vs "트렌드만 둘러보기"를 고르는 Selection modal 추가 (G2).
+- **mobile**: 신규 `SelectionScreen`(presentational — onPersonalized/onTrendOnly props, ChoiceCard 2개). `RootNavigator` 가 `LoginReason==='signup'` 일 때만 `wantSelectionRef` set 후 phase='main' 커밋 → phase-watch useEffect 가 'Main' mount 이후 Selection present(BUG-MOBILE-AUTH-LOGIN-SIGNAL race 회피). onPersonalized → `navigation.replace('Onboarding')`(Onboarding back 이 Selection 이 아닌 Main 으로 가도록 — 핵심 불변식), onTrendOnly → goBack. Selection modal `gestureEnabled:false`. `types.ts` 에 Selection route param.
+- **reason-gating**: 소셜 로그인(reason='social')·기존 이메일 로그인(reason='manual')·세션 복원은 Selection 미트리거 — 신규 이메일 가입(reason='signup')만.
+- **spec.md §7.1**: Post-signup path selection 서브섹션 동기화(PIVOT-MOBILE spec sync 의무).
+- **검증**: mobile typecheck clean, SelectionScreen 3/3 단위테스트, iOS Simulator 기기 검증 — 6항목 중 5 통과(① signup→Selection ② Personalize→Onboarding→back→Main(replace 불변식, 이미지 확인) ③ trend-only→Main ④ 재로그인→Selection 미등장 ⑤ 재시작 후 로그인→Selection 미등장). 항목 ⑥(modal swipe-dismiss 억제)은 gestureEnabled:false 코드 강제 — 잔여 10초 확인.
+### 미완료: 소셜 첫 로그인 new-user 판별(현재 'signup'=이메일 전용; social 은 매 로그인 신호 → GET /users/me/bio-profile 404 기반 판별 후속). Display name 가입폼 제거 + EditProfile/소셜 충당은 별도 follow-up 합의(2026-05-27). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/SelectionScreen.tsx, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/__tests__/screens/SelectionScreen.test.tsx, spec.md
