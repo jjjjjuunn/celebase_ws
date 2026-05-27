@@ -5,6 +5,7 @@ const mockFindByEmail = jest.fn();
 const mockFindByCognitoSub = jest.fn();
 const mockFindAndUpdateCognitoSubByEmail = jest.fn();
 const mockCreate = jest.fn();
+const mockClearSoftDelete = jest.fn();
 
 jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
   findById: jest.fn(),
@@ -14,6 +15,7 @@ jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
   create: mockCreate,
   updateUser: jest.fn(),
   softDelete: jest.fn(),
+  clearSoftDelete: mockClearSoftDelete,
 }));
 
 // Phase C: issueInternalTokens calls refreshTokenRepo.insert — mock it out
@@ -27,10 +29,9 @@ jest.unstable_mockModule('../../src/repositories/refresh-token.repository.js', (
   revokeAllByUser: jest.fn(),
 }));
 
-const { signup, login, DevAuthProvider } = await import('../../src/services/auth.service.js');
-const { UnauthorizedError, ValidationError, AccountExistsError } = await import(
-  '@celebbase/service-core'
-);
+const { signup, login, restore, DevAuthProvider } = await import('../../src/services/auth.service.js');
+const { UnauthorizedError, ValidationError, AccountExistsError, AccountDeletedError, NotFoundError } =
+  await import('@celebbase/service-core');
 
 const mockPool = {} as pg.Pool;
 const devProvider = new DevAuthProvider();
@@ -255,9 +256,11 @@ describe('authService.login', () => {
     ).rejects.toThrow(UnauthorizedError);
   });
 
-  it('throws UnauthorizedError if user is soft-deleted', async () => {
+  it('throws AccountDeletedError (code ACCOUNT_DELETED) if user is soft-deleted', async () => {
     mockFindByEmail.mockResolvedValueOnce({ ...baseUser, deleted_at: new Date() });
 
+    // IMPL-ACCOUNT-RESTORE-001: a soft-deleted login now yields the specific
+    // ACCOUNT_DELETED code (was generic UNAUTHORIZED) so mobile can offer restore.
     await expect(
       login(
         mockPool,
@@ -266,7 +269,7 @@ describe('authService.login', () => {
         makeMockLog(),
         'req-login-3',
       ),
-    ).rejects.toThrow(UnauthorizedError);
+    ).rejects.toThrow(AccountDeletedError);
   });
 });
 
@@ -617,5 +620,86 @@ describe('loadDevSecret', () => {
     const secret = loadDevSecret();
     expect(secret).toBeInstanceOf(Uint8Array);
     expect(secret.length).toBeGreaterThan(0);
+  });
+});
+
+// IMPL-ACCOUNT-RESTORE-001 — within-grace account restore.
+describe('authService.restore', () => {
+  class FakeCognitoProvider {
+    async verifyIdToken(): Promise<{ sub: string; email: string }> {
+      return Promise.resolve({ sub: 'cognito-restore-sub', email: 'restore@example.com' });
+    }
+    async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+  }
+
+  const deletedUser = {
+    ...baseUser,
+    id: 'restore-uuid-1',
+    email: 'restore@example.com',
+    cognito_sub: 'cognito-restore-sub',
+    deleted_at: new Date(),
+  };
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockInsert.mockResolvedValue(undefined);
+  });
+
+  it('restores a soft-deleted account (atomic clearSoftDelete) and emits auth.account.restored', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(deletedUser);
+    mockClearSoftDelete.mockResolvedValueOnce({ ...deletedUser, deleted_at: null });
+    const log = makeMockLog();
+
+    const result = await restore(
+      mockPool,
+      new FakeCognitoProvider(),
+      { id_token: 'fake.id.token' },
+      log,
+      'req-restore-1',
+      { ip: '10.0.0.7', userAgent: 'jest' },
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(result.access_token).toBeTruthy();
+    expect(mockClearSoftDelete).toHaveBeenCalledWith(mockPool, 'cognito-restore-sub');
+    // SECURITY: restore must NOT elevate tier — the restored row keeps its tier.
+    expect(result.user.subscription_tier).toBe('free');
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'auth.account.restored', requestId: 'req-restore-1', ip: '10.0.0.7' }),
+      'auth.account.restored',
+    );
+  });
+
+  it('is idempotent for an already-active account (no clearSoftDelete call)', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce({ ...deletedUser, deleted_at: null });
+
+    const result = await restore(
+      mockPool,
+      new FakeCognitoProvider(),
+      { id_token: 'fake.id.token' },
+      makeMockLog(),
+      'req-restore-2',
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(result.access_token).toBeTruthy();
+    expect(mockClearSoftDelete).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundError when no account exists for the verified identity', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+
+    await expect(
+      restore(mockPool, new FakeCognitoProvider(), { id_token: 'fake.id.token' }, makeMockLog(), 'req-restore-3'),
+    ).rejects.toThrow(NotFoundError);
+    expect(mockClearSoftDelete).not.toHaveBeenCalled();
+  });
+
+  it('throws ValidationError when id_token is missing', async () => {
+    await expect(
+      restore(mockPool, new FakeCognitoProvider(), {}, makeMockLog(), 'req-restore-4'),
+    ).rejects.toThrow(ValidationError);
   });
 });

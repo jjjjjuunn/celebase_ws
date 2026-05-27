@@ -184,6 +184,47 @@ export async function authRoutes(
     },
   );
 
+  // IMPL-ACCOUNT-RESTORE-001 — within-grace restore. Public route (registered in
+  // index.ts publicPaths); the verified id_token IS the auth. Same rate-limit as
+  // login (it can probe account existence). Body shape mirrors login.
+  app.post(
+    '/auth/restore',
+    {
+      config: {
+        rateLimit: {
+          max: rateLimits.login,
+          timeWindow: '1 minute',
+          allowList: testAllowList,
+        },
+      },
+    },
+    async (request: FastifyRequest) => {
+      const parsed = LoginSchema.safeParse(request.body);
+      if (!parsed.success) {
+        throw new ValidationError('Invalid input', parsed.error.errors.map((e) => ({
+          field: e.path.join('.'),
+          issue: e.message,
+        })));
+      }
+      const provider = pickLoginProvider(parsed.data.provider);
+      const userAgent = request.headers['user-agent'];
+      const result = await authService.restore(
+        pool,
+        provider,
+        parsed.data,
+        request.log,
+        request.id,
+        { ip: request.ip, ...(typeof userAgent === 'string' ? { userAgent } : {}) },
+      );
+      emitAuthLog(request.log, 'auth.internal_token.issued', {
+        flow: 'restore',
+        provider: parsed.data.provider ?? 'cognito',
+        requestId: request.id,
+      });
+      return result;
+    },
+  );
+
   app.post(
     '/auth/refresh',
     {

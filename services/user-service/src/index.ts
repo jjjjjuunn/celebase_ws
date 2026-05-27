@@ -46,6 +46,7 @@ const start = async (): Promise<void> => {
     publicPaths: [
       '/auth/signup',
       '/auth/login',
+      '/auth/restore',
       '/auth/refresh',
       '/auth/logout',
       '/internal/*',

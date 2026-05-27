@@ -136,6 +136,26 @@ export async function softDelete(pool: pg.Pool, id: string): Promise<void> {
   await pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [id]);
 }
 
+/**
+ * IMPL-ACCOUNT-RESTORE-001 — atomic within-grace restore. Clears `deleted_at`
+ * keyed on the verified cognito_sub, but ONLY when currently soft-deleted
+ * (race-safe: a concurrent restore/login that already cleared it yields rowcount
+ * 0). Returns the restored row, or null if no soft-deleted row matched.
+ * SECURITY: touches ONLY `deleted_at`/`updated_at` — never `subscription_tier`,
+ * so a restore can never elevate entitlements (a deleted user does not regain a
+ * paid tier for free; post-CHORE cancel-on-delete leaves the tier as persisted).
+ */
+export async function clearSoftDelete(pool: pg.Pool, cognitoSub: string): Promise<User | null> {
+  const { rows } = await pool.query<User>(
+    `UPDATE users
+       SET deleted_at = NULL, updated_at = NOW()
+     WHERE cognito_sub = $1 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [cognitoSub],
+  );
+  return rows[0] ?? null;
+}
+
 // FEAT-APPLE-REVOKE-001 — Apple refresh_token, stored as an encrypted envelope
 // (AES-256-GCM via service-core encryptField) so DELETE /users/me can revoke it
 // at Apple. Written from the Apple login path; read once at deletion.
