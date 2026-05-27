@@ -148,8 +148,21 @@ describe('BFF integration — POST /api/auth/signup', () => {
     expect(setCookies).toHaveLength(2);
   });
 
-  it('400 VALIDATION_ERROR when display_name missing', async () => {
-    const req = makeRequest({ body: { email: 'x@y.com' } });
+  // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: display_name is OPTIONAL now — a missing
+  // name forwards upstream (the server fills a neutral default), no longer 400.
+  it('forwards signup without display_name upstream (now optional)', async () => {
+    fetchSpy.mockResolvedValueOnce(upstreamResponse(TOKEN_PAYLOAD, 201));
+    const req = makeRequest({ body: { email: 'x@y.com', id_token: 't' } });
+    const res = await signupPOST(req);
+
+    expect(res.status).toBe(201);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0][0] as string).toBe('http://localhost:3001/auth/signup');
+  });
+
+  // …but an explicit EMPTY display_name is still rejected (.min(1) when present).
+  it('400 VALIDATION_ERROR when display_name is an empty string', async () => {
+    const req = makeRequest({ body: { email: 'x@y.com', display_name: '', id_token: 't' } });
     const res = await signupPOST(req);
 
     expect(res.status).toBe(400);

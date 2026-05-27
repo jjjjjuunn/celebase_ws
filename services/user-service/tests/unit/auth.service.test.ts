@@ -5,6 +5,7 @@ const mockFindByEmail = jest.fn();
 const mockFindByCognitoSub = jest.fn();
 const mockFindAndUpdateCognitoSubByEmail = jest.fn();
 const mockCreate = jest.fn();
+const mockClearSoftDelete = jest.fn();
 
 jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
   findById: jest.fn(),
@@ -14,6 +15,7 @@ jest.unstable_mockModule('../../src/repositories/user.repository.js', () => ({
   create: mockCreate,
   updateUser: jest.fn(),
   softDelete: jest.fn(),
+  clearSoftDelete: mockClearSoftDelete,
 }));
 
 // Phase C: issueInternalTokens calls refreshTokenRepo.insert — mock it out
@@ -27,10 +29,9 @@ jest.unstable_mockModule('../../src/repositories/refresh-token.repository.js', (
   revokeAllByUser: jest.fn(),
 }));
 
-const { signup, login, DevAuthProvider } = await import('../../src/services/auth.service.js');
-const { UnauthorizedError, ValidationError, AccountExistsError } = await import(
-  '@celebbase/service-core'
-);
+const { signup, login, restore, DevAuthProvider } = await import('../../src/services/auth.service.js');
+const { UnauthorizedError, ValidationError, AccountExistsError, AccountDeletedError, NotFoundError } =
+  await import('@celebbase/service-core');
 
 const mockPool = {} as pg.Pool;
 const devProvider = new DevAuthProvider();
@@ -79,6 +80,21 @@ describe('authService.signup', () => {
       email: 'test@example.com',
       display_name: 'Test User',
     }));
+  });
+
+  it('fills the neutral default when display_name is omitted (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001)', async () => {
+    mockFindByEmail.mockResolvedValueOnce(null);
+    mockCreate.mockResolvedValueOnce({ ...baseUser, display_name: 'User' });
+
+    const result = await signup(mockPool, devProvider, {
+      email: 'noname@example.com',
+    });
+
+    expect(result.user.display_name).toBe('User');
+    expect(mockCreate).toHaveBeenCalledWith(
+      mockPool,
+      expect.objectContaining({ display_name: 'User' }),
+    );
   });
 
   it('throws ValidationError if email already exists', async () => {
@@ -135,6 +151,10 @@ describe('authService.signup email-bridge', () => {
     expect(mockFindAndUpdateCognitoSubByEmail).toHaveBeenCalledWith(
       mockPool, 'legacy@example.com', 'cognito-real-sub',
     );
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: the bridge returns the EXISTING user
+    // unchanged — it must NOT overwrite their display_name with the input or the
+    // 'User' default (bridge path bypasses userRepo.create entirely).
+    expect(result.user.display_name).toBe('Test User');
   });
 
   it('rejects conflict when existing user already has a real cognito_sub', async () => {
@@ -218,6 +238,8 @@ describe('authService.login', () => {
     expect(result.user).toEqual(baseUser);
     expect(result.access_token).toBeTruthy();
     expect(result.refresh_token).toBeTruthy();
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: an existing user is never flagged new.
+    expect(result.is_new_user).toBe(false);
   });
 
   it('throws UnauthorizedError if user not found', async () => {
@@ -234,9 +256,11 @@ describe('authService.login', () => {
     ).rejects.toThrow(UnauthorizedError);
   });
 
-  it('throws UnauthorizedError if user is soft-deleted', async () => {
+  it('throws AccountDeletedError (code ACCOUNT_DELETED) if user is soft-deleted', async () => {
     mockFindByEmail.mockResolvedValueOnce({ ...baseUser, deleted_at: new Date() });
 
+    // IMPL-ACCOUNT-RESTORE-001: a soft-deleted login now yields the specific
+    // ACCOUNT_DELETED code (was generic UNAUTHORIZED) so mobile can offer restore.
     await expect(
       login(
         mockPool,
@@ -245,7 +269,7 @@ describe('authService.login', () => {
         makeMockLog(),
         'req-login-3',
       ),
-    ).rejects.toThrow(UnauthorizedError);
+    ).rejects.toThrow(AccountDeletedError);
   });
 });
 
@@ -273,7 +297,7 @@ describe('authService.login lazy provisioning', () => {
       id: 'lazy-uuid-1',
       email: 'newuser@example.com',
       cognito_sub: 'cognito-real-sub',
-      display_name: 'newuser',
+      display_name: 'User',
     };
     mockCreate.mockResolvedValueOnce(lazyUser);
     const log = makeMockLog();
@@ -287,7 +311,12 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(result.user.cognito_sub).toBe('cognito-real-sub');
-    expect(result.user.display_name).toBe('newuser');
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: lazy-provision uses the neutral default
+    // 'User' (no longer the email local-part) — no email leak in the UI.
+    expect(result.user.display_name).toBe('User');
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: a genuinely lazy-provisioned account is
+    // the ONLY path that flags is_new_user=true (drives social-first Selection).
+    expect(result.is_new_user).toBe(true);
     // Defense-in-depth: lazy-provisioned user must inherit the DB default
     // subscription_tier ('free'). Guards against future code accidentally
     // assigning a non-default tier in the lazy create payload.
@@ -295,7 +324,7 @@ describe('authService.login lazy provisioning', () => {
     expect(mockCreate).toHaveBeenCalledWith(mockPool, {
       cognito_sub: 'cognito-real-sub',
       email: 'newuser@example.com',
-      display_name: 'newuser',
+      display_name: 'User',
     });
     expect(log.info).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -307,12 +336,12 @@ describe('authService.login lazy provisioning', () => {
     );
   });
 
-  it('falls back to "User" display_name when email local-part is empty', async () => {
+  it('lazy-provision uses the neutral default display_name regardless of email', async () => {
     class EmptyLocalPartProvider {
       async verifyIdToken(): Promise<{ sub: string; email: string }> {
-        // Defense-in-depth: DB VARCHAR(100) NOT NULL would block empty string,
-        // but the code-level fallback ensures we never even attempt the INSERT
-        // with '' for display_name.
+        // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: display_name is always the neutral
+        // 'User' default now — the email (even a malformed one) never feeds it,
+        // so no fragment of the address leaks into the UI.
         return Promise.resolve({ sub: 'sub-empty', email: '@malformed.example' });
       }
       async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
@@ -351,7 +380,7 @@ describe('authService.login lazy provisioning', () => {
       cognito_sub: 'cognito-real-sub',
     });
 
-    await login(
+    const result = await login(
       mockPool,
       new FakeCognitoProvider(),
       { email: 'newuser@example.com', id_token: 'fake.id.token' },
@@ -360,6 +389,10 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(mockCreate).not.toHaveBeenCalled();
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: an email-bridged legacy user is attached
+    // to a new cognito_sub but is NOT a new account — guards the branch adjacent
+    // to lazy-provision from accidentally flipping isNewUser=true.
+    expect(result.is_new_user).toBe(false);
   });
 
   it('recovers from race when create returns null and re-read by sub succeeds', async () => {
@@ -384,6 +417,9 @@ describe('authService.login lazy provisioning', () => {
     );
 
     expect(result.user.id).toBe('race-winner-1');
+    // IMPL-MOBILE-SOCIAL-SELECTION-001: a race re-read attaches to an existing
+    // row → NOT new (create returned null, so isNewUser stayed false).
+    expect(result.is_new_user).toBe(false);
     // lazy_provisioned event should NOT fire — the row was created by the winning tx.
     expect(log.info).not.toHaveBeenCalledWith(
       expect.objectContaining({ event: 'auth.user.lazy_provisioned' }),
@@ -584,5 +620,113 @@ describe('loadDevSecret', () => {
     const secret = loadDevSecret();
     expect(secret).toBeInstanceOf(Uint8Array);
     expect(secret.length).toBeGreaterThan(0);
+  });
+});
+
+// IMPL-ACCOUNT-RESTORE-001 — within-grace account restore.
+describe('authService.restore', () => {
+  class FakeCognitoProvider {
+    async verifyIdToken(): Promise<{ sub: string; email: string }> {
+      return Promise.resolve({ sub: 'cognito-restore-sub', email: 'restore@example.com' });
+    }
+    async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+      return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+    }
+  }
+
+  const deletedUser = {
+    ...baseUser,
+    id: 'restore-uuid-1',
+    email: 'restore@example.com',
+    cognito_sub: 'cognito-restore-sub',
+    deleted_at: new Date(),
+  };
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockInsert.mockResolvedValue(undefined);
+  });
+
+  it('restores a soft-deleted account (atomic clearSoftDelete) and emits auth.account.restored', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(deletedUser);
+    mockClearSoftDelete.mockResolvedValueOnce({ ...deletedUser, deleted_at: null });
+    const log = makeMockLog();
+
+    const result = await restore(
+      mockPool,
+      new FakeCognitoProvider(),
+      { id_token: 'fake.id.token' },
+      log,
+      'req-restore-1',
+      { ip: '10.0.0.7', userAgent: 'jest' },
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(result.access_token).toBeTruthy();
+    expect(mockClearSoftDelete).toHaveBeenCalledWith(mockPool, 'cognito-restore-sub');
+    // SECURITY: restore must NOT elevate tier — the restored row keeps its tier.
+    expect(result.user.subscription_tier).toBe('free');
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'auth.account.restored', requestId: 'req-restore-1', ip: '10.0.0.7' }),
+      'auth.account.restored',
+    );
+  });
+
+  it('is idempotent for an already-active account (no clearSoftDelete call)', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce({ ...deletedUser, deleted_at: null });
+
+    const result = await restore(
+      mockPool,
+      new FakeCognitoProvider(),
+      { id_token: 'fake.id.token' },
+      makeMockLog(),
+      'req-restore-2',
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(result.access_token).toBeTruthy();
+    expect(mockClearSoftDelete).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundError when no account exists for the verified identity', async () => {
+    mockFindByCognitoSub.mockResolvedValueOnce(null);
+
+    await expect(
+      restore(mockPool, new FakeCognitoProvider(), { id_token: 'fake.id.token' }, makeMockLog(), 'req-restore-3'),
+    ).rejects.toThrow(NotFoundError);
+    expect(mockClearSoftDelete).not.toHaveBeenCalled();
+  });
+
+  it('Apple restore with NO email claim resolves by verified sub (email is never read)', async () => {
+    // Apple omits email on re-sign-in (the verifier yields email=''); restore()
+    // resolves the user by `sub` only, so this must succeed with zero email use.
+    class AppleNoEmailProvider {
+      async verifyIdToken(): Promise<{ sub: string; email: string }> {
+        return Promise.resolve({ sub: 'apple-restore-sub', email: '' });
+      }
+      async issueTokens(): Promise<{ access_token: string; refresh_token: string }> {
+        return Promise.resolve({ access_token: 'a', refresh_token: 'r' });
+      }
+    }
+    const appleDeleted = { ...deletedUser, cognito_sub: 'apple-restore-sub' };
+    mockFindByCognitoSub.mockResolvedValueOnce(appleDeleted);
+    mockClearSoftDelete.mockResolvedValueOnce({ ...appleDeleted, deleted_at: null });
+
+    const result = await restore(
+      mockPool,
+      new AppleNoEmailProvider(),
+      { id_token: 'apple.jwt', provider: 'apple' },
+      makeMockLog(),
+      'req-restore-apple',
+    );
+
+    expect(result.user.deleted_at).toBeNull();
+    expect(mockClearSoftDelete).toHaveBeenCalledWith(mockPool, 'apple-restore-sub');
+  });
+
+  it('throws ValidationError when id_token is missing', async () => {
+    await expect(
+      restore(mockPool, new FakeCognitoProvider(), {}, makeMockLog(), 'req-restore-4'),
+    ).rejects.toThrow(ValidationError);
   });
 });

@@ -27,9 +27,10 @@ import {
 } from 'aws-amplify/auth';
 import type { schemas } from '@celebbase/shared-types';
 
-import { postJson } from '../lib/api-client';
+import { ApiError, postJson } from '../lib/api-client';
 import { clearTokens, setTokens } from '../lib/secure-store';
 import { signalLogin } from '../lib/auth-events';
+import { AccountDeletedError } from '../lib/auth-errors';
 
 /**
  * 잔존 Amplify 세션을 best-effort 로 정리한다.
@@ -73,7 +74,18 @@ export async function signIn(params: { email: string; password: string }): Promi
   }
 
   const body: schemas.LoginRequest = { email, id_token: idToken };
-  const tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/login', body);
+  let tokens: schemas.AuthTokens;
+  try {
+    tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/login', body);
+  } catch (err) {
+    // IMPL-ACCOUNT-RESTORE-001: a soft-deleted account 401s here (ACCOUNT_DELETED).
+    // Re-throw a typed error carrying the already-verified id_token so LoginScreen
+    // can offer in-place restore without a second Cognito round-trip.
+    if (err instanceof ApiError && err.code === 'ACCOUNT_DELETED') {
+      throw new AccountDeletedError(idToken, 'cognito');
+    }
+    throw err;
+  }
 
   if (tokens.access_token === '' || tokens.refresh_token === '') {
     throw new Error('[auth] BFF 응답에 빈 토큰 — 서버 측 계약 위반.');
@@ -100,18 +112,19 @@ export async function signIn(params: { email: string; password: string }): Promi
 export async function signUp(params: {
   email: string;
   password: string;
-  display_name: string;
 }): Promise<{ nextStep: 'CONFIRM_SIGN_UP' | 'DONE' }> {
-  const { email, password, display_name } = params;
+  const { email, password } = params;
 
   await clearStaleSession();
+  // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: no `name` attribute — signup no longer
+  // collects a display name (server fills a neutral default; user sets it during
+  // onboarding or in EditProfile). Cognito does not require `name`.
   const result = await amplifySignUp({
     username: email,
     password,
     options: {
       userAttributes: {
         email,
-        name: display_name,
       },
     },
   });
@@ -141,9 +154,8 @@ export async function confirmSignUpAndLogin(params: {
   email: string;
   code: string;
   password: string;
-  display_name: string;
 }): Promise<schemas.AuthTokens> {
-  const { email, code, password, display_name } = params;
+  const { email, code, password } = params;
 
   await amplifyConfirmSignUp({ username: email, confirmationCode: code });
 
@@ -163,7 +175,7 @@ export async function confirmSignUpAndLogin(params: {
   }
 
   // BE 가 우리 DB 의 users 테이블에 user 레코드 생성 + internal JWT 발급
-  const body: schemas.SignupRequest = { email, display_name, id_token: idToken };
+  const body: schemas.SignupRequest = { email, id_token: idToken };
   const tokens = await postJson<schemas.AuthTokens>('/api/auth/mobile/signup', body);
 
   if (tokens.access_token === '' || tokens.refresh_token === '') {

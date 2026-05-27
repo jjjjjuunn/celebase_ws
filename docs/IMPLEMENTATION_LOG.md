@@ -29,6 +29,24 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-24
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-ONBOARDING-POLISH-001
+commit_sha: 0de9556
+files_changed:
+  - apps/mobile/src/components/DrumPicker.tsx
+  - apps/mobile/src/onboarding/OnboardingScaffold.tsx
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+verified_by: claude-opus-4-7 (mobile tsc/eslint/jest)
+---
+### 완료: 온보딩 v2 시각 폴리시 — 드럼 피커 고급화 + 칩 floating 해소 (CHORE-ONBOARDING-POLISH-001)
+- **DrumPicker 프리미엄 리디자인**(사용자 "싼 느낌" 피드백): 박스/필 lens 제거 → 테두리 없는 airy 휠 + 골드 selection 헤어라인. scale falloff 강화(0.78→1.0 → 0.5→1.0), opacity(0.3→1 → 0.15→1) → 중앙 값이 크게 "자라나며" 포커스되는 tactile 상호작용("글씨가 커진다" 요청 직접 반영). 중앙 폰트 metricLg + semibold, ITEM_HEIGHT 44→48. 전부 native-driver Animated, reload-safe(네이티브 모듈 없음).
+- **칩 floating 해소**(사용자 "중앙에 붕 떠있는" 피드백): OnboardingScaffold 가 컨텐츠를 dead-center 하던 것 → top-align 기본(질문 바로 아래 흐름, Noom/Cal AI 패턴). 작은 칩 클러스터(sex/GLP-1)가 화면 중앙에 떠보이던 문제 제거. tall 컨트롤(피커 birth/height/weight)은 `centerContent` prop 으로 중앙 유지(이전 하단 여백 회귀 방지).
+- **검증**: mobile `tsc --noEmit` 0, `eslint` 0, jest 5/5(OnboardingFlow). 시각 검증은 dev 빌드(iOS sim)에서 사용자 진행.
+### 미완료: 햅틱(expo-haptics — item tick 촉각, 네이티브 모듈이라 dev-client 1회 rebuild 필요 → reload-safe 유지 위해 미포함, opt-in 제안). 단일선택 소수옵션(sex)을 full-width 행으로 전환하는 대안(칩 대신) — 사용자 선택 시 후속.
+### 연관 파일: apps/mobile/src/components/DrumPicker.tsx, apps/mobile/src/onboarding/OnboardingScaffold.tsx
+
+---
+date: 2026-05-24
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: FIX-MEAL-RECIPE-ALLERGEN-EXPOSURE-001
 commit_sha: 5610d15
@@ -7659,3 +7677,206 @@ verified_by: claude-opus-4-7 (user-svc/web/mobile typecheck clean; avatar.servic
 - **스택**: feat/recipe-ingredients-detail(FEAT-MOBILE-RECIPE-DETAIL-001 / PR #170) 위에 stacked.
 ### 미완료: ⚠️ 아바타 업로드 end-to-end(실 S3 PUT → 표시)는 `infra/avatars` apply + user-service `AVATARS_BUCKET` env staging 배포 후 검증. HEIC→JPEG 트랜스코드(현재 HEIC 는 JPEG 로 선언, 서버 allowlist 강제)는 follow-up. record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/screens/EditProfileScreen.tsx, apps/mobile/src/screens/SettingsScreen.tsx, apps/mobile/src/navigation/SettingsNavigator.tsx, apps/mobile/src/services/users.ts, apps/web/src/app/api/users/me/avatar/upload-url/route.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/avatar.service.ts, infra/avatars/
+
+---
+date: 2026-05-26
+agent: claude-opus-4-7 (1M context)
+task_id: FEAT-MOBILE-CELEB-HERO-001
+commit_sha: cc12a02
+files_changed:
+  - apps/mobile/src/screens/CelebritiesScreen.tsx
+verified_by: claude-opus-4-7 (mobile typecheck + eslint --max-warnings=0 clean; iOS Simulator iPhone 17 Pro 연속 40프레임 캡처로 슬라이드 전환·Men peek 확인)
+---
+### 완료: Celebrities 히어로 — Men rail peek + 좌측 슬라이드 전환 (FEAT-MOBILE-CELEB-HERO-001)
+- **레이아웃**: 히어로 높이 비율 0.5 → 0.4 로 축소. hero 50% + Women rail 25% 에 밀려 fold 아래로 완전히 숨던 Men 섹션(타이틀 + 카드 상단)이 이제 fold 위로 peek.
+- **전환 애니메이션**: 5초 자동 회전 시 crossfade → left-slide carousel. 현재 카드 좌측 슬라이드아웃+페이드아웃(260ms, `Easing.in(cubic)`) → 새 카드 우측 밖에서 슬라이드인+페이드인(320ms, `Easing.out(cubic)`), translateX+opacity 모두 `useNativeDriver`. `Hero` 가 내부 `displayed` state 로 표시 셀럽 관리 → 부모 `key={featured.id}` remount 제거(슬라이드아웃 위해 컴포넌트 persist).
+- **함께 랜딩(선행 WIP)**: 고정 380px/140px → `useWindowDimensions` 기반 화면 비율 hero/rail 사이징 + 전체 셀럽 풀(여성+남성) 5초 순환 재설계도 같은 diff 로 머지(같은 화면의 한 논리 단위).
+- **검증**: mobile typecheck + eslint(`--max-warnings=0`) clean. iOS Simulator(iPhone 17 Pro, iOS 26.3) 실행 — 40프레임 연속 캡처로 전환 시퀀스(Madison Beer 좌측 슬라이드아웃 → Chris Hemsworth 우측 슬라이드인) + Men 섹션 peek 확인. PR #172.
+### 미완료: 셀럽 사진은 여전히 컬러 블록 placeholder(라이선스 hold — backlog). 히어로 회전 수동 제어(스와이프/도트 인디케이터) 미구현. CelebritiesScreen RN 화면 단위 테스트 미작성(typecheck + 수동 실행으로 검증).
+### 연관 파일: apps/mobile/src/screens/CelebritiesScreen.tsx
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: IMPL-MOBILE-ONBOARDING-ROUTING-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/SelectionScreen.tsx
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/__tests__/screens/SelectionScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (mobile typecheck clean; SelectionScreen 3/3; iOS Simulator 기기 검증 5/6 통과)
+---
+### 완료: 가입 후 경로 선택(Selection) 라우팅 — personalized | trend-only (IMPL-MOBILE-ONBOARDING-ROUTING-001)
+- **배경**: 이메일 신규 가입 직후 "맞춤 식단(온보딩)" vs "트렌드만 둘러보기"를 고르는 Selection modal 추가 (G2).
+- **mobile**: 신규 `SelectionScreen`(presentational — onPersonalized/onTrendOnly props, ChoiceCard 2개). `RootNavigator` 가 `LoginReason==='signup'` 일 때만 `wantSelectionRef` set 후 phase='main' 커밋 → phase-watch useEffect 가 'Main' mount 이후 Selection present(BUG-MOBILE-AUTH-LOGIN-SIGNAL race 회피). onPersonalized → `navigation.replace('Onboarding')`(Onboarding back 이 Selection 이 아닌 Main 으로 가도록 — 핵심 불변식), onTrendOnly → goBack. Selection modal `gestureEnabled:false`. `types.ts` 에 Selection route param.
+- **reason-gating**: 소셜 로그인(reason='social')·기존 이메일 로그인(reason='manual')·세션 복원은 Selection 미트리거 — 신규 이메일 가입(reason='signup')만.
+- **spec.md §7.1**: Post-signup path selection 서브섹션 동기화(PIVOT-MOBILE spec sync 의무).
+- **검증**: mobile typecheck clean, SelectionScreen 3/3 단위테스트, iOS Simulator 기기 검증 — 6항목 중 5 통과(① signup→Selection ② Personalize→Onboarding→back→Main(replace 불변식, 이미지 확인) ③ trend-only→Main ④ 재로그인→Selection 미등장 ⑤ 재시작 후 로그인→Selection 미등장). 항목 ⑥(modal swipe-dismiss 억제)은 gestureEnabled:false 코드 강제 — 잔여 10초 확인.
+### 미완료: 소셜 첫 로그인 new-user 판별(현재 'signup'=이메일 전용; social 은 매 로그인 신호 → GET /users/me/bio-profile 404 기반 판별 후속). Display name 가입폼 제거 + EditProfile/소셜 충당은 별도 follow-up 합의(2026-05-27). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/SelectionScreen.tsx, apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/__tests__/screens/SelectionScreen.test.tsx, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: PAYWALL-DEVPREVIEW-PRICE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/PaywallScreen.tsx
+  - apps/mobile/__tests__/decisions.test.ts
+verified_by: claude-opus-4-7 (mobile typecheck/lint/test CI green; decisions.test.ts 더미가격 재유입 가드 PASS)
+---
+### 완료: Paywall dev-preview 더미가격($34.99) 제거 — 가격은 RevenueCat/스토어 런타임 (PAYWALL-DEVPREVIEW-PRICE-001)
+- **배경 (G1, Codex HIGH)**: `PaywallScreen` 의 `dev_preview` 분기가 하드코딩된 `$34.99 / per month / Subscribe` 패키지 카드를 렌더 → 더미 가격이 device 빌드에 실리거나 QA 를 오도할 위험. 실제 구독 가격/티어 구조는 IAP product 등록 시 RevenueCat dashboard 에서 확정하며 코드에 하드코딩하지 않는다.
+- **변경**: dev_preview 분기를 가격 없는 안내 문구로 교체 — "Subscription options load from the App Store / Play Store in a device build." + "(Preview build — live pricing is unavailable in Expo Go)". 하드코딩 숫자 가격 카드 제거.
+- **회귀 가드**: `decisions.test.ts` 의 기존 "$34.99 invariant" 결정 테스트를 폐기하고, `PaywallScreen.tsx` 소스에 `$NN.NN` 리터럴이 없음을 단언하는 가드로 교체 (이전 결정 `memory/project_pricing_single_tier_3499.md` 대체). 더미 가격 재유입 시 즉시 실패.
+- **검증**: Mobile Lint/Typecheck/Test CI green. 무배포 — apps/mobile 한정이라 cd.yml staging 트리거(services/**·apps/web/**) 미해당.
+### 미완료: 실제 IAP product (단일 vs Premium/Elite) RevenueCat 등록 — IAP/native 검증은 dev build 필요 (별도 G1 후속). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/PaywallScreen.tsx, apps/mobile/__tests__/decisions.test.ts
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-MOBILE-SOCIAL-SELECTION-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/users.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/tests/unit/auth.service.test.ts
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - spec.md
+verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 4 new is_new_user cases; mobile tsc + eslint --max-warnings=0 clean + 39 auth/nav/selection tests; ⚠️ device social-first-login E2E post-deploy)
+---
+### 완료: 소셜 첫 로그인 Selection gating — server is_new_user 플래그 (IMPL-MOBILE-SOCIAL-SELECTION-001)
+- **배경**: 가입 후 Selection modal 이 이메일 가입(`reason='signup'`)에서만 떴고, 소셜(Google/Apple)은 매 로그인 `signalLogin('social')` 이라 첫 로그인 판별이 불가 → 신규 소셜 유저가 Selection 을 못 봄 (RootNavigator 코드 주석에 deferred 로 명시돼 있던 갭).
+- **신호 선택**: 견고한 first-login 판별은 user-service `login()` 의 lazy-provision 분기(`created` 성공, auth.service.ts)가 단정적으로 안다. created_at 휴리스틱(시계 오차)·bio-profile 404 probe(trend-only 소셜 유저 매 로그인 재노출 + PHI 감사로그 부작용) 대신 **server-derived `is_new_user`** 채택.
+- **shared-types**: `LoginResponseSchema` 를 `SignupResponseSchema` 별칭에서 분리해 `is_new_user: z.boolean().optional()` 확장 (login 만; 이메일 signup 은 `reason='signup'` 유지). `.optional()` = rolling-deploy 안전(구 BE 생략→undefined→false).
+- **user-service**: `login()` 반환에 `is_new_user` 추가 — lazy-provision `created` 분기만 true, 그 외(기존 sub 발견·email-bridge·race 재조회·dev stub) false. 라우트는 `result` passthrough(응답 스키마 없음), BFF 는 `LoginResponseSchema` 검증으로 known optional key 보존.
+- **mobile**: `LoginReason` 에 `'social_new'` 추가. `social-auth.ts` 가 `LoginResponse` 파싱 후 `is_new_user===true` 면 `signalLogin('social_new')`, 아니면 `'social'`. `RootNavigator` 게이트를 `reason==='signup' || reason==='social_new'` 로 확장. Apple 재로그인은 `findByCognitoSub` 로 1회만 신규 판정.
+- **검증**: shared-types build; user-service 208/208 (신규 is_new_user 4-case: 기존 false / lazy true / race false / email-bridge false); mobile tsc + eslint(--max-warnings=0) clean + 관련 39 테스트 PASS. spec.md §7.1 sync.
+### 미완료: ⚠️ 배포 후 device social-first-login E2E (신규 Google 계정→Selection 1회; 재로그인→미등장). record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/tests/unit/auth.service.test.ts, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/navigation/RootNavigator.tsx, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-MOBILE-SIGNUP-DISPLAYNAME-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/auth.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/services/auth.service.ts
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/src/onboarding/RevealStep.tsx
+  - apps/mobile/src/onboarding/types.ts
+  - apps/web/src/app/api/auth/mobile/__tests__/mobile-auth.integration.test.ts
+  - apps/web/src/app/api/auth/__tests__/auth-bff.integration.test.ts
+  - spec.md
+verified_by: claude-opus-4-7 (shared-types build; user-service 209/209 incl. signup-default + lazy-default cases; mobile tsc + eslint --max-warnings=0 clean + 45 auth/signup/onboarding tests; web 191/191 incl. BFF signup display_name-optional contract fix (mobile-auth + auth-bff integration); Cognito name-claim consumer grep=0; ⚠️ device signup→onboarding-name-persist E2E post-deploy)
+---
+### 완료: 가입폼 display name 제거 — 서버 중립 기본값 + 온보딩 저장 (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001)
+- **배경**: 모바일 signup 이 이름을 필수로 받아 가입 마찰. 이름은 나중에 받아도 됨 → signup 에서 제거, 서버가 중립 기본값으로 채우고 실제 이름은 온보딩/EditProfile 에서 수집.
+- **결정 (사용자 2026-05-27)**: 기본값 = 중립 `'User'` (value-B) — 이메일 local-part 를 쓰지 않아 UI 에 이메일 일부 노출 방지(프라이버시; Gemini/advisor 권고). nudge 는 후속 `CHORE-PROFILE-NAME-NUDGE-001` (value-disc-1).
+- **contract**: shared-types `SignupRequestSchema.display_name` + user-service `SignupSchema` → `.optional()` (존재 시 `.min(1).max(100)`). DB migration 없음 — `users.display_name NOT NULL` 유지, 서버 폴백이 항상 non-empty 주입.
+- **user-service**: 공유 `DEFAULT_DISPLAY_NAME='User'` 상수. `signup()` = `input.display_name?.trim() || DEFAULT`. social lazy-provision site(`login()`) 도 email-split 폴백 → `DEFAULT` 로 정렬(일관성 + 프라이버시). 둘 다 중립 기본값.
+- **mobile**: `SignupScreen` 이름 FormField + Zod + state 제거. `auth.ts` `signUp` 이 Cognito `name` 속성 미전송(pool 비필수, infra/cognito/main.tf 확인) + `confirmSignUpAndLogin` 이 BFF body 에 display_name 미전송. 온보딩 step 0 "What should we call you?" 는 유지 — `RevealStep` 완료 시 `updateMe({display_name})` 로 1회 best-effort 저장(bio-profile POST 성공 후; 실패해도 진입 비차단, EditProfile 로 위임).
+- **검증**: shared-types build; user-service 209/209 (신규 "omit→default" signup + "lazy uses neutral default regardless of email"); mobile tsc + eslint(--max-warnings=0) clean + 45 테스트(auth/Signup/onboarding/Reveal); SignupScreen.test 가 이름 필드 부재 회귀 가드(queryByLabelText null). Cognito token `name`-claim 소비처 grep 0. spec.md §7.1 Display name lifecycle sync.
+- **BFF 계약 회귀 (CI 적발)**: web BFF 통합 테스트 2건 (`mobile-auth.integration`, `auth-bff.integration`) 이 옛 계약("signup display_name 누락 → 400")을 단언 → optional 전환으로 CI Tests 잡 fail. "누락 → upstream forwards / 빈 문자열 → 400(.min(1) when present)" 으로 교체. web 191/191. (로컬 검증 시 web 스위트 누락 → CI 가 적발한 교훈.)
+### 미완료: ⚠️ 배포 후 device E2E (이름없이 가입→성공→온보딩 이름 입력→Profile 반영 / trend-only→'User' 유지→EditProfile 변경). nudge 후속 CHORE-PROFILE-NAME-NUDGE-001. record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/auth.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/services/auth.service.ts, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/services/auth.ts, apps/mobile/src/onboarding/RevealStep.tsx, apps/mobile/src/onboarding/types.ts, spec.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
+task_id: IMPL-ACCOUNT-RESTORE-001
+commit_sha: PENDING
+files_changed:
+  - packages/shared-types/src/schemas/auth.ts
+  - packages/shared-types/src/schemas/users.ts
+  - services/user-service/src/services/auth.service.ts
+  - services/user-service/src/routes/auth.routes.ts
+  - services/user-service/src/index.ts
+  - services/user-service/src/repositories/user.repository.ts
+  - services/user-service/src/lib/auth-log.ts
+  - apps/web/src/app/api/auth/mobile/restore/route.ts
+  - .claude/rules/security.md
+verified_by: claude-opus-4-7 + advisor (user-service 213→ incl. 5 restore cases; web 195/195 incl. 4 BFF restore; shared-types build; user-svc+web tsc clean; ⚠️ 3b-mobile UX + device E2E follow-up)
+---
+### 완료: 계정삭제 막다른길(G2) — within-grace restore 엔드포인트 + ACCOUNT_DELETED 로그인 코드 (IMPL-ACCOUNT-RESTORE-001, BE 기반 = 3a+3b-BE)
+- **3a (로그인 코드)**: `login()` 의 soft-deleted 분기가 generic `UnauthorizedError(UNAUTHORIZED)` 대신 **`AccountDeletedError(ACCOUNT_DELETED)`** 를 던진다 → 모바일 `LoginScreen` 의 기존(죽어있던) `ACCOUNT_DELETED` 케이스가 살아나 막다른 raw 메시지 제거.
+- **3b-BE (복구 엔드포인트)**: 신규 **public `POST /auth/restore`**. login 과 동일 provider verifier 로 id_token full claim(RS256+iss+aud+exp+token_use) 검증 → **verified `sub`** 로 행 조회 → `clearSoftDelete` (atomic `UPDATE … SET deleted_at=NULL WHERE cognito_sub=$1 AND deleted_at IS NOT NULL RETURNING *`). 미존재 시 NotFound, 이미 active 면 멱등. publicPaths 등록, login rate-limit, `auth.account.restored` 감사(hashed id + optional ip/user_agent). BFF `/api/auth/mobile/restore` proxy.
+- **보안**: ① 위조/replay 토큰은 verifier 가 거부(타 계정 복구 불가) ② `clearSoftDelete` 는 `deleted_at` 만 변경 → **tier 미상승**(무료 권한 재부여 차단, 테스트 가드) ③ FEAT-APPLE-REVOKE-001 — restore 도 Apple authorization_code 재캡처(restore→delete 시 Apple revoke 보장; advisor 적발).
+- **grace-410 미적용 (현 릴리스)**: hard-delete 배치(CHORE-PHI-DELETE-COMPLIANCE-001) 부재 상태에서 410 을 켜면 30일 초과 유저 영구 고립 → 배치와 동시 활성화. DEK 는 유예중 보존(security.md 명확화, 사용자 확정).
+- **검증**: user-service 213→ (restore 5-case: 복구·멱등·NotFound·ValidationError·**Apple-no-email sub 해소**); web 195/195 (BFF restore 4); shared-types build; user-svc+web tsc clean.
+### 미완료: **3b-mobile UX (후속 PR)** — typed `AccountDeletedError`(id_token+provider carry) + `restoreAccount` + LoginScreen 복구 버튼 + SignupScreen "log in to restore" CTA(존재누출 없이). ⚠️ device E2E. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh.
+### 연관 파일: packages/shared-types/src/schemas/auth.ts, packages/shared-types/src/schemas/users.ts, services/user-service/src/services/auth.service.ts, services/user-service/src/routes/auth.routes.ts, services/user-service/src/index.ts, services/user-service/src/repositories/user.repository.ts, services/user-service/src/lib/auth-log.ts, apps/web/src/app/api/auth/mobile/restore/route.ts, .claude/rules/security.md
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: IMPL-ACCOUNT-RESTORE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/auth-errors.ts
+  - apps/mobile/src/lib/restore.ts
+  - apps/mobile/src/services/auth.ts
+  - apps/mobile/src/services/social-auth.ts
+  - apps/mobile/src/screens/LoginScreen.tsx
+  - apps/mobile/src/screens/SignupScreen.tsx
+  - apps/mobile/src/components/SocialAuthButtons.tsx
+  - apps/mobile/__tests__/services/auth.test.ts
+verified_by: claude-opus-4-7 (mobile 200/200 incl. signIn ACCOUNT_DELETED→AccountDeletedError + restoreAccount 2-case; tsc + eslint --max-warnings=0 clean; ⚠️ device E2E)
+---
+### 완료: 계정삭제 막다른길(G2) — 모바일 복구 UX (IMPL-ACCOUNT-RESTORE-001, 3b-mobile)
+- **재사용 코어** (amplify 무관 lib — social-auth 가 amplify barrel 회피하므로): `lib/auth-errors.ts` `AccountDeletedError`(verified id_token + provider carry) + `lib/restore.ts` `restoreAccount(idToken, provider)`(POST /api/auth/mobile/restore → setTokens → `signalLogin('manual')`, 복구는 returning user 라 Selection 미트리거).
+- **서비스 배선**: `auth.ts signIn()` 과 `social-auth.ts exchangeAndStore()` 가 BFF 401 `ACCOUNT_DELETED` 를 catch → 이미 확보한 id_token 을 실어 `AccountDeletedError` 재throw (Cognito/OAuth 재실행 없이 복구 가능).
+- **LoginScreen**: `AccountDeletedError` catch → 복구 패널(testID `login-restore-panel`) — "Restore account" 버튼이 `restoreAccount` 호출 → onSuccess. 일반 에러는 기존 경로.
+- **SocialAuthButtons**: `onAccountDeleted?` prop 추가 — 소셜 401 ACCOUNT_DELETED 를 부모(LoginScreen)의 복구 핸들러로 라우팅(id_token carry).
+- **SignupScreen**: `UsernameExistsException` / `EMAIL_ALREADY_EXISTS` 메시지에 "sign in to restore" 안내(존재누출 없이 — 삭제상태 비공개, 로그인으로 유도). 소셜 onAccountDeleted 는 로그인 유도 메시지.
+- **무배포**: apps/mobile 한정 → cd.yml staging 트리거(services/**·apps/web/**) 미해당. restore 계약(#180)은 이미 main.
+- **검증**: mobile 200/200 (신규 signIn ACCOUNT_DELETED→AccountDeletedError(idToken carry) + restoreAccount POST/store + empty-token throw); tsc + eslint(--max-warnings=0) clean.
+### 미완료: ⚠️ device E2E (삭제→로그인→복구 패널→복구→데이터 유지 / 재가입→"sign in to restore" 안내→로그인→복구). 소셜 복구는 dev build 에서 native 검증. CHORE-PHI-DELETE-COMPLIANCE-001(배치+grace-410). record-log-sha.sh (BE #180 + 본 mobile).
+### 연관 파일: apps/mobile/src/lib/auth-errors.ts, apps/mobile/src/lib/restore.ts, apps/mobile/src/services/auth.ts, apps/mobile/src/services/social-auth.ts, apps/mobile/src/screens/LoginScreen.tsx, apps/mobile/src/screens/SignupScreen.tsx, apps/mobile/src/components/SocialAuthButtons.tsx, apps/mobile/__tests__/services/auth.test.ts
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-WEB-LEGAL-HOMEPAGE-001
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/page.tsx
+  - apps/web/src/app/terms/page.tsx
+  - apps/web/src/app/privacy/page.tsx
+verified_by: claude-opus-4-7 (web tsc 0 + eslint 0 + next build OK; fe_token_hardcode pass)
+---
+### 완료: celebase.app 랜딩 + /terms + /privacy (draft) (CHORE-WEB-LEGAL-HOMEPAGE-001)
+- 루트 `app/page.tsx` 를 `/login` redirect → 공개 랜딩으로 교체 (앱명 + 태그라인 + "App Store/Play 출시 예정" + Terms/Privacy/Sign in 링크). 미들웨어 PROTECTED_PREFIXES 에 `/` 미포함 → 비로그인도 렌더. e2e (login/dashboard 직접 이동) 영향 없음.
+- `app/terms/page.tsx` (draft ToS) + `app/privacy/page.tsx` (draft Privacy) — 신규 top-level 공개 라우트. 모두 "Draft — 법무 검토 필요" 배너. Privacy 는 docs/runbooks/APP-PRIVACY-MAPPING.md 의 실제 데이터 관행 기반 (email/Cognito, health&fitness, purchases via store/RevenueCat, Sentry diagnostics PHI-redacted, AES-256 sensitive, in-app 삭제 + 30일 grace + restore).
+- 인라인 스타일 + `var(--cb-*)` 토큰만 (raw-hex 게이트 통과). 서버 컴포넌트 (정적, no 'use client'). frozen route group (app|auth|marketing|slice) 밖 — 신규 top-level 라우트.
+- 모바일 Settings/Paywall 의 celebase.app/terms·/privacy 링크(#182)가 이제 실제 페이지로 연결됨. prod celebase.app 컷오버 전엔 staging.celebase.app 서빙.
+### 미완료: 법적 문구는 draft — 법무 검토 후 확정 필요. i18n 미적용(en 하드코딩 — 후속). prod celebase.app DNS/배포는 컷오버 시. record-log-sha.sh.
+### 연관 파일: apps/web/src/app/page.tsx, apps/web/src/app/terms/page.tsx, apps/web/src/app/privacy/page.tsx
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: CHORE-MOBILE-RELEASE-ENV-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/lib/api-client.ts
+  - apps/mobile/src/lib/cognito.ts
+  - apps/mobile/src/lib/fetch-with-refresh.ts
+  - apps/mobile/src/services/auth-refresh.ts
+verified_by: claude-opus-4-7 (mobile tsc + eslint --max-warnings=0; jest 200/200)
+---
+### 완료: Release 번들 env 인라인 — 정적 process.env['EXPO_PUBLIC_*'] 접근 (CHORE-MOBILE-RELEASE-ENV-001)
+- 동적 `process.env[var]` 는 Expo Babel 트랜스폼이 Release 번들에 인라인하지 않아 undefined → standalone 빌드 부팅 시 흰 화면 크래시. 4개 env reader (BFF base URL, user-service URL, Cognito userPoolId/clientId/region) 를 정적 `process.env['리터럴']` 접근으로 전환.
+- cognito.ts `requireEnv(name, raw)` 로 시그니처 변경 — 호출부가 정적 리터럴 값을 직접 전달.
+- 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
+- App.tsx RevenueCat configure 비활성화(데모 standalone — 키 미발급)는 본 PR 제외 — 로컬 유지(main 부적합).
+### 미완료: record-log-sha.sh. RevenueCat 키 발급 후 App.tsx configureRevenueCat 복원.
+### 연관 파일: apps/mobile/src/lib/api-client.ts, apps/mobile/src/lib/cognito.ts, apps/mobile/src/lib/fetch-with-refresh.ts, apps/mobile/src/services/auth-refresh.ts

@@ -9,7 +9,11 @@ import { z } from 'zod';
 
 export const SignupRequestSchema = z.object({
   email: z.string().email().max(255),
-  display_name: z.string().min(1).max(100),
+  // Optional (IMPL-MOBILE-SIGNUP-DISPLAYNAME-001): mobile signup no longer
+  // collects a name. When absent the server fills a neutral default; the user
+  // sets a real name during onboarding or in EditProfile. Still `.min(1)` WHEN
+  // present (reject an explicit empty string).
+  display_name: z.string().min(1).max(100).optional(),
   id_token: z.string().optional(),
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
@@ -41,6 +45,15 @@ export const LoginRequestSchema = z.object({
   apple_authorization_code: z.string().optional(),
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+
+// IMPL-ACCOUNT-RESTORE-001 — within-grace account restore. A user who deleted
+// their account is blocked at login (ACCOUNT_DELETED) but the Cognito identity
+// still exists, so they re-authenticate and POST the SAME verified id_token here
+// to clear `deleted_at`. Shape mirrors LoginRequest: the server verifies the
+// id_token (RS256 + iss + aud + exp + token_use) and resolves the user by the
+// verified provider `sub` (works for native Apple re-sign-in with no email).
+export const RestoreRequestSchema = LoginRequestSchema;
+export type RestoreRequest = z.infer<typeof RestoreRequestSchema>;
 
 export const RefreshRequestSchema = z.object({
   refresh_token: z.string().min(1),

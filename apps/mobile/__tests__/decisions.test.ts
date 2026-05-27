@@ -6,21 +6,21 @@
 //   2. 본 파일에 it() 추가 + 결정 문서 경로를 description 에 명시
 //   3. 결정이 폐기되면 본 테스트 + memory 둘 다 제거
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { isClaimLocked } from '../src/lib/use-current-tier';
 
-describe('Decision: Pricing — single tier $34.99/mo', () => {
-  // 근거: memory/project_pricing_single_tier_3499.md (2026-05-12 결정)
-  // 모바일은 단일 paywall tier 만 표시. PaywallScreen 의 dev_preview mock 가격이
-  // $34.99 로 유지되어야 한다 (production 가격은 RevenueCat dashboard 에서).
-  const EXPECTED_DEV_PREVIEW_PRICE = 34.99;
-  const EXPECTED_PERIOD = 'month';
+describe('Decision: Paywall carries no hard-coded price (pricing lives in RevenueCat)', () => {
+  // 근거: PROD-DEPLOY-ROADMAP G1 (Codex HIGH — dev-preview $34.99 제거) +
+  // 2026-05-25 사용자 지시("Paywall 더미가격 제거"). 이전 결정
+  // (memory/project_pricing_single_tier_3499.md — dev_preview=$34.99) 을 대체한다.
+  // 실제 가격/티어 구조(단일 vs Premium/Elite)는 IAP product 등록(G1) 시 RevenueCat
+  // dashboard 에서 확정하며 코드에 하드코딩하지 않는다. 본 테스트는 더미 가격 재유입을 차단.
 
-  it('paywall DEV preview shows $34.99 / month', () => {
-    // 본 테스트의 가치: 누가 PaywallScreen.tsx 의 hard-coded $34.99 를 실수로
-    // 변경하면 즉시 감지. PaywallScreen.tsx 의 'dev_preview' 분기 텍스트 검증은
-    // 별도 UI 테스트 (TBD) 에서. 본 파일은 invariant 만 기록.
-    expect(EXPECTED_DEV_PREVIEW_PRICE).toBe(34.99);
-    expect(EXPECTED_PERIOD).toBe('month');
+  it('PaywallScreen.tsx contains no hard-coded $NN.NN price literal', () => {
+    const src = readFileSync(join(__dirname, '../src/screens/PaywallScreen.tsx'), 'utf8');
+    expect(src).not.toMatch(/\$\d+\.\d{2}/);
   });
 });
 

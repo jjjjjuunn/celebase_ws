@@ -1808,6 +1808,26 @@ Content Service에 아래 인터페이스를 미리 설계하여 Phase 2 플러�
 
 ### 7.1 Onboarding Flow (Persona-First · Plan 20 Phase C-1)
 
+#### Post-signup path selection *(IMPL-MOBILE-ONBOARDING-ROUTING-001, mobile · Gate G2)*
+
+> 모바일(active client)은 **회원가입 직후** 경로 선택 화면(`SelectionScreen`, modal)을 1회 표시하여 아래 wizard 진입 전에 분기한다:
+> - **Personalized** → bio-profile onboarding 진입 (non-PHI v1: allergies + body basics + activity. medical_conditions/medications 미수집 — PROD-DEPLOY-ROADMAP Decision A).
+> - **Trend-only** → onboarding 을 건너뛰고 main(celebrity claim feed) 진입. personalization 은 추후 Profile / claim feed CTA 의 기존 진입점으로 시작.
+>
+> 트리거: `LoginReason==='signup'`(이메일 가입) **또는 `'social_new'`(소셜 첫 로그인)**. `RootNavigator` 가 `phase='main'` 커밋 **후** `Selection` modal 을 present 한다 — 같은 tick 의 navigate 는 navigator race 를 유발 (BUG-MOBILE-AUTH-LOGIN-SIGNAL 교훈).
+>
+> **소셜 첫 로그인 판별 (IMPL-MOBILE-SOCIAL-SELECTION-001)**: user-service `login()` 의 lazy-provision 분기가 신규 계정 생성을 단정적으로 알므로, login 응답에 server-derived `is_new_user: boolean` 을 실어보낸다 (`LoginResponseSchema` — `SignupResponseSchema` 에서 de-alias 후 `.optional()` 확장; rolling-deploy 중 구 BE 가 생략하면 클라이언트는 `undefined`→`false` 로 간주해 스푸리어스 Selection 방지). `social-auth.ts` 는 `is_new_user===true` 일 때만 `signalLogin('social_new')`, 아니면 `'social'`. 재로그인(`'social'`)·기존 이메일 로그인(`'manual'`)·세션 복원은 미트리거. Apple 재로그인은 `findByCognitoSub` 로 1회만 신규 판정되어 정확. (이전 후속안이던 `GET /users/me/bio-profile` 404 probe 는 trend-only 소셜 유저를 매 로그인 재노출 + PHI 감사로그 부작용으로 기각.) 결선 회귀 보호: `apps/mobile/__tests__/screens/SelectionScreen.test.tsx` + user-service `auth.service.test.ts` (is_new_user 4-case: 기존 false / lazy-provision true / race re-read false / email-bridge false).
+>
+> 아래 §7.1 본문(S0~S7, persona-first web wizard)은 web-first 시점 작성이다. 모바일 실제 onboarding 은 one-question `OnboardingFlow`(#165)이며, 본 selection 분기가 그 앞단이다.
+
+#### Display name lifecycle *(IMPL-MOBILE-SIGNUP-DISPLAYNAME-001, mobile)*
+
+> 모바일 signup 은 **display name 을 수집하지 않는다** (가입 마찰 제거). user-service `signup()` 과 social lazy-provision 은 둘 다 중립 기본값 `'User'` 로 채운다 — 이메일 local-part 를 쓰지 않으므로 UI 에 이메일 일부가 노출되지 않는다 (프라이버시). 실제 이름은 두 경로로 들어온다:
+> - **개인화(온보딩) 경로**: step 0 "What should we call you?" 입력값을 `RevealStep` 완료 시 `PATCH /users/me { display_name }` 로 단 1회 저장 (bio-profile POST 성공 후 best-effort — 실패해도 진입 비차단).
+> - **trend-only / 미설정 유저**: 기본값 `'User'` 유지, 언제든 EditProfile 에서 변경. (기본값이 여전히 `'User'` 일 때 Profile/Settings nudge 는 후속 `CHORE-PROFILE-NAME-NUDGE-001`.)
+>
+> 계약: shared-types `SignupRequestSchema.display_name` + user-service `SignupSchema` 는 `.optional()` (존재 시 `.min(1).max(100)`). Cognito `name` 속성은 미전송 (pool 비필수, infra/cognito/main.tf). DB `users.display_name` 은 `NOT NULL` 유지 — 서버 폴백이 항상 비어있지 않은 값 주입.
+
 ```
 [S0: Welcome]
   ↓  "Get Started"

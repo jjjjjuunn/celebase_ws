@@ -17,6 +17,7 @@ import {
   ValidationError,
   AccountDeletedError,
   AccountExistsError,
+  NotFoundError,
   MalformedRefreshError,
   RefreshExpiredOrMissingError,
   RefreshRevokedError,
@@ -214,9 +215,16 @@ function toSubject(user: User): AuthTokenSubject {
   return { sub: user.id, email: user.email, cognito_sub: user.cognito_sub };
 }
 
+// IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: signup no longer collects a name, and the
+// social lazy-provision path no longer derives one from the email local-part
+// (that leaked part of the email into any UI that renders display_name). Both
+// fall back to one neutral default; users set a real name during onboarding or
+// in EditProfile (PATCH /users/me).
+const DEFAULT_DISPLAY_NAME = 'User';
+
 interface SignupInput {
   email: string;
-  display_name: string;
+  display_name?: string | undefined;
   id_token?: string | undefined;
 }
 
@@ -270,7 +278,7 @@ export async function signup(
   const user = await userRepo.create(pool, {
     cognito_sub: cognitoSub,
     email,
-    display_name: input.display_name,
+    display_name: input.display_name?.trim() || DEFAULT_DISPLAY_NAME,
   });
 
   // Atomic guard: DB unique constraint caught as null (TOCTOU race on email/cognito_sub)
@@ -297,8 +305,13 @@ export async function login(
   input: LoginInput,
   log: AuthLogger,
   requestId: string,
-): Promise<{ user: User } & AuthTokens> {
+): Promise<{ user: User; is_new_user: boolean } & AuthTokens> {
   let user: User | null;
+  // True ONLY when this login lazily provisions a brand-new account (the
+  // `created` branch below). Every other path — found by sub, email-bridge,
+  // concurrent-create re-read, dev-stub — is an existing user. Drives the
+  // social first-login Selection modal (IMPL-MOBILE-SOCIAL-SELECTION-001).
+  let isNewUser = false;
 
   if (input.id_token) {
     const payload = await provider.verifyIdToken(input.id_token);
@@ -345,7 +358,7 @@ export async function login(
           [{ field: 'email', issue: 'APPLE_EMAIL_REQUIRED' }],
         );
       }
-      const displayName = payload.email.split('@')[0] || 'User';
+      const displayName = DEFAULT_DISPLAY_NAME;
       const created = await userRepo.create(pool, {
         cognito_sub: payload.sub,
         email: payload.email,
@@ -353,6 +366,7 @@ export async function login(
       });
       if (created) {
         user = created;
+        isNewUser = true;
         emitAuthLog(log, 'auth.user.lazy_provisioned', {
           user_id_hash: hashId(created.id),
           cognito_sub_hash: hashId(payload.sub),
@@ -414,9 +428,85 @@ export async function login(
   }
 
   if (user.deleted_at !== null) {
-    throw new UnauthorizedError('Account has been deleted');
+    // IMPL-ACCOUNT-RESTORE-001: emit the specific ACCOUNT_DELETED code (was a
+    // generic UNAUTHORIZED) so the mobile LoginScreen can offer the restore path
+    // (within the 30-day grace) instead of a dead-end error.
+    throw new AccountDeletedError();
   }
 
+  const tokens = await provider.issueTokens(pool, toSubject(user));
+  return { user, is_new_user: isNewUser, ...tokens };
+}
+
+// IMPL-ACCOUNT-RESTORE-001 — within-grace account restore. A user who deleted
+// their account is blocked at login (ACCOUNT_DELETED) but their Cognito identity
+// still exists; they re-authenticate and POST the verified id_token here to clear
+// `deleted_at` and get fresh internal tokens. This is a PUBLIC route (no internal
+// JWT yet), so the id_token verification IS the authentication.
+export async function restore(
+  pool: pg.Pool,
+  provider: AuthProvider,
+  input: { id_token?: string | undefined; email?: string | undefined },
+  log: AuthLogger,
+  requestId: string,
+  meta?: { ip?: string | undefined; userAgent?: string | undefined },
+): Promise<{ user: User } & AuthTokens> {
+  if (!input.id_token) {
+    throw new ValidationError('id_token is required', [
+      { field: 'id_token', issue: 'Required to restore an account' },
+    ]);
+  }
+  // Verify with the FULL claim set (RS256 + iss + aud + exp + token_use) — the
+  // same barrier as login(). The user is resolved by the VERIFIED `sub` (never a
+  // client-supplied id), so a forged/replayed token cannot restore another
+  // account: the verifier rejects bad iss/aud/exp/signature before we touch a row.
+  const payload = await provider.verifyIdToken(input.id_token);
+
+  const existing = await userRepo.findByCognitoSub(pool, payload.sub);
+  if (!existing) {
+    // Valid identity but no account row (never signed up, or hard-deleted
+    // post-grace). Nothing to restore. Not an existence leak — the caller proved
+    // possession of this exact identity.
+    throw new NotFoundError('No account found to restore');
+  }
+  if (existing.deleted_at === null) {
+    // Already active → idempotent no-op restore; issue fresh tokens.
+    const tokens = await provider.issueTokens(pool, toSubject(existing));
+    return { user: existing, ...tokens };
+  }
+
+  // Soft-deleted → restore via an atomic conditional UPDATE (race-safe).
+  // GRACE COUPLING (CHORE-PHI-DELETE-COMPLIANCE-001): no 30-day grace 410 gate in
+  // THIS release — pre-CHORE nothing is hard-deleted, so any soft-deleted row is
+  // restorable. The grace-window 410 ships WITH the hard-delete batch; enforcing
+  // it earlier would strand a >30-day user (can't login, can't restore, can't
+  // re-signup while Cognito still holds the email).
+  const restored = await userRepo.clearSoftDelete(pool, payload.sub);
+  const user = restored ?? (await userRepo.findByCognitoSub(pool, payload.sub));
+  if (!user || user.deleted_at !== null) {
+    // clearSoftDelete matched nothing AND the row is still deleted/gone — the
+    // row vanished mid-flight (hard delete). Fail closed rather than 500.
+    throw new UnauthorizedError('Restore failed');
+  }
+
+  // Security-sensitive state change → audit with forensic fields (Gemini review).
+  emitAuthLog(
+    log,
+    'auth.account.restored',
+    {
+      user_id_hash: hashId(user.id),
+      cognito_sub_hash: hashId(payload.sub),
+      requestId,
+      ...(meta?.ip !== undefined && meta.ip !== '' ? { ip: meta.ip } : {}),
+      ...(meta?.userAgent !== undefined && meta.userAgent !== ''
+        ? { user_agent: meta.userAgent }
+        : {}),
+    },
+    'warn',
+  );
+
+  // NOTE: clearSoftDelete touches only deleted_at — subscription_tier is NEVER
+  // elevated by restore (no free reinstatement of a paid plan).
   const tokens = await provider.issueTokens(pool, toSubject(user));
   return { user, ...tokens };
 }

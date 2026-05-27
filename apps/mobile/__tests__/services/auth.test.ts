@@ -38,6 +38,8 @@ import {
 import * as SecureStore from 'expo-secure-store';
 
 import { ApiError } from '../../src/lib/api-client';
+import { AccountDeletedError } from '../../src/lib/auth-errors';
+import { restoreAccount } from '../../src/lib/restore';
 import { getAccessToken, getRefreshToken } from '../../src/lib/secure-store';
 import { confirmSignUpAndLogin, signIn, signOut, signUp } from '../../src/services/auth';
 
@@ -136,6 +138,28 @@ describe('auth.signIn()', () => {
     expect(await getAccessToken()).toBeNull();
   });
 
+  // IMPL-ACCOUNT-RESTORE-001: a soft-deleted account 401s as ACCOUNT_DELETED.
+  it('BFF 401 ACCOUNT_DELETED → AccountDeletedError carrying the verified id_token', async () => {
+    mockCognitoSignInSuccess('cognito-id-token-DEL');
+    mockBffJsonResponse(401, { error: { code: 'ACCOUNT_DELETED', message: 'Account has been deleted' } });
+
+    // Single call — the mocked Response body is read once (a second signIn would
+    // hit a consumed-body TypeError, not the real error).
+    let caught: unknown;
+    try {
+      await signIn({ email: 'a@b.co', password: 'pw' });
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(AccountDeletedError);
+    if (caught instanceof AccountDeletedError) {
+      // id_token obtained at the 401 is carried → restore needs no Cognito redo.
+      expect(caught.idToken).toBe('cognito-id-token-DEL');
+      expect(caught.provider).toBe('cognito');
+    }
+    expect(await getAccessToken()).toBeNull();
+  });
+
   it('Cognito session 에 idToken 미존재 → throw', async () => {
     amplifySignInMock.mockResolvedValue({
       isSignedIn: true,
@@ -190,14 +214,15 @@ describe('auth.signUp()', () => {
       nextStep: { signUpStep: 'CONFIRM_SIGN_UP' },
     } as Awaited<ReturnType<typeof amplifySignUp>>);
 
-    const result = await signUp({ email: 'a@b.co', password: 'Pass123!', display_name: 'Alice' });
+    const result = await signUp({ email: 'a@b.co', password: 'Pass123!' });
 
     expect(result.nextStep).toBe('CONFIRM_SIGN_UP');
+    // IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: no `name` attribute sent to Cognito.
     expect(amplifySignUpMock).toHaveBeenCalledWith({
       username: 'a@b.co',
       password: 'Pass123!',
       options: {
-        userAttributes: { email: 'a@b.co', name: 'Alice' },
+        userAttributes: { email: 'a@b.co' },
       },
     });
   });
@@ -208,7 +233,7 @@ describe('auth.signUp()', () => {
       nextStep: { signUpStep: 'DONE' },
     } as Awaited<ReturnType<typeof amplifySignUp>>);
 
-    const result = await signUp({ email: 'a@b.co', password: 'P', display_name: 'A' });
+    const result = await signUp({ email: 'a@b.co', password: 'P' });
     expect(result.nextStep).toBe('DONE');
   });
 
@@ -218,7 +243,7 @@ describe('auth.signUp()', () => {
     );
 
     await expect(
-      signUp({ email: 'a@b.co', password: 'p', display_name: 'A' }),
+      signUp({ email: 'a@b.co', password: 'p' }),
     ).rejects.toThrow(/email exists/);
   });
 });
@@ -264,7 +289,6 @@ describe('auth.confirmSignUpAndLogin()', () => {
       email: 'a@b.co',
       code: '123456',
       password: 'pw',
-      display_name: 'Alice',
     });
 
     expect(tokens.access_token).toBe('access-X');
@@ -274,11 +298,11 @@ describe('auth.confirmSignUpAndLogin()', () => {
     });
     expect(amplifySignInMock).toHaveBeenCalledWith({ username: 'a@b.co', password: 'pw' });
 
-    // BFF /signup 호출 — body 에 email, display_name, id_token
+    // BFF /signup 호출 — body 에 email, id_token (display_name 미전송)
     const [calledUrl, calledInit] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(calledUrl).toBe('http://localhost:3000/api/auth/mobile/signup');
     const sentBody: unknown = JSON.parse(calledInit.body as string);
-    expect(sentBody).toEqual({ email: 'a@b.co', display_name: 'Alice', id_token: 'id-token-X' });
+    expect(sentBody).toEqual({ email: 'a@b.co', id_token: 'id-token-X' });
 
     expect(await getAccessToken()).toBe('access-X');
     expect(await getRefreshToken()).toBe('refresh-X');
@@ -290,7 +314,7 @@ describe('auth.confirmSignUpAndLogin()', () => {
     );
 
     await expect(
-      confirmSignUpAndLogin({ email: 'a@b.co', code: 'wrong', password: 'pw', display_name: 'A' }),
+      confirmSignUpAndLogin({ email: 'a@b.co', code: 'wrong', password: 'pw' }),
     ).rejects.toThrow(/Invalid verification code/);
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(await getAccessToken()).toBeNull();
@@ -310,8 +334,54 @@ describe('auth.confirmSignUpAndLogin()', () => {
     );
 
     await expect(
-      confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw', display_name: 'A' }),
+      confirmSignUpAndLogin({ email: 'a@b.co', code: '123', password: 'pw' }),
     ).rejects.toBeInstanceOf(ApiError);
     expect(await getAccessToken()).toBeNull();
+  });
+});
+
+// IMPL-ACCOUNT-RESTORE-001 (3b-mobile) — within-grace restore.
+describe('lib.restoreAccount()', () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSecureStoreMemory();
+    process.env['EXPO_PUBLIC_BFF_BASE_URL'] = 'http://localhost:3000';
+    fetchSpy = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it('POSTs the id_token to /api/auth/mobile/restore and stores the returned tokens', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(
+        JSON.stringify({ access_token: 'acc-R', refresh_token: 'ref-R', user: { id: 'u1' } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const res = await restoreAccount('apple.jwt', 'apple');
+
+    expect(res.access_token).toBe('acc-R');
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('http://localhost:3000/api/auth/mobile/restore');
+    const sentBody: unknown = JSON.parse(init.body as string);
+    expect(sentBody).toEqual({ id_token: 'apple.jwt', provider: 'apple' });
+    expect(await getAccessToken()).toBe('acc-R');
+    expect(await getRefreshToken()).toBe('ref-R');
+  });
+
+  it('throws on an empty-token response (server contract violation)', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ access_token: '', refresh_token: '', user: { id: 'u1' } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await expect(restoreAccount('t', 'cognito')).rejects.toThrow(/빈 토큰/);
   });
 });

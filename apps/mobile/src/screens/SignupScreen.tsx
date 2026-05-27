@@ -22,10 +22,12 @@ import { PasswordSchema, isPasswordValid } from '../lib/password-policy';
 import { confirmSignUpAndLogin, signUp } from '../services/auth';
 import { Button, Text, useTheme, type Theme } from '../ui';
 
+// IMPL-MOBILE-SIGNUP-DISPLAYNAME-001: signup no longer collects a name. The
+// server fills a neutral default; the user sets a real name during onboarding
+// (the "What should we call you?" step persists it) or later in EditProfile.
 const SignupFormSchema = z.object({
   email: z.string().email('Please enter a valid email address.').max(255),
   password: PasswordSchema,
-  display_name: z.string().min(1, 'Please enter your name.').max(100),
 });
 
 const ConfirmFormSchema = z.object({
@@ -48,7 +50,6 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [code, setCode] = useState('');
 
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
   async function handleSignup(): Promise<void> {
     setError(null);
-    const parsed = SignupFormSchema.safeParse({ email, password, display_name: displayName });
+    const parsed = SignupFormSchema.safeParse({ email, password });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Please check your input.');
       return;
@@ -66,7 +67,6 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
       const result = await signUp({
         email: parsed.data.email,
         password: parsed.data.password,
-        display_name: parsed.data.display_name,
       });
       if (result.nextStep === 'DONE') {
         // Cognito 가 자동 가입 — 별도 confirmation 불필요. 바로 confirmSignUpAndLogin
@@ -87,7 +87,6 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
       email,
       code: confirmationCode,
       password,
-      display_name: displayName,
     });
     onSuccess();
   }
@@ -124,17 +123,6 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
 
         <View style={styles.form}>
           <FormErrorBox message={error} />
-
-          <FormField
-            id="signup-name"
-            label="Display name"
-            autoCapitalize="words"
-            editable={!submitting}
-            onChangeText={setDisplayName}
-            placeholder="Your name"
-            textContentType="name"
-            value={displayName}
-          />
 
           <FormField
             id="signup-email"
@@ -178,7 +166,15 @@ export function SignupScreen({ onSuccess, onBackToLogin }: SignupScreenProps): R
             />
           </View>
 
-          <SocialAuthButtons disabled={submitting} onSuccess={onSuccess} onError={setError} />
+          <SocialAuthButtons
+            disabled={submitting}
+            onSuccess={onSuccess}
+            onError={setError}
+            onAccountDeleted={() => {
+              // No restore panel on signup — route to Sign in, where restore lives.
+              setError('This account is scheduled for deletion. Sign in to restore it.');
+            }}
+          />
         </View>
 
         <View style={styles.switchRow}>
@@ -248,7 +244,7 @@ function mapErrorToMessage(err: unknown): string {
   if (err instanceof ApiError) {
     switch (err.code) {
       case 'EMAIL_ALREADY_EXISTS':
-        return 'This email is already registered.';
+        return 'This email is already registered. If you deleted this account, sign in to restore it.';
       case 'INVALID_CREDENTIALS':
         return 'The information you entered is invalid.';
       default:
@@ -256,7 +252,12 @@ function mapErrorToMessage(err: unknown): string {
     }
   }
   if (err instanceof Error) {
-    if (err.name === 'UsernameExistsException') return 'This email is already registered.';
+    // IMPL-ACCOUNT-RESTORE-001: a deleted account keeps its Cognito identity, so
+    // re-signup hits this. Point them to Sign in, where the restore path lives —
+    // without disclosing whether the email is in a deleted state (no existence leak).
+    if (err.name === 'UsernameExistsException') {
+      return 'This email is already registered. If you deleted this account, sign in to restore it.';
+    }
     if (err.name === 'InvalidPasswordException') {
       return 'Password must be at least 12 characters and include uppercase, lowercase, and a number.';
     }

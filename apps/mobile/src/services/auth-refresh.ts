@@ -22,11 +22,12 @@ import { clearTokens, getRefreshToken, setTokens } from '../lib/secure-store';
 const USER_SERVICE_URL_ENV = 'EXPO_PUBLIC_USER_SERVICE_URL';
 
 function getUserServiceUrl(): string {
-  const raw: unknown = process.env[USER_SERVICE_URL_ENV];
+  // Static literal access — inlined into the Release bundle (dynamic process.env[var] is not).
+  const raw: unknown = process.env['EXPO_PUBLIC_USER_SERVICE_URL'];
   if (typeof raw !== 'string' || raw === '') {
     throw new Error(
       `[auth-refresh] Missing required env var: ${USER_SERVICE_URL_ENV}. ` +
-        '로컬은 http://localhost:3001, prod 는 https://user.celebbase.com (또는 internal mesh URL).',
+        '로컬은 http://localhost:3001, prod 는 https://celebase.app (또는 internal mesh URL).',
     );
   }
   return raw;
