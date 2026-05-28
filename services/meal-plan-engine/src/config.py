@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     APP_VERSION: str = "0.1.0"
 
+    # Sentry error monitoring (CHORE-SENTRY-PHI-REDACTION-001). Empty (default) =
+    # disabled — init_sentry() is a no-op. When set: errors-only capture
+    # (traces_sample_rate=0, send_default_pii=False) with before_send PHI scrub.
+    SENTRY_DSN: str = ""
+
     # ── LLM Enhancement Layer (spec §5.8, IMPL-AI-001-c) ─────────────────────
     # OPENAI_API_KEY pattern sk-* is blocked by security.md Semgrep rules — env only
     OPENAI_API_KEY: str = ""

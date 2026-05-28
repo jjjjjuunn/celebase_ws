@@ -8,11 +8,18 @@ from src.logging_config import configure_logging
 
 configure_logging(level=_settings_early.LOG_LEVEL)
 
+# Initialise Sentry as early as possible (errors-only + PHI scrub). No-op when
+# SENTRY_DSN is unset, so local/dev/test runs are unaffected.
+from src.sentry_config import init_sentry
+
+init_sentry(_settings_early.SENTRY_DSN, _settings_early.NODE_ENV)
+
 import asyncio
 import logging
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -92,6 +99,7 @@ async def _unhandled_exception_handler(
 ) -> JSONResponse:
     request_id = request.headers.get("x-request-id", str(uuid4()))
     _logger.exception("Unhandled exception: %s", exc, extra={"requestId": request_id})
+    sentry_sdk.capture_exception(exc)  # no-op when Sentry is not configured
     return JSONResponse(
         status_code=500,
         content={

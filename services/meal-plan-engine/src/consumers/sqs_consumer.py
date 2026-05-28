@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import boto3
+import sentry_sdk
 
 from src.api.websocket import broadcast_progress
 from src.config import settings
@@ -266,6 +267,7 @@ async def start_consumer(queue_url: str) -> None:
                         _MAX_RETRIES + 1,
                         plan_id,
                     )
+                    sentry_sdk.capture_exception()  # no-op when Sentry not configured
 
                     if retries > _MAX_RETRIES:
                         _logger.error(
@@ -299,4 +301,5 @@ async def start_consumer(queue_url: str) -> None:
             consecutive_errors += 1
             backoff = min(5 * (2**consecutive_errors), 300)
             _logger.exception("SQS poll error, retrying in %ds", backoff)
+            sentry_sdk.capture_exception()  # no-op when Sentry not configured
             await asyncio.sleep(backoff)
