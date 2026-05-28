@@ -7921,3 +7921,28 @@ verified_by: claude-opus-4-7 (mobile tsc 0 + jest 206/206; grep acceptance 0 med
 - 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
 ### 미완료: BE `bio-profile.service.ts` deprecation marker (comment-only — services/** 불필요 deploy 회피 위해 후속). record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/onboarding/OnboardingFlow.tsx, apps/mobile/src/onboarding/types.ts, apps/mobile/src/services/bio-profile.ts, apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx
+
+---
+date: 2026-05-28
+agent: claude-opus-4-7 (1M context)
+task_id: IMPL-NEWS-CLAIM-BASEDIET-WIRING-001
+commit_sha: PENDING
+files_changed:
+  - db/seeds/loaders/claimsLoader.ts
+  - db/seeds/lifestyle-claims/ariana-grande.json
+  - db/seeds/lifestyle-claims/beyonce.json
+  - db/seeds/lifestyle-claims/cristiano-ronaldo.json
+  - db/seeds/lifestyle-claims/dwayne-johnson.json
+  - db/seeds/lifestyle-claims/jennifer-aniston.json
+  - db/seeds/lifestyle-claims/joaquin-phoenix.json
+  - db/seeds/lifestyle-claims/natalie-portman.json
+  - db/seeds/lifestyle-claims/tom-brady.json
+verified_by: claude-opus-4-7 (validate-claim-seeds 50/50 pass; CI ts/lint via PR)
+---
+### 완료: News→meal-plan funnel unblock — claim.base_diet_id_slug → lifestyle_claims.base_diet_id wiring (IMPL-NEWS-CLAIM-BASEDIET-WIRING-001)
+- News-first 데모 전략(`Claude-2026-05-27-celebase-데모전략.md` 3차 리뷰)의 명시된 다음 액션. `_schema.json` 은 `base_diet_id_slug` 필드를 이미 정의했지만(IMPL-020 미완) loader 가 그걸 resolve 하지 않아 모든 12 food claim 의 `base_diet_id` 가 NULL → ClaimDetailScreen `showInspiredCta=false` → "Coming soon" 으로 dead-end 였다.
+- claimsLoader: `SeedClaim.base_diet_id_slug?` 추가 + `resolveBaseDietId()` 헬퍼(JOIN base_diets ↔ celebrities WHERE c.slug=$1 AND bd.is_active). base_diets 는 slug 컬럼이 없어 celebrity_slug 를 재사용(시드 invariant: 셀럽당 active base_diet 1개). INSERT 컬럼에 base_diet_id 추가. **idempotent backfill**: 기존 행이 (celebrity_id, headline) 매칭되고 그 행의 base_diet_id 가 NULL 이면 UPDATE 로만 채움 — 다른 필드 미변경, operator override 보존.
+- 12 food claims(8 celeb) 전부 base_diet_id_slug = 자기 자신 slug 로 채움 → 모든 Diet News 카드의 "Eat like this celebrity" CTA 활성화 (FE deep-link wiring 은 후속).
+- 검증: validate-claim-seeds 50/50 pass, JSON 스키마 호환, content-service API 응답 shape 변경 없음(base_diet_id 는 기존 컬럼). 무배포 — db/seeds/** 는 cd.yml paths 외, staging 시드 재실행 시점에 backfill 적용.
+### 미완료: ClaimDetailScreen FE CTA wiring (mobile PR — "Coming soon" 텍스트 → MealPlanGenerateSheet({initialBaseDietId}) 라우팅). staging 시드 재실행 + base_diet_id !=NULL 확인 (운영자). record-log-sha.sh.
+### 연관 파일: db/seeds/loaders/claimsLoader.ts, db/seeds/lifestyle-claims/*.json

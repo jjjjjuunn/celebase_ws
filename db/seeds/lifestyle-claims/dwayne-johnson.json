@@ -9,7 +9,14 @@
       "primary_source_url": "https://people.com/food/dwayne-johnson-on-strict-black-adam-diet/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["high-protein", "cheat-day", "sunday", "film-prep", "structured"],
+      "base_diet_id_slug": "dwayne-johnson",
+      "tags": [
+        "high-protein",
+        "cheat-day",
+        "sunday",
+        "film-prep",
+        "structured"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +43,12 @@
       "primary_source_url": "https://people.com/movies/dwayne-johnson-injures-himself-at-the-gym-tastes-his-own-blood/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["iron-paradise", "heavy-training", "consistency", "leg-day"],
+      "tags": [
+        "iron-paradise",
+        "heavy-training",
+        "consistency",
+        "leg-day"
+      ],
       "status": "published",
       "sources": [
         {
@@ -63,7 +75,13 @@
       "primary_source_url": "https://people.com/food/dwayne-the-rock-johnson-unveils-his-new-tequila-teremana/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["teremana", "founder", "tequila", "jalisco", "small-batch"],
+      "tags": [
+        "teremana",
+        "founder",
+        "tequila",
+        "jalisco",
+        "small-batch"
+      ],
       "status": "published",
       "sources": [
         {
@@ -90,7 +108,12 @@
       "primary_source_url": "https://people.com/food/dwayne-johnson-breakfast-sirloin-steak-eggs-oatmeal-and-peanut-butter-and-jelly-sandwiches/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["zoa-energy", "founder", "energy-drink", "clean-label"],
+      "tags": [
+        "zoa-energy",
+        "founder",
+        "energy-drink",
+        "clean-label"
+      ],
       "status": "published",
       "sources": [
         {
@@ -117,7 +140,12 @@
       "primary_source_url": "https://people.com/style/lindsey-vonn-face-under-armour-collection/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["project-rock", "under-armour", "training-apparel", "founder"],
+      "tags": [
+        "project-rock",
+        "under-armour",
+        "training-apparel",
+        "founder"
+      ],
       "status": "published",
       "sources": [
         {

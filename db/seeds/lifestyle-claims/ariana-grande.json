@@ -9,7 +9,13 @@
       "primary_source_url": "https://www.elle.com/uk/life-and-culture/culture/g30388227/vegan-celebrities/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["vegan", "plant-based", "ethics", "long-term"],
+      "base_diet_id_slug": "ariana-grande",
+      "tags": [
+        "vegan",
+        "plant-based",
+        "ethics",
+        "long-term"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +42,13 @@
       "primary_source_url": "https://www.vogue.com/article/ariana-grande-new-makeup-line-rem-beauty",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["rem-beauty", "founder", "vegan", "cruelty-free", "makeup"],
+      "tags": [
+        "rem-beauty",
+        "founder",
+        "vegan",
+        "cruelty-free",
+        "makeup"
+      ],
       "status": "published",
       "sources": [
         {
@@ -63,7 +75,13 @@
       "primary_source_url": "https://www.elle.com/beauty/a37159251/elle-loves-god-is-a-woman/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["fragrance", "god-is-a-woman", "vegan", "cruelty-free", "sustainable"],
+      "tags": [
+        "fragrance",
+        "god-is-a-woman",
+        "vegan",
+        "cruelty-free",
+        "sustainable"
+      ],
       "status": "published",
       "sources": [
         {
@@ -83,7 +101,13 @@
       "primary_source_url": "https://www.allure.com/story/ariana-grande-drugstore-face-wipes-neutrogena-burts-bees",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["skincare", "drugstore", "makeup-remover", "neutrogena", "burts-bees"],
+      "tags": [
+        "skincare",
+        "drugstore",
+        "makeup-remover",
+        "neutrogena",
+        "burts-bees"
+      ],
       "status": "published",
       "sources": [
         {
@@ -103,7 +127,13 @@
       "primary_source_url": "https://www.allure.com/story/ariana-grande-lip-filler-botox",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["lip-filler", "botox", "stopped", "natural", "transparency"],
+      "tags": [
+        "lip-filler",
+        "botox",
+        "stopped",
+        "natural",
+        "transparency"
+      ],
       "status": "published",
       "sources": [
         {

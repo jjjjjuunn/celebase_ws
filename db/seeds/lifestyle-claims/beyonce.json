@@ -9,7 +9,14 @@
       "primary_source_url": "https://people.com/food/beyonce-jayz-marco-borges-22-day-vegan-diet/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["plant-based", "22-days", "marco-borges", "vegan-curious", "reset"],
+      "base_diet_id_slug": "beyonce",
+      "tags": [
+        "plant-based",
+        "22-days",
+        "marco-borges",
+        "vegan-curious",
+        "reset"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +43,13 @@
       "primary_source_url": "https://www.vogue.com/article/beyonce-cecred-interview",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["cecred", "founder", "haircare", "ulta", "validated-by-science"],
+      "tags": [
+        "cecred",
+        "founder",
+        "haircare",
+        "ulta",
+        "validated-by-science"
+      ],
       "status": "published",
       "sources": [
         {
@@ -63,7 +76,13 @@
       "primary_source_url": "https://www.vogue.com/article/beyonce-athleisure-fitness-gym-ivy-park",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["ivy-park", "founder", "activewear", "adidas", "athleisure"],
+      "tags": [
+        "ivy-park",
+        "founder",
+        "activewear",
+        "adidas",
+        "athleisure"
+      ],
       "status": "published",
       "sources": [
         {
@@ -90,7 +109,13 @@
       "primary_source_url": "https://www.vogue.com/article/beyonc233-fierce-creature",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["running", "squats", "dance", "tour-prep", "strength"],
+      "tags": [
+        "running",
+        "squats",
+        "dance",
+        "tour-prep",
+        "strength"
+      ],
       "status": "published",
       "sources": [
         {
@@ -117,7 +142,14 @@
       "primary_source_url": "https://people.com/food/beyonce-vegan-diet-coachella/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["coachella", "reset", "vegan", "performance-prep", "22-days"],
+      "base_diet_id_slug": "beyonce",
+      "tags": [
+        "coachella",
+        "reset",
+        "vegan",
+        "performance-prep",
+        "22-days"
+      ],
       "status": "published",
       "sources": [
         {

@@ -9,7 +9,14 @@
       "primary_source_url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["plant-based", "tb12", "no-nightshades", "no-strawberries", "80-20"],
+      "base_diet_id_slug": "tom-brady",
+      "tags": [
+        "plant-based",
+        "tb12",
+        "no-nightshades",
+        "no-strawberries",
+        "80-20"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +43,13 @@
       "primary_source_url": "https://www.nytimes.com/2017/09/20/well/move/tom-bradys-the-tb12-method-is-hefty-but-short-on-science.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["pliability", "tb12", "alex-guerrero", "longevity", "method"],
+      "tags": [
+        "pliability",
+        "tb12",
+        "alex-guerrero",
+        "longevity",
+        "method"
+      ],
       "status": "published",
       "sources": [
         {
@@ -63,7 +76,12 @@
       "primary_source_url": "https://www.nytimes.com/athletic/3106842/2022/02/03/tom-brady-influence-far-beyond-nfl-trailblazed-path-premier-league-players-beyond/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["nine-hours", "early-bedtime", "recovery", "longevity"],
+      "tags": [
+        "nine-hours",
+        "early-bedtime",
+        "recovery",
+        "longevity"
+      ],
       "status": "published",
       "sources": [
         {
@@ -90,7 +108,14 @@
       "primary_source_url": "https://www.nytimes.com/2021/02/07/sports/football/tom-brady-super-bowl-age.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["hydration", "tb12", "electrolytes", "rule", "longevity"],
+      "base_diet_id_slug": "tom-brady",
+      "tags": [
+        "hydration",
+        "tb12",
+        "electrolytes",
+        "rule",
+        "longevity"
+      ],
       "status": "published",
       "sources": [
         {
@@ -110,7 +135,13 @@
       "primary_source_url": "https://www.nytimes.com/live/2022/02/01/sports/tom-brady-retires/hes-looked-at-as-part-of-the-fashion-world",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["tb12-sports", "brady-brand", "founder", "apparel", "religion-of-sports"],
+      "tags": [
+        "tb12-sports",
+        "brady-brand",
+        "founder",
+        "apparel",
+        "religion-of-sports"
+      ],
       "status": "published",
       "sources": [
         {

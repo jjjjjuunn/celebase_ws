@@ -9,7 +9,13 @@
       "primary_source_url": "https://www.nytimes.com/2017/09/06/t-magazine/joaquin-phoenix.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["vegan", "lifelong", "animal-rights", "ethics"],
+      "base_diet_id_slug": "joaquin-phoenix",
+      "tags": [
+        "vegan",
+        "lifelong",
+        "animal-rights",
+        "ethics"
+      ],
       "status": "published",
       "sources": [
         {
@@ -29,7 +35,13 @@
       "primary_source_url": "https://www.nytimes.com/2020/02/10/movies/joaquin-phoenix-oscars-speech.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["activism", "oscars", "dairy", "animal-rights", "speech"],
+      "tags": [
+        "activism",
+        "oscars",
+        "dairy",
+        "animal-rights",
+        "speech"
+      ],
       "status": "published",
       "sources": [
         {
@@ -56,7 +68,13 @@
       "primary_source_url": "https://www.nytimes.com/2026/02/25/movies/awards-show-food.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["golden-globes", "vegan-menu", "advocacy", "awards"],
+      "base_diet_id_slug": "joaquin-phoenix",
+      "tags": [
+        "golden-globes",
+        "vegan-menu",
+        "advocacy",
+        "awards"
+      ],
       "status": "published",
       "sources": [
         {
@@ -76,7 +94,12 @@
       "primary_source_url": "https://www.vogue.com/article/golden-globes-2020-red-carpet-sustainable-fashion-climate-change",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["sustainable-fashion", "stella-mccartney", "rewear", "vegan-tuxedo"],
+      "tags": [
+        "sustainable-fashion",
+        "stella-mccartney",
+        "rewear",
+        "vegan-tuxedo"
+      ],
       "status": "published",
       "sources": [
         {
@@ -96,7 +119,12 @@
       "primary_source_url": "https://www.nytimes.com/2019/04/10/world/australia/vegans-protest-farms.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["documentary", "narration", "factory-farming", "activism"],
+      "tags": [
+        "documentary",
+        "narration",
+        "factory-farming",
+        "activism"
+      ],
       "status": "published",
       "sources": [
         {
