@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-28
 agent: claude-opus-4-8 (1M context) + codex-review (L2) + gemini (plan adversarial)
 task_id: IMPL-MOBILE-NEWS-FEED-001
-commit_sha: PENDING
+commit_sha: 115be5e
 files_changed:
   - apps/mobile/src/screens/NewsScreen.tsx
   - apps/mobile/src/components/ClaimCard.tsx
