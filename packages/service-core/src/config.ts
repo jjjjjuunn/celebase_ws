@@ -13,8 +13,9 @@ export const BaseConfigSchema = z.object({
     .string()
     .default('http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8000')
     .transform((s) => s.split(',').map((o) => o.trim()).filter(Boolean)),
-  // Sentry error tracking. Unset until the user provisions a project + DSN
-  // (CHORE-OBSERVABILITY-001); createApp() then inits Sentry fail-open.
-  SENTRY_DSN: z.string().url().optional(),
+  // Sentry DSN. Empty string (docker-compose `${SENTRY_DSN:-}` when the host var
+  // is unset) must coerce to undefined: `.optional()` only skips `undefined`, so a
+  // bare `''` would fail `.url()` and crash createApp at boot. Empty/unset = dormant.
+  SENTRY_DSN: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;
