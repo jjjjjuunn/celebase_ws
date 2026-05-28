@@ -4,6 +4,17 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
+// CTA wiring (IMPL-MOBILE-CLAIM-CTA-001) introduces useMealPlanCredits, which
+// fires its own fetch on every mount — stub it so each test's mockResolvedValueOnce
+// still covers only the /claims/:id fetch.
+jest.mock('../../src/lib/use-meal-plan-credits', () => ({
+  useMealPlanCredits: () => ({
+    credits: { credits_remaining: 3, credits_total: 3, tier: 'premium' },
+    loading: false,
+    refresh: jest.fn(),
+  }),
+}));
+
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 
@@ -126,7 +137,7 @@ describe('<ClaimDetailScreen />', () => {
     expect(screen.queryByText(/educational purposes only/i)).toBeNull();
   });
 
-  it('"이 셀럽처럼 먹어보기" 버튼: base_diet_id 있을 때만 노출 (회색 비활성)', async () => {
+  it('"이 셀럽처럼 먹어보기" 버튼: base_diet_id 있을 때 노출 (active CTA)', async () => {
     fetchSpy.mockResolvedValueOnce(
       makeResponse(200, {
         claim: { ...CLAIM_BASE, base_diet_id: '01927000-0000-7000-8000-aaaaaaaaaaaa' },
@@ -137,8 +148,9 @@ describe('<ClaimDetailScreen />', () => {
     renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.getByText('Eat like this celebrity')).toBeTruthy();
-    expect(screen.getByText('Coming soon')).toBeTruthy();
+    // IMPL-MOBILE-CLAIM-CTA-001: "Coming soon" 정적 텍스트는 active CTA 로 교체됨.
+    expect(screen.getByLabelText('Eat like this celebrity')).toBeTruthy();
+    expect(screen.queryByText('Coming soon')).toBeNull();
   });
 
   it('base_diet_id null → "Eat like this celebrity" 미노출', async () => {

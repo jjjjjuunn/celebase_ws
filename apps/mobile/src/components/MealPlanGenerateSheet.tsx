@@ -33,6 +33,14 @@ interface MealPlanGenerateSheetProps {
   onClose: () => void;
   /** 생성+폴링 완료 후 호출 — 새 plan id. 게이트가 닫기 + credits refresh + 해당 plan 선택. */
   onGenerated: (mealPlanId: string) => void;
+  /**
+   * News claim 진입점: claim 의 `base_diet_id` 를 그대로 사용해 셀럽 picker 단계를
+   * 스킵한다(claim 에서 셀럽 맥락은 이미 자명). 없으면 기본 picker 경로로 돌아간다.
+   * IMPL-MOBILE-CLAIM-CTA-001 — News→meal-plan 척추 wiring.
+   */
+  initialBaseDietId?: string;
+  /** initialBaseDietId 동반 — 시트 헤더/푸터에 "이 셀럽처럼" 표시용. UI only. */
+  initialCelebrityName?: string;
 }
 
 type SheetStatus = 'idle' | 'submitting' | 'error';
@@ -59,10 +67,14 @@ export function MealPlanGenerateSheet({
   maxDays,
   onClose,
   onGenerated,
+  initialBaseDietId,
+  initialCelebrityName,
 }: MealPlanGenerateSheetProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const effectiveMax = Math.max(1, Math.min(7, maxDays));
+  // News-claim 경로: base_diet_id 가 주어지면 picker 를 숨기고 그 diet 로 직행한다.
+  const presetMode = initialBaseDietId !== undefined;
 
   const [selected, setSelected] = useState<schemas.CelebrityWire | null>(null);
   const [days, setDays] = useState(1);
@@ -89,7 +101,8 @@ export function MealPlanGenerateSheet({
   }, [effectiveMax]);
 
   async function handleGenerate(): Promise<void> {
-    if (selected === null) return;
+    // 두 진입점 분기: News claim (initialBaseDietId 직행) vs picker (셀럽 → diet 해석).
+    if (initialBaseDietId === undefined && selected === null) return;
     // 새 시도마다 runId 를 올려, 직전 in-flight 시도(빠른 더블탭 등)를 무효화한다.
     runIdRef.current += 1;
     const myRun = runIdRef.current;
@@ -97,16 +110,23 @@ export function MealPlanGenerateSheet({
     setErrorMsg(null);
 
     try {
-      const { diets } = await getCelebrityDiets(selected.slug);
-      if (runIdRef.current !== myRun) return;
-      if (diets.length === 0) {
-        setStatus('error');
-        setErrorMsg('이 셀럽은 아직 식단 데이터가 없어요. 다른 셀럽을 골라주세요.');
+      let baseDietId: string;
+      if (initialBaseDietId !== undefined) {
+        baseDietId = initialBaseDietId;
+      } else if (selected !== null) {
+        const { diets } = await getCelebrityDiets(selected.slug);
+        if (runIdRef.current !== myRun) return;
+        if (diets.length === 0) {
+          setStatus('error');
+          setErrorMsg('이 셀럽은 아직 식단 데이터가 없어요. 다른 셀럽을 골라주세요.');
+          return;
+        }
+        baseDietId = diets[0].id;
+      } else {
         return;
       }
-      const baseDiet = diets[0];
 
-      const accept = await generateMealPlan({ base_diet_id: baseDiet.id, duration_days: days });
+      const accept = await generateMealPlan({ base_diet_id: baseDietId, duration_days: days });
       if (runIdRef.current !== myRun) return;
 
       const plan = await pollMealPlanUntilReady(accept.id);
@@ -122,7 +142,8 @@ export function MealPlanGenerateSheet({
 
   const dayOptions = Array.from({ length: effectiveMax }, (_, i) => i + 1);
   const submitting = status === 'submitting';
-  const canSubmit = selected !== null && !submitting;
+  // preset 모드는 picker 없이도 즉시 submit 가능; picker 모드는 selected 필수.
+  const canSubmit = (presetMode || selected !== null) && !submitting;
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -137,17 +158,30 @@ export function MealPlanGenerateSheet({
             </TouchableOpacity>
           </View>
 
-          <Text variant="label" tone="muted" style={styles.sectionLabel}>
-            셀럽 선택
-          </Text>
-          <View style={styles.pickerArea}>
-            <CelebrityPicker
-              selectedSlug={selected?.slug}
-              onSelect={(celebrity) => {
-                setSelected(celebrity);
-              }}
-            />
-          </View>
+          {presetMode ? (
+            <View style={styles.presetArea}>
+              <Text variant="label" tone="muted" style={styles.sectionLabel}>
+                셀럽
+              </Text>
+              <Text variant="h3" style={styles.presetName}>
+                {initialCelebrityName ?? '이 셀럽'}처럼 먹기
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Text variant="label" tone="muted" style={styles.sectionLabel}>
+                셀럽 선택
+              </Text>
+              <View style={styles.pickerArea}>
+                <CelebrityPicker
+                  selectedSlug={selected?.slug}
+                  onSelect={(celebrity) => {
+                    setSelected(celebrity);
+                  }}
+                />
+              </View>
+            </>
+          )}
 
           <View style={styles.footer}>
             <Text variant="label" tone="muted">
@@ -214,6 +248,8 @@ function makeStyles(theme: Theme) {
     },
     sectionLabel: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(2) },
     pickerArea: { flex: 1 },
+    presetArea: { flex: 1, paddingHorizontal: theme.space(4), gap: theme.space(2) },
+    presetName: { paddingTop: theme.space(1) },
     footer: {
       padding: theme.space(4),
       borderTopWidth: 1,
