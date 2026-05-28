@@ -1,5 +1,5 @@
 // OptionChips — pill-style selectable chips shared across onboarding question
-// screens (sex, allergies, goals, diet, GLP-1). Purely presentational: it marks
+// screens (sex, allergies, goals, diet). Purely presentational: it marks
 // chips whose value is in `selected` and calls `onToggle(value)`. The caller
 // decides single-select (replace) vs multi-select (add/remove) semantics.
 
