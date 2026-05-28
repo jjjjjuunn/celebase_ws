@@ -444,6 +444,24 @@ jobs:
           MIGRATION_DB_SERVICE=db bash /app/scripts/migration-sanity.sh
           echo "✅ migrations applied + sanity OK"
 
+          # 3.6. Sync SENTRY_DSN from the CI secret into .env.staging (the env_file
+          # every BE service reads). Empty/unset secret → Sentry stays dormant
+          # (config.ts coerces '' → undefined). Secret is the source of truth,
+          # re-synced each deploy so it survives host rebuilds. CHORE-SENTRY-DSN-WIRING-001.
+          SENTRY_DSN_VAL='${{ secrets.SENTRY_DSN }}'
+          if [ -n "${SENTRY_DSN_VAL}" ] && ! [[ "${SENTRY_DSN_VAL}" =~ ^https://[A-Za-z0-9._@/-]+$ ]]; then
+            echo "❌ invalid SENTRY_DSN format"; exit 1
+          fi
+          touch /app/.env.staging
+          grep -v '^SENTRY_DSN=' /app/.env.staging > /app/.env.staging.tmp || true
+          if [ -n "${SENTRY_DSN_VAL}" ]; then
+            echo "SENTRY_DSN=${SENTRY_DSN_VAL}" >> /app/.env.staging.tmp
+            echo "▶ SENTRY_DSN synced to .env.staging (Sentry active)"
+          else
+            echo "▶ SENTRY_DSN secret unset — Sentry dormant"
+          fi
+          mv /app/.env.staging.tmp /app/.env.staging
+
           # 4. Pull + recreate target services.
           case "${DEPLOY_TARGET}" in
             user-service)
