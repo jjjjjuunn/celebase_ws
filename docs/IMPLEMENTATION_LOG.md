@@ -7946,3 +7946,21 @@ verified_by: claude-opus-4-7 (validate-claim-seeds 50/50 pass; CI ts/lint via PR
 - 검증: validate-claim-seeds 50/50 pass, JSON 스키마 호환, content-service API 응답 shape 변경 없음(base_diet_id 는 기존 컬럼). 무배포 — db/seeds/** 는 cd.yml paths 외, staging 시드 재실행 시점에 backfill 적용.
 ### 미완료: ClaimDetailScreen FE CTA wiring (mobile PR — "Coming soon" 텍스트 → MealPlanGenerateSheet({initialBaseDietId}) 라우팅). staging 시드 재실행 + base_diet_id !=NULL 확인 (운영자). record-log-sha.sh.
 ### 연관 파일: db/seeds/loaders/claimsLoader.ts, db/seeds/lifestyle-claims/*.json
+
+---
+date: 2026-05-28
+agent: claude-opus-4-7 (1M context) + advisor
+task_id: CHORE-MOBILE-REVENUECAT-DEMO-GATE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/App.tsx
+  - apps/mobile/.env.example
+verified_by: claude-opus-4-7 (mobile tsc 0 + lint 0 + jest 206/206)
+---
+### 완료: RevenueCat configure 의 env-gate 화 — App.tsx 핵 종결 (CHORE-MOBILE-REVENUECAT-DEMO-GATE-001)
+- 데모전략 노트(2026-05-27)가 명시한 "App.tsx `configureRevenueCat()` 주석 처리" 핵을 git stash 가 아닌 commit 가능한 env-gate 로 변환. `if (process.env['EXPO_PUBLIC_DEMO_MODE'] !== 'true') configureRevenueCat();` — env 미설정(일반/prod) 은 그대로 호출, `EXPO_PUBLIC_DEMO_MODE=true` 빌드만 스킵.
+- 동기: 매 PR 마다 stash pop/push 로 핵을 가공반출하던 위험(`git add -A` 한 번 슬립 → main 유입) 을 종결. advisor 권고(5+ 턴 누적 우려). 데모 2주 압박 중 stash juggling 사라짐.
+- 검증: mobile tsc 0, lint 0 (App.tsx 의 `'configureRevenueCat' unused` 회귀 0), jest 34 suites/206 tests pass. .env.example 에 `EXPO_PUBLIC_DEMO_MODE` 항목 + 설명 추가.
+- 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
+### 미완료: 데모 빌드 셋업 시 `EXPO_PUBLIC_DEMO_MODE=true` 를 .env 또는 EAS profile env 에 주입 (operator). RevenueCat 키 발급 후엔 env-gate 제거 또는 미설정으로 그대로 활성.
+### 연관 파일: apps/mobile/App.tsx, apps/mobile/.env.example
