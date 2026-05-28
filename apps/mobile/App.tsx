@@ -27,7 +27,12 @@ initSentry();
 configureCognito();
 // RevenueCat SDK — IAP 호출 전에 configure 되어야 한다. DEV 에서 API key 부재 시
 // silent skip (UI 둘러보기 전용 — purchase 호출 시점에 native module 부재로 throw).
-configureRevenueCat();
+// EXPO_PUBLIC_DEMO_MODE=true 빌드 (e.g. 발표 데모 standalone — IAP 미사용 + 키
+// 미발급) 는 configure 호출 자체를 스킵해 Release 부팅 시 throw → 흰 화면 방지.
+// 일반 빌드(env 미설정) 는 그대로 configure — main-safe.
+if (process.env['EXPO_PUBLIC_DEMO_MODE'] !== 'true') {
+  configureRevenueCat();
+}
 
 export default function App(): React.JSX.Element {
   // Non-blocking font load: register design-token font families (Fraunces serif
