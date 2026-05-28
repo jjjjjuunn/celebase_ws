@@ -19,9 +19,10 @@ import type { OnboardingDraft } from '../onboarding/types';
  * 필수 필드가 미설정이면 null 반환 (방어적 — wizard 가 각 step 을 게이트하므로
  * 실제로는 발생하지 않음). 호출자(OnboardingFlow)가 null 가드 후 reveal 진입.
  *
- * 데이터 최소화 (2026-05-24): medical_conditions 는 항상 [] (미수집 — 엔진
- * 미사용 PHI), medications 는 엔진이 읽는 GLP-1 플래그만 담는다 (`['glp1']`).
- * imperial(ft/in/lb) → metric(cm/kg) 변환은 여기서 일괄 수행.
+ * 데이터 최소화 + launch-v1 PHI 제거 (IMPL-PHI-LAUNCH-V1-REMOVAL-001):
+ * medical_conditions + medications 는 launch 에서 항상 [] (미수집 — Apple
+ * 5.1.3 / GDPR Art.9, post-BAA 재도입). imperial(ft/in/lb) → metric(cm/kg)
+ * 변환은 여기서 일괄 수행.
  */
 export function buildBioProfileBody(
   draft: OnboardingDraft,
@@ -46,7 +47,7 @@ export function buildBioProfileBody(
     activity_level,
     allergies: draft.allergies,
     medical_conditions: [],
-    medications: draft.has_glp1 === true ? ['glp1'] : [],
+    medications: [],
     primary_goal,
     secondary_goals: draft.secondary_goals,
     ...(draft.diet_type !== null ? { diet_type: draft.diet_type } : {}),

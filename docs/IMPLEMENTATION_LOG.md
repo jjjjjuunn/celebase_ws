@@ -7901,3 +7901,23 @@ verified_by: claude-opus-4-7 (origin/main 머지 후 재검증 — service-core 
 - **origin/main 머지 후 로컬 재검증** (이 브랜치는 11 커밋 stale 였음 — advisor 권고로 stale "all pass" 주장 불신, 직접 재실행): service-core 71/71, mobile tsc 0 + jest 207/207, MPE sentry-scrub 15/15 PASS. 머지 충돌 0 (package.json·pnpm-lock·LOG ort 자동 병합).
 ### 미완료: ⚠️ 머지 시 cd.yml 이 MPE + service-core 의존 서비스 staging 배포 트리거 — 사용자 승인 필요 + (이상적으로) `SENTRY_DSN` 주입과 동시 머지. record-log-sha.sh.
 ### 연관 파일: packages/service-core/src/sentry.ts, packages/service-core/src/sentry-scrub.ts, apps/mobile/src/lib/sentry.ts, apps/mobile/src/lib/sentry-scrub.ts, services/meal-plan-engine/src/sentry_config.py
+
+---
+date: 2026-05-27
+agent: claude-opus-4-7 (1M context)
+task_id: IMPL-PHI-LAUNCH-V1-REMOVAL-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/onboarding/OnboardingFlow.tsx
+  - apps/mobile/src/onboarding/types.ts
+  - apps/mobile/src/services/bio-profile.ts
+  - apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx
+verified_by: claude-opus-4-7 (mobile tsc 0 + jest 206/206; grep acceptance 0 medical/medications/GLP-1 input)
+---
+### 완료: launch-v1 PHI 제거 — 모바일 온보딩 GLP-1 medication 질문 삭제 (IMPL-PHI-LAUNCH-V1-REMOVAL-001)
+- G2 PHI/Privacy gate (PROD-DEPLOY-ROADMAP §G2, Decision A). `medical_conditions` + 자유 medications 는 2026-05-24 데이터 최소화로 이미 미수집이었고, 남아있던 유일한 health-sensitive 수집 = "GLP-1 medication?" yes/no 질문(→ `medications:['glp1']`)을 launch 에서 제거. Apple 5.1.3 Health & Medical + GDPR Art.9 리스크 0. 사용자 결정(2026-05-27): 제거 (post-BAA 재도입 — CHORE-PHI-MEDICAL-REINTRODUCE-001).
+- 변경: OnboardingFlow.tsx case 7(GLP-1 step) 삭제 + step 재번호(8→7·9→8) + `INPUT_STEP_COUNT` 10→9 + `GLP1_OPTIONS` 제거. types.ts `has_glp1` 필드 제거. bio-profile.ts `medications` 항상 `[]`. 엔진 GLP-1 protein-floor 는 입력 부재 시 standard floor 로 graceful degrade(허용된 personalization 트레이드오프).
+- 검증: mobile tsc 0, jest 206/206 (GLP-1=Yes 테스트 제거 + advanceToReveal walk 갱신), grep acceptance — 온보딩에 medical_conditions/medications/GLP-1 input 0건. (lint: App.tsx RevenueCat-disable 로컬 핵의 unused-import 1건 — 본 PR 미포함, 커밋 상태 clean.)
+- 무배포: apps/mobile 한정 (cd.yml services/**·apps/web/** 미해당).
+### 미완료: BE `bio-profile.service.ts` deprecation marker (comment-only — services/** 불필요 deploy 회피 위해 후속). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/onboarding/OnboardingFlow.tsx, apps/mobile/src/onboarding/types.ts, apps/mobile/src/services/bio-profile.ts, apps/mobile/__tests__/onboarding/OnboardingFlow.test.tsx

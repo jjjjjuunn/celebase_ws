@@ -1,21 +1,19 @@
 // Onboarding draft state — flat, in-memory only.
 //
-// Data-minimization (researched decision, 2026-05-24): we collect ONLY fields
-// the meal-plan engine actually consumes (phi_minimizer.TASK_FIELD_MAP):
+// Data-minimization (2026-05-24) + launch-v1 PHI removal
+// (IMPL-PHI-LAUNCH-V1-REMOVAL-001, 2026-05-27): we collect ONLY non-PHI fields
+// the meal-plan engine consumes (phi_minimizer.TASK_FIELD_MAP):
 //   - calorie/macro: weight, height, activity, diet_type, primary_goal
 //   - allergen_filter: allergies (hard exclusion)
-//   - GLP-1 protein floor: a single boolean (engine only calls _has_glp1())
 //
-// Deliberately NOT collected:
-//   - medical_conditions — engine never reads it; collecting unused PHI is pure
-//     liability, and using it safely would be condition-specific medical
-//     nutrition therapy (FDA "treat/mitigate disease" → regulated). Dropped.
-//   - full medication list — only the GLP-1 flag is used; the rest is unused PHI.
+// Deliberately NOT collected (Apple 5.1.3 / GDPR Art.9 — reintroduce post-BAA):
+//   - medical_conditions — engine never reads it; unused PHI = pure liability.
+//   - medications (incl. the GLP-1 flag) — removed at launch; the engine's GLP-1
+//     protein floor degrades gracefully to the standard floor without it.
 //   - waist_cm — engine never reads it.
 //
-// PHI safety: state stays in-memory only (no plaintext persistence); the GLP-1
-// flag is the only health-sensitive field and is sent solely via the single
-// bio-profile POST.
+// PHI safety: no health-sensitive field is collected at launch; state stays
+// in-memory only and the single bio-profile POST sends only the above non-PHI.
 
 import type { ActivityLevel, DietType, PrimaryGoal, Sex } from '@celebbase/shared-types';
 
@@ -36,8 +34,6 @@ export interface OnboardingDraft {
   weight_lb?: number;
   activity_level?: ActivityLevel;
   allergies: string[];
-  /** Single GLP-1 / weight-management medication flag → medications: ['glp1']. */
-  has_glp1?: boolean;
   primary_goal?: PrimaryGoal;
   secondary_goals: string[];
   diet_type: DietType | null;
