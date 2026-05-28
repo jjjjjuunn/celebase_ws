@@ -7984,3 +7984,20 @@ verified_by: claude-opus-4-7 (mobile tsc 0 + lint 0 + jest 206/206)
 - 검증: mobile tsc 0, lint 0, jest 206/206 (ClaimDetailScreen 테스트는 useMealPlanCredits hook 자체를 mock 으로 stub — fetchSpy mockResolvedValueOnce 인터페이스 보존). 무배포(apps/mobile 한정).
 ### 미완료: ClaimDetailScreen → MealPlanScreen tab 자동 navigate (현재는 Alert + 사용자가 직접 탭 전환). News mock → 실 claims API + 게스트 노출은 다음 PR(IMPL-MOBILE-NEWS-CLAIMS-FEED-001). record-log-sha.sh.
 ### 연관 파일: apps/mobile/src/components/MealPlanGenerateSheet.tsx, apps/mobile/src/screens/ClaimDetailScreen.tsx
+
+---
+date: 2026-05-28
+agent: claude-opus-4-7 (1M context) + codex (security review)
+task_id: CHORE-MOBILE-NEWS-CATALOG-PUBLIC-001
+commit_sha: PENDING
+files_changed:
+  - services/content-service/src/index.ts
+verified_by: claude-opus-4-7 + codex (content-service typecheck/eslint clean, codex L3 security review PASS)
+---
+### 완료: content-service publicPaths에 `/claims` + `/claims/*` 추가 — News 퍼널 prerequisite (CHORE-MOBILE-NEWS-CATALOG-PUBLIC-001)
+- **문제**: mobile `listClaims()` → BFF `/api/claims/feed` (이미 `createPublicRoute`, token 미forward) → content-service. 그런데 content-service `publicPaths` 화이트리스트에 `/claims*` 부재 → JWKS/internal 모드(staging) + 게스트(향후 Phase 2) 양쪽에서 401. `/celebrities*` + `/base-diets*` 가 이미 같은 패턴으로 화이트리스트에 있어, 동일 회귀 차단.
+- **수정**: `services/content-service/src/index.ts` `registerJwtAuth` publicPaths array에 `/claims`, `/claims/*` 두 항목 추가. 코멘트 블록에 News 퍼널 컨텍스트 + 회귀 시나리오 명시. admin moderation `/admin/claims/*` 는 별도 `/admin/*` 가드로 분리(prefix 비충돌, Codex 확인).
+- **검증**: content-service typecheck/eslint clean. Codex L3 보안 리뷰 PASS — (1) 공개 핸들러가 `request.userId` 미사용 (catalog read only), (2) `listFeed` + 단일 claim 쿼리가 `is_active=TRUE AND status='published' AND celebrities.is_active=TRUE` 강제(unpublished/draft 누출 차단), (3) admin 라우트가 `/claims/*` wildcard에 미매칭, (4) PHI/audit-log 영향 없음 (셀럽 wellness fact 노출만), (5) `isPublicPath` prefix wildcard 매처가 `/claims/feed`, `/claims/<uuid>` 정확히 매칭(`packages/service-core/src/middleware/jwt.ts`).
+- **Review tier**: L3 (인증/접근 제어 hot path) — Codex 1-pass (단일 파일·단순 화이트리스트 추가) + Claude self-review. Gemini fallback 미적용(변경 범위 최소).
+### 미완료: spec.md sync — `docs/SPEC-PIVOT-PLAN.md` 행 확인 후 spec patch 또는 SPEC-SYNC-DEFER.md 작성 (PR 머지 전). 런타임 검증 — 무토큰 curl `/api/claims/feed` 200 응답 + payload (Phase 1.2 News 피드 build 시점에 동시 검증). record-log-sha.sh.
+### 연관 파일: services/content-service/src/index.ts
