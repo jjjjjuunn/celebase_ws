@@ -5,8 +5,9 @@
 // per-screen "N / 3" counter to drift).
 //
 // PHI safety: the draft is in-memory only. The single bio-profile POST happens
-// once, in RevealStep. medical_conditions is NOT collected (see types.ts);
-// medications is reduced to a GLP-1 yes/no that the engine consumes.
+// once, in RevealStep. medical_conditions + medications are NOT collected at
+// launch (IMPL-PHI-LAUNCH-V1-REMOVAL-001 — Apple 5.1.3 / GDPR Art.9; reintroduce
+// post-BAA). Only non-PHI metrics + allergies + activity drive the meal plan.
 
 import { useMemo, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -56,15 +57,6 @@ const ACTIVITY_OPTIONS: ReadonlyArray<{ value: ActivityLevel; label: string; des
   { value: 'very_active', label: 'Very active', desc: 'Intense daily training or physical labor' },
 ];
 
-// Allergy chips emit canonical recipe-tag TOKENS (CHORE-ALLERGEN-VOCAB-001), not
-// display labels — so the stored allergies actually match the engine's allergen
-// filter. Each chip toggles its whole `tags` set (e.g. "Wheat / gluten" →
-// ['gluten','wheat']) into draft.allergies.
-const GLP1_OPTIONS: ReadonlyArray<ChipOption<'yes' | 'no'>> = [
-  { value: 'no', label: 'No' },
-  { value: 'yes', label: 'Yes, I take one' },
-];
-
 const PRIMARY_GOAL_OPTIONS: ReadonlyArray<ChipOption<PrimaryGoal>> = [
   { value: 'weight_loss', label: 'Weight loss' },
   { value: 'muscle_gain', label: 'Muscle gain' },
@@ -93,7 +85,7 @@ const DIET_TYPE_OPTIONS: ReadonlyArray<ChipOption<DietType>> = [
   { value: 'paleo', label: 'Paleo' },
 ];
 
-const INPUT_STEP_COUNT = 10;
+const INPUT_STEP_COUNT = 9;
 
 export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.JSX.Element {
   const theme = useTheme();
@@ -362,25 +354,6 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
         <OnboardingScaffold
           {...common}
           {...backProps}
-          title="GLP-1 medication?"
-          subtitle="e.g. Ozempic, Wegovy, Mounjaro, Zepbound. If so, we raise your protein target to protect lean mass."
-          continueDisabled={draft.has_glp1 === undefined}
-        >
-          <OptionChips
-            options={GLP1_OPTIONS}
-            selected={draft.has_glp1 === undefined ? [] : [draft.has_glp1 ? 'yes' : 'no']}
-            onToggle={(v) => {
-              patch({ has_glp1: v === 'yes' });
-            }}
-          />
-        </OnboardingScaffold>
-      );
-
-    case 8:
-      return (
-        <OnboardingScaffold
-          {...common}
-          {...backProps}
           scroll
           title="What's your main goal?"
           continueDisabled={draft.primary_goal === undefined}
@@ -395,7 +368,7 @@ export function OnboardingFlow({ onDone, onClose }: OnboardingFlowProps): React.
         </OnboardingScaffold>
       );
 
-    case 9:
+    case 8:
       return (
         <OnboardingScaffold
           {...common}

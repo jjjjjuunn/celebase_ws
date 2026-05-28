@@ -63,8 +63,8 @@ const BIO_PROFILE_OK = {
   },
 };
 
-// Walk name → … → prefs(Finish) → reveal. `glp1Label` selects the GLP-1 answer.
-async function advanceToReveal(glp1Label: 'No' | 'Yes, I take one' = 'No'): Promise<void> {
+// Walk name → … → prefs(Finish) → reveal.
+async function advanceToReveal(): Promise<void> {
   // 0 — name
   fireEvent.changeText(screen.getByLabelText('Name'), 'Dohyun');
   fireEvent.press(screen.getByLabelText('Continue'));
@@ -89,15 +89,11 @@ async function advanceToReveal(glp1Label: 'No' | 'Yes, I take one' = 'No'): Prom
   await screen.findByText('Any allergies?');
   fireEvent.press(screen.getByLabelText('Peanuts'));
   fireEvent.press(screen.getByLabelText('Continue'));
-  // 7 — GLP-1
-  await screen.findByText('GLP-1 medication?');
-  fireEvent.press(screen.getByLabelText(glp1Label));
-  fireEvent.press(screen.getByLabelText('Continue'));
-  // 8 — primary goal
+  // 7 — primary goal
   await screen.findByText("What's your main goal?");
   fireEvent.press(screen.getByLabelText('Weight loss'));
   fireEvent.press(screen.getByLabelText('Continue'));
-  // 9 — preferences (optional) → Finish
+  // 8 — preferences (optional) → Finish
   await screen.findByText('Any preferences?');
   fireEvent.press(screen.getByLabelText('Finish'));
 }
@@ -152,7 +148,7 @@ describe('<OnboardingFlow /> one-question flow', () => {
     expect(postCall).toBeDefined();
     if (postCall === undefined) return;
     const body = JSON.parse(postCall[1].body as string) as Record<string, unknown>;
-    // Data minimization: medical_conditions never collected; GLP-1 'No' → no meds.
+    // Data minimization: medical_conditions + medications never collected at launch.
     expect(body.medical_conditions).toEqual([]);
     expect(body.medications).toEqual([]);
     // Allergy chips now emit canonical recipe-tag tokens, not display labels.
@@ -165,27 +161,6 @@ describe('<OnboardingFlow /> one-question flow', () => {
     expect(body.weight_kg).toBe(68); // 150 lb
     // persona removed — slug must never appear in the bio-profile body.
     expect(body.preferred_celebrity_slug).toBeUndefined();
-  });
-
-  it('GLP-1 = Yes → medications ["glp1"] (the only signal the engine consumes)', async () => {
-    fetchSpy.mockImplementation((url: unknown) =>
-      typeof url === 'string' && url.includes('/api/users/me/bio-profile')
-        ? Promise.resolve(makeResponse(201, BIO_PROFILE_OK))
-        : Promise.reject(new Error(`Unmocked fetch: ${String(url)}`)),
-    );
-
-    renderScreen(<OnboardingFlow onDone={jest.fn()} onClose={jest.fn()} />);
-    await advanceToReveal('Yes, I take one');
-    await screen.findByText(/You're all set/);
-
-    const calls = fetchSpy.mock.calls as Array<[string, RequestInit]>;
-    const postCall = calls.find(
-      ([url, init]) => url.endsWith('/api/users/me/bio-profile') && init.method === 'POST',
-    );
-    expect(postCall).toBeDefined();
-    if (postCall === undefined) return;
-    const body = JSON.parse(postCall[1].body as string) as Record<string, unknown>;
-    expect(body.medications).toEqual(['glp1']);
   });
 
   it('POST 5xx → error screen + retry button', async () => {
