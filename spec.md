@@ -2157,7 +2157,7 @@ IMPL-MOBILE-M5-NAV-001 의 4탭 (Discover / Plan / Profile / Settings) 은 본 t
 
 - **Celebrities** (⭐): 셀럽 그리드 → `CelebrityDetail` → 셀럽별 lifestyle claim 섹션 + `ClaimDetail`. 기존 `ClaimsFeedScreen` 의 글로벌 mixed-celeb feed 는 deferred (아래 참고).
 - **Meal & Routine** (🥗): 기존 `Plan` 탭 라벨 갱신. MealPlanScreen + 루틴(운동/수면/뷰티) 섹션 — claim 의 routine 측면이 별도 회귀 화면 (M3.5+ scope).
-- **News** (📰): wellness article feed (편집팀 큐레이션). 기존 `Profile` 탭 슬롯 대체 — ArticleDetail 은 후속 sub-task.
+- **News** (📰): 셀럽 wellness claim 피드 (News-first 퍼널 입구). 실 `lifestyle_claims` 를 셀럽 attribution(client-side join) 과 함께 Diet / Beauty / Wellness 로 카테고리화해 `ClaimCard` 로 렌더 → 카드 탭 시 `ClaimDetail`("Eat like this celebrity" CTA → meal plan). 기존 `Profile` 탭 슬롯 대체. (IMPL-MOBILE-NEWS-FEED-001 — 종전 "편집팀 article feed + 별도 ArticleDetail" 안에서 claims-feed 로 확정.)
 - **Settings** (⚙️): Apple Guideline 5.1.1(v) 충족 + Profile 카드 (avatar + tier badge + Upgrade) 흡수.
 
 ```
@@ -2166,7 +2166,7 @@ RootStack (NavigationContainer)
   ├── Main (인증 완료 시) — BottomTabs (4 tabs)
   │     ├── Celebrities    (⭐) — CelebritiesGrid → CelebrityDetail → ClaimDetail
   │     ├── Meal & Routine (🥗) — MealPlanScreen + 루틴 카드 (M3.5+)
-  │     ├── News           (📰) — NewsFeed (→ ArticleDetail 후속 sub-task)
+  │     ├── News           (📰) — NewsFeed (실 lifestyle_claims) → ClaimDetail
   │     └── Settings       (⚙️) — Profile 흡수 + Account · Subscription · Legal · Sign out
   ├── Onboarding  [modal]
   └── Paywall     [modal]
@@ -2178,7 +2178,7 @@ RootStack (NavigationContainer)
 - Screens 신규: `apps/mobile/src/screens/{CelebritiesScreen,NewsScreen}.tsx`
 - Mock data: `apps/mobile/src/lib/mock-data.ts` (BFF `/api/celebrities/list` + `/api/news/feed` 미존재 시점 fallback — wiring 은 후속 task 들)
 
-**기존 Claims feed 의 처리**: §7.2 Mobile claims feed read path 의 `ClaimsFeedScreen` (글로벌 mixed-celeb feed) 은 본 pivot 의 직접 진입점 아님. 셀럽-scoped claims 는 `CelebrityDetail` 안쪽 섹션으로 흡수, 글로벌 feed 의 News 탭 변형 / 검색 routing 흡수 / 완전 폐기 중 어느 길로 갈지는 JUNWON 와 합의 후 결정 (decision deferred — `IMPL-MOBILE-CLAIMS-GLOBAL-001` 신설 예정).
+**기존 Claims feed 의 처리**: §7.2 Mobile claims feed read path 의 `ClaimsFeedScreen` (글로벌 mixed-celeb feed) 은 본 pivot 의 직접 진입점 아님. 셀럽-scoped claims 는 `CelebrityDetail` 안쪽 섹션으로 흡수. **글로벌 feed 의 거취는 News-first 퍼널로 확정 (decision made, IMPL-MOBILE-NEWS-FEED-001)**: News 탭이 글로벌 lifestyle_claims feed 의 카테고리화 변형이 된다 — 종전 deferred 였던 `IMPL-MOBILE-CLAIMS-GLOBAL-001` 의 "News 탭 변형 vs 검색 흡수 vs 폐기" 선택을 News 탭 변형으로 닫음. `ClaimsFeedScreen` 자체는 `useCurrentTier` 의존(게스트 boot-kick) 으로 News 경로에서 재사용하지 않고 보일러플레이트 패턴만 차용.
 
 **범위 외 (fast-follow)**:
 - `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` — Discover/Profile orphan navigator + `MainTabsParamList` legacy 행 제거
