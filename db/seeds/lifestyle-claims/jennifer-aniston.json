@@ -9,7 +9,12 @@
       "primary_source_url": "https://people.com/jennifer-aniston-fitness-pvolve-exclusive-7693448",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["pvolve", "low-impact", "resistance-training", "strength"],
+      "tags": [
+        "pvolve",
+        "low-impact",
+        "resistance-training",
+        "strength"
+      ],
       "status": "published",
       "sources": [
         {
@@ -37,7 +42,12 @@
       "verified_by": "human-junwon",
       "is_health_claim": true,
       "disclaimer_key": "supplement_general",
-      "tags": ["collagen", "vital-proteins", "morning-routine", "supplement"],
+      "tags": [
+        "collagen",
+        "vital-proteins",
+        "morning-routine",
+        "supplement"
+      ],
       "status": "published",
       "sources": [
         {
@@ -64,7 +74,13 @@
       "primary_source_url": "https://people.com/jennifer-aniston-on-self-care-exercise-and-nutrition-exclusive-8640421",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["80-20", "balanced", "consistency", "cheat-day"],
+      "base_diet_id_slug": "jennifer-aniston",
+      "tags": [
+        "80-20",
+        "balanced",
+        "consistency",
+        "cheat-day"
+      ],
       "status": "published",
       "sources": [
         {
@@ -91,7 +107,12 @@
       "primary_source_url": "https://www.allure.com/story/jennifer-aniston-lolavie-hair-care-brand-interview",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["lolavie", "hair-care", "founder", "clean-beauty"],
+      "tags": [
+        "lolavie",
+        "hair-care",
+        "founder",
+        "clean-beauty"
+      ],
       "status": "published",
       "sources": [
         {
@@ -119,7 +140,13 @@
       "primary_source_url": "https://www.vogue.com/article/the-beauty-and-fitness-routine-jennifer-aniston-follows-to-look-that-luminous",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["skincare", "hydration", "spf", "sleep", "minimal-routine"],
+      "tags": [
+        "skincare",
+        "hydration",
+        "spf",
+        "sleep",
+        "minimal-routine"
+      ],
       "status": "published",
       "sources": [
         {

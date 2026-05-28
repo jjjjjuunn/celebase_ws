@@ -9,7 +9,14 @@
       "primary_source_url": "https://www.vogue.com/slideshow/natalie-portman-style-evolution",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["vegan", "long-term", "ethics", "factory-farming", "transition"],
+      "base_diet_id_slug": "natalie-portman",
+      "tags": [
+        "vegan",
+        "long-term",
+        "ethics",
+        "factory-farming",
+        "transition"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +43,14 @@
       "primary_source_url": "https://www.harpersbazaar.com/beauty/a37575132/natalie-portman-interview-september-2021/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["vegan", "skin", "everyday-foods", "oat-milk", "diet"],
+      "base_diet_id_slug": "natalie-portman",
+      "tags": [
+        "vegan",
+        "skin",
+        "everyday-foods",
+        "oat-milk",
+        "diet"
+      ],
       "status": "published",
       "sources": [
         {
@@ -56,7 +70,13 @@
       "primary_source_url": "https://www.vogue.com/article/ballet-beautiful",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["ballet-beautiful", "mary-helen-bowers", "black-swan", "long-prep", "swim"],
+      "tags": [
+        "ballet-beautiful",
+        "mary-helen-bowers",
+        "black-swan",
+        "long-prep",
+        "swim"
+      ],
       "status": "published",
       "sources": [
         {
@@ -83,7 +103,13 @@
       "primary_source_url": "https://www.harpersbazaar.com/uk/beauty/fitness-wellbeing/a41027098/natalie-portman-thor-workout/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["thor", "vegan-protein", "five-meals", "strength-training", "film-prep"],
+      "tags": [
+        "thor",
+        "vegan-protein",
+        "five-meals",
+        "strength-training",
+        "film-prep"
+      ],
       "status": "published",
       "sources": [
         {
@@ -103,7 +129,13 @@
       "primary_source_url": "https://www.nytimes.com/2018/06/14/movies/eating-animals-review.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["eating-animals", "documentary", "producer", "narrator", "factory-farming"],
+      "tags": [
+        "eating-animals",
+        "documentary",
+        "producer",
+        "narrator",
+        "factory-farming"
+      ],
       "status": "published",
       "sources": [
         {

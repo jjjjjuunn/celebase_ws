@@ -9,7 +9,13 @@
       "primary_source_url": "https://www.nytimes.com/athletic/3549583/2022/11/22/cristiano-ronaldo-manchester-united/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["disciplined", "no-dessert", "recovery", "team-influence"],
+      "base_diet_id_slug": "cristiano-ronaldo",
+      "tags": [
+        "disciplined",
+        "no-dessert",
+        "recovery",
+        "team-influence"
+      ],
       "status": "published",
       "sources": [
         {
@@ -36,7 +42,13 @@
       "primary_source_url": "https://www.nytimes.com/athletic/5616081/2024/07/04/cristiano-ronaldo-heart-rate/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["breathing", "heart-rate", "whoop", "habit", "performance"],
+      "tags": [
+        "breathing",
+        "heart-rate",
+        "whoop",
+        "habit",
+        "performance"
+      ],
       "status": "published",
       "sources": [
         {
@@ -56,7 +68,13 @@
       "primary_source_url": "https://www.nytimes.com/athletic/6112482/2025/02/05/cristiano-ronaldo-40-youtube-influencer/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["cr7", "founder", "underwear", "fragrance", "lifestyle-brand"],
+      "tags": [
+        "cr7",
+        "founder",
+        "underwear",
+        "fragrance",
+        "lifestyle-brand"
+      ],
       "status": "published",
       "sources": [
         {
@@ -83,7 +101,12 @@
       "primary_source_url": "https://www.nytimes.com/athletic/5624041/2024/07/12/cristiano-ronaldo-united-states-world-cup/",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["crunch-fitness", "gym", "partnership", "us-market"],
+      "tags": [
+        "crunch-fitness",
+        "gym",
+        "partnership",
+        "us-market"
+      ],
       "status": "published",
       "sources": [
         {
@@ -103,7 +126,13 @@
       "primary_source_url": "https://www.nytimes.com/2026/03/31/business/dealbook/whoop-raises-575-million-10-billion-valuation.html",
       "verified_by": "human-junwon",
       "is_health_claim": false,
-      "tags": ["whoop", "wearable", "investor", "ambassador", "recovery"],
+      "tags": [
+        "whoop",
+        "wearable",
+        "investor",
+        "ambassador",
+        "recovery"
+      ],
       "status": "published",
       "sources": [
         {
