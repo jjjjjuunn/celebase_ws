@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
 task_id: IMPL-MOBILE-GUEST-NEWS-HOME-001
-commit_sha: PENDING
+commit_sha: 0aa802a
 files_changed:
   - apps/mobile/src/services/auth-bootstrap.ts
   - apps/mobile/src/lib/auth-events.ts
