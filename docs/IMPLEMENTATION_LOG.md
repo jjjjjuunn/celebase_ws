@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context)
 task_id: CHORE-SEEDS-CELEB-OPTIONAL-TREND-001
-commit_sha: PENDING
+commit_sha: 79388eb
 files_changed:
   - db/seeds/loaders/claimsLoader.ts
   - db/seeds/run.ts
