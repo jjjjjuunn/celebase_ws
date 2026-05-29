@@ -21,12 +21,23 @@ export interface MealPlanCreditsState {
   refresh: () => void;
 }
 
-export function useMealPlanCredits(): MealPlanCreditsState {
+/**
+ * @param skip true 면 fetch 를 건너뛴다(credits=null, loading=false). 게스트(무토큰)에서
+ *   protected `/api/meal-plans/credits` 호출 → 401 → logout boot-kick 을 회피하기 위함
+ *   (IMPL-MOBILE-GUEST-NEWS-HOME-001). hook 규칙상 조건부 호출 대신 내부 no-op.
+ */
+export function useMealPlanCredits(skip = false): MealPlanCreditsState {
   const [credits, setCredits] = useState<schemas.MealPlanCreditsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
+    if (skip) {
+      // 게스트 — protected fetch 안 함. 게이트가 credits=null 을 "잔량 0" 으로 취급.
+      setCredits(null);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
 
@@ -46,7 +57,7 @@ export function useMealPlanCredits(): MealPlanCreditsState {
     return (): void => {
       cancelled = true;
     };
-  }, [version]);
+  }, [version, skip]);
 
   return {
     credits,

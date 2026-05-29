@@ -2164,16 +2164,19 @@ IMPL-MOBILE-M5-NAV-001 의 4탭 (Discover / Plan / Profile / Settings) 은 본 t
 - **Settings** (⚙️): Apple Guideline 5.1.1(v) 충족 + Profile 카드 (avatar + tier badge + Upgrade) 흡수.
 
 ```
-RootStack (NavigationContainer)
-  ├── Auth — Login / Signup (unchanged)
-  ├── Main (인증 완료 시) — BottomTabs (4 tabs)
+RootStack (NavigationContainer) — phase: loading | guest | auth | main
+  ├── Main (guest: cold-start 무토큰) — BottomTabs 2탭 [Celebrities, News], News 홈
+  ├── Main (인증 완료 시) — BottomTabs 4탭 (initialRoute Celebrities)
   │     ├── Celebrities    (⭐) — CelebritiesGrid → CelebrityDetail → ClaimDetail
-  │     ├── Meal & Routine (🥗) — MealPlanScreen + 루틴 카드 (M3.5+)
+  │     ├── Meal & Routine (🥗) — MealPlanScreen + 루틴 카드 (M3.5+)  [authed 전용]
   │     ├── News           (📰) — NewsFeed (실 lifestyle_claims) → ClaimDetail
-  │     └── Settings       (⚙️) — Profile 흡수 + Account · Subscription · Legal · Sign out
+  │     └── Settings       (⚙️) — Account · Subscription · Legal · Sign out  [authed 전용]
+  ├── Auth — Login / Signup (게스트가 게이트 액션 탭 시 phase 'auth' 로 진입)
   ├── Onboarding  [modal]
   └── Paywall     [modal]
 ```
+
+**게스트 홈 (IMPL-MOBILE-GUEST-NEWS-HOME-001)**: cold-start 무토큰이면 Login 이 아니라 게스트로 진입한다 — `bootstrapSession`→'guest', RootNavigator 가 Main 을 **2탭(Celebrities + News, News 홈)**으로 마운트. 로그인은 게이트 액션(NewsScreen 헤더 "Sign in", ClaimDetail "Sign in to make your plan")에서 `signalLoginRequired()` → phase 'auth' 로만 요구한다. 게스트 화면은 **public endpoint 만 호출(no boot-kick)**: NewsScreen·CelebritiesScreen(mock)·ClaimDetail(getClaim public; `useMealPlanCredits` skip + MealPlanGenerateSheet 미렌더). Plan/Settings 탭과 protected 호출은 authed 전용. `signalLogout` 은 전 reason 'auth' 로(게스트는 cold-start 진입 전용). 로그인 후 원래 화면 복귀(return-intent)는 fast-follow.
 
 **구현 위치**:
 - Navigation 신규: `apps/mobile/src/navigation/{CelebritiesNavigator,NewsNavigator}.tsx`

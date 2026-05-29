@@ -5,7 +5,13 @@ import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { onLoginSignal, onLogoutSignal, type LogoutReason } from '../lib/auth-events';
+import {
+  onLoginRequiredSignal,
+  onLoginSignal,
+  onLogoutSignal,
+  type LogoutReason,
+} from '../lib/auth-events';
+import { GuestModeProvider } from '../lib/guest-mode';
 import { bootstrapSession } from '../services/auth-bootstrap';
 import { OnboardingFlow } from '../onboarding/OnboardingFlow';
 import { PaywallScreen } from '../screens/PaywallScreen';
@@ -75,7 +81,7 @@ function SelectionRoute({ navigation }: RootStackScreenProps<'Selection'>): Reac
 export function RootNavigator(): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [phase, setPhase] = useState<'loading' | 'auth' | 'main'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'guest' | 'auth' | 'main'>('loading');
   const navRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   // Set when a fresh sign-up should see the path-selection screen; consumed by the
   // phase-watch effect once 'Main' has mounted (see below).
@@ -86,7 +92,8 @@ export function RootNavigator(): React.JSX.Element {
 
     void bootstrapSession().then((result) => {
       if (cancelled) return;
-      setPhase(result === 'authenticated' ? 'main' : 'auth');
+      // 무토큰 → 'guest'(News 트렌드 홈). 'auth'(Login)는 게이트 액션·logout 시에만.
+      setPhase(result === 'authenticated' ? 'main' : 'guest');
     });
 
     const offLogout = onLogoutSignal((reason) => {
@@ -110,10 +117,17 @@ export function RootNavigator(): React.JSX.Element {
       setPhase('main');
     });
 
+    // 게스트가 게이트 액션(Sign in / Make my Plan)을 탭 → Login(phase 'auth') 노출.
+    // (Auth/Main 은 phase 배타적이라 nav 호출이 아니라 phase 전환으로 처리.)
+    const offLoginRequired = onLoginRequiredSignal(() => {
+      setPhase('auth');
+    });
+
     return (): void => {
       cancelled = true;
       offLogout();
       offLogin();
+      offLoginRequired();
     };
   }, []);
 
@@ -136,22 +150,24 @@ export function RootNavigator(): React.JSX.Element {
   }
 
   return (
-    <NavigationContainer ref={navRef}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {phase === 'main' ? (
-          <Stack.Screen name="Main" component={MainTabsNavigator} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-        <Stack.Screen
-          name="Selection"
-          component={SelectionRoute}
-          options={{ presentation: 'modal', gestureEnabled: false }}
-        />
-        <Stack.Screen name="Onboarding" component={OnboardingRoute} options={{ presentation: 'modal' }} />
-        <Stack.Screen name="Paywall" component={PaywallRoute} options={{ presentation: 'modal' }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GuestModeProvider isGuest={phase === 'guest'}>
+      <NavigationContainer ref={navRef}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {phase === 'main' || phase === 'guest' ? (
+            <Stack.Screen name="Main" component={MainTabsNavigator} />
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+          <Stack.Screen
+            name="Selection"
+            component={SelectionRoute}
+            options={{ presentation: 'modal', gestureEnabled: false }}
+          />
+          <Stack.Screen name="Onboarding" component={OnboardingRoute} options={{ presentation: 'modal' }} />
+          <Stack.Screen name="Paywall" component={PaywallRoute} options={{ presentation: 'modal' }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GuestModeProvider>
   );
 }
 

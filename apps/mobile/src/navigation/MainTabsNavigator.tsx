@@ -12,6 +12,7 @@ import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import { useIsGuest } from '../lib/guest-mode';
 import { useTheme, type Theme } from '../ui';
 import { CelebritiesNavigator } from './CelebritiesNavigator';
 import { NewsNavigator } from './NewsNavigator';
@@ -45,9 +46,13 @@ function tabIcon(name: keyof typeof TAB_LABELS, color: string, size: number): Re
 export function MainTabsNavigator(): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // 게스트: News 홈 + Celebrities/News 2탭만(Plan/Settings 는 protected → boot-kick 회피).
+  // authed: 기존 4탭 + Celebrities 기본(로그인 후 News 로 dump 방지; News-first 는 fast-follow).
+  const isGuest = useIsGuest();
 
   return (
     <Tab.Navigator
+      initialRouteName={isGuest ? 'News' : 'Celebrities'}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.color.brand,
@@ -64,14 +69,16 @@ export function MainTabsNavigator(): React.JSX.Element {
           tabBarIcon: ({ color, size }) => tabIcon('Celebrities', color, size),
         }}
       />
-      <Tab.Screen
-        name="Plan"
-        component={PlanNavigator}
-        options={{
-          tabBarLabel: TAB_LABELS.Plan,
-          tabBarIcon: ({ color, size }) => tabIcon('Plan', color, size),
-        }}
-      />
+      {!isGuest ? (
+        <Tab.Screen
+          name="Plan"
+          component={PlanNavigator}
+          options={{
+            tabBarLabel: TAB_LABELS.Plan,
+            tabBarIcon: ({ color, size }) => tabIcon('Plan', color, size),
+          }}
+        />
+      ) : null}
       <Tab.Screen
         name="News"
         component={NewsNavigator}
@@ -80,14 +87,16 @@ export function MainTabsNavigator(): React.JSX.Element {
           tabBarIcon: ({ color, size }) => tabIcon('News', color, size),
         }}
       />
-      <Tab.Screen
-        name="SettingsTab"
-        component={SettingsNavigator}
-        options={{
-          tabBarLabel: TAB_LABELS.SettingsTab,
-          tabBarIcon: ({ color, size }) => tabIcon('SettingsTab', color, size),
-        }}
-      />
+      {!isGuest ? (
+        <Tab.Screen
+          name="SettingsTab"
+          component={SettingsNavigator}
+          options={{
+            tabBarLabel: TAB_LABELS.SettingsTab,
+            tabBarIcon: ({ color, size }) => tabIcon('SettingsTab', color, size),
+          }}
+        />
+      ) : null}
     </Tab.Navigator>
   );
 }
