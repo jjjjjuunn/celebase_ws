@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { schemas } from '@celebbase/shared-types';
+import type { schemas, MacroRatio } from '@celebbase/shared-types';
 
 import { MealPhoto } from '../components/MealPhoto';
 import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
@@ -62,11 +62,18 @@ interface RecipeMeta {
   calories: number | null;
 }
 
+/** base_diet 의 kcal/macro — transformation payoff(셀럽 측) 데이터. */
+interface BaseDietMacro {
+  avgKcal: number | null;
+  macro: MacroRatio;
+}
+
 interface ScreenData {
   bioPresent: boolean;
   credits: schemas.MealPlanCreditsResponse | null;
   plans: schemas.MealPlanWire[];
   celebNameByBaseDiet: Record<string, string>;
+  macroByBaseDiet: Record<string, BaseDietMacro>;
   recipeById: Record<string, RecipeMeta>;
 }
 
@@ -81,6 +88,8 @@ interface CalendarDay {
   celebName: string | null;
   meals: DailyMeal[];
   dailyTotals: DailyTotals;
+  /** transformation payoff — 셀럽 base diet kcal/macro. base_diet 조인 실패 시 null → 패널 미렌더. */
+  transform: { celebKcal: number | null; celebMacro: MacroRatio } | null;
 }
 
 // 좌측 기둥의 고정 4 끼니 (사용자 명시 순서: 아침·점심·간식·저녁).
@@ -151,11 +160,18 @@ async function loadScreen(): Promise<ScreenData> {
     plansPromise,
   ]);
 
-  const [celebNameByBaseDiet, recipeById] = await Promise.all([
-    resolveCelebNames(plans),
+  const [info, recipeById] = await Promise.all([
+    resolveBaseDietInfo(plans),
     resolveRecipes(plans),
   ]);
-  return { bioPresent, credits, plans, celebNameByBaseDiet, recipeById };
+  return {
+    bioPresent,
+    credits,
+    plans,
+    celebNameByBaseDiet: info.celebNameByBaseDiet,
+    macroByBaseDiet: info.macroByBaseDiet,
+    recipeById,
+  };
 }
 
 // recipe_id → 제목·사진·meal_type 로컬 조인 (rule #10: content-service 소유 데이터).
@@ -192,13 +208,17 @@ async function resolveRecipes(
   return map;
 }
 
-// base_diet_id → 셀럽 display_name 로컬 조인 (rule #10: content-service 소유 데이터).
-// distinct base_diet_id 만 조회(plan 수 기준 bound). best-effort — 실패 시 이름 생략.
-async function resolveCelebNames(
+// base_diet_id → 셀럽 display_name + kcal/macro 로컬 조인 (rule #10: content-service 소유 데이터).
+// distinct base_diet_id 만 조회(plan 수 기준 bound). best-effort — 실패 시 해당 base_diet 생략.
+// 단일 getBaseDiet fetch 로 이름맵(celebRow) + macro맵(transformation payoff) 둘 다 채운다.
+async function resolveBaseDietInfo(
   plans: schemas.MealPlanWire[],
-): Promise<Record<string, string>> {
+): Promise<{
+  celebNameByBaseDiet: Record<string, string>;
+  macroByBaseDiet: Record<string, BaseDietMacro>;
+}> {
   const baseDietIds = Array.from(new Set(plans.map((p) => p.base_diet_id)));
-  if (baseDietIds.length === 0) return {};
+  if (baseDietIds.length === 0) return { celebNameByBaseDiet: {}, macroByBaseDiet: {} };
 
   const [baseDiets, celebs] = await Promise.all([
     Promise.all(
@@ -214,18 +234,22 @@ async function resolveCelebNames(
   ]);
 
   const nameByCelebId = new Map(celebs.map((c) => [c.id, c.display_name]));
-  const map: Record<string, string> = {};
+  const celebNameByBaseDiet: Record<string, string> = {};
+  const macroByBaseDiet: Record<string, BaseDietMacro> = {};
   for (const bd of baseDiets) {
     if (bd === null) continue;
     const name = nameByCelebId.get(bd.celebrity_id);
-    if (name !== undefined) map[bd.id] = name;
+    if (name !== undefined) celebNameByBaseDiet[bd.id] = name;
+    // macro 는 이름 resolve 여부와 무관하게 base_diet 가 있으면 항상 채운다.
+    macroByBaseDiet[bd.id] = { avgKcal: bd.avg_daily_kcal, macro: bd.macro_ratio };
   }
-  return map;
+  return { celebNameByBaseDiet, macroByBaseDiet };
 }
 
 function buildCalendar(
   plans: schemas.MealPlanWire[],
   celebNameByBaseDiet: Record<string, string>,
+  macroByBaseDiet: Record<string, BaseDietMacro>,
 ): Map<string, CalendarDay> {
   // created_at 오름차순으로 채워 최신 plan 이 같은 날짜를 덮어쓰게 한다(최신 우선).
   const sorted = [...plans]
@@ -234,6 +258,8 @@ function buildCalendar(
 
   const byDate = new Map<string, CalendarDay>();
   for (const plan of sorted) {
+    // 조인 실패한 base_diet 는 맵에 없음 → 런타임 undefined. noUncheckedIndexedAccess 미적용이라 명시 단언.
+    const bdMacro = macroByBaseDiet[plan.base_diet_id] as BaseDietMacro | undefined;
     for (const dp of plan.daily_plans) {
       byDate.set(dp.date, {
         date: dp.date,
@@ -241,6 +267,10 @@ function buildCalendar(
         celebName: celebNameByBaseDiet[plan.base_diet_id] ?? null,
         meals: dp.meals,
         dailyTotals: dp.daily_totals,
+        transform:
+          bdMacro !== undefined
+            ? { celebKcal: bdMacro.avgKcal, celebMacro: bdMacro.macro }
+            : null,
       });
     }
   }
@@ -333,7 +363,11 @@ export function MealPlanScreen({
 
   const plans = phase.state === 'ready' ? phase.data.plans : EMPTY_PLANS;
   const celebMap = phase.state === 'ready' ? phase.data.celebNameByBaseDiet : EMPTY_STR_MAP;
-  const dayByDate = useMemo(() => buildCalendar(plans, celebMap), [plans, celebMap]);
+  const macroMap = phase.state === 'ready' ? phase.data.macroByBaseDiet : EMPTY_MACRO_MAP;
+  const dayByDate = useMemo(
+    () => buildCalendar(plans, celebMap, macroMap),
+    [plans, celebMap, macroMap],
+  );
 
   // 선택 날짜의 끼니를 canonical 4 타입으로 필터 + 기둥 순서로 정렬(같은 타입은 원순서 유지).
   const dayMeals = useMemo<DailyMeal[]>(() => {
@@ -552,6 +586,16 @@ export function MealPlanScreen({
         </View>
       ) : null}
 
+      {/* Transformation payoff — 셀럽 base diet kcal/macro → 유저 plan kcal/macro */}
+      {/* dayHasPlan(=selectedDay non-null) 이 selectedDay 를 non-null 로 좁힌다(aliased narrowing). */}
+      {dayHasPlan && selectedDay.transform !== null ? (
+        <TransformationPanel
+          celebName={celebName}
+          transform={selectedDay.transform}
+          dailyTotals={selectedDay.dailyTotals}
+        />
+      ) : null}
+
       {/* 본문: 좌측 meal-type 기둥(인디케이터) + 우측 세로 스냅 스크롤 */}
       {!dayHasPlan ? (
         <View style={styles.bodyEmpty}>
@@ -639,6 +683,123 @@ export function MealPlanScreen({
 
 const EMPTY_PLANS: schemas.MealPlanWire[] = [];
 const EMPTY_STR_MAP: Record<string, string> = {};
+const EMPTY_MACRO_MAP: Record<string, BaseDietMacro> = {};
+
+// ── Transformation payoff (money moment) ──────────────────────────────
+// 셀럽 base diet ↔ 유저 personalized plan 의 kcal/macro 대비 — 엔진 personalization 가치 시연.
+
+/**
+ * 유저 plan 의 daily_totals(grams) → macro % 환산. 총합 0(엔진 미충전)이면 null → 표시 생략.
+ * 독립 반올림은 합이 99/101 이 될 수 있어(예: exact thirds → 33·33·33) largest-remainder 로 합 100 정규화.
+ */
+function toUserMacroPct(dt: DailyTotals): MacroRatio | null {
+  const cals = [dt.protein_g * 4, dt.carbs_g * 4, dt.fat_g * 9];
+  const tot = cals[0] + cals[1] + cals[2];
+  if (tot <= 0) return null;
+  const exact = cals.map((x) => (x / tot) * 100);
+  const pct = exact.map((x) => Math.floor(x));
+  let deficit = 100 - (pct[0] + pct[1] + pct[2]);
+  // 잔여(deficit)를 fractional remainder 가 큰 인덱스부터 +1 → 합 100 보장.
+  const byRemainderDesc = [0, 1, 2].sort((a, b) => exact[b] - pct[b] - (exact[a] - pct[a]));
+  for (let i = 0; i < byRemainderDesc.length && deficit > 0; i += 1) {
+    pct[byRemainderDesc[i]] += 1;
+    deficit -= 1;
+  }
+  return { protein_pct: pct[0], carbs_pct: pct[1], fat_pct: pct[2] };
+}
+
+/** 1234 → "1,234" (Hermes Intl 비의존 — 천단위 콤마). */
+function formatThousands(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function TransformationPanel({
+  celebName,
+  transform,
+  dailyTotals,
+}: {
+  celebName: string | null;
+  transform: { celebKcal: number | null; celebMacro: MacroRatio };
+  dailyTotals: DailyTotals;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeTransformStyles(theme), [theme]);
+  const userMacro = toUserMacroPct(dailyTotals);
+
+  // macro 3색 stacked bar — null(유저 측 데이터 없음)이면 생략. 색은 token-derived accents.
+  const renderBar = (macro: MacroRatio | null): React.JSX.Element | null => {
+    if (macro === null) return null;
+    return (
+      <View style={styles.bar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View style={[styles.barSeg, { flex: macro.protein_pct, backgroundColor: theme.accents[0] }]} />
+        <View style={[styles.barSeg, { flex: macro.carbs_pct, backgroundColor: theme.accents[1] }]} />
+        <View style={[styles.barSeg, { flex: macro.fat_pct, backgroundColor: theme.accents[2] }]} />
+      </View>
+    );
+  };
+
+  const renderColumn = (
+    label: string,
+    kcal: number | null,
+    macro: MacroRatio | null,
+  ): React.JSX.Element => (
+    <View style={styles.col}>
+      <Text variant="label" tone="muted" numberOfLines={1}>
+        {label}
+      </Text>
+      <Text variant="metricLg" style={styles.kcal}>
+        {kcal !== null ? `${formatThousands(kcal)} kcal` : '—'}
+      </Text>
+      {macro !== null ? (
+        <Text variant="caption" tone="subtle">
+          {`P ${String(macro.protein_pct)} · C ${String(macro.carbs_pct)} · F ${String(macro.fat_pct)}`}
+        </Text>
+      ) : null}
+      {renderBar(macro)}
+    </View>
+  );
+
+  return (
+    <View style={styles.panel}>
+      <Text variant="label" tone="brand" style={styles.title}>
+        YOUR TRANSFORMATION
+      </Text>
+      <View style={styles.row}>
+        {renderColumn(celebName ?? 'Celebrity', transform.celebKcal, transform.celebMacro)}
+        <View style={styles.arrowCol}>
+          <Ionicons name="arrow-forward" size={20} color={theme.color.brand} />
+        </View>
+        {renderColumn('You', Math.round(dailyTotals.calories), userMacro)}
+      </View>
+    </View>
+  );
+}
+
+function makeTransformStyles(theme: Theme) {
+  return StyleSheet.create({
+    panel: {
+      marginHorizontal: theme.space(4),
+      marginBottom: theme.space(3),
+      padding: theme.space(4),
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.color.surface,
+      gap: theme.space(3),
+    },
+    title: { letterSpacing: 0.5 },
+    row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(3) },
+    col: { flex: 1, gap: theme.space(1) },
+    arrowCol: { alignSelf: 'center' },
+    kcal: { fontFamily: theme.font.display },
+    bar: {
+      flexDirection: 'row',
+      height: 6,
+      borderRadius: theme.radius.pill,
+      overflow: 'hidden',
+      marginTop: theme.space(1),
+    },
+    barSeg: { height: '100%' },
+  });
+}
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({

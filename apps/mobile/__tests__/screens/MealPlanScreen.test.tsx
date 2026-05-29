@@ -177,6 +177,8 @@ interface ScreenRoutes {
   bioStatus?: number;
   credits: () => unknown;
   plans?: unknown[];
+  /** base_diet 조인 실패(404) 시뮬레이션 — transformation/celebRow 미렌더 회귀 가드용. */
+  baseDietStatus?: number;
 }
 
 function routeScreen(fetchSpy: jest.SpyInstance, routes: ScreenRoutes): void {
@@ -195,7 +197,11 @@ function routeScreen(fetchSpy: jest.SpyInstance, routes: ScreenRoutes): void {
       return Promise.resolve(makeResponse(200, routes.credits()));
     }
     if (u.includes('/api/base-diets/')) {
-      return Promise.resolve(makeResponse(200, { base_diet: BASE_DIET }));
+      return Promise.resolve(
+        (routes.baseDietStatus ?? 200) === 404
+          ? makeResponse(404, { error: { code: 'NOT_FOUND', message: 'no base diet' } })
+          : makeResponse(200, { base_diet: BASE_DIET }),
+      );
     }
     if (u.includes('/api/celebrities')) {
       return Promise.resolve(
@@ -258,6 +264,31 @@ describe('<MealPlanScreen />', () => {
     expect(screen.getByText('5 min')).toBeTruthy();
     expect(screen.getByText('Greek yogurt with honey')).toBeTruthy();
     expect(await screen.findByText('Based on Beyoncé')).toBeTruthy();
+  });
+
+  it('plan 있는 날 → transformation 패널(셀럽 kcal/macro → 유저 kcal/macro)', async () => {
+    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN] });
+
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+
+    expect(await screen.findByText('YOUR TRANSFORMATION')).toBeTruthy();
+    // 셀럽 측: base_diet macro_ratio 30/40/30 (avg_daily_kcal 1800).
+    expect(screen.getByText('P 30 · C 40 · F 30')).toBeTruthy();
+    // 유저 측: daily_totals grams(120/180/60) → kcal % 환산 → P28·C41·F31.
+    expect(screen.getByText('P 28 · C 41 · F 31')).toBeTruthy();
+    expect(screen.getByText('You')).toBeTruthy();
+  });
+
+  it('base_diet 조인 실패 → transformation 패널 + celebRow 미렌더(회귀 가드)', async () => {
+    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN], baseDietStatus: 404 });
+
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+
+    // 끼니는 plan.daily_plans 에서 직접 오므로 렌더되지만(panel 비의존),
+    await screen.findByText('420 kcal');
+    // base_diet 조인 실패 → transform·celebName 둘 다 없음 → 패널·celebRow 미렌더.
+    expect(screen.queryByText('YOUR TRANSFORMATION')).toBeNull();
+    expect(screen.queryByText('Based on Beyoncé')).toBeNull();
   });
 
   it('식단 있는 날 → 좌측 기둥 4 라벨 + 끼니 있는 슬롯만 활성/강조', async () => {
