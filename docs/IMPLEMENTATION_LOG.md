@@ -48,6 +48,31 @@ verified_by: claude-opus-4-8 (mobile tsc 0 / eslint 0 / jest 208 PASS) + codex-r
 ### 연관 파일: apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/__tests__/screens/MealPlanScreen.test.tsx, spec.md
 
 ---
+date: 2026-05-28
+agent: claude-opus-4-8 (1M context) + codex-review (L2) + gemini (plan adversarial)
+task_id: IMPL-MOBILE-NEWS-FEED-001
+commit_sha: 115be5e
+files_changed:
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/components/ClaimCard.tsx
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/__tests__/screens/NewsScreen.test.tsx
+  - apps/mobile/src/screens/NewsDetailScreen.tsx
+  - apps/mobile/src/lib/news-mock.ts
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tsc 0 / eslint 0 / jest 210 PASS) + codex-review L2 (APPROVE, 0 findings)
+---
+### 완료: News 탭 실데이터 전환 — News-first 퍼널 입구 (IMPL-MOBILE-NEWS-FEED-001)
+- **NewsScreen 전면 재작성**: mock(`news-mock.ts`) → 실 `lifestyle_claims`. `Promise.all([listClaims({limit:100}), listCelebrities({limit:100})])` 후 client-side join(Map by `celebrity.id` ↔ `claim.celebrity_id`). 카테고리 매핑 Diet=food / Beauty=beauty / Wellness=workout+sleep+supplement (brand·philosophy 제외). 기본 'diet' 탭(데모가 Diet+CTA로 시작). loading/error(retry)/empty 상태, **`useCurrentTier` 미사용**(게스트 boot-kick 회피 — News 무료 퍼널).
+- **ClaimCard 강화**(하위호환): optional `celebrity?: CelebrityWire` prop → Avatar + display_name 앵커 행. 행은 `accessibilityElementsHidden`+`importantForAccessibility="no-hide-descendants"`로 a11y 트리에서 숨기고 셀럽 이름을 카드 `accessibilityLabel`로 announce(중복 focus 방지). 기존 소비자(ClaimDetail·ClaimsFeed)는 미전달 → 행 미렌더, 무영향.
+- **네비**: `NewsStackParamList` NewsDetail→ClaimDetail. NewsNavigator가 ClaimDetailScreen 재사용(CelebritiesNavigator 패턴 mirror) → 카드 탭 시 "Eat like this celebrity" CTA(PR #190) 도달. orphan `NewsDetailScreen.tsx` + `news-mock.ts` 삭제.
+- **설계 결정**: 디자인을 에디토리얼 레이아웃 대신 ClaimCard로 통일(user 확정 2026-05-28). `celebrity` 전달은 조건부 spread(`exactOptionalPropertyTypes` 안전, code-style.md 패턴). 페이지네이션 ceiling(limit:100)은 현 카탈로그(≤10셀럽) 전량 cover — 코드 주석으로 명시, 100+ 시 cursor 페이지네이션 fast-follow.
+- **검증**: mobile tsc 0, eslint 0, jest 210/210(신규 NewsScreen.test 4). Codex L2 review APPROVE(8/8 SOUND, 0 finding) + Gemini plan adversarial 패스(a11y·조건부 spread finding 사전 반영). spec.md §7.2 sync(News=claims feed 확정, IMPL-MOBILE-CLAIMS-GLOBAL-001 결정 닫음).
+### 미완료: ClaimDetailScreen `useMealPlanCredits` 게스트 boot-kick(PR #190 기존 동작, Celebrities 경로 공통 — P2 게스트 모드/smoke-and-mirror로 위임). News 카탈로그 100+ 시 cursor 페이지네이션. picsum 시드 이미지 → generic 스톡 교체(P2 콘텐츠). Task #7 transformation payoff(별도 PR). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/NewsScreen.tsx, apps/mobile/src/components/ClaimCard.tsx, apps/mobile/src/navigation/types.ts, apps/mobile/src/navigation/NewsNavigator.tsx, apps/mobile/__tests__/screens/NewsScreen.test.tsx, spec.md
+
+---
 date: 2026-05-24
 agent: claude-opus-4-7 (1M context)
 task_id: CHORE-ONBOARDING-POLISH-001

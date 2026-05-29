@@ -1,9 +1,10 @@
-// News tab 의 inner stack — NewsFeed (root) → NewsDetail (article body).
+// News tab 의 inner stack — NewsFeed (claim 피드) → ClaimDetail (claim + "Eat like
+// this celebrity" CTA). ClaimDetail 은 CelebritiesNavigator 와 동일 화면을 재사용한다.
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { NewsScreen } from '../screens/NewsScreen';
-import { NewsDetailScreen } from '../screens/NewsDetailScreen';
+import { ClaimDetailScreen } from '../screens/ClaimDetailScreen';
 import type { NewsStackParamList, NewsStackScreenProps } from './types';
 
 const Stack = createNativeStackNavigator<NewsStackParamList>();
@@ -13,20 +14,20 @@ function NewsFeedRoute({
 }: NewsStackScreenProps<'NewsFeed'>): React.JSX.Element {
   return (
     <NewsScreen
-      onArticlePress={(id) => {
-        navigation.navigate('NewsDetail', { id });
+      onClaimPress={(claimId) => {
+        navigation.navigate('ClaimDetail', { claimId });
       }}
     />
   );
 }
 
-function NewsDetailRoute({
+function ClaimDetailRoute({
   navigation,
   route,
-}: NewsStackScreenProps<'NewsDetail'>): React.JSX.Element {
+}: NewsStackScreenProps<'ClaimDetail'>): React.JSX.Element {
   return (
-    <NewsDetailScreen
-      id={route.params.id}
+    <ClaimDetailScreen
+      claimId={route.params.claimId}
       onBack={() => {
         navigation.goBack();
       }}
@@ -38,7 +39,7 @@ export function NewsNavigator(): React.JSX.Element {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="NewsFeed" component={NewsFeedRoute} />
-      <Stack.Screen name="NewsDetail" component={NewsDetailRoute} />
+      <Stack.Screen name="ClaimDetail" component={ClaimDetailRoute} />
     </Stack.Navigator>
   );
 }

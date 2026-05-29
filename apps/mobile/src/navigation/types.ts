@@ -47,10 +47,11 @@ export type CelebritiesStackParamList = {
   ClaimDetail: { claimId: string };
 };
 
-// ── News stack (article feed → detail) ──────────────────────
+// ── News stack (claim feed → claim detail) ──────────────────
+// News-first 퍼널: 실 lifestyle_claims 피드(NewsFeed) → ClaimDetail("Eat like this celebrity" CTA).
 export type NewsStackParamList = {
   NewsFeed: undefined;
-  NewsDetail: { id: string };
+  ClaimDetail: { claimId: string };
 };
 
 // ── Plan / Profile / Settings stacks (single screen each for now) ────

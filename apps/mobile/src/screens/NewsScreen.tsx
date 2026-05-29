@@ -1,153 +1,106 @@
-// News 탭 root — 아티클 피드 (디자인 ref: 4번 사진 / Medium-style feed).
+// News 탭 root — 셀럽 wellness claim 피드 (News-first 퍼널 입구).
 //
-// 스펙 (사용자 2026-05-14):
-//   3.   뉴스는 4번 사진 참고.
-//   3-1. 카테고리는 Beauty / Diet / Wellness & Fitness.
-//
-// mock 아티클(src/lib/news-mock.ts) — 카드 탭 시 NewsDetail 로 이동. content-service
-// trend intelligence 연결 시 교체. ui/ primitive 레이어 사용.
+// 스펙 (사용자 2026-05-14): 카테고리는 Beauty / Diet / Wellness & Fitness.
+// IMPL-MOBILE-NEWS-FEED-001: 실제 published `lifestyle_claims` 를 셀럽 attribution 과
+// 함께 ClaimCard 로 렌더 → 카드 탭 시 ClaimDetail ("Eat like this celebrity" CTA).
+// 데이터는 client-side join — listClaims() + listCelebrities() Map by celebrity_id.
 
-import { useMemo, useRef, useState, type ComponentProps } from 'react';
-import { Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 
-import {
-  getNewsArticlesByCategory,
-  NEWS_CATEGORIES,
-  type NewsArticle,
-  type NewsCategory,
-} from '../lib/news-mock';
-import { resolveToken } from '../lib/tokens';
-import { Text, useTheme, type Theme } from '../ui';
+import type { ClaimType, schemas } from '@celebbase/shared-types';
 
-interface NewsScreenProps {
-  /** 카드 탭 시 — NewsDetail 로 이동. */
-  onArticlePress: (id: string) => void;
-}
+import { ClaimCard } from '../components/ClaimCard';
+import { listClaims } from '../services/claims';
+import { listCelebrities } from '../services/celebrities';
+import { EmptyState, Text, useTheme, type Theme } from '../ui';
 
-// category → line icon (thumbnail is a neutral taupe placeholder until article
-// imagery lands; the icon signals the category without a muddy colour block).
-type IoniconName = ComponentProps<typeof Ionicons>['name'];
-const CATEGORY_ICON: Record<NewsCategory, IoniconName> = {
-  beauty: 'sparkles-outline',
-  diet: 'nutrition-outline',
-  wellness: 'barbell-outline',
+// News 카테고리 = claim_type 그룹. brand · philosophy 는 제외(undefined → 필터 아웃).
+type NewsCategory = 'diet' | 'beauty' | 'wellness';
+
+const NEWS_CATEGORIES: ReadonlyArray<{ key: NewsCategory; label: string }> = [
+  { key: 'diet', label: 'Diet' },
+  { key: 'beauty', label: 'Beauty' },
+  { key: 'wellness', label: 'Wellness' },
+];
+
+const CATEGORY_BY_CLAIM_TYPE: Partial<Record<ClaimType, NewsCategory>> = {
+  food: 'diet',
+  beauty: 'beauty',
+  workout: 'wellness',
+  sleep: 'wellness',
+  supplement: 'wellness',
+  // brand · philosophy 는 의도적으로 미매핑 → 피드에서 제외.
 };
 
-// 피드 최상단 기사 = 에디토리얼 히어로. 큰 이미지 블록(이미지 라이선스 hold →
-// 토프 placeholder + 카테고리 라인 아이콘) 위, 그 아래 brand kicker + 큰 Fraunces
-// 헤드라인 + dek(본문 첫 문단) + 모노 메타. 셀럽 풀블리드 타일과 같은 에디토리얼 언어.
-function HeroCard({
-  article,
-  onPress,
-}: {
-  article: NewsArticle;
-  onPress: () => void;
-}): React.JSX.Element {
-  const theme = useTheme();
-  const styles = useMemo(() => makeHeroStyles(theme), [theme]);
-  const scale = useRef(new Animated.Value(1)).current;
-  const dek = article.body[0] ?? '';
-
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={article.title}
-        onPress={onPress}
-        onPressIn={() => {
-          Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 50 }).start();
-        }}
-        onPressOut={() => {
-          Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
-        }}
-        style={styles.heroCard}
-      >
-        <View style={styles.heroImage}>
-          <Ionicons name={CATEGORY_ICON[article.category]} size={52} color={theme.color.onInk} />
-        </View>
-        <View style={styles.heroBody}>
-          <Text variant="label" tone="brand">
-            {article.source}
-          </Text>
-          <Text variant="h2" numberOfLines={3} style={styles.heroTitle}>
-            {article.title}
-          </Text>
-          {dek !== '' ? (
-            <Text variant="bodySm" tone="muted" numberOfLines={2}>
-              {dek}
-            </Text>
-          ) : null}
-          <Text variant="metricSm" tone="muted">
-            {article.postedAt} · {String(article.readMinutes)} min read
-          </Text>
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
+interface NewsScreenProps {
+  /** 카드 탭 시 — ClaimDetail 로 이동. */
+  onClaimPress: (claimId: string) => void;
 }
 
-function ArticleCard({
-  article,
-  onPress,
-}: {
-  article: NewsArticle;
-  onPress: () => void;
-}): React.JSX.Element {
-  const theme = useTheme();
-  const styles = useMemo(() => makeCardStyles(theme), [theme]);
-  const scale = useRef(new Animated.Value(1)).current;
+// claim + (joined) celebrity + 매핑된 News 카테고리.
+type EnrichedClaim = {
+  claim: schemas.LifestyleClaimWire;
+  category: NewsCategory;
+  celebrity: schemas.CelebrityWire | undefined;
+};
 
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={article.title}
-        onPress={onPress}
-        onPressIn={() => {
-          Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, speed: 50 }).start();
-        }}
-        onPressOut={() => {
-          Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
-        }}
-        style={styles.articleCard}
-      >
-        <View style={styles.articleBody}>
-          <Text variant="label" tone="brand">
-            {article.source}
-          </Text>
-          <Text variant="h4" numberOfLines={3} style={styles.articleTitle}>
-            {article.title}
-          </Text>
-          <Text variant="metricSm" tone="muted">
-            {article.postedAt} · {String(article.readMinutes)} min read
-          </Text>
-        </View>
-        <View style={styles.articleThumb}>
-          <Ionicons name={CATEGORY_ICON[article.category]} size={30} color={theme.color.onInk} />
-        </View>
-      </Pressable>
-    </Animated.View>
+type FeedState =
+  | { phase: 'loading' }
+  | { phase: 'error'; message: string }
+  | { phase: 'loaded'; items: EnrichedClaim[] };
+
+export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const [category, setCategory] = useState<NewsCategory>('diet');
+  const [state, setState] = useState<FeedState>({ phase: 'loading' });
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // mount(및 retry) 시 broad fetch — claim + celebrity 를 client-side join.
+  // ⚠️ ceiling: limit:100 은 현 카탈로그(≤10 셀럽 / 50 claim)를 전량 cover. 카탈로그가
+  //    100+ claim·celeb 으로 커지면 일부 attribution 누락 가능 → cursor 페이지네이션 fast-follow.
+  // ⚠️ useCurrentTier 호출 금지 — 무토큰 게스트의 401→logout boot-kick 회피(News 는 무료 퍼널).
+  useEffect(() => {
+    let cancelled = false;
+    setState({ phase: 'loading' });
+
+    Promise.all([listClaims({ limit: 100 }), listCelebrities({ limit: 100 })])
+      .then(([claimsRes, celebsRes]) => {
+        if (cancelled) return;
+        const celebById = new Map(celebsRes.items.map((c) => [c.id, c]));
+        const items: EnrichedClaim[] = [];
+        for (const claim of claimsRes.claims) {
+          const cat = CATEGORY_BY_CLAIM_TYPE[claim.claim_type];
+          if (cat === undefined) continue; // brand · philosophy drop
+          items.push({ claim, category: cat, celebrity: celebById.get(claim.celebrity_id) });
+        }
+        setState({ phase: 'loaded', items });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        // 메시지는 state 에 캡처(silent ignore 금지) — feed UX 는 generic 카피 + retry 로 회복.
+        const message = err instanceof Error ? err.message : 'unknown';
+        setState({ phase: 'error', message });
+      });
+
+    return (): void => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
+
+  const visible = useMemo(
+    () => (state.phase === 'loaded' ? state.items.filter((e) => e.category === category) : []),
+    [state, category],
   );
-}
-
-export function NewsScreen({ onArticlePress }: NewsScreenProps): React.JSX.Element {
-  const theme = useTheme();
-  const styles = useMemo(() => makeScreenStyles(theme), [theme]);
-  const [category, setCategory] = useState<NewsCategory>('beauty');
-
-  const data = useMemo(() => getNewsArticlesByCategory(category), [category]);
-  // 에디토리얼 레이아웃: 첫 기사는 히어로, 나머지는 리스트 행.
-  const hero = data[0];
-  const rest = useMemo(() => data.slice(1), [data]);
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
         <Text variant="h1">News</Text>
         <Text variant="bodySm" tone="muted">
-          웰니스 트렌드를 한눈에.
+          셀럽들의 웰니스를 한눈에.
         </Text>
       </View>
 
@@ -172,38 +125,49 @@ export function NewsScreen({ onArticlePress }: NewsScreenProps): React.JSX.Eleme
         })}
       </View>
 
-      <FlatList
-        data={rest}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          data.length > 0 ? (
-            <View style={styles.heroWrap}>
-              <HeroCard
-                article={hero}
-                onPress={() => {
-                  onArticlePress(hero.id);
-                }}
-              />
-            </View>
-          ) : null
-        }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => (
-          <ArticleCard
-            article={item}
-            onPress={() => {
-              onArticlePress(item.id);
+      {state.phase === 'loading' ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.color.brand} />
+        </View>
+      ) : state.phase === 'error' ? (
+        <View style={styles.centered}>
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Couldn't load news."
+            ctaLabel="Try again"
+            onPressCta={() => {
+              setReloadKey((k) => k + 1);
             }}
           />
-        )}
-      />
+        </View>
+      ) : visible.length === 0 ? (
+        <View style={styles.centered}>
+          <EmptyState
+            icon="file-tray-outline"
+            title="No stories yet."
+            body="새 소식이 곧 추가됩니다."
+          />
+        </View>
+      ) : (
+        <FlatList
+          data={visible}
+          keyExtractor={(item) => item.claim.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <ClaimCard
+              claim={item.claim}
+              onPress={onClaimPress}
+              {...(item.celebrity !== undefined ? { celebrity: item.celebrity } : {})}
+            />
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-function makeScreenStyles(theme: Theme) {
+function makeStyles(theme: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.color.bg },
     header: {
@@ -226,46 +190,8 @@ function makeScreenStyles(theme: Theme) {
     },
     chipActive: { backgroundColor: theme.color.brand },
     chipInactive: { backgroundColor: theme.color.surface },
-    listContent: { paddingHorizontal: theme.space(4), paddingBottom: theme.space(8) },
-    separator: { height: 1, backgroundColor: theme.color.border, marginVertical: theme.space(4) },
-    // 히어로와 첫 리스트 행 사이를 list separator 와 같은 리듬(1px line + 상하 여백)으로.
-    heroWrap: {
-      paddingBottom: theme.space(4),
-      marginBottom: theme.space(4),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.color.border,
-    },
-  });
-}
-
-function makeHeroStyles(theme: Theme) {
-  return StyleSheet.create({
-    heroCard: { gap: theme.space(3) },
-    heroImage: {
-      width: '100%',
-      height: 200,
-      borderRadius: theme.radius.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: resolveToken(theme.mode, '--cb-neutral-500'),
-    },
-    heroBody: { gap: theme.space(2) },
-    heroTitle: { letterSpacing: -0.3 },
-  });
-}
-
-function makeCardStyles(theme: Theme) {
-  return StyleSheet.create({
-    articleCard: { flexDirection: 'row', gap: theme.space(3), alignItems: 'center' },
-    articleBody: { flex: 1, gap: theme.space(1) },
-    articleTitle: { fontWeight: '700' },
-    articleThumb: {
-      width: 88,
-      height: 88,
-      borderRadius: theme.radius.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: resolveToken(theme.mode, '--cb-neutral-400'),
-    },
+    // ClaimCard 가 자체 marginHorizontal(space(4)) 을 가지므로 listContent 는 수직 여백만.
+    listContent: { paddingVertical: theme.space(2), paddingBottom: theme.space(8) },
+    centered: { flex: 1, justifyContent: 'center' },
   });
 }
