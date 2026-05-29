@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
 task_id: IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001
-commit_sha: PENDING
+commit_sha: f2bc15c
 files_changed:
   - db/migrations/0026_lifestyle_claims_celebrity_optional.sql
   - packages/shared-types/src/schemas/lifestyle-claims.ts
