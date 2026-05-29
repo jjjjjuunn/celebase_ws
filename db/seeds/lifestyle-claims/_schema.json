@@ -4,12 +4,12 @@
   "description": "IMPL-019 — 셀럽 lifestyle claim seed (사람 작성, allowlist URL only). spec.md §3.5.3 / §9.3 7원칙.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["celebrity_slug", "claims"],
+  "required": ["claims"],
   "properties": {
     "celebrity_slug": {
-      "type": "string",
+      "type": ["string", "null"],
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "celebrities.slug 와 1:1 매칭. db/seeds/data/<slug>.json 존재 필수."
+      "description": "선택. 존재 시 celebrities.slug 와 1:1 매칭(db/seeds/data/<slug>.json 필수, 파일명=slug). 생략/null ⇒ 셀럽 없는 웰니스 트렌드 카드 — 파일명 'trend-' prefix 필수."
     },
     "claims": {
       "type": "array",

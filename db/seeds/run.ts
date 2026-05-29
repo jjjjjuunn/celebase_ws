@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadIngredients } from './loaders/ingredientLoader.js';
@@ -60,6 +60,17 @@ async function main(): Promise<void> {
     //    One file per seeded celebrity under lifestyle-claims/.
     let totalClaims = 0;
     for (const file of CELEBRITY_FILES) {
+      const claimsFile = readJson<SeedClaimsFile>(`lifestyle-claims/${file}.json`);
+      const n = await loadClaims(client, claimsFile);
+      totalClaims += n;
+    }
+    // 3b. Celebrity-optional wellness trend cards — auto-discover `lifestyle-claims/trend-*.json`
+    //     (CHORE-SEEDS-CELEB-OPTIONAL-TREND-001). Content team drops a `trend-<topic>.json`
+    //     file (no celebrity_slug); no run.ts edit needed.
+    const trendFiles = readdirSync(join(__dirname, 'lifestyle-claims'))
+      .filter((f) => f.startsWith('trend-') && f.endsWith('.json'))
+      .map((f) => f.replace(/\.json$/, ''));
+    for (const file of trendFiles) {
       const claimsFile = readJson<SeedClaimsFile>(`lifestyle-claims/${file}.json`);
       const n = await loadClaims(client, claimsFile);
       totalClaims += n;

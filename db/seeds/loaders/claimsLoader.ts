@@ -36,7 +36,11 @@ export interface SeedClaim {
 }
 
 export interface SeedClaimsFile {
-  celebrity_slug: string;
+  /**
+   * 셀럽 attribution. 생략/null ⇒ 셀럽 없는 웰니스 트렌드 카드(`celebrity_id` NULL).
+   * 무셀럽 파일은 `trend-*.json` 네이밍 컨벤션을 따른다(run.ts discovery + celeb 파일 충돌 방지).
+   */
+  celebrity_slug?: string | null;
   claims: SeedClaim[];
 }
 
@@ -80,7 +84,10 @@ export async function loadClaims(
   client: pg.PoolClient,
   file: SeedClaimsFile,
 ): Promise<number> {
-  const celebrityId = await resolveCelebrityId(client, file.celebrity_slug);
+  // 무셀럽 트렌드 카드면 celebrity_id NULL. resolveCelebrityId 는 slug 가 주어졌는데
+  // 못 찾으면 여전히 throw(fail-loud) — 오타로 잘못된 셀럽 연결되는 것 방지.
+  const celebrityId =
+    file.celebrity_slug != null ? await resolveCelebrityId(client, file.celebrity_slug) : null;
   let inserted = 0;
 
   for (const claim of file.claims) {
@@ -91,9 +98,11 @@ export async function loadClaims(
         ? await resolveBaseDietId(client, claim.base_diet_id_slug)
         : null;
 
+    // IS NOT DISTINCT FROM — celebrity_id NULL(무셀럽 카드)에서도 (NULL=NULL) 매칭되어
+    // 멱등성 유지(= 단순 `celebrity_id = $1` 은 NULL 을 못 잡아 재시드 시 중복 삽입).
     const existing = await client.query<{ id: string; base_diet_id: string | null }>(
       `SELECT id, base_diet_id FROM lifestyle_claims
-        WHERE celebrity_id = $1 AND headline = $2
+        WHERE celebrity_id IS NOT DISTINCT FROM $1 AND headline = $2
         LIMIT 1`,
       [celebrityId, claim.headline],
     );

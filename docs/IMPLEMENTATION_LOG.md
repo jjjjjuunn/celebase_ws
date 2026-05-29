@@ -29,6 +29,28 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-29
+agent: claude-opus-4-8 (1M context)
+task_id: CHORE-SEEDS-CELEB-OPTIONAL-TREND-001
+commit_sha: 79388eb
+files_changed:
+  - db/seeds/loaders/claimsLoader.ts
+  - db/seeds/run.ts
+  - db/seeds/lifestyle-claims/_schema.json
+  - scripts/validate-claim-seeds.py
+verified_by: claude-opus-4-8 (loader tsc clean / validator pass on 50 existing claims + celeb-less positive·no-prefix negative)
+---
+### 완료: seed 파이프라인 셀럽-optional 트렌드 카드 지원 (CHORE-SEEDS-CELEB-OPTIONAL-TREND-001)
+- IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001(#193, celebrity_id nullable)에 이어, **콘텐츠팀이 셀럽 없는 웰니스 트렌드 카드를 시드할 수 있는 파이프라인**을 연다(구조만 — 실제 건강 콘텐츠·출처·ALLOWED_DOMAINS 확장·컴플라이언스는 콘텐츠팀 핸드오프).
+- **claimsLoader**: `SeedClaimsFile.celebrity_slug` optional → 없으면 `celebrity_id` NULL. 멱등키 `celebrity_id = $1`→`IS NOT DISTINCT FROM $1`(NULL=NULL 매칭, 재시드 중복삽입 방지). resolveCelebrityId 는 slug 주어지면 여전히 fail-loud.
+- **run.ts**: `lifestyle-claims/trend-*.json` 자동 discovery 루프 추가(콘텐츠팀이 파일만 떨구면 됨; celeb 파일 `<slug>.json` 과 충돌 없음).
+- **_schema.json**: `celebrity_slug` required 제거 + `["string","null"]`.
+- **validate-claim-seeds.py**: `celebrity_slug` 없으면 셀럽-존재/파일명=slug 검증 스킵 + `trend-` prefix 강제(컨벤션). 있으면 기존 검증.
+- **검증**: 로더 tsc 0(모듈해석 노이즈 제외). validator 기존 10셀럽/50claim 무회귀 + 임시 celeb-less(trend-) positive 통과 + no-prefix negative reject. L2 dev-tooling(prod 런타임 무관, validator-게이트) — self-adversarial.
+### 미완료: 실제 무셀럽 콘텐츠 카드(fibermaxxing 등)는 **콘텐츠팀 작성**(핸드오프 doc 별도). ALLOWED_DOMAINS 과학 도메인(mayoclinic/usda/pubmed) 확장 = 콘텐츠/법무. 전체 db:seed E2E(실 DB 적재)는 콘텐츠가 첫 trend- 파일 추가 시. record-log-sha.sh.
+### 연관 파일: db/seeds/loaders/claimsLoader.ts, db/seeds/run.ts, db/seeds/lifestyle-claims/_schema.json, scripts/validate-claim-seeds.py
+
+---
+date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
 task_id: IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001
 commit_sha: f2bc15c
