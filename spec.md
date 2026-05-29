@@ -2213,7 +2213,10 @@ User selects celebrity diet
 [Plan Confirmed → "My Plan" tab activated]
 ```
 
-**Transformation payoff (IMPL-MOBILE-NEWS-PAYOFF-001, mobile)**: `MealPlanScreen` 은 선택 날짜에 plan 이 있으면 "YOUR TRANSFORMATION" 비교 패널을 렌더한다 — 좌측 셀럽 `base_diet` 의 `avg_daily_kcal` + `macro_ratio`(%), 우측 유저 plan 의 `daily_totals`(kcal + grams→% 환산), 사이 personalization 화살표 + macro stacked bar. 엔진의 "셀럽 식단을 당신에게 맞춰 변환" 가치를 시연하는 News-first 퍼널의 머니 모먼트. base_diet 데이터는 셀럽 이름 조인(`resolveBaseDietInfo`)에서 함께 확보(추가 fetch 없음); base_diet 조인 실패 시 패널 미렌더(graceful).
+**Transformation payoff (IMPL-MOBILE-NEWS-PAYOFF-001, mobile)**: `MealPlanScreen` 은 선택 날짜에 plan 이 있으면 "YOUR TRANSFORMATION" 비교 패널을 렌더한다 — News-first 퍼널의 머니 모먼트(엔진의 "셀럽 식단을 당신에게 맞춰 변환" 가치 시연).
+**좌측(셀럽)** 은 `base_diet` 의 `avg_daily_kcal` + `macro_ratio`(%), **우측(유저)** 은 생성된 plan 의 `daily_totals`(kcal + protein/carbs/fat grams→% 환산, largest-remainder 로 합 100 정규화), 사이에 personalization 화살표 + 3색 macro stacked bar(token-derived accents)를 둔다.
+데이터는 `resolveBaseDietInfo` 가 셀럽 이름 조인 시 함께 수확하므로 추가 fetch 가 없다(유저 측은 plan 의 `daily_totals`, MealPlanWire 경로에서 required).
+Graceful 처리: `base_diet` 조인 실패 시 패널 전체 미렌더(celebRow 와 동일), `daily_totals` 미충전(합 0)이면 macro 라벨·bar 생략, `avg_daily_kcal` 가 null 이면 kcal 을 "—" 로 표시한다.
 
 ---
 
