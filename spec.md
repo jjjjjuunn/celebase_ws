@@ -899,11 +899,14 @@ CREATE TYPE trust_grade AS ENUM ('A', 'B', 'C', 'D', 'E');
 CREATE TYPE claim_status AS ENUM ('draft', 'published', 'archived');
 
 -- ============================================
--- LIFESTYLE_CLAIMS — 셀럽 라이프스타일 발언/루틴 카드
+-- LIFESTYLE_CLAIMS — 웰니스 트렌드 카드 (셀럽 attribution 은 optional)
 -- ============================================
 CREATE TABLE lifestyle_claims (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    celebrity_id    UUID NOT NULL REFERENCES celebrities(id) ON DELETE RESTRICT,
+    -- celebrity-optional (migration 0026, IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001): 셀럽 없는
+    -- 일반 웰니스 트렌드 카드(예: "fibermaxxing")를 허용한다. 셀럽과 연결된 food 카드만
+    -- "Make my Plan" 을 활성화하고, 셀럽/식단 소스가 없는 food 카드는 "준비 중" 으로 표시한다.
+    celebrity_id    UUID REFERENCES celebrities(id) ON DELETE RESTRICT,
 
     claim_type      claim_type NOT NULL,
     headline        VARCHAR(280) NOT NULL,   -- plain text only (HTML 금지, §9.3 #1)
@@ -2157,7 +2160,7 @@ IMPL-MOBILE-M5-NAV-001 의 4탭 (Discover / Plan / Profile / Settings) 은 본 t
 
 - **Celebrities** (⭐): 셀럽 그리드 → `CelebrityDetail` → 셀럽별 lifestyle claim 섹션 + `ClaimDetail`. 기존 `ClaimsFeedScreen` 의 글로벌 mixed-celeb feed 는 deferred (아래 참고).
 - **Meal & Routine** (🥗): 기존 `Plan` 탭 라벨 갱신. MealPlanScreen + 루틴(운동/수면/뷰티) 섹션 — claim 의 routine 측면이 별도 회귀 화면 (M3.5+ scope).
-- **News** (📰): 셀럽 wellness claim 피드 (News-first 퍼널 입구). 실 `lifestyle_claims` 를 셀럽 attribution(client-side join) 과 함께 Diet / Beauty / Wellness 로 카테고리화해 `ClaimCard` 로 렌더 → 카드 탭 시 `ClaimDetail`("Eat like this celebrity" CTA → meal plan). 기존 `Profile` 탭 슬롯 대체. (IMPL-MOBILE-NEWS-FEED-001 — 종전 "편집팀 article feed + 별도 ArticleDetail" 안에서 claims-feed 로 확정.)
+- **News** (📰): 웰니스 트렌드 카드 피드 (News-first 퍼널 입구). 실 `lifestyle_claims` 를 Diet / Beauty / Wellness 로 카테고리화해 `ClaimCard` 로 렌더 → 카드 탭 시 `ClaimDetail`. 기존 `Profile` 탭 슬롯 대체. (IMPL-MOBILE-NEWS-FEED-001.) **셀럽은 optional (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)**: 셀럽 attribution 이 있으면 client-side join 으로 표시. food 카드 중 셀럽 base_diet 가 연결된 것만 "Make my Plan"(Eat like this celebrity) CTA 를 활성화하고, 셀럽/식단 소스가 없는 food 카드는 "준비 중"(coming soon) 으로 표시한다. 비-food 카드(Beauty/Wellness)는 밀플랜 CTA 가 없다.
 - **Settings** (⚙️): Apple Guideline 5.1.1(v) 충족 + Profile 카드 (avatar + tier badge + Upgrade) 흡수.
 
 ```

@@ -21,7 +21,7 @@ const ROCK_ID = '01927000-0000-7000-8000-0000000000a2';
 
 type ClaimOverrides = {
   id: string;
-  celebrity_id: string;
+  celebrity_id: string | null;
   claim_type: 'food' | 'workout' | 'sleep' | 'beauty' | 'brand' | 'philosophy' | 'supplement';
   headline: string;
 };
@@ -156,6 +156,26 @@ describe('<NewsScreen />', () => {
     expect(screen.queryByText('collagen morning routine')).toBeNull();
     expect(screen.queryByText('the iron paradise split')).toBeNull();
     expect(screen.queryByText('project rock protein launch')).toBeNull();
+  });
+
+  it('셀럽 없는 트렌드 카드(celebrity_id null) → 셀럽 attribution 없이 렌더', async () => {
+    const celebLessFood = makeClaim({
+      id: '01927000-0000-7000-8000-0000000000f1',
+      celebrity_id: null,
+      claim_type: 'food',
+      headline: 'fibermaxxing explained',
+    });
+    mockFetchRouter(fetchSpy, {
+      claims: makeResponse(200, { claims: [celebLessFood], next_cursor: null, has_next: false }),
+    });
+
+    renderScreen(<NewsScreen onClaimPress={jest.fn()} />);
+
+    // 카드는 렌더되고(Diet 탭) — 셀럽 prefix 없는 fallback label.
+    expect(await screen.findByText('fibermaxxing explained')).toBeTruthy();
+    expect(screen.getByLabelText('claim fibermaxxing explained')).toBeTruthy();
+    // 셀럽 attribution 행 미렌더.
+    expect(screen.queryByText('Beyoncé', { includeHiddenElements: true })).toBeNull();
   });
 
   it('Wellness 탭 → workout claim 렌더, brand(미매핑) 제외', async () => {

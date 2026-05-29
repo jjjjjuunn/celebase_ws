@@ -27,7 +27,9 @@ export type ClaimSourceWire = z.infer<typeof ClaimSourceWireSchema>;
 
 export const LifestyleClaimWireSchema = z.object({
   id: z.string().uuid(),
-  celebrity_id: z.string().uuid(),
+  // celebrity-optional: a wellness trend card may have no celebrity attribution
+  // (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001).
+  celebrity_id: z.string().uuid().nullable(),
   claim_type: ClaimType,
   headline: z.string().min(1).max(280),
   body: z.string().max(10000).nullable(),

@@ -99,8 +99,8 @@ describe('lifestyle-claim.repository', () => {
       expect(result?.sources[0]?.is_primary).toBe(true);
 
       const claimSql = query.mock.calls[0]?.[0] ?? '';
-      expect(claimSql).toMatch(/INNER JOIN celebrities AS c/);
-      expect(claimSql).toMatch(/c\.is_active\s*=\s*TRUE/);
+      expect(claimSql).toMatch(/LEFT JOIN celebrities AS c/);
+      expect(claimSql).toMatch(/lc\.celebrity_id IS NULL OR c\.is_active = TRUE/);
       expect(claimSql).toMatch(/lc\.is_active\s*=\s*TRUE/);
       expect(claimSql).toMatch(/lc\.status\s*=\s*'published'/);
       expect(query.mock.calls[0]?.[1]).toEqual([CLAIM_ID_1]);
@@ -113,6 +113,17 @@ describe('lifestyle-claim.repository', () => {
 
       expect(result).toBeNull();
       expect(query).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns a celebrity-optional trend card (celebrity_id null)', async () => {
+      query
+        .mockResolvedValueOnce({ rows: [makeClaim({ celebrity_id: null })] })
+        .mockResolvedValueOnce({ rows: [] });
+
+      const result = await findById(pool, CLAIM_ID_1);
+
+      expect(result).not.toBeNull();
+      expect(result?.celebrity_id).toBeNull();
     });
   });
 
@@ -261,6 +272,18 @@ describe('lifestyle-claim.repository', () => {
       expect(values[0]).toBe(FIXED_DATE.toISOString());
       expect(values[1]).toBe(CLAIM_ID_1);
       expect(values[values.length - 1]).toBe(8);
+    });
+
+    it('includes celebrity-optional trend cards (celebrity_id null) in the feed', async () => {
+      query.mockResolvedValueOnce({ rows: [makeClaim({ celebrity_id: null })] });
+
+      const result = await listFeed(pool, { limit: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.celebrity_id).toBeNull();
+      const sql = query.mock.calls[0]?.[0] ?? '';
+      expect(sql).toMatch(/LEFT JOIN celebrities AS c/);
+      expect(sql).toMatch(/lc\.celebrity_id IS NULL OR c\.is_active = TRUE/);
     });
   });
 
@@ -483,6 +506,36 @@ describe('lifestyle-claim.repository', () => {
       expect(sqls[2]).toMatch(/SELECT is_active FROM celebrities/);
       expect(sqls[2]).toMatch(/FOR SHARE/);
       expect(sqls[3]).toBe('ROLLBACK');
+    });
+
+    it('publishes a celebrity-optional trend card (celebrity_id null) without the celebrity gate', async () => {
+      const { pool, client } = makeTxPool();
+      const updated = makeClaim({ celebrity_id: null, status: 'published', trust_grade: 'B' });
+      client.query
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ celebrity_id: null }] }) // celebrity_id lookup → null
+        // NO celebrities FOR SHARE — guard skips it for celebrity-less claims
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: CLAIM_ID_1,
+              trust_grade: 'B',
+              status: 'draft',
+              disclaimer_key: null,
+              published_at: null,
+            },
+          ],
+        }) // FOR UPDATE
+        .mockResolvedValueOnce({ rows: [updated] }) // UPDATE
+        .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+      const result = await transitionStatus(pool, CLAIM_ID_1, { toStatus: 'published' });
+
+      expect(result.ok).toBe(true);
+      const sqls = client.query.mock.calls.map((c) => c[0]);
+      // celebrity FOR SHARE must NOT be queried for a celebrity-less claim
+      expect(sqls.some((s) => /SELECT is_active FROM celebrities/.test(s))).toBe(false);
+      expect(sqls[sqls.length - 1]).toBe('COMMIT');
     });
 
     it('blocks publish when trust_grade is E (rolls back)', async () => {

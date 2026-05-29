@@ -355,7 +355,7 @@ export interface PhiAccessLog {
 
 export interface LifestyleClaim {
   id: string;
-  celebrity_id: string;
+  celebrity_id: string | null;
   claim_type: ClaimType;
   headline: string;
   body: string | null;

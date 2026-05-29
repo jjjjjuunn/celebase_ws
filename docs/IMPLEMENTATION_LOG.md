@@ -28,6 +28,34 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-29
+agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
+task_id: IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001
+commit_sha: PENDING
+files_changed:
+  - db/migrations/0026_lifestyle_claims_celebrity_optional.sql
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+  - packages/shared-types/src/entities.ts
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - services/content-service/tests/unit/lifestyle-claim.repository.test.ts
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/__tests__/screens/NewsScreen.test.tsx
+  - apps/mobile/__tests__/screens/ClaimDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (shared-types build + content-service tsc/95 tests + mobile tsc/lint/214 tests + web tsc/15 BFF tests) + live-PG LEFT JOIN verification + codex-review L3
+---
+### 완료: 트렌드 카드 셀럽-optional + "준비 중" CTA (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
+- **피벗**: `lifestyle_claims`를 "셀럽 claim"에서 "셀럽-optional 웰니스 트렌드 카드"로 진화. 셀럽 없는 일반 트렌드 카드(fibermaxxing 등)를 저장·노출 가능하게 — 단일 lockstep PR(DB+contract+BE+mobile).
+- **DB**: `0026` — `ALTER TABLE lifestyle_claims ALTER COLUMN celebrity_id DROP NOT NULL`(forward-only, 0-downtime). FK·partial index·cascade 트리거 NULL-safe(무변경).
+- **contract**: `LifestyleClaimWire.celebrity_id` + entity `string|null`(parity guard 정합).
+- **content-service(하드 브레이크 수정)**: `findById`·`listFeed` `INNER JOIN`→`LEFT JOIN` + `(lc.celebrity_id IS NULL OR c.is_active=TRUE)`(셀럽 없는 카드가 피드·상세에서 사라지는 것 방지; `listByCelebrity`는 celeb-scoped라 INNER 유지). `transitionStatus` celebrity_id SELECT generic `string|null` + `if(cidRow.celebrity_id !== null)` 가드(셀럽 없는 카드 발행 차단 방지).
+- **mobile**: NewsScreen `celebById.get` null 가드 + `listCelebrities` best-effort(celeb fetch 실패가 무셀럽 피드 막지 않게). ClaimDetailScreen **3분기**: `food && base_diet`=활성 CTA / `food && !base_diet`="준비 중" / 비-food=미표시(advisor 블로킹 반영 — base_diet_id 단독 게이팅 시 beauty 카드에 "밀플랜 준비중" 오표시).
+- **검증**: shared-types build, content-service tsc+95 tests(신규 3: findById/listFeed null-celeb, transitionStatus null-publish), mobile tsc/lint+214 tests(신규 2: NewsScreen null-celeb, ClaimDetail food-null→준비중·beauty→미표시), web tsc+15 BFF tests. **실 Postgres LEFT JOIN 검증**(셀럽-null+활성셀럽 반환, 비활성셀럽 제외). Codex L3 review + Gemini plan adversarial(준비중 food-게이트·best-effort·LEFT JOIN 가드 finding 사전 반영).
+### 미완료: 무셀럽 콘텐츠 카드 시드 + seed 파이프라인(celebrity_slug optional) — fast-follow 콘텐츠 PR. News 게스트 홈/셀럽 탭 강등 — 별도 네비 PR. 무셀럽+base_diet CTA 카피 동적화(현 도달 불가). content-service 실 PG 통합 하니스, moderation "무셀럽만" 필터, idx NULL bloat(NIT). record-log-sha.sh.
+### 연관 파일: db/migrations/0026_lifestyle_claims_celebrity_optional.sql, packages/shared-types/src/schemas/lifestyle-claims.ts, services/content-service/src/repositories/lifestyle-claim.repository.ts, apps/mobile/src/screens/NewsScreen.tsx, apps/mobile/src/screens/ClaimDetailScreen.tsx, spec.md
+
+---
 date: 2026-05-28
 agent: claude-opus-4-8 (1M context) + codex-review (L2)
 task_id: IMPL-MOBILE-NEWS-PAYOFF-001

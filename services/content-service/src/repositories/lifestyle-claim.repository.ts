@@ -105,15 +105,18 @@ export async function findById(
   pool: pg.Pool,
   id: string,
 ): Promise<LifestyleClaimWithSources | null> {
+  // LEFT JOIN + NULL-allowing celeb-active guard: celebrity-linked claims still
+  // require an active celebrity; celebrity-optional trend cards (celebrity_id IS NULL)
+  // are returned without a celebrity. (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
   const sql = `
     SELECT ${CLAIM_COLUMNS}
     FROM lifestyle_claims AS lc
-    INNER JOIN celebrities AS c
+    LEFT JOIN celebrities AS c
       ON c.id = lc.celebrity_id
-      AND c.is_active = TRUE
     WHERE lc.id = $1
       AND lc.is_active = TRUE
       AND lc.status = 'published'
+      AND (lc.celebrity_id IS NULL OR c.is_active = TRUE)
     LIMIT 1
   `;
   const { rows } = await pool.query<LifestyleClaim>(sql, [id]);
@@ -188,7 +191,9 @@ export async function listFeed(
   const whereClauses: string[] = [
     'lc.is_active = TRUE',
     "lc.status = 'published'",
-    'c.is_active = TRUE',
+    // celebrity-linked claims require an active celebrity; celebrity-optional trend
+    // cards (celebrity_id IS NULL) pass through. (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
+    '(lc.celebrity_id IS NULL OR c.is_active = TRUE)',
   ];
   const values: unknown[] = [];
 
@@ -218,9 +223,8 @@ export async function listFeed(
   const sql = `
     SELECT ${CLAIM_COLUMNS}
     FROM lifestyle_claims AS lc
-    INNER JOIN celebrities AS c
+    LEFT JOIN celebrities AS c
       ON c.id = lc.celebrity_id
-      AND c.is_active = TRUE
     WHERE ${whereClauses.join(' AND ')}
     ORDER BY lc.published_at DESC NULLS LAST, lc.id DESC
     LIMIT ${limitParam}
@@ -403,7 +407,7 @@ export async function transitionStatus(
     // celebrities → lifestyle_claims 순서로 잠근다 (트리거의 락 순서와 동일).
     // celebrities.is_active=FALSE 인 경우 admin 이 archived → published 로 되살리는 우회 차단.
     if (input.toStatus === 'published') {
-      const cidRes = await client.query<{ celebrity_id: string }>(
+      const cidRes = await client.query<{ celebrity_id: string | null }>(
         `SELECT celebrity_id FROM lifestyle_claims WHERE id = $1 AND is_active = TRUE`,
         [id],
       );
@@ -412,14 +416,20 @@ export async function transitionStatus(
         await client.query('ROLLBACK');
         return { ok: false, reason: 'not_found' };
       }
-      const celebRes = await client.query<{ is_active: boolean }>(
-        `SELECT is_active FROM celebrities WHERE id = $1 FOR SHARE`,
-        [cidRow.celebrity_id],
-      );
-      const celebRow = celebRes.rows[0];
-      if (!celebRow || !celebRow.is_active) {
-        await client.query('ROLLBACK');
-        return { ok: false, reason: 'celebrity_inactive' };
+      // celebrity-optional: enforce the active-celebrity gate only for celebrity-linked
+      // claims. A celebrity-less trend card (celebrity_id IS NULL) publishes freely —
+      // without this guard the NULL would hit `WHERE id = NULL` → 0 rows → celebrity_inactive,
+      // permanently blocking publish. (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
+      if (cidRow.celebrity_id !== null) {
+        const celebRes = await client.query<{ is_active: boolean }>(
+          `SELECT is_active FROM celebrities WHERE id = $1 FOR SHARE`,
+          [cidRow.celebrity_id],
+        );
+        const celebRow = celebRes.rows[0];
+        if (!celebRow || !celebRow.is_active) {
+          await client.query('ROLLBACK');
+          return { ok: false, reason: 'celebrity_inactive' };
+        }
       }
     }
 

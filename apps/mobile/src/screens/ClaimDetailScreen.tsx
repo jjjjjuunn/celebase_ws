@@ -100,7 +100,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const { claim, sources } = data;
   const primarySource = sources.find((s) => s.is_primary);
   const showDisclaimer = claim.trust_grade === 'D' || claim.is_health_claim;
-  const showInspiredCta = claim.base_diet_id !== null;
+  // "Make my Plan" 루프는 food 카드 한정(콘텐츠 전략: 비-Diet 카드는 밀플랜 CTA 없음).
+  // food + 플랜 소스 있음 = 활성 CTA / food + 소스 없음 = "준비 중" / 비-food = 미표시.
+  const isFoodCard = claim.claim_type === 'food';
+  const showInspiredCta = isFoodCard && claim.base_diet_id !== null;
+  const showComingSoon = isFoodCard && claim.base_diet_id === null;
   const [sheetVisible, setSheetVisible] = useState(false);
   // 시트는 잔여 크레딧이 필요. fail-closed: credits=null(fetch 실패) → 잔량 0 으로 취급.
   // unlimited admin override(credits_remaining===null) → 7. 정상값 → 그대로.
@@ -183,6 +187,14 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
             }}
           />
         </>
+      ) : showComingSoon ? (
+        // food 카드인데 연결된 식단 소스 없음 → "준비 중"(demand 신호용 affordance).
+        <View style={styles.ctaComingSoon} accessibilityRole="text">
+          <Ionicons name="time-outline" size={18} color={theme.color.textMuted} />
+          <Text variant="body" tone="muted" style={styles.ctaComingSoonText}>
+            맞춤 식단 준비 중 — 곧 만나요
+          </Text>
+        </View>
       ) : null}
     </ScrollView>
   );
@@ -280,5 +292,20 @@ function makeStyles(theme: Theme) {
     },
     ctaActiveDisabled: { opacity: 0.55 },
     ctaActiveText: { fontWeight: theme.weight.semibold },
+    ctaComingSoon: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.space(2),
+      marginHorizontal: theme.space(4),
+      marginTop: theme.space(4),
+      paddingVertical: theme.space(4),
+      paddingHorizontal: theme.space(6),
+      backgroundColor: theme.color.surface,
+      borderRadius: theme.radius.sm,
+      borderWidth: 1,
+      borderColor: theme.color.border,
+    },
+    ctaComingSoonText: { fontWeight: theme.weight.medium },
   });
 }
