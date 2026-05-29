@@ -144,23 +144,34 @@ def validate_seed_file(path: Path, schema: dict[str, Any], errors: list[str]) ->
         )
         return
 
-    slug = data["celebrity_slug"]
+    slug = data.get("celebrity_slug")
 
-    # 셀럽 존재 검증 — db/seeds/data/<slug>.json 매칭
-    celeb_path = CELEBRITY_DATA_DIR / f"{slug}.json"
-    if not celeb_path.exists():
-        errors.append(
-            f"{path.name}: celebrity_slug='{slug}' 에 해당하는 {celeb_path.relative_to(REPO_ROOT)} 없음"
-        )
-
-    # 파일명 = slug.json 강제 (loader 단순화 + 중복 방지)
-    if path.stem != slug:
-        errors.append(
-            f"{path.name}: 파일명 stem 과 celebrity_slug 불일치 ('{path.stem}' vs '{slug}')"
-        )
+    if slug is None:
+        # 셀럽 없는 웰니스 트렌드 카드 (CHORE-SEEDS-CELEB-OPTIONAL-TREND-001).
+        # 컨벤션: 파일명 'trend-' prefix 필수 — run.ts 가 trend-*.json 으로 discovery 하고
+        # 셀럽 파일(<slug>.json)과 충돌하지 않게 한다. 셀럽 존재/파일명=slug 검증은 스킵.
+        if not path.stem.startswith("trend-"):
+            errors.append(
+                f"{path.name}: celebrity_slug 없는 트렌드 카드는 'trend-' prefix 파일명 필수 "
+                f"(예: trend-fibermaxxing.json)"
+            )
+        ctx = path.stem
+    else:
+        # 셀럽 존재 검증 — db/seeds/data/<slug>.json 매칭
+        celeb_path = CELEBRITY_DATA_DIR / f"{slug}.json"
+        if not celeb_path.exists():
+            errors.append(
+                f"{path.name}: celebrity_slug='{slug}' 에 해당하는 {celeb_path.relative_to(REPO_ROOT)} 없음"
+            )
+        # 파일명 = slug.json 강제 (loader 단순화 + 중복 방지)
+        if path.stem != slug:
+            errors.append(
+                f"{path.name}: 파일명 stem 과 celebrity_slug 불일치 ('{path.stem}' vs '{slug}')"
+            )
+        ctx = slug
 
     for idx, claim in enumerate(data["claims"]):
-        validate_claim(claim, slug, idx, errors)
+        validate_claim(claim, ctx, idx, errors)
 
 
 def main() -> int:
