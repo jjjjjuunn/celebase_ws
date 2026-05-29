@@ -66,7 +66,16 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
     let cancelled = false;
     setState({ phase: 'loading' });
 
-    Promise.all([listClaims({ limit: 100 }), listCelebrities({ limit: 100 })])
+    Promise.all([
+      listClaims({ limit: 100 }),
+      // best-effort: 셀럽은 optional attribution — celeb fetch 실패가 무셀럽 카드 피드까지
+      // error state 로 떨구면 안 됨(claims 실패만 error). (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
+      listCelebrities({ limit: 100 }).catch(() => ({
+        items: [] as schemas.CelebrityWire[],
+        next_cursor: null,
+        has_next: false,
+      })),
+    ])
       .then(([claimsRes, celebsRes]) => {
         if (cancelled) return;
         const celebById = new Map(celebsRes.items.map((c) => [c.id, c]));
@@ -74,7 +83,10 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
         for (const claim of claimsRes.claims) {
           const cat = CATEGORY_BY_CLAIM_TYPE[claim.claim_type];
           if (cat === undefined) continue; // brand · philosophy drop
-          items.push({ claim, category: cat, celebrity: celebById.get(claim.celebrity_id) });
+          // celebrity_id 는 optional(셀럽 없는 트렌드 카드) — null 이면 attribution 없이 렌더.
+          const celebrity =
+            claim.celebrity_id !== null ? celebById.get(claim.celebrity_id) : undefined;
+          items.push({ claim, category: cat, celebrity });
         }
         setState({ phase: 'loaded', items });
       })

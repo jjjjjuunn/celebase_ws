@@ -153,7 +153,7 @@ describe('<ClaimDetailScreen />', () => {
     expect(screen.queryByText('Coming soon')).toBeNull();
   });
 
-  it('base_diet_id null → "Eat like this celebrity" 미노출', async () => {
+  it('food + base_diet_id null → CTA 미노출 + "준비 중" 노출', async () => {
     fetchSpy.mockResolvedValueOnce(
       makeResponse(200, { claim: CLAIM_BASE, sources: [] }),
     );
@@ -162,6 +162,27 @@ describe('<ClaimDetailScreen />', () => {
     await screen.findByText('celery juice ritual');
 
     expect(screen.queryByText('Eat like this celebrity')).toBeNull();
+    expect(screen.getByText('맞춤 식단 준비 중 — 곧 만나요')).toBeTruthy();
+  });
+
+  it('비-food claim(beauty) → base_diet_id 있어도 CTA·"준비 중" 둘 다 미노출 (food 게이트)', async () => {
+    // base_diet_id 를 일부러 non-null 로 둬도 비-food 는 게이트에서 차단됨을 증명(vacuous 아님).
+    fetchSpy.mockResolvedValueOnce(
+      makeResponse(200, {
+        claim: {
+          ...CLAIM_BASE,
+          claim_type: 'beauty' as const,
+          base_diet_id: '01927000-0000-7000-8000-bbbbbbbbbbbb',
+        },
+        sources: [],
+      }),
+    );
+
+    renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
+    await screen.findByText('celery juice ritual');
+
+    expect(screen.queryByText('Eat like this celebrity')).toBeNull();
+    expect(screen.queryByText('맞춤 식단 준비 중 — 곧 만나요')).toBeNull();
   });
 
   it('source.url 이 allowlist 외 → "Source link unavailable" 표기 + Link role 미부착', async () => {
