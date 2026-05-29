@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-28
 agent: claude-opus-4-8 (1M context) + codex-review (L2)
 task_id: IMPL-MOBILE-NEWS-PAYOFF-001
-commit_sha: PENDING
+commit_sha: 99bdb8c
 files_changed:
   - apps/mobile/src/screens/MealPlanScreen.tsx
   - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
