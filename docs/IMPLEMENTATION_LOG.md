@@ -28,6 +28,26 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-28
+agent: claude-opus-4-8 (1M context) + codex-review (L2)
+task_id: IMPL-MOBILE-NEWS-PAYOFF-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tsc 0 / eslint 0 / jest 208 PASS) + codex-review L2
+---
+### 완료: Transformation payoff — MealPlanScreen 셀럽↔유저 kcal/macro 대비 (IMPL-MOBILE-NEWS-PAYOFF-001)
+- **머니 모먼트**: News-first 퍼널의 personalization payoff. plan 있는 날 `MealPlanScreen` 에 "YOUR TRANSFORMATION" 비교 패널 — 좌측 셀럽 base_diet(`avg_daily_kcal` + `macro_ratio`%), 우측 유저 plan(`daily_totals` kcal + grams→% 환산), 사이 personalization 화살표 + macro stacked bar(token-derived accents).
+- **추가 fetch 0**: `resolveCelebNames`→`resolveBaseDietInfo` 로 확장 — 기존 getBaseDiet 호출에서 이름 + kcal/macro 를 함께 수확(이름맵 계약 보존). `ScreenData.macroByBaseDiet` + `CalendarDay.transform` 추가, `buildCalendar` 에서 설정.
+- **edge 가드**: base_diet 조인 실패 → transform null → 패널 미렌더(celebRow 와 동일 graceful). 유저 daily_totals 총합 0(엔진 미충전) → macro % null → bar/라벨 생략. `celebKcal` null → "—". macro % 반올림 합 100 미보장(표시용).
+- **설계**: macro bar 색은 design-tokens `theme.accents`(raw hex 금지). kcal 천단위 콤마는 Hermes Intl 비의존 regex(`formatThousands`). 유저 macro % 는 **largest-remainder 로 합 100 정규화**(Codex L2 finding — 독립 반올림 시 exact-thirds 가 33·33·33=99 로 표시되는 것 방지). `daily_totals` 는 MealPlanWire 경로에선 required.
+- **검증**: mobile tsc 0, eslint 0, jest 208/208(신규 2 — 패널 렌더 + base_diet 조인 실패 미렌더 회귀 가드). 기존 "온보딩 완료" 테스트도 패널 추가에 회귀 없음. spec.md §7.3 sync. **Codex L2 review: 7 OK + 1 SHOULD-FIX(macro 정규화) 반영**.
+### 미완료: 유저 daily_totals=0 시 "0 kcal" 표시(드문 degenerate edge — 실 plan 은 충전됨). 실 device 검증은 staging 시드 또는 로컬 백엔드 필요(Task #5 와 동일 — jest 컴포넌트 렌더로 1차 검증). picsum 이미지 P2 교체. record-log-sha.sh.
+### 연관 파일: apps/mobile/src/screens/MealPlanScreen.tsx, apps/mobile/__tests__/screens/MealPlanScreen.test.tsx, spec.md
+
+---
 date: 2026-05-24
 agent: claude-opus-4-7 (1M context)
 task_id: CHORE-ONBOARDING-POLISH-001

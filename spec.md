@@ -2207,10 +2207,13 @@ User selects celebrity diet
   │   ("Boosted protein by 30g for your activity level")
   │   ("Substituted dairy with oat-based alternatives")
   ├── Total weekly nutrition breakdown
+  ├── Transformation payoff (셀럽 base diet kcal/macro → 유저 personalized kcal/macro 대비)
   └── "Confirm Plan" / "Adjust & Regenerate"
         ↓
 [Plan Confirmed → "My Plan" tab activated]
 ```
+
+**Transformation payoff (IMPL-MOBILE-NEWS-PAYOFF-001, mobile)**: `MealPlanScreen` 은 선택 날짜에 plan 이 있으면 "YOUR TRANSFORMATION" 비교 패널을 렌더한다 — 좌측 셀럽 `base_diet` 의 `avg_daily_kcal` + `macro_ratio`(%), 우측 유저 plan 의 `daily_totals`(kcal + grams→% 환산), 사이 personalization 화살표 + macro stacked bar. 엔진의 "셀럽 식단을 당신에게 맞춰 변환" 가치를 시연하는 News-first 퍼널의 머니 모먼트. base_diet 데이터는 셀럽 이름 조인(`resolveBaseDietInfo`)에서 함께 확보(추가 fetch 없음); base_diet 조인 실패 시 패널 미렌더(graceful).
 
 ---
 
