@@ -7,8 +7,8 @@
       "body": "Petsch has spoken openly about maintaining a strictly vegan, whole-food diet built around oats, brown rice, quinoa, black beans, spinach, and avocado. In interviews she has described her typical day of eating as meal-by-meal structured around plant staples rather than processed substitutes, and she has noted that clean plant-based eating supports both her energy levels on set and her skin clarity.",
       "trust_grade": "B",
       "primary_source_url": "https://people.com/food/madelaine-petsch-what-i-eat-in-a-day-vegan/",
-      "verified_by": null,
-      "is_health_claim": false,
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "is_health_claim": true,
       "base_diet_id_slug": "madelaine-petsch",
       "tags": [
         "vegan",
@@ -36,7 +36,7 @@
       "body": "Petsch has consistently framed her veganism as extending beyond food to encompass a broader ethical commitment to animal welfare and environmental sustainability. She has described plant-based eating as the natural expression of values she holds across all areas of her life.",
       "trust_grade": "B",
       "primary_source_url": "https://people.com/food/madelaine-petsch-vegan-lifestyle-environment/",
-      "verified_by": null,
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
       "is_health_claim": false,
       "base_diet_id_slug": null,
       "tags": [

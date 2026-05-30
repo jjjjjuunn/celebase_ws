@@ -7,7 +7,7 @@
       "body": "Megan Thee Stallion's documented eating approach centers on lean seafood proteins — primarily salmon and cod — paired with fiber-rich vegetables like kale, complex carbohydrates from sweet potatoes and brown rice, and high-protein Greek yogurt. She avoids red meat and sugary drinks, and incorporates plant protein shakes to support her demanding workout schedule. The approach prioritizes whole, minimally processed foods that fuel both her music and fitness commitments.",
       "trust_grade": "B",
       "primary_source_url": "https://www.womenshealthmag.com/food/a43826530/megan-thee-stallion-diet-workout/",
-      "verified_by": null,
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
       "is_health_claim": false,
       "base_diet_id_slug": "megan-thee-stallion",
       "tags": [
@@ -46,8 +46,8 @@
       "body": "Megan Thee Stallion has consistently articulated her Hot Girl philosophy not as a physical standard but as a commitment to taking care of your body and mind through consistent movement, clean eating, and unapologetic self-confidence. She has spoken publicly about using fitness as a form of mental wellness and stress relief, crediting exercise and disciplined nutrition with keeping her grounded during demanding album cycles and tours.",
       "trust_grade": "B",
       "primary_source_url": "https://www.womenshealthmag.com/health/a38012345/megan-thee-stallion-mental-health-fitness/",
-      "verified_by": null,
-      "is_health_claim": false,
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "is_health_claim": true,
       "base_diet_id_slug": null,
       "tags": [
         "hot-girl",

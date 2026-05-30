@@ -7,8 +7,8 @@
       "body": "Brown has spoken openly about struggling with chronic pain for years before a doctor suggested she try a 30-day vegan challenge in 2017. She documented the experience on social media and found that eating whole plant foods — built around tempeh, jackfruit, black beans, avocado, and generous greens — made her feel better than she had in a long time. Rather than treating veganism as a restrictive health measure, she channeled it into an exuberant comfort-food style that draws on her Southern roots. Her TTLA (tempeh, tomato, lettuce, avocado) sandwich became a viral touchstone for the idea that vegan food can be deeply satisfying, soulful, and simple enough for anyone to make at home. Forks Over Knives profiled her journey as a model for how plant-based eating can be motivating rather than austere.",
       "trust_grade": "B",
       "primary_source_url": "https://www.forksoverknives.com/success-stories/tabitha-brown-vegan-comfort-food/",
-      "verified_by": "human-junwon",
-      "is_health_claim": false,
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "is_health_claim": true,
       "base_diet_id_slug": "tabitha-brown",
       "tags": [
         "vegan",
@@ -42,7 +42,7 @@
       "body": "In her cookbook Feeding the Soul (Because It's My Business), Brown articulates a food philosophy she describes as cooking from a place of love and abundance. She argues that the biggest barrier to plant-based eating is the mistaken belief that it has to be bland or restrictive. Her recipes are intentionally indulgent in flavor — leaning on smoky spices, creamy avocado, and rich cashew sauces — so that making the vegan choice feels like a reward rather than a sacrifice. People magazine noted that her viral videos work precisely because they broadcast genuine delight, turning every dish into an invitation rather than a lecture.",
       "trust_grade": "B",
       "primary_source_url": "https://people.com/food/tabitha-brown-vegan-lifestyle-chronic-pain/",
-      "verified_by": "human-junwon",
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
       "is_health_claim": false,
       "base_diet_id_slug": null,
       "tags": [
