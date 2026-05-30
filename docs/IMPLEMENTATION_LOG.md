@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + general-purpose subagent (Cameron authoring)
 task_id: CHORE-SEEDS-BASE-DIET-TIER1-002
-commit_sha: PENDING
+commit_sha: db18e84
 files_changed:
   - db/seeds/lifestyle-claims/tia-clair-toomey.json
   - db/seeds/lifestyle-claims/tabitha-brown.json
