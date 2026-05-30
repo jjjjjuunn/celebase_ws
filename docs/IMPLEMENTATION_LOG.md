@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-30
 agent: claude-opus-4-8 (1M context)
 task_id: CHORE-SEEDS-STAGING-001
-commit_sha: PENDING
+commit_sha: b9acb76
 files_changed:
   - scripts/seed-staging.sh
 verified_by: claude-opus-4-8 (staging EC2 seed 실행 → 외부 staging.celebase.app /api/celebrities=17, /api/claims/feed=63, 신규 7명 State A 전원 연결)
