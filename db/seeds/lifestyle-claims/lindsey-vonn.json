@@ -6,8 +6,8 @@
       "headline": "Lindsey Vonn's lean high-protein diet delivers verified per-meal macros designed for elite athletic output",
       "body": "Lindsey Vonn's daily nutrition plan is built around lean proteins, training-timed carbohydrates, and healthy fats across every meal. Her diet was officially documented through a partnership with Under Armour and MyFitnessPal, making it one of the most macro-verified athlete eating plans in sports. Breakfast centers on a three-egg scramble with vegetables for roughly 22 grams of protein. Lunch brings a roast chicken breast over quinoa and spinach at approximately 58 grams of protein. Dinner is baked salmon with quinoa and asparagus delivering around 53 grams of protein and 574 calories. Post-workout, she reaches for an egg white omelet with chicken, broccoli, and bell pepper for fast-absorbing lean protein. Snacks focus on raw almonds paired with kiwi and blueberries for antioxidants and healthy fats. The overall macro split holds close to 30 percent protein, 35 percent carbohydrates, and 35 percent fat, reflecting the demands of an Olympic-level training schedule.",
       "trust_grade": "B",
-      "primary_source_url": "https://about.underarmour.com/news/2015/11/lindsey-vonn-get-strong-nutrition",
-      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "primary_source_url": "https://about.underarmour.com/en/stories/2020/05/get-strong-with-lindsey-vonn.html",
+      "verified_by": "content-team (source URL verified 2026-05-29)",
       "is_health_claim": false,
       "base_diet_id_slug": "lindsey-vonn",
       "disclaimer_key": null,
@@ -23,46 +23,10 @@
         {
           "source_type": "article",
           "outlet": "Under Armour",
+          "url": "https://about.underarmour.com/en/stories/2020/05/get-strong-with-lindsey-vonn.html",
           "is_primary": true,
-          "url": "https://about.underarmour.com/news/2015/11/lindsey-vonn-get-strong-nutrition",
-          "published_date": "2015-11-01",
-          "excerpt": "Lindsey Vonn shares her documented per-meal nutrition plan in partnership with Under Armour and MyFitnessPal, detailing protein, carbohydrate, and fat targets across each meal of her training day."
-        },
-        {
-          "source_type": "article",
-          "outlet": "Women's Health",
-          "is_primary": false,
-          "url": null,
-          "published_date": null,
-          "excerpt": "Vonn's diet emphasizes lean proteins and timed carbohydrates to support her world-class ski racing regimen."
-        }
-      ]
-    },
-    {
-      "claim_type": "philosophy",
-      "headline": "Lindsey Vonn treats consistent daily nutrition as a competitive advantage, not an optional add-on",
-      "body": "Throughout her career, Lindsey Vonn has been vocal about the role nutrition plays as a non-negotiable foundation of athletic performance. Rather than treating food as a reward or an afterthought, she approaches each meal as a deliberate input toward training adaptation and recovery. This philosophy extends to snack choices, viewing even a handful of almonds and a kiwi as a structured decision in the service of performance rather than mere hunger management.",
-      "trust_grade": "B",
-      "primary_source_url": null,
-      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
-      "is_health_claim": false,
-      "base_diet_id_slug": null,
-      "disclaimer_key": null,
-      "tags": [
-        "philosophy",
-        "mindset",
-        "athlete",
-        "performance-nutrition"
-      ],
-      "status": "published",
-      "sources": [
-        {
-          "source_type": "interview",
-          "outlet": "Vogue",
-          "is_primary": true,
-          "url": "https://www.vogue.com/article/lindsey-vonn-diet-fitness-routine",
-          "published_date": null,
-          "excerpt": "Vonn discusses approaching nutrition with the same strategic mindset she applies to training, emphasizing consistency over perfection."
+          "excerpt": "Lindsey Vonn shares her documented per-meal nutrition plan in partnership with Under Armour and MyFitnessPal, detailing protein, carbohydrate, and fat targets across each meal of her training day.",
+          "published_date": "2015-11-01"
         }
       ]
     }

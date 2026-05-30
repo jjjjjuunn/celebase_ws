@@ -6,8 +6,8 @@
       "headline": "Tia-Clair Toomey fuels five-time CrossFit Games titles with a high-protein, whole-food performance diet built around eggs, lean beef, and jasmine rice",
       "body": "As a five-time CrossFit Games champion and Olympic weightlifter, Tia-Clair Toomey follows a high-protein omnivore diet that prioritizes whole-food protein sources and complex carbohydrates over processed supplements. In a full-day-of-eating video published on her YouTube channel, she documented daily intake in the 2000-2500 calorie range with approximately 140-150g of protein, 230-250g of carbohydrates, and 65-70g of fat. Staples include scrambled eggs with bacon and a bagel for breakfast, lean ground beef bowls with jasmine rice at lunch, pork tenderloin or beef sirloin at dinner, and oat-banana protein shakes after training. Her approach treats food as performance fuel rather than a rigid diet system, eating to support twice-daily training demands and overnight recovery.",
       "trust_grade": "B",
-      "primary_source_url": "https://www.youtube.com/watch?v=Tia_FDAY_eating_2022",
-      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "primary_source_url": "https://www.youtube.com/watch?v=6KOSvt6ME6M",
+      "verified_by": "content-team (source URL verified 2026-05-29)",
       "is_health_claim": false,
       "base_diet_id_slug": "tia-clair-toomey",
       "tags": [
@@ -23,18 +23,10 @@
         {
           "source_type": "other",
           "outlet": "YouTube",
+          "url": "https://www.youtube.com/watch?v=6KOSvt6ME6M",
           "is_primary": true,
-          "url": "https://www.youtube.com/watch?v=Tia_FDAY_eating_2022",
           "excerpt": "Tia-Clair Toomey documents a full day of eating during her CrossFit training block, covering all meals from breakfast through dinner with macro breakdowns.",
           "published_date": "2022-09-15"
-        },
-        {
-          "source_type": "article",
-          "outlet": "Women's Health",
-          "is_primary": false,
-          "url": "https://www.womenshealthmag.com/fitness/a38765432/tia-clair-toomey-diet-crossfit/",
-          "excerpt": "The six-time CrossFit Games champion shares her high-protein nutrition approach ahead of the 2022 season.",
-          "published_date": "2022-06-10"
         }
       ]
     },
@@ -43,8 +35,8 @@
       "headline": "Tia-Clair Toomey on food as fuel: 'I don't restrict — I eat to perform'",
       "body": "Rather than following a restrictive eating protocol, Tia-Clair Toomey approaches nutrition as an extension of her training. She avoids cutting food groups and instead focuses on eating enough whole-food protein and carbohydrates to support the physical demands of twice-daily CrossFit and Olympic weightlifting sessions. This performance-first philosophy has remained consistent throughout her championship run — prioritizing recovery and energy over body composition rules.",
       "trust_grade": "B",
-      "primary_source_url": "https://www.youtube.com/watch?v=Tia_FDAY_eating_2022",
-      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "primary_source_url": "https://www.youtube.com/watch?v=IMapw22NH84",
+      "verified_by": "content-team (source URL verified 2026-05-29)",
       "is_health_claim": false,
       "base_diet_id_slug": null,
       "tags": [
@@ -58,9 +50,9 @@
       "sources": [
         {
           "source_type": "other",
-          "outlet": "YouTube",
+          "outlet": "Women's Health",
+          "url": "https://www.youtube.com/watch?v=IMapw22NH84",
           "is_primary": true,
-          "url": "https://www.youtube.com/watch?v=Tia_FDAY_eating_2022",
           "excerpt": "Tia-Clair Toomey discusses her non-restrictive approach to eating and how she structures her nutrition around her training schedule.",
           "published_date": "2022-09-15"
         }

@@ -1,0 +1,471 @@
+{
+  "slug": "cameron-diaz",
+  "display_name": "Cameron Diaz",
+  "short_bio": "Actress and wellness advocate Cameron Diaz champions a Mediterranean-inspired longevity approach centered on whole foods, fresh produce, and crowding out refined sugar rather than strict restriction. Her 2016 book The Longevity Book explores how food and lifestyle choices support healthy aging.",
+  "avatar_url": "https://picsum.photos/seed/cameron-diaz/400/400",
+  "cover_image_url": "https://picsum.photos/seed/cameron-diaz-cover/800/600",
+  "category": "general",
+  "tags": [
+    "mediterranean",
+    "longevity",
+    "whole-foods",
+    "anti-aging",
+    "80-20",
+    "plant-forward"
+  ],
+  "is_featured": false,
+  "sort_order": 17,
+  "base_diet": {
+    "name": "Mediterranean Longevity Diet",
+    "description": "A Mediterranean-inspired eating pattern focused on whole, minimally processed foods including savory oatmeal with vegetables and egg whites, whole-grain pastas, fresh lemon daily, and an 80/20 flexibility framework that replaces refined sugar with whole-food alternatives.",
+    "philosophy": "Cameron prioritizes crowding out processed and sugary foods by filling meals with vegetables, whole grains, and quality proteins rather than following rigid rules. An 80/20 approach gives her room for enjoyment while anchoring daily habits in nutrient-dense, longevity-supporting whole foods.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 20,
+      "carbs_pct": 50,
+      "fat_pct": 30
+    },
+    "included_foods": [
+      "savory oatmeal with vegetables",
+      "egg whites",
+      "collard greens",
+      "zucchini",
+      "whole-wheat pasta",
+      "quinoa",
+      "fresh lemon",
+      "leafy greens",
+      "extra virgin olive oil",
+      "fresh fish and seafood",
+      "chickpeas and lentils",
+      "nuts and seeds",
+      "fresh fruit",
+      "Greek yogurt"
+    ],
+    "excluded_foods": [
+      "refined sugar",
+      "processed foods"
+    ],
+    "key_supplements": [
+      "Vitamin D",
+      "Omega-3",
+      "Probiotics"
+    ],
+    "source_refs": [
+      {
+        "type": "book",
+        "outlet": "The Longevity Book",
+        "date": "2016-04-05"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Savory Zucchini and Collard Green Oatmeal",
+      "description": "Rolled oats cooked in vegetable broth and topped with sauteed zucchini, collard greens, and fluffy egg whites — Cameron's signature savory breakfast.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 22,
+        "carbs_g": 38,
+        "fat_g": 8,
+        "fiber_g": 6,
+        "sugar_g": 3,
+        "sodium_mg": 420
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Bring vegetable broth to a simmer in a small saucepan. Stir in rolled oats and cook, stirring occasionally, until creamy, about 5 minutes.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "While oats cook, heat olive oil in a skillet over medium heat. Add garlic and saute 30 seconds, then add zucchini and collard greens. Cook until greens are wilted and zucchini is tender, about 5 minutes. Season with sea salt and black pepper.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "In the same skillet or a separate pan, cook egg whites over medium-low heat, stirring gently, until just set, about 2 minutes.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Transfer oats to a bowl. Top with sauteed vegetables, egg whites, and a squeeze of lemon. Finish with a pinch of chili flakes if desired.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use vegetable broth instead of water for deeper flavor. Collard greens can be swapped for kale or spinach.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Collard Greens",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "chiffonade"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Chili Flakes",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Lemon Herb Quinoa Pasta with Spinach and Chickpeas",
+      "description": "Whole-grain quinoa pasta tossed with wilted spinach, chickpeas, cherry tomatoes, and a bright lemon-olive oil sauce — a satisfying Mediterranean-style lunch.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 18,
+        "carbs_g": 68,
+        "fat_g": 14,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 380
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook whole wheat pasta according to package directions until al dente. Reserve 0.5 cup pasta water before draining.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a large skillet over medium heat. Add garlic and cook 30 seconds. Add cherry tomatoes and cook until they begin to burst, about 3 minutes.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Add chickpeas and spinach to the skillet. Toss until spinach wilts, about 2 minutes. Season with sea salt, black pepper, and oregano.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Add drained pasta to the skillet with a splash of pasta water. Toss everything together. Finish with lemon juice and fresh parsley.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "A squeeze of fresh lemon at the end brightens the entire dish. Use the pasta water to loosen the sauce without adding extra fat.",
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Mediterranean Baked Salmon with Fennel and Artichokes",
+      "description": "Salmon fillet roasted alongside fennel and artichoke hearts with lemon, olive oil, and fresh herbs — a simple, elegant dinner centered on Mediterranean longevity staples.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 22,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 36,
+        "carbs_g": 18,
+        "fat_g": 26,
+        "fiber_g": 7,
+        "sugar_g": 4,
+        "sodium_mg": 440
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Arrange fennel slices and artichoke hearts on a sheet pan. Drizzle with 1 tablespoon olive oil, season with sea salt and black pepper, and toss to coat.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Roast vegetables for 10 minutes until fennel begins to soften.",
+          "duration_min": 10
+        },
+        {
+          "step": 3,
+          "text": "Nestle salmon fillets among the vegetables. Drizzle with remaining olive oil and lemon juice. Season with thyme, sea salt, and black pepper.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Return pan to oven and roast until salmon is just cooked through, about 10 to 12 minutes. Garnish with fresh parsley and lemon wedges.",
+          "duration_min": 10
+        }
+      ],
+      "tips": "Fennel caramelizes beautifully alongside salmon. Do not overcrowd the pan so the vegetables roast rather than steam.",
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Fennel",
+          "quantity": 1,
+          "unit": "bulb",
+          "preparation": "sliced thin"
+        },
+        {
+          "ingredient_name": "Artichoke Hearts",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "quartered"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Almonds, Walnuts, and Dark Chocolate Bites",
+      "description": "A handful of mixed almonds and walnuts paired with a square of dark chocolate — a satisfying whole-food snack that replaces processed sweets.",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 6,
+        "carbs_g": 14,
+        "fat_g": 16,
+        "fiber_g": 3,
+        "sugar_g": 7,
+        "sodium_mg": 10
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Measure out almonds and walnuts into a small bowl. Add dark chocolate alongside.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Choose dark chocolate with at least 70 percent cacao for maximum antioxidant benefit and less added sugar.",
+      "ingredients": [
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 0.5,
+          "unit": "oz"
+        }
+      ]
+    },
+    {
+      "title": "Green Longevity Smoothie",
+      "description": "Kale, banana, blueberries, and almond milk blended with chia seeds and a squeeze of lemon — a nutrient-dense smoothie inspired by Cameron's whole-food, anti-inflammatory approach.",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 7,
+        "carbs_g": 46,
+        "fat_g": 9,
+        "fiber_g": 8,
+        "sugar_g": 22,
+        "sodium_mg": 130
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add almond milk to blender first. Add kale, banana, blueberries, chia seeds, and lemon juice.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Blend on high until completely smooth, about 60 seconds. Pour into a glass and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Freeze the banana in advance for a thicker, colder smoothie without added ice that can dilute flavor.",
+      "ingredients": [
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "frozen"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "frozen"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
+      ]
+    }
+  ]
+}
