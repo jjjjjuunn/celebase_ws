@@ -458,6 +458,940 @@
         }
       ],
       "tips": "Use pre-cooked chicken breast from the lunch prep batch to cut assembly time down to under 5 minutes after a workout."
+    },
+    {
+      "title": "Egg White and Spinach Scramble with Mushrooms",
+      "description": "A lean, high-protein breakfast scramble built on egg whites sauteed with yellow onion, earthy mushrooms, and wilted spinach.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 160,
+        "protein_g": 28,
+        "carbs_g": 8,
+        "fat_g": 3,
+        "fiber_g": 2,
+        "sugar_g": 4,
+        "sodium_mg": 380
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 6,
+          "unit": "large",
+          "preparation": "beaten"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a non-stick skillet over medium heat. Add diced yellow onion and cook until softened and translucent.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Add sliced mushrooms and cook until they release their moisture and begin to brown at the edges.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Add fresh spinach and toss with the mushroom mixture until fully wilted.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Pour beaten egg whites over the vegetables. Season with sea salt and black pepper. Gently fold and scramble until egg whites are just set and no longer translucent.",
+          "duration_min": 2
+        },
+        {
+          "step": 5,
+          "text": "Transfer to a plate and serve immediately.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Pull the pan off the heat while the egg whites still look slightly moist — carry-over heat will finish them and prevent a rubbery texture."
+    },
+    {
+      "title": "Eggs with Broccoli, Bell Pepper, and Onion",
+      "description": "A whole-egg scramble loaded with broccoli florets, diced bell pepper, and yellow onion for a colorful, vegetable-forward morning plate.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 310,
+        "protein_g": 20,
+        "carbs_g": 14,
+        "fat_g": 20,
+        "fiber_g": 4,
+        "sugar_g": 6,
+        "sodium_mg": 400
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large",
+          "preparation": "beaten"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "small florets, blanched"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Microwave broccoli florets with a splash of water for 90 seconds until just tender, then drain.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a skillet over medium heat. Add diced yellow onion and bell pepper and saute until softened.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Add blanched broccoli to the pan and toss to combine with the peppers and onion.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Pour beaten eggs over the vegetables. Season with sea salt and black pepper. Fold and scramble gently until eggs are just set.",
+          "duration_min": 3
+        },
+        {
+          "step": 5,
+          "text": "Transfer to a plate and serve immediately.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Pre-blanching the broccoli prevents it from releasing excess steam in the pan, keeping the scramble from becoming watery."
+    },
+    {
+      "title": "Almond Butter Quinoa Bowl with Blueberries",
+      "description": "Warm cooked quinoa stirred with almond butter until creamy, then topped with fresh blueberries and chopped almonds for a carbohydrate-forward pre-training breakfast.",
+      "meal_type": "breakfast",
+      "prep_time_min": 3,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 450,
+        "protein_g": 14,
+        "carbs_g": 48,
+        "fat_g": 22,
+        "fiber_g": 7,
+        "sugar_g": 10,
+        "sodium_mg": 90
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 20,
+          "unit": "g",
+          "preparation": "roughly chopped"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp",
+          "is_optional": true
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Combine rinsed quinoa and 1 cup of water in a small saucepan. Bring to a boil, then reduce heat to low, cover, and simmer until all water is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "While quinoa is still hot, stir in almond butter until fully incorporated and the mixture is creamy and uniform.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Transfer to a bowl and top with fresh blueberries and chopped almonds. Drizzle with honey if desired.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Stir in the almond butter immediately off the heat while the quinoa is hottest so it emulsifies smoothly into the grain."
+    },
+    {
+      "title": "Chicken Breast and Quinoa Bowl with Broccoli and Bell Pepper",
+      "description": "A high-protein meal-prep bowl pairing roasted chicken breast with fluffy quinoa, steamed broccoli florets, and diced bell pepper.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 530,
+        "protein_g": 52,
+        "carbs_g": 42,
+        "fat_g": 14,
+        "fiber_g": 7,
+        "sugar_g": 5,
+        "sodium_mg": 480
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 200,
+          "unit": "g",
+          "preparation": "seasoned"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Rub chicken breast with olive oil, sea salt, black pepper, and garlic powder. Place on a lined baking sheet and roast until internal temperature reaches 74C (165F).",
+          "duration_min": 22
+        },
+        {
+          "step": 2,
+          "text": "While chicken roasts, cook quinoa in 1 cup of water: bring to a boil, cover, reduce heat, and simmer until all liquid is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 3,
+          "text": "Steam broccoli florets until bright green and just tender, about 4 minutes. During the last 2 minutes, add diced bell pepper to the steamer or toss it raw into the assembled bowl.",
+          "duration_min": 4
+        },
+        {
+          "step": 4,
+          "text": "Slice the rested chicken breast and arrange over the quinoa. Add broccoli and bell pepper to the bowl and season to taste.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Cook a double portion of quinoa and chicken at the start of the week to assemble this bowl in minutes on busy training days."
+    },
+    {
+      "title": "Salmon and Quinoa Bowl with Spinach and Mushrooms",
+      "description": "Pan-seared salmon fillet served over quinoa with sauteed mushrooms and wilted spinach — a complete omega-3-rich midday performance bowl.",
+      "meal_type": "lunch",
+      "prep_time_min": 8,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 46,
+        "carbs_g": 38,
+        "fat_g": 18,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 460
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 175,
+          "unit": "g"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook quinoa in 1 cup of water: bring to a boil, cover, reduce heat, and simmer until all liquid is absorbed. Fluff with a fork.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Season salmon fillet with sea salt and black pepper. Heat half the olive oil in a skillet over medium-high heat and sear salmon skin-side up for 3 minutes. Flip and cook until salmon flakes easily.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "In the same skillet over medium heat, add remaining oil and saute sliced mushrooms with minced garlic until browned. Add spinach and toss until wilted.",
+          "duration_min": 5
+        },
+        {
+          "step": 4,
+          "text": "Spoon quinoa into a bowl, top with mushrooms and spinach, then place salmon on top. Squeeze fresh lemon juice over the entire bowl.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Pat the salmon dry before searing to get a good crust. If the fillet has a thin tail end, fold it under to keep the thickness even during cooking."
+    },
+    {
+      "title": "Chicken, Asparagus, and Spinach Protein Bowl",
+      "description": "A low-carb, high-protein lunch bowl of seasoned chicken breast with sauteed asparagus spears, sliced yellow onion, and fresh spinach.",
+      "meal_type": "lunch",
+      "prep_time_min": 8,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 370,
+        "protein_g": 55,
+        "carbs_g": 10,
+        "fat_g": 12,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "sodium_mg": 450
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 220,
+          "unit": "g",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 150,
+          "unit": "g",
+          "preparation": "woody ends trimmed, cut into 5cm pieces"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a large skillet over medium heat. Add sliced yellow onion and cook until softened and lightly golden.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add minced garlic and asparagus pieces. Saute, stirring frequently, until asparagus is bright green and just tender.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Push vegetables to one side of the pan. Add sliced chicken breast, season with sea salt and black pepper, and cook until no longer pink and cooked through.",
+          "duration_min": 8
+        },
+        {
+          "step": 4,
+          "text": "Add fresh spinach to the pan and toss everything together until spinach wilts. Adjust seasoning and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Slice the chicken breast thin and even so it cooks quickly in the same pan without drying out. Serve right out of the skillet to keep it warm."
+    },
+    {
+      "title": "Baked Salmon with Broccoli and Spinach",
+      "description": "A simple sheet-pan dinner of herb-seasoned baked salmon fillet served alongside roasted broccoli on a bed of fresh or wilted spinach.",
+      "meal_type": "dinner",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 410,
+        "protein_g": 48,
+        "carbs_g": 10,
+        "fat_g": 20,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 480
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Toss broccoli florets with half the olive oil, minced garlic, sea salt, and black pepper. Spread on one side of a lined baking sheet.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Place salmon fillet on the other side of the baking sheet. Drizzle with remaining olive oil, season with salt and pepper, and top with lemon slices.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Bake until salmon flakes easily with a fork and broccoli edges are lightly caramelized.",
+          "duration_min": 18
+        },
+        {
+          "step": 4,
+          "text": "Arrange fresh spinach in a wide bowl or on a plate. Place hot salmon and broccoli on top so the heat gently wilts the spinach underneath.",
+          "duration_min": null
+        }
+      ],
+      "tips": "If the broccoli needs more browning, switch the oven to broil for the last 2 minutes while keeping an eye on the salmon."
+    },
+    {
+      "title": "Chicken Breast with Asparagus, Mushrooms, and Quinoa",
+      "description": "A recovery dinner of roasted chicken breast alongside seared mushrooms and asparagus, served over a base of fluffy quinoa.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 550,
+        "protein_g": 58,
+        "carbs_g": 40,
+        "fat_g": 14,
+        "fiber_g": 6,
+        "sugar_g": 4,
+        "sodium_mg": 500
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 220,
+          "unit": "g",
+          "preparation": "seasoned"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 150,
+          "unit": "g",
+          "preparation": "woody ends trimmed"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Season chicken breast with sea salt, black pepper, and a drizzle of olive oil. Roast until internal temperature reaches 74C (165F).",
+          "duration_min": 22
+        },
+        {
+          "step": 2,
+          "text": "While chicken roasts, cook quinoa in 1 cup of water: bring to a boil, cover, reduce heat, and simmer until all liquid is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 3,
+          "text": "Heat remaining oil in a skillet over high heat. Sear mushrooms without stirring until browned on one side, then add asparagus and minced garlic. Toss and cook until asparagus is just tender.",
+          "duration_min": 6
+        },
+        {
+          "step": 4,
+          "text": "Slice the rested chicken and arrange over quinoa. Top with mushrooms and asparagus. Finish with a squeeze of lemon juice.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Resist stirring the mushrooms for the first 2 minutes so they develop a golden crust rather than steaming in their own liquid."
+    },
+    {
+      "title": "Salmon with Bell Pepper, Onion, and Broccoli",
+      "description": "Pan-seared salmon fillet served alongside roasted broccoli and a quick saute of sliced bell pepper and yellow onion for a low-carb, micronutrient-rich dinner.",
+      "meal_type": "dinner",
+      "prep_time_min": 8,
+      "cook_time_min": 22,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 430,
+        "protein_g": 45,
+        "carbs_g": 16,
+        "fat_g": 21,
+        "fiber_g": 5,
+        "sugar_g": 7,
+        "sodium_mg": 460
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "florets"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Toss broccoli florets with a little olive oil, salt, and pepper. Roast until tender and edges are lightly charred.",
+          "duration_min": 18
+        },
+        {
+          "step": 2,
+          "text": "Season salmon with sea salt and black pepper. In an oven-safe skillet, heat oil over medium-high heat. Sear salmon skin-side down for 3 minutes, then flip and finish in the oven with the broccoli for the last 4 minutes.",
+          "duration_min": 7
+        },
+        {
+          "step": 3,
+          "text": "While the salmon and broccoli finish, saute sliced yellow onion and bell pepper in the same skillet until softened and lightly caramelized. Add minced garlic in the last minute.",
+          "duration_min": 6
+        },
+        {
+          "step": 4,
+          "text": "Plate the salmon alongside roasted broccoli and the pepper-onion saute. Squeeze lemon juice over everything before serving.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Using an oven-safe skillet lets you start the salmon on the stovetop and finish it in the oven alongside the broccoli with minimal washing up."
+    },
+    {
+      "title": "Peanut Butter with Blueberries and Almonds",
+      "description": "A no-prep snack plate of peanut butter, fresh blueberries, and raw almonds combining healthy fats, antioxidants, and quick natural energy.",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 10,
+        "carbs_g": 18,
+        "fat_g": 22,
+        "fiber_g": 4,
+        "sugar_g": 9,
+        "sodium_mg": 95
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 20,
+          "unit": "g",
+          "preparation": "raw"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Measure out peanut butter and place it in a small bowl or alongside a small plate.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Arrange fresh blueberries and raw almonds alongside the peanut butter. Dip the almonds or eat them separately with the blueberries.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Weigh the almonds (20g is about 16 whole almonds) to keep fat and calorie counts consistent, as portion size is easy to overshoot with nuts."
+    },
+    {
+      "title": "Almond Butter and Kiwi Snack Plate",
+      "description": "Sliced fresh kiwi served alongside almond butter and a small handful of whole almonds for a simple snack delivering healthy fats, antioxidants, and vitamin C.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 250,
+        "protein_g": 8,
+        "carbs_g": 16,
+        "fat_g": 18,
+        "fiber_g": 4,
+        "sugar_g": 9,
+        "sodium_mg": 55
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Kiwi",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "peeled and sliced"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 15,
+          "unit": "g",
+          "preparation": "raw"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Peel the kiwi and slice into rounds.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Arrange kiwi slices on a plate with almond butter in a small bowl on the side. Add raw almonds alongside for crunch.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use ripe kiwi for the best sweetness — the flesh should give slightly when pressed. Dipping each slice into the almond butter balances the tartness with fat."
+    },
+    {
+      "title": "Dark Chocolate, Almonds, and Blueberries",
+      "description": "A post-training treat of antioxidant-rich dark chocolate squares paired with raw almonds and fresh blueberries for a satisfying whole-food snack.",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 6,
+        "carbs_g": 22,
+        "fat_g": 18,
+        "fiber_g": 4,
+        "sugar_g": 12,
+        "sodium_mg": 15
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 20,
+          "unit": "g",
+          "preparation": "roughly broken"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 20,
+          "unit": "g",
+          "preparation": "raw"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "fresh"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Break the dark chocolate into small pieces (approximately one square) and place in the center of a small plate.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Arrange raw almonds and fresh blueberries around the chocolate. Eat together in small bites to balance the bitterness of the chocolate with the fruit and nut flavors.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Choose a dark chocolate with at least 70% cacao content for the best antioxidant profile with the lowest sugar load."
     }
   ]
 }

@@ -466,6 +466,928 @@
           "is_optional": true
         }
       ]
+    },
+    {
+      "title": "Warm Spiced Oats with Banana and Almond Butter",
+      "description": "Rolled oats cooked in almond milk with mashed banana stirred in, finished with a swirl of almond butter and topped with sliced banana and cacao nibs.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 12,
+        "carbs_g": 62,
+        "fat_g": 15,
+        "fiber_g": 8,
+        "sugar_g": 18,
+        "sodium_mg": 120
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Combine rolled oats and almond milk in a small saucepan over medium heat. Bring to a gentle simmer, stirring occasionally.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Mash half the banana directly into the oats and stir to incorporate. Continue cooking until the oats are creamy and have absorbed most of the liquid.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Remove from heat and swirl in the almond butter until ribboned through the oats.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Transfer to a bowl. Arrange the remaining banana slices on top and scatter cacao nibs over the surface. Serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use a ripe banana for natural sweetness so no added sweetener is needed. Stir the almond butter off-heat to preserve its raw flavour.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "half mashed, half sliced"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "title": "Spinach Berry Smoothie Bowl",
+      "description": "A thick blended base of spinach, frozen mixed berries, and frozen banana poured into a bowl and topped with rolled oats, fresh raspberries, and cacao nibs.",
+      "meal_type": "breakfast",
+      "prep_time_min": 8,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 370,
+        "protein_g": 9,
+        "carbs_g": 68,
+        "fat_g": 7,
+        "fiber_g": 12,
+        "sugar_g": 28,
+        "sodium_mg": 100
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add almond milk to the blender first, then add spinach. Blend briefly until the greens are fully broken down.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Add frozen mixed berries and frozen banana. Blend on high until completely smooth and very thick. Use as little liquid as possible to keep bowl consistency.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Pour the blended base into a wide bowl. Working quickly, arrange fresh raspberries and rolled oats across the surface, then scatter cacao nibs on top.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Keep the almond milk to a minimum splash — a thick base holds toppings better. Freeze the bowl for 5 minutes beforehand to slow melting.",
+      "ingredients": [
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "title": "Overnight Oat Parfait with Berries and Almonds",
+      "description": "Oats soaked overnight in almond milk layered in a glass with almond butter, fresh blueberries and raspberries, and a crunchy finish of crushed almonds.",
+      "meal_type": "breakfast",
+      "prep_time_min": 7,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 13,
+        "carbs_g": 52,
+        "fat_g": 17,
+        "fiber_g": 10,
+        "sugar_g": 14,
+        "sodium_mg": 105
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Combine rolled oats and almond milk in a jar or bowl. Stir well, cover, and refrigerate overnight or for at least 6 hours.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "In the morning, stir the soaked oats and add a splash more almond milk if the mixture is too thick.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Spoon half the oats into a glass or bowl. Add a layer of almond butter, blueberries, and raspberries. Spoon the remaining oats on top.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Finish with the remaining berries and scatter crushed almonds over the top. Serve immediately or keep refrigerated until ready to eat.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Prep the night before for a zero-morning-effort breakfast. Lightly crush almonds in your hands directly over the bowl for a quick garnish.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "roughly crushed"
+        }
+      ]
+    },
+    {
+      "title": "Spinach and Avocado Quinoa Bowl",
+      "description": "Warm cooked quinoa served over a bed of fresh spinach with sliced avocado, seasoned black beans, and a scatter of raspberries for a sweet-tart accent.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 18,
+        "carbs_g": 58,
+        "fat_g": 18,
+        "fiber_g": 15,
+        "sugar_g": 6,
+        "sodium_mg": 250
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Rinse quinoa under cold water. Combine with 1 cup water in a small saucepan, bring to a boil, reduce to a simmer, cover, and cook until all water is absorbed and quinoa is fluffy.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "While quinoa cooks, drain and rinse black beans. Season with a pinch of sea salt, black pepper, and cumin. Stir gently in the pan over low heat for 2 minutes to warm through.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Arrange fresh spinach as a base in a wide bowl. Spoon warm quinoa on top of the spinach.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Fan sliced avocado to one side, spoon black beans alongside, and scatter raspberries across the bowl. Drizzle with a little extra virgin olive oil and a squeeze of lemon if desired.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Cook quinoa in advance and refrigerate for up to 3 days to cut prep time to under 5 minutes. The raspberries balance the richness of the avocado.",
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Black Bean and Broccoli Brown Rice Bowl",
+      "description": "Steamed broccoli florets served over cooked brown rice with spiced black beans, raw spinach leaves, and fanned avocado slices.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 500,
+        "protein_g": 20,
+        "carbs_g": 75,
+        "fat_g": 13,
+        "fiber_g": 18,
+        "sugar_g": 4,
+        "sodium_mg": 270
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook brown rice according to package instructions. Fluff with a fork when done and keep warm.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "While rice cooks, steam or microwave broccoli florets until bright green and just tender, about 4 minutes.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Warm black beans in a small pan over medium heat with smoked paprika, sea salt, and black pepper, stirring until heated through.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Divide brown rice between two bowls. Layer fresh spinach, broccoli florets, and spiced black beans on top. Fan sliced avocado over each bowl and serve immediately.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Use pre-cooked brown rice pouches to cut total time to under 10 minutes. A drizzle of tamari over the finished bowl deepens the savoury flavour.",
+      "ingredients": [
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry, uncooked"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Avocado Quinoa Power Salad with Walnuts",
+      "description": "Cooled quinoa tossed with baby spinach, black beans, diced avocado, toasted walnuts, and raspberries for natural sweetness and acidity.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 530,
+        "protein_g": 19,
+        "carbs_g": 55,
+        "fat_g": 26,
+        "fiber_g": 16,
+        "sugar_g": 5,
+        "sodium_mg": 240
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Rinse quinoa and cook in a saucepan with 1.5 cups water. Bring to a boil, then reduce to a simmer and cover. Cook until water is fully absorbed. Spread on a plate and allow to cool to room temperature.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Toast walnuts in a dry skillet over medium heat for 3 to 4 minutes, stirring frequently, until fragrant. Remove and allow to cool.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "In a large bowl, combine cooled quinoa, spinach, drained black beans, and diced avocado. Drizzle with extra virgin olive oil and lemon juice, then season with sea salt and black pepper. Toss gently.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Fold in raspberries carefully to avoid crushing them. Top with toasted walnuts and serve.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Dress the salad just before serving to keep the spinach crisp. Leftover quinoa keeps in the fridge for 3 days.",
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 3,
+          "unit": "tbsp",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.33,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Black Bean and Broccoli Stir-Fry over Brown Rice",
+      "description": "Broccoli florets stir-fried in olive oil until tender-crisp, tossed with black beans and wilted spinach, served over a bed of cooked brown rice.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 21,
+        "carbs_g": 72,
+        "fat_g": 12,
+        "fiber_g": 17,
+        "sugar_g": 4,
+        "sodium_mg": 310
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook brown rice according to package instructions. Keep warm.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Heat extra virgin olive oil in a large skillet or wok over medium-high heat. Add broccoli florets and stir-fry until bright green and just tender-crisp, about 5 to 6 minutes.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Add drained black beans to the skillet. Season with garlic powder, sea salt, and black pepper. Stir to combine and cook for 2 minutes until the beans are warmed through.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Add spinach and toss everything together until the spinach wilts, about 1 minute. Divide brown rice between bowls and top with the stir-fry.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Work over high heat and keep the broccoli moving in the pan to get light char on the edges without steaming. A splash of tamari deepens the stir-fry flavour.",
+      "ingredients": [
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 3,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry, uncooked"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Quinoa-Stuffed Avocado with Spinach and Black Beans",
+      "description": "Avocado halves filled with warm quinoa, wilted spinach, and seasoned black beans, garnished with cacao nibs as a nutty finishing touch.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 470,
+        "protein_g": 17,
+        "carbs_g": 50,
+        "fat_g": 23,
+        "fiber_g": 17,
+        "sugar_g": 3,
+        "sodium_mg": 250
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Rinse quinoa and cook in a small saucepan with 1 cup water. Bring to a boil, reduce heat to a simmer, cover, and cook until all water is absorbed and quinoa is fluffy.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "While quinoa cooks, warm black beans in a small pan with a pinch of sea salt and black pepper over medium-low heat until heated through. Add spinach to the pan and stir until fully wilted.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Halve and pit the avocados. Place each half cut-side up on a plate.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Stir the warm quinoa into the spinach and black bean mixture. Spoon generously into each avocado half, mounding slightly. Scatter cacao nibs over the top and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Select avocados that are ripe but still firm so they hold their shape when filled. The cacao nibs provide an unexpected crunchy contrast to the creamy avocado.",
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 2,
+          "unit": "whole",
+          "preparation": "halved and pitted"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Vegan Cheesy Broccoli and Black Bean Rice Bake",
+      "description": "Brown rice, broccoli, spinach, and black beans tossed in olive oil in a baking dish, topped with shredded vegan cheese and baked until bubbly and golden.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 45,
+      "servings": 3,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 22,
+        "carbs_g": 70,
+        "fat_g": 16,
+        "fiber_g": 15,
+        "sugar_g": 4,
+        "sodium_mg": 430
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 375 F. Cook brown rice according to package directions, then set aside.",
+          "duration_min": 25
+        },
+        {
+          "step": 2,
+          "text": "In a large bowl, combine cooked brown rice, broccoli florets, spinach, and drained black beans. Drizzle with extra virgin olive oil and season with sea salt, black pepper, and garlic powder. Toss until evenly coated.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Transfer the mixture to a lightly oiled baking dish and spread into an even layer. Scatter shredded vegan cheese generously over the top.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Bake for 15 minutes until the cheese is melted and the edges are bubbling. Serve directly from the dish.",
+          "duration_min": 15
+        }
+      ],
+      "tips": "Use pre-cooked rice to cut the total time in half. Cover the baking dish with foil for the first 10 minutes if the top browns too quickly before the interior is hot.",
+      "ingredients": [
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 3,
+          "unit": "cup",
+          "preparation": "cut into small florets"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry, uncooked"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Almond Butter Banana Bites with Cacao Nibs",
+      "description": "Banana rounds topped with a small dollop of almond butter and finished with a few cacao nibs for crunch — a minimal two-minute whole-food snack.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 5,
+        "carbs_g": 28,
+        "fat_g": 9,
+        "fiber_g": 4,
+        "sugar_g": 15,
+        "sodium_mg": 35
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Peel the banana and slice into rounds approximately half an inch thick. Arrange the rounds in a single layer on a small plate.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Top each banana round with a small dollop (about a quarter teaspoon) of almond butter using a teaspoon or butter knife.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Scatter cacao nibs over the finished bites and serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use a ripe but firm banana so the rounds hold together. The cacao nibs add a bitter edge that balances the natural sweetness of the banana.",
+      "ingredients": [
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced into rounds"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Berry and Nut Trail Mix",
+      "description": "A simple handful-ready mix of almonds, walnuts, cashews, and raspberries for a portable whole-food snack with natural sweetness from the fruit.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 280,
+        "protein_g": 8,
+        "carbs_g": 16,
+        "fat_g": 22,
+        "fiber_g": 5,
+        "sugar_g": 5,
+        "sodium_mg": 15
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Measure out the almonds, walnuts, and cashews and combine in a small bowl or resealable bag.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add fresh or freeze-dried raspberries. If using fresh, add just before eating to prevent the mix from softening. Toss gently to distribute evenly and serve.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Use freeze-dried raspberries if portioning this mix ahead to carry in a bag — they stay crisp and add concentrated tartness without moisture.",
+      "ingredients": [
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cashews",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "title": "No-Bake Oat and Almond Butter Energy Balls",
+      "description": "Thawed frozen banana blended with almond butter, mixed into rolled oats and cacao nibs, rolled into compact balls, and chilled until firm.",
+      "meal_type": "snack",
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 230,
+        "protein_g": 7,
+        "carbs_g": 30,
+        "fat_g": 10,
+        "fiber_g": 4,
+        "sugar_g": 12,
+        "sodium_mg": 40
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Remove frozen banana from the freezer and allow to thaw at room temperature for 10 minutes until soft enough to mash.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Mash the thawed banana in a bowl until smooth. Add almond butter and mix until fully combined into a sticky paste.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Fold in rolled oats and cacao nibs. Stir until the oats are evenly coated and the mixture holds together when pressed.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Scoop out tablespoon-sized portions and roll firmly between your palms to form compact balls. Place on a small lined tray and refrigerate for at least 30 minutes until firm.",
+          "duration_min": 5
+        }
+      ],
+      "tips": "Wet your hands slightly before rolling to prevent sticking. The balls keep in an airtight container in the fridge for up to 4 days.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "thawed and mashed"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
     }
   ]
 }

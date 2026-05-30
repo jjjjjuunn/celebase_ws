@@ -500,6 +500,1059 @@
         }
       ],
       "tips": "Cooking quinoa in vegetable broth instead of water adds depth. The salmon is ready when it turns opaque and the thickest part flakes with gentle pressure."
+    },
+    {
+      "title": "Millet Porridge with Fruit and Seeds",
+      "description": "Creamy millet porridge stirred with coconut oil and topped with seasonal fruit and seeds for a naturally sweet, plant-forward breakfast.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 9,
+        "carbs_g": 58,
+        "fat_g": 12,
+        "fiber_g": 6,
+        "sugar_g": 16,
+        "sodium_mg": 60
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Combine millet and 2 cups of water in a small saucepan. Bring to a boil over medium-high heat, then reduce to a gentle simmer.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Simmer uncovered, stirring occasionally, until the millet is soft and the mixture is creamy, about 15 to 18 minutes. Add a splash of water if it becomes too thick.",
+          "duration_min": 17
+        },
+        {
+          "step": 3,
+          "text": "Remove from heat and stir in the coconut oil until melted and incorporated.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Transfer to a bowl. Top with sliced banana, mango chunks, and a sprinkle of pumpkin seeds. Serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Millet",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Mango",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "cubed"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "tips": "Millet absorbs water gradually — stir frequently in the last 5 minutes to prevent sticking. Use whatever seasonal fruit is freshest; mango and banana are the sweetest combination."
+    },
+    {
+      "title": "Avocado and Egg Scramble on Gluten-Free Toast",
+      "description": "Soft-scrambled eggs folded with diced avocado, served on toasted Ezekiel bread with a side of fresh spinach for a simple high-protein morning plate.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 8,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 22,
+        "carbs_g": 34,
+        "fat_g": 22,
+        "fiber_g": 9,
+        "sugar_g": 2,
+        "sodium_mg": 340
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast two slices of Ezekiel bread until golden. Meanwhile, whisk the eggs with a pinch of sea salt and black pepper.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Heat a non-stick pan over medium-low heat with a small amount of olive oil. Pour in the eggs and cook slowly, folding gently with a spatula every 20 seconds, until just barely set.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Remove the pan from heat and fold in the diced avocado — the residual heat will warm it without overcooking.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Spoon the egg and avocado mixture onto the toasted bread. Arrange fresh spinach leaves alongside and serve.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "peeled and diced"
+        },
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "raw"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Ezekiel bread is best stored frozen and toasted straight from the freezer. Pull the eggs off the heat while they still look slightly underdone — carryover heat finishes them perfectly."
+    },
+    {
+      "title": "Quinoa Breakfast Bowl with Nuts and Fruit",
+      "description": "Warm leftover quinoa topped with a mix of almonds, walnuts, sliced banana, and blueberries for a protein-rich grain bowl alternative to oatmeal.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 400,
+        "protein_g": 12,
+        "carbs_g": 52,
+        "fat_g": 16,
+        "fiber_g": 7,
+        "sugar_g": 14,
+        "sodium_mg": 40
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Place cooked quinoa in a small saucepan with 2 tablespoons of water. Warm over medium-low heat, stirring, until heated through, about 3 to 4 minutes.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Transfer the warm quinoa to a bowl and top with sliced banana, blueberries, chopped almonds, and walnuts.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Sprinkle chia seeds over the top and drizzle with a small amount of honey if desired. Serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "roughly chopped"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "roughly chopped"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Cook a large batch of quinoa on Sunday and refrigerate for up to 5 days. Warming in a saucepan with a splash of water restores its original fluffy texture better than microwaving."
+    },
+    {
+      "title": "Quinoa and Bean Power Bowl with Avocado",
+      "description": "Layered quinoa with seasoned black beans, roasted broccoli, carrot, and bell pepper, finished with sliced avocado and a sprinkle of hemp seeds for a fully plant-forward midday plate.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 18,
+        "carbs_g": 62,
+        "fat_g": 16,
+        "fiber_g": 14,
+        "sugar_g": 5,
+        "sodium_mg": 320
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook quinoa in 1.5 cups of water or vegetable broth over medium heat until all liquid is absorbed, about 15 minutes. Fluff with a fork and set aside.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Preheat oven to 400 F. Toss broccoli florets, sliced carrot, and bell pepper strips with olive oil, cumin, sea salt, and black pepper. Spread on a baking sheet and roast for 20 to 22 minutes, flipping once.",
+          "duration_min": 22
+        },
+        {
+          "step": 3,
+          "text": "Warm the drained black beans in a small saucepan with a pinch of cumin and sea salt for 2 to 3 minutes.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Divide quinoa between two bowls. Arrange roasted vegetables and black beans on top. Fan sliced avocado alongside, scatter mixed greens, and finish with hemp seeds.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "strips"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "This bowl is designed to be 80% plants by volume. Arrange the vegetables and beans as the visual centerpiece and the quinoa as the base — keep the avocado as the accent rather than the star."
+    },
+    {
+      "title": "Brown Rice Bowl with Grilled Salmon and Mixed Vegetables",
+      "description": "Pan-seared salmon fillet served over steamed brown rice with sauteed zucchini, bell pepper, and broccoli, with a handful of kale for an omega-3-rich midday bowl.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 500,
+        "protein_g": 34,
+        "carbs_g": 52,
+        "fat_g": 16,
+        "fiber_g": 8,
+        "sugar_g": 4,
+        "sodium_mg": 380
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook brown rice according to package directions, about 25 to 30 minutes. Meanwhile, massage kale leaves with a pinch of sea salt and set aside.",
+          "duration_min": 30
+        },
+        {
+          "step": 2,
+          "text": "Season salmon fillets with sea salt, black pepper, and a squeeze of lemon. Heat olive oil in a skillet over medium-high heat. Sear salmon skin-side up for 4 minutes, flip, and cook another 3 to 4 minutes until the fish flakes easily.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "In the same pan (wiped clean), saute sliced zucchini, bell pepper strips, and broccoli florets in olive oil over medium heat for 5 to 6 minutes until tender-crisp.",
+          "duration_min": 6
+        },
+        {
+          "step": 4,
+          "text": "Divide brown rice between bowls. Arrange sauteed vegetables and kale on top, and place a salmon fillet alongside. Squeeze fresh lemon over everything before serving.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "strips"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "stems removed, torn"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Massaging kale with salt softens the leaves without cooking them, adding textural contrast alongside the warm vegetables. Salmon is ready when it turns opaque and the thickest point flakes with gentle fork pressure."
+    },
+    {
+      "title": "Millet and Vegetable Stuffed Bowl with Beans",
+      "description": "Fluffy millet combined with seasoned white beans and roasted broccoli, carrot, and bell pepper, topped with sliced avocado and pumpkin seeds for a nutrient-dense plant-based lunch.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 460,
+        "protein_g": 16,
+        "carbs_g": 64,
+        "fat_g": 14,
+        "fiber_g": 13,
+        "sugar_g": 5,
+        "sodium_mg": 300
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Rinse millet and toast in a dry saucepan over medium heat for 2 minutes until it smells nutty. Add 1.5 cups of water, bring to a boil, reduce heat, cover and simmer for 18 to 20 minutes until water is absorbed.",
+          "duration_min": 22
+        },
+        {
+          "step": 2,
+          "text": "Meanwhile, preheat oven to 400 F. Toss broccoli florets, sliced carrot, and bell pepper with olive oil, paprika, sea salt, and black pepper. Roast on a baking sheet for 20 minutes, flipping once.",
+          "duration_min": 20
+        },
+        {
+          "step": 3,
+          "text": "Warm drained white beans in a small pan with a pinch of sea salt and cumin for 2 minutes.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Fluff millet with a fork. Divide between two bowls and top with roasted vegetables, white beans, sliced avocado, and a sprinkle of pumpkin seeds.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Millet",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "White Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Toasting millet dry before adding water deepens its mild, corn-like flavor. The bowl keeps well — store millet, beans, and vegetables separately and assemble with fresh avocado just before eating."
+    },
+    {
+      "title": "Herb-Roasted Chicken with Brown Rice and Leafy Greens",
+      "description": "Oven-roasted organic chicken breast alongside a medley of broccoli, zucchini, and bell pepper, served over brown rice with wilted spinach for a classic 80/20 plate where vegetables and grain outnumber the protein.",
+      "meal_type": "dinner",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 38,
+        "carbs_g": 58,
+        "fat_g": 14,
+        "fiber_g": 9,
+        "sugar_g": 5,
+        "sodium_mg": 420
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 F. Cook brown rice according to package directions, about 25 to 30 minutes.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Toss broccoli florets, sliced zucchini, and bell pepper strips with 1 tablespoon of olive oil, oregano, sea salt, and black pepper. Spread on a large baking sheet.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Rub chicken breasts with the remaining olive oil, rosemary, garlic powder, sea salt, and black pepper. Place on the same baking sheet alongside the vegetables. Roast for 22 to 25 minutes until the chicken reaches an internal temperature of 165 F and the vegetables are caramelized at the edges.",
+          "duration_min": 25
+        },
+        {
+          "step": 4,
+          "text": "Rest the chicken for 3 minutes before slicing. Meanwhile, wilt spinach in the residual heat of the pan for 30 seconds. Divide brown rice between plates, arrange vegetables and spinach alongside, and top with sliced chicken.",
+          "duration_min": 5
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "packed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "strips"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "dried"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "dried"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "By visual plate ratio, vegetables and grain should dominate — the chicken slice is the accent. Sheet-pan cooking keeps cleanup minimal and lets the vegetable juices baste the chicken during roasting."
+    },
+    {
+      "title": "Fish and Vegetable Stew over Quinoa",
+      "description": "Flaked cod simmered with carrot, zucchini, bell pepper, and white beans in a light broth, served over quinoa with spinach stirred in at the end for a warming omega-3-rich one-pot dinner.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 36,
+        "carbs_g": 56,
+        "fat_g": 10,
+        "fiber_g": 11,
+        "sugar_g": 6,
+        "sodium_mg": 460
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook quinoa in 1.5 cups of vegetable broth over medium heat until all liquid is absorbed, about 15 minutes. Fluff with a fork and cover to keep warm.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a wide pot over medium heat. Add diced carrot, sliced zucchini, and bell pepper. Cook for 4 to 5 minutes until slightly softened. Add drained white beans and 1.5 cups of vegetable broth. Bring to a simmer.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Add cod fillet cut into large chunks to the simmering stew. Cook for 6 to 8 minutes, gently breaking the fish into flakes with a spoon as it cooks through.",
+          "duration_min": 8
+        },
+        {
+          "step": 4,
+          "text": "Stir fresh spinach into the stew and let it wilt for 1 minute. Season with sea salt, black pepper, and a squeeze of lemon. Ladle the stew over quinoa and serve.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 10,
+          "unit": "oz",
+          "preparation": "cut into large chunks"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "White Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "packed"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 2.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Add the cod in large pieces and break it gently — it should stay in recognizable flakes rather than disappearing into the broth. Quinoa cooked in vegetable broth adds depth that water cannot match."
+    },
+    {
+      "title": "Bean and Vegetable Grain Bowl with Nuts",
+      "description": "Spiced black beans over millet, loaded with roasted broccoli, carrot, and bell pepper, alongside kale, crushed walnuts, and sliced avocado for a fully plant-based satisfying dinner.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 450,
+        "protein_g": 17,
+        "carbs_g": 60,
+        "fat_g": 16,
+        "fiber_g": 15,
+        "sugar_g": 5,
+        "sodium_mg": 340
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast millet in a dry saucepan over medium heat for 2 minutes. Add 1.5 cups of water, bring to a boil, reduce heat, cover and simmer for 18 minutes until water is absorbed. Remove from heat and let steam 5 minutes, then fluff.",
+          "duration_min": 25
+        },
+        {
+          "step": 2,
+          "text": "Preheat oven to 400 F. Toss broccoli florets, sliced carrot, and bell pepper with olive oil, cumin, paprika, sea salt, and black pepper. Roast for 20 minutes until caramelized.",
+          "duration_min": 20
+        },
+        {
+          "step": 3,
+          "text": "Warm drained black beans in a small saucepan with cumin, sea salt, and a splash of water for 3 minutes. Massage kale with a pinch of sea salt until slightly softened.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Divide millet between two bowls. Top with spiced black beans, roasted vegetables, massaged kale, sliced avocado, and crushed walnuts.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Millet",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "stems removed, torn"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Walnuts",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "roughly crushed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "This bowl is aligned with the 80% plant mandate — the entire bowl is plant-based. Assemble components separately so leftovers reheat cleanly; add fresh avocado just before serving."
+    },
+    {
+      "title": "Dark Chocolate, Nuts, and Fruit Snack Pack",
+      "description": "Two squares of 70% dark chocolate with a small handful of almonds and sliced apple — a whole-food snack that satisfies a sweet craving with no refined sugar.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 5,
+        "carbs_g": 22,
+        "fat_g": 13,
+        "fiber_g": 4,
+        "sugar_g": 13,
+        "sodium_mg": 10
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Break or snap the dark chocolate into two squares. Core and slice the apple into thin wedges.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Arrange dark chocolate, almonds, and apple slices on a small plate or in a snack container. Enjoy at room temperature.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 1,
+          "unit": "oz",
+          "preparation": "broken into squares"
+        },
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Apple",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "cored and sliced"
+        }
+      ],
+      "tips": "Choose dark chocolate with 70% cacao or higher to keep the added sugar minimal. Store pre-portioned snack packs in small containers to grab on the go without measuring each time."
+    },
+    {
+      "title": "Avocado on Gluten-Free Toast with Seeds",
+      "description": "Mashed ripe avocado spread onto a toasted slice of Ezekiel bread, scattered with sunflower and pumpkin seeds for a light, satiating mid-day or pre-workout snack.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 260,
+        "protein_g": 5,
+        "carbs_g": 24,
+        "fat_g": 16,
+        "fiber_g": 7,
+        "sugar_g": 1,
+        "sodium_mg": 160
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast one slice of Ezekiel bread until golden and crisp.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Halve and pit the avocado. Scoop the flesh into a small bowl and mash with a fork until creamy with some texture remaining. Season with a pinch of sea salt and black pepper.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Spread the mashed avocado generously over the toast. Scatter sunflower seeds and pumpkin seeds on top and serve.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 1,
+          "unit": "slice",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Sunflower Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.0625,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.0625,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Ezekiel bread is best kept in the freezer and toasted directly from frozen — it crisps more evenly that way. A ripe avocado should yield slightly to gentle pressure at the stem end."
+    },
+    {
+      "title": "Coconut Butter, Fruit, and Seeds Bowl",
+      "description": "Sliced mango drizzled with softened coconut oil and sprinkled with chia seeds for a clean energy snack built on healthy fats and natural fruit sugars with no added sugar.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 3,
+        "carbs_g": 26,
+        "fat_g": 10,
+        "fiber_g": 4,
+        "sugar_g": 20,
+        "sodium_mg": 10
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "If the coconut oil is solid, warm it briefly in a small bowl set over hot water for 30 seconds until it becomes a clear liquid.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Peel and slice the mango into bite-size pieces and arrange in a bowl.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Drizzle the softened coconut oil over the mango and sprinkle with chia seeds. Serve immediately or refrigerate for up to 30 minutes.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Coconut Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "softened"
+        },
+        {
+          "ingredient_name": "Mango",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "peeled and sliced"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "tips": "In warm weather the coconut oil will already be liquid — no warming needed. Any ripe seasonal fruit works well here; the coconut oil and chia seeds stay constant while the fruit rotates."
     }
   ]
 }

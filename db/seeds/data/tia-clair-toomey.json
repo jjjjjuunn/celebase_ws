@@ -543,6 +543,1010 @@
         }
       ],
       "tips": "A cast-iron pan gives the best sear. If the steak is straight from the fridge, let it sit at room temperature for 15 minutes before cooking for more even doneness."
+    },
+    {
+      "title": "Egg & Bacon Scramble with Sliced Avocado",
+      "description": "Fluffy scrambled eggs paired with crispy bacon strips and fanned avocado slices on the side — a low-carb, high-fat morning plate built for early training sessions.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 34,
+        "carbs_g": 8,
+        "fat_g": 38,
+        "fiber_g": 5,
+        "sugar_g": 1,
+        "sodium_mg": 780
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large",
+          "preparation": "whisked"
+        },
+        {
+          "ingredient_name": "Bacon",
+          "quantity": 3,
+          "unit": "strips",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "for pan"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook bacon strips in a skillet over medium heat until crispy, about 4 minutes per side. Transfer to a paper-towel-lined plate.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Discard most bacon fat, add avocado oil to the pan. Whisk eggs with salt and pepper and pour into the pan. Stir gently over medium-low heat until just set and still slightly glossy.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "While eggs cook, halve the avocado, remove the pit, and fan the slices on the plate beside the eggs and bacon.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Keep the heat low for the eggs — they continue cooking off the heat. Letting the bacon rest on paper towels keeps it crisper at the table."
+    },
+    {
+      "title": "Protein Oat & Banana Bowl",
+      "description": "Warm rolled oats with a scoop of whey protein stirred in while hot, topped with sliced banana and a spoonful of peanut butter for a steady carb-and-protein combination.",
+      "meal_type": "breakfast",
+      "prep_time_min": 3,
+      "cook_time_min": 8,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 40,
+        "carbs_g": 62,
+        "fat_g": 14,
+        "fiber_g": 7,
+        "sugar_g": 18,
+        "sodium_mg": 220
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop (30g)",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "optional",
+          "is_optional": true
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Bring 1.5 cups of water to a boil. Add rolled oats, reduce heat to medium, and cook stirring occasionally for 5-6 minutes until thick and creamy.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Remove oats from heat and immediately stir in the whey protein powder and cinnamon until fully dissolved with no lumps.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Transfer to a bowl. Arrange sliced banana on top, drizzle peanut butter over, and add honey if desired.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Stir the protein powder in right off the heat — if the oats are too cool the powder can clump. A splash of milk or water helps loosen the consistency if it thickens too fast."
+    },
+    {
+      "title": "Toasted Bagel with Peanut Butter, Banana & Blueberries",
+      "description": "Toasted bagel halves spread with peanut butter and layered with sliced banana and fresh blueberries — a carb-forward pre-workout breakfast for high-output morning schedules.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 590,
+        "protein_g": 18,
+        "carbs_g": 82,
+        "fat_g": 20,
+        "fiber_g": 6,
+        "sugar_g": 24,
+        "sodium_mg": 480
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Bagel",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "halved and toasted"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "rinsed"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Halve the bagel and toast both halves in a toaster or under the broiler until golden and crisp.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Spread one tablespoon of peanut butter evenly over each toasted bagel half.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Layer sliced banana coins over the peanut butter, then scatter fresh blueberries on top. Serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "A plain or sesame bagel works best here. Mashing the banana slightly into the peanut butter keeps the toppings from sliding off when eating."
+    },
+    {
+      "title": "Turkey Mince & Jasmine Rice Bowl with Avocado",
+      "description": "Seasoned ground turkey browned in a pan, served over fluffy jasmine rice and topped with creamy sliced avocado — a classic lean-protein mid-day performance plate.",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 620,
+        "protein_g": 46,
+        "carbs_g": 58,
+        "fat_g": 18,
+        "fiber_g": 6,
+        "sugar_g": 2,
+        "sodium_mg": 520
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Ground Turkey",
+          "quantity": 180,
+          "unit": "g",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Jasmine Rice",
+          "quantity": 0.75,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Coconut Aminos",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook jasmine rice according to package instructions, about 15 minutes. Fluff with a fork and cover to keep warm.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium-high heat. Add minced garlic and cook 30 seconds until fragrant.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Add ground turkey to the skillet. Break it up with a spatula and season with salt, pepper, and paprika. Cook through until no longer pink, about 7-8 minutes.",
+          "duration_min": 8
+        },
+        {
+          "step": 4,
+          "text": "Drizzle coconut aminos over the turkey and stir to coat. Serve over jasmine rice and top with sliced avocado.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Turkey mince can dry out quickly — a splash of coconut aminos keeps it moist and adds umami. Prep double the turkey and rice on Sundays for easy weekday lunches."
+    },
+    {
+      "title": "Chicken Mince & Potato Skillet with Fried Egg",
+      "description": "Golden diced russet potato cooked until crisp, combined with browned chicken mince and finished with a fried egg on top — a filling, high-protein skillet lunch for afternoon training recovery.",
+      "meal_type": "lunch",
+      "prep_time_min": 8,
+      "cook_time_min": 22,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 650,
+        "protein_g": 52,
+        "carbs_g": 42,
+        "fat_g": 22,
+        "fiber_g": 4,
+        "sugar_g": 2,
+        "sodium_mg": 580
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 180,
+          "unit": "g",
+          "preparation": "ground or finely minced"
+        },
+        {
+          "ingredient_name": "Russet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "scrubbed, diced into 1cm cubes"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Scallions",
+          "quantity": 2,
+          "unit": "stalks",
+          "preparation": "thinly sliced",
+          "is_optional": true
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat 1 tbsp avocado oil in a large skillet over medium-high heat. Add diced potato in a single layer. Cook undisturbed for 5 minutes, then stir and continue cooking until golden and fork-tender, about 10 minutes total. Season with 0.25 tsp salt and paprika.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Push potato to the side. Add minced garlic and chicken mince to the center. Break it up and season with remaining salt and pepper. Cook through, about 7-8 minutes, stirring to combine with the potato.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "Clear a small space in the skillet. Add remaining 0.5 tbsp oil and crack in the egg. Fry to desired doneness, 2-3 minutes for a runny yolk.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Serve directly from the skillet or plate the potato-chicken mixture with the fried egg on top. Garnish with scallions if using.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Don't move the potato cubes too early — letting them sit undisturbed creates a golden crust. For fully ground chicken, ask the butcher to mince a chicken breast or pulse in a food processor."
+    },
+    {
+      "title": "Lean Ground Beef & Rice Bowl with Avocado",
+      "description": "Seasoned 93% lean ground beef cooked and served over jasmine rice, topped with sliced avocado — a calorie-dense post-workout lunch that rebuilds glycogen and supports muscle repair.",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 640,
+        "protein_g": 50,
+        "carbs_g": 56,
+        "fat_g": 20,
+        "fiber_g": 5,
+        "sugar_g": 2,
+        "sodium_mg": 510
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Ground Beef 93% Lean",
+          "quantity": 180,
+          "unit": "g",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Jasmine Rice",
+          "quantity": 0.75,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Soy Sauce",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook jasmine rice according to package instructions, about 15 minutes. Fluff with a fork.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Heat sesame oil in a skillet over medium-high heat. Add minced garlic and cook 30 seconds until fragrant.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Add ground beef, breaking it up with a spatula. Season with cumin, salt, and pepper. Cook until browned through, about 7 minutes. Stir in soy sauce and toss to coat.",
+          "duration_min": 7
+        },
+        {
+          "step": 4,
+          "text": "Spoon beef over jasmine rice and top with sliced avocado. Serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "93% lean beef renders very little fat, so a light drizzle of sesame oil in the pan prevents sticking. The soy sauce added at the end gives better caramelization than adding it earlier."
+    },
+    {
+      "title": "Seared Steak with Smashed Potato & Avocado",
+      "description": "Pan-seared beef sirloin cooked to your preferred doneness, served alongside a crispy smashed russet potato and fanned fresh avocado — a whole-food dinner built to maximize overnight protein synthesis.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 700,
+        "protein_g": 55,
+        "carbs_g": 38,
+        "fat_g": 32,
+        "fiber_g": 7,
+        "sugar_g": 2,
+        "sodium_mg": 600
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Beef Sirloin",
+          "quantity": 220,
+          "unit": "g",
+          "preparation": "patted dry"
+        },
+        {
+          "ingredient_name": "Russet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "scrubbed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 1,
+          "unit": "sprig",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.75,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Boil the russet potato in well-salted water over medium-high heat until just fork-tender, about 15-18 minutes. Drain and place on a baking sheet. Smash flat using the bottom of a heavy mug, drizzle with 0.5 tbsp avocado oil, and season with 0.25 tsp salt and 0.125 tsp pepper. Broil or pan-crisp in a 450 F oven for 10 minutes until edges are golden.",
+          "duration_min": 28
+        },
+        {
+          "step": 2,
+          "text": "While potato smashes are crisping, season steak generously on both sides with remaining salt and pepper. Heat 1 tbsp avocado oil in a cast-iron skillet over high heat until smoking.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Sear steak 3-4 minutes per side for medium (145 F internal), adding garlic and rosemary sprig to the pan for the last minute. Let steak rest 5 minutes before slicing.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Slice the rested steak, plate alongside the crispy smashed potato and fanned avocado slices. Drizzle any pan juices over the steak.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Resting the steak is not optional — cutting too early loses the juices to the plate. A cast-iron pan gives a better sear than stainless for a thin sirloin cut."
+    },
+    {
+      "title": "Beef Liver & Jasmine Rice Power Plate",
+      "description": "Pan-seared beef liver sliced and served over fluffy jasmine rice with soft-boiled eggs alongside — an iron- and micronutrient-dense recovery dinner.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 590,
+        "protein_g": 52,
+        "carbs_g": 52,
+        "fat_g": 14,
+        "fiber_g": 2,
+        "sugar_g": 3,
+        "sodium_mg": 560
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Beef Liver",
+          "quantity": 180,
+          "unit": "g",
+          "preparation": "sliced 1cm thick, soaked in cold water 10 min"
+        },
+        {
+          "ingredient_name": "Jasmine Rice",
+          "quantity": 0.75,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "dried"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook jasmine rice according to package instructions, about 15 minutes. Meanwhile, place eggs in a small saucepan of cold water, bring to a boil, then simmer 7 minutes for a soft-boiled yolk. Transfer to ice water and peel.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Pat liver slices dry. Heat avocado oil in a skillet over medium-high heat. Add sliced onion and cook until softened, about 4 minutes. Add garlic and cook 30 seconds more.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Push onion to the side. Season liver with salt, pepper, and thyme. Sear in the same pan 2-3 minutes per side until just cooked through (still slightly pink inside). Do not overcook.",
+          "duration_min": 6
+        },
+        {
+          "step": 4,
+          "text": "Serve sliced liver and caramelized onion over fluffy jasmine rice. Halve the soft-boiled eggs and place alongside.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Soaking liver in cold water for 10 minutes before cooking removes some of the bitter edge. Overcooking liver makes it grainy and tough — pull it off the heat while still slightly pink in the center."
+    },
+    {
+      "title": "Pork Tenderloin with Roasted Potato & Avocado",
+      "description": "Herb-seasoned pork tenderloin and diced russet potato roasted together until golden, sliced and plated with fresh avocado — a lean-protein dinner with satisfying carbs and fat for overnight recovery.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 660,
+        "protein_g": 54,
+        "carbs_g": 40,
+        "fat_g": 26,
+        "fiber_g": 6,
+        "sugar_g": 2,
+        "sodium_mg": 550
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Pork Tenderloin",
+          "quantity": 200,
+          "unit": "g",
+          "preparation": "trimmed"
+        },
+        {
+          "ingredient_name": "Russet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "scrubbed, diced into 2cm cubes"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "dried, crushed"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "dried"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": "divided"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 425 F (220 C). Toss diced potato with 0.5 tbsp olive oil, 0.25 tsp salt, and 0.125 tsp pepper on a baking sheet. Spread in a single layer.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Rub pork tenderloin with remaining olive oil, garlic, rosemary, thyme, and remaining salt and pepper. Place on the same baking sheet beside the potato.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Roast in the oven for 20-25 minutes, until potato is golden and pork reaches an internal temperature of 145 F. Let pork rest 5 minutes before slicing.",
+          "duration_min": 25
+        },
+        {
+          "step": 4,
+          "text": "Slice the rested pork and plate alongside the roasted potato cubes and freshly sliced avocado.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Cutting the potato cubes evenly ensures they finish cooking at the same time as the pork. Resting the tenderloin for 5 minutes after the oven keeps the center moist."
+    },
+    {
+      "title": "No-Bake Peanut Butter Oat Protein Balls",
+      "description": "Mashed banana folded into rolled oats, whey protein, and peanut butter, rolled into balls and chilled — a convenient grab-and-go post-WOD snack delivering fast carbs and protein.",
+      "meal_type": "snack",
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 28,
+        "carbs_g": 38,
+        "fat_g": 14,
+        "fiber_g": 4,
+        "sugar_g": 14,
+        "sodium_mg": 180
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop (30g)",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 3,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "very ripe, mashed"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "optional",
+          "is_optional": true
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Mash the ripe banana in a large bowl until smooth. Add peanut butter and mix together until combined.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Stir in rolled oats and whey protein powder until a thick, slightly sticky dough forms. Add honey if additional sweetness is desired. If the mixture is too loose, add a tablespoon more oats.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Roll the mixture into 8-10 balls roughly the size of a golf ball. Place on a plate or container lined with parchment paper. Refrigerate for at least 20 minutes before eating.",
+          "duration_min": 5
+        }
+      ],
+      "tips": "Protein balls keep refrigerated for up to 4 days. The riper the banana the better — it acts as the binder and natural sweetener. Freeze half the batch for a longer shelf life."
+    },
+    {
+      "title": "Banana & Blueberry Protein Shake",
+      "description": "Banana, blueberries, rolled oats, and a scoop of whey protein blended with water into a thick post-training shake that replenishes glycogen and delivers antioxidants.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 410,
+        "protein_g": 32,
+        "carbs_g": 54,
+        "fat_g": 6,
+        "fiber_g": 6,
+        "sugar_g": 22,
+        "sodium_mg": 180
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "peeled, broken into chunks"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "fresh or frozen"
+        },
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop (30g)",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "unsweetened"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add rolled oats to the blender first and pulse a few times to break them down slightly into a finer texture.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add banana chunks, blueberries, whey protein powder, and almond milk to the blender. Blend on high for 45-60 seconds until completely smooth.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour into a glass and consume within 30 minutes of finishing your workout for best glycogen replenishment.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Frozen blueberries make the shake thicker and colder without adding ice. Pre-measuring the oats and protein the night before makes this truly a 2-minute post-session shake."
+    },
+    {
+      "title": "Bacon & Egg Bites with Blueberries",
+      "description": "Egg muffins made with whisked eggs and crumbled cooked bacon baked in a muffin tin until set, served alongside fresh blueberries for a sweet antioxidant contrast.",
+      "meal_type": "snack",
+      "prep_time_min": 8,
+      "cook_time_min": 18,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 26,
+        "carbs_g": 14,
+        "fat_g": 20,
+        "fiber_g": 2,
+        "sugar_g": 8,
+        "sodium_mg": 580
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 4,
+          "unit": "large",
+          "preparation": "whisked"
+        },
+        {
+          "ingredient_name": "Bacon",
+          "quantity": 3,
+          "unit": "strips",
+          "preparation": "cooked and crumbled"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "to grease muffin tin"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 375 F (190 C). Cook bacon strips in a skillet until crispy, about 4-5 minutes per side. Drain on paper towels and crumble into small pieces.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Grease a 6-cup muffin tin with avocado oil. Whisk eggs with salt and pepper. Divide crumbled bacon evenly among the cups, then pour the whisked eggs over the bacon to fill each cup about two-thirds full.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Bake for 15-18 minutes until the egg bites are puffed, set in the center, and lightly golden on top. Cool 2 minutes before removing from the tin.",
+          "duration_min": 18
+        },
+        {
+          "step": 4,
+          "text": "Serve the egg bites warm alongside fresh blueberries.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Lightly greasing the muffin tin prevents sticking — or use silicone muffin cups for zero cleanup. Egg bites refrigerate well for 3 days and reheat in the microwave in 30 seconds."
     }
   ]
 }

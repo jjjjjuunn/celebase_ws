@@ -633,6 +633,1051 @@
         }
       ],
       "tips": "Prepare two or three jars at once on Sunday night for grab-and-go breakfasts through midweek. The oats keep in the refrigerator for up to 3 days."
+    },
+    {
+      "title": "Avocado Toast with Hemp Seeds",
+      "description": "Mashed avocado on toasted whole wheat bread topped with sliced tomato and a generous sprinkle of hemp seeds.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 3,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 12,
+        "carbs_g": 34,
+        "fat_g": 21,
+        "fiber_g": 10,
+        "sugar_g": 4,
+        "sodium_mg": 320
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast two slices of whole wheat bread until golden and crisp.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Halve the avocado, scoop the flesh into a bowl, and mash with a fork until mostly smooth with some texture. Season with sea salt and black pepper.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Spread mashed avocado evenly over each toast slice. Layer sliced tomato on top.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Finish with a generous sprinkle of hemp seeds over each toast. Serve immediately.",
+          "duration_min": null
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 4,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "halved and mashed"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Press the avocado mash into the toast immediately after toasting so it clings without sliding. Use ripe avocados that yield to gentle pressure for the smoothest spread."
+    },
+    {
+      "title": "Savory Tempeh Scramble on Toast",
+      "description": "Crumbled tempeh pan-cooked with mushrooms and tomato, served over toasted whole wheat bread for a Southern-inspired vegan breakfast.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 26,
+        "carbs_g": 38,
+        "fat_g": 17,
+        "fiber_g": 8,
+        "sugar_g": 5,
+        "sodium_mg": 500
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Crumble the tempeh into small irregular pieces using your hands or a fork. Slice mushrooms into thin pieces.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium-high heat. Add crumbled tempeh and cook, stirring occasionally, for 5 minutes until golden on the edges.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Add sliced mushrooms to the pan, season with smoked paprika, garlic powder, sea salt, and black pepper. Cook for 4 minutes until mushrooms are tender and the mixture is fragrant.",
+          "duration_min": 4
+        },
+        {
+          "step": 4,
+          "text": "Stir in diced tomato and cook for 1 minute just to warm through. Toast the bread and serve the scramble on top.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 4,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "For extra-crispy tempeh, press the block between towels for 10 minutes before crumbling. Add a splash of tamari in the last minute for a deeper savory note."
+    },
+    {
+      "title": "Loaded Avocado and Mushroom Wrap",
+      "description": "Sauteed mushrooms and mashed avocado rolled inside a whole wheat tortilla with sliced tomato and a sprinkle of hemp seeds.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 6,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 11,
+        "carbs_g": 42,
+        "fat_g": 18,
+        "fiber_g": 9,
+        "sugar_g": 5,
+        "sodium_mg": 380
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat avocado oil in a skillet over medium heat. Add sliced mushrooms, season with sea salt and black pepper, and cook for 5 to 6 minutes until tender and lightly golden.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "While the mushrooms cook, halve the avocado, remove the pit, and mash the flesh with a fork. Season lightly with sea salt.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Warm each whole wheat tortilla in a dry pan for 30 seconds per side until pliable.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Spread mashed avocado across the center of each tortilla. Top with cooked mushrooms and sliced tomato, sprinkle hemp seeds inside, then roll tightly and slice in half.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 2,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Do not overfill the wrap or it will be hard to roll tightly. Spread the avocado all the way to the edges so every bite has coverage."
+    },
+    {
+      "title": "Jackfruit and Avocado Wrap",
+      "description": "Pan-caramelized shredded jackfruit tucked into a whole wheat tortilla with mashed avocado, romaine lettuce, and sliced tomato.",
+      "meal_type": "lunch",
+      "prep_time_min": 8,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 390,
+        "protein_g": 9,
+        "carbs_g": 54,
+        "fat_g": 16,
+        "fiber_g": 11,
+        "sugar_g": 9,
+        "sodium_mg": 470
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Drain the jackfruit and shred into fibrous pieces using two forks. Pat dry with paper towels.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium heat. Add garlic and cook for 1 minute until fragrant. Add jackfruit, cumin, smoked paprika, sea salt, and black pepper. Cook over medium-high heat, pressing with a spatula, for 8 to 10 minutes until edges are caramelized.",
+          "duration_min": 11
+        },
+        {
+          "step": 3,
+          "text": "Warm each whole wheat tortilla in a dry pan for 30 seconds per side. Spread mashed avocado across the center of each.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Layer romaine lettuce leaves, sliced tomato, and caramelized jackfruit onto each tortilla. Roll tightly and slice in half to serve.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 2,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Jackfruit",
+          "quantity": 14,
+          "unit": "oz",
+          "preparation": "drained and shredded (young green in brine)"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 4,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Use young green jackfruit packed in brine or water, not syrup. The longer you press and cook the jackfruit, the better the caramelized edges develop."
+    },
+    {
+      "title": "Tempeh, Mushroom, and Avocado Sandwich",
+      "description": "Crispy pan-fried tempeh strips and sauteed mushrooms stacked on toasted whole wheat bread with mashed avocado, romaine, and tomato.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 14,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 450,
+        "protein_g": 24,
+        "carbs_g": 42,
+        "fat_g": 20,
+        "fiber_g": 9,
+        "sugar_g": 5,
+        "sodium_mg": 590
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Slice tempeh into thin strips. Whisk tamari, smoked paprika, and a pinch of garlic powder in a shallow bowl. Marinate tempeh strips for 5 minutes.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium-high heat. Cook tempeh strips 3 to 4 minutes per side until golden and crispy. Remove and set aside. In the same pan, add sliced mushrooms with a pinch of sea salt and cook 4 to 5 minutes until browned.",
+          "duration_min": 9
+        },
+        {
+          "step": 3,
+          "text": "Toast the whole wheat bread slices. Mash avocado with a squeeze of lemon juice and sea salt, then spread generously onto each toast.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Layer tempeh strips, sauteed mushrooms, romaine lettuce, and tomato slices onto two of the toast slices. Close the sandwiches and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 4,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 6,
+          "unit": "oz",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 4,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Press the tempeh for 10 minutes before marinating for crispier strips. Assemble just before eating so the bread stays crunchy."
+    },
+    {
+      "title": "Carrot and Avocado Salad Wrap",
+      "description": "Ribbon-cut carrots tossed with diced avocado and romaine, wrapped in a whole wheat tortilla and finished with hemp seeds.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 9,
+        "carbs_g": 38,
+        "fat_g": 15,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 310
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Peel the carrots and use a vegetable peeler or box grater to cut them into thin ribbons or shreds. Place in a bowl.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Dice the avocado and add to the carrot bowl. Add a squeeze of lemon juice, sea salt, and black pepper, and toss gently to combine.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Warm each whole wheat tortilla in a dry pan for 30 seconds per side. Lay romaine lettuce leaves across the center of each.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Spoon the carrot-avocado mixture over the romaine. Sprinkle hemp seeds over the top, roll each tortilla tightly, and slice in half to serve.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 2,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "peeled and ribbon-cut"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 4,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Toss the carrot ribbons with lemon juice right before rolling to keep them vibrant and prevent browning. A pinch of cumin in the avocado mixture adds a subtle earthy note."
+    },
+    {
+      "title": "Pasta with Mushroom and Vegan Cheese Sauce",
+      "description": "Whole wheat pasta tossed with sauteed mushrooms and diced tomato folded into a rich, glossy melted vegan cheese sauce.",
+      "meal_type": "dinner",
+      "prep_time_min": 8,
+      "cook_time_min": 18,
+      "servings": 3,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 18,
+        "carbs_g": 72,
+        "fat_g": 14,
+        "fiber_g": 10,
+        "sugar_g": 6,
+        "sodium_mg": 520
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook whole wheat pasta in a large pot of salted boiling water according to package directions until al dente. Reserve 0.5 cup pasta water before draining.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "While pasta cooks, heat avocado oil in a large skillet over medium-high heat. Add sliced mushrooms and cook, stirring occasionally, for 6 to 7 minutes until golden brown. Season with garlic powder, sea salt, and black pepper.",
+          "duration_min": 7
+        },
+        {
+          "step": 3,
+          "text": "Add diced tomato to the mushrooms and stir for 1 minute. Add shredded vegan cheese and 3 to 4 tablespoons of reserved pasta water. Stir over medium-low heat until the cheese melts into a glossy sauce.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Add drained pasta to the skillet and toss well to coat every strand. Taste and adjust seasoning. Serve immediately, garnished with nutritional yeast if desired.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 2,
+          "unit": "tbsp",
+          "is_optional": true
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "The reserved pasta water is key — its starch helps the vegan cheese bind into a smooth sauce. Add it a tablespoon at a time until the consistency coats the back of a spoon."
+    },
+    {
+      "title": "Jackfruit Stuffed Whole Wheat Wraps",
+      "description": "Seasoned pulled jackfruit with melted vegan cheese inside warm whole wheat tortillas, loaded with romaine, tomato, and avocado.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 18,
+      "servings": 3,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 430,
+        "protein_g": 12,
+        "carbs_g": 58,
+        "fat_g": 17,
+        "fiber_g": 11,
+        "sugar_g": 9,
+        "sodium_mg": 550
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Drain jackfruit and shred with two forks. Pat dry with paper towels. Heat avocado oil in a large skillet over medium heat. Add minced garlic and cook 1 minute until fragrant.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Add jackfruit along with cumin, smoked paprika, sea salt, and black pepper. Cook over medium-high heat, pressing jackfruit flat with a spatula, for 10 to 12 minutes until edges are deeply caramelized.",
+          "duration_min": 12
+        },
+        {
+          "step": 3,
+          "text": "Warm whole wheat tortillas in a dry pan for 30 seconds per side. Scatter shredded vegan cheese over each warm tortilla and let it melt from the heat of the tortilla for 1 minute.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Layer jackfruit, romaine lettuce, sliced tomato, and sliced avocado onto each tortilla. Fold burrito-style by tucking in the sides and rolling tightly. Slice in half and serve.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Tortilla",
+          "quantity": 3,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Jackfruit",
+          "quantity": 20,
+          "unit": "oz",
+          "preparation": "drained and shredded (young green in brine)"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 6,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Warm the tortilla just before adding the cheese so it melts from residual heat. Place the wrap seam-side down while you assemble the others to keep it closed."
+    },
+    {
+      "title": "Tempeh and Mushroom Pasta Bake",
+      "description": "Whole wheat pasta tossed with browned crumbled tempeh, mushrooms, and tomato, then baked under a layer of melted vegan cheese until bubbling.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 4,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 30,
+        "carbs_g": 62,
+        "fat_g": 17,
+        "fiber_g": 11,
+        "sugar_g": 6,
+        "sodium_mg": 570
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 375 degrees Fahrenheit. Cook whole wheat pasta in salted boiling water until 2 minutes short of al dente. Drain and set aside.",
+          "duration_min": 10
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a large oven-safe skillet over medium-high heat. Add crumbled tempeh and cook for 5 minutes until browned. Add sliced mushrooms and cook 4 more minutes until golden. Season with garlic powder, smoked paprika, sea salt, and black pepper.",
+          "duration_min": 9
+        },
+        {
+          "step": 3,
+          "text": "Stir in chopped tomato and cook for 2 minutes. Add drained pasta and toss everything together until well combined. Taste and adjust seasoning.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Spread the pasta mixture evenly in a baking dish if not already oven-safe. Top evenly with shredded vegan cheese. Bake for 15 minutes until the cheese is melted and the edges are bubbling.",
+          "duration_min": 15
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 12,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "crumbled"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Slightly undercooking the pasta before baking prevents it from becoming mushy. Let the bake rest for 5 minutes out of the oven before serving so the cheese sets slightly."
+    },
+    {
+      "title": "Avocado and Hemp Seed Smash on Bread",
+      "description": "Half an avocado mashed onto a slice of toasted whole wheat bread, topped with thin tomato slices and a sprinkle of hemp seeds.",
+      "meal_type": "snack",
+      "prep_time_min": 4,
+      "cook_time_min": 2,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 8,
+        "carbs_g": 20,
+        "fat_g": 13,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "sodium_mg": 220
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast one slice of whole wheat bread until golden and firm.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Scoop half the avocado into a small bowl and mash with a fork until smooth. Season with sea salt and black pepper.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Spread the mashed avocado onto the toast. Lay thin tomato slices on top and finish with a tablespoon of hemp seeds.",
+          "duration_min": null
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 1,
+          "unit": "slice",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Wrap the unused avocado half tightly in plastic wrap with the pit still in place and refrigerate — it will stay fresh for up to a day."
+    },
+    {
+      "title": "Tempeh Bites with Carrot Sticks",
+      "description": "Bite-sized cubes of tempeh pan-fried until golden and crispy, served alongside fresh raw carrot sticks.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 14,
+        "carbs_g": 14,
+        "fat_g": 8,
+        "fiber_g": 4,
+        "sugar_g": 4,
+        "sodium_mg": 350
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cut tempeh into 0.75-inch cubes. In a small bowl, whisk tamari and smoked paprika together. Toss tempeh cubes in the marinade.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a non-stick skillet over medium-high heat. Add tempeh cubes in a single layer and cook for 4 to 5 minutes per side until all faces are deep golden and crispy.",
+          "duration_min": 10
+        },
+        {
+          "step": 3,
+          "text": "While tempeh cooks, peel the carrots and cut into sticks about 3 inches long. Arrange on a plate alongside the finished tempeh bites.",
+          "duration_min": 4
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 4,
+          "unit": "oz",
+          "preparation": "cut into 0.75-inch cubes"
+        },
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "peeled and cut into sticks"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Resist the urge to move the tempeh bites while they cook — letting them sit undisturbed on each side is what creates the crisp exterior. Pat the cubes dry before marinating for best results."
+    },
+    {
+      "title": "Vegan Cheese and Tomato Open-Face Toast",
+      "description": "A slice of toasted whole wheat bread topped with melted vegan cheese, fresh tomato slices, and a sprinkle of hemp seeds.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 200,
+        "protein_g": 8,
+        "carbs_g": 22,
+        "fat_g": 9,
+        "fiber_g": 4,
+        "sugar_g": 3,
+        "sodium_mg": 400
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast a slice of whole wheat bread until golden. Transfer to a baking sheet lined with foil.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Spread a generous layer of shredded vegan cheese over the toast. Place under a broiler on high for 2 to 3 minutes until the cheese is melted and beginning to bubble at the edges. Watch closely to avoid burning.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Remove from the broiler and immediately top with sliced tomato and a sprinkle of hemp seeds. Serve warm.",
+          "duration_min": null
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 1,
+          "unit": "slice",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "tips": "Keep the toast on the top rack under the broiler and do not leave unattended — vegan cheese can go from melted to scorched in under a minute. Add the fresh tomato only after the broiler step so it stays bright."
     }
   ]
 }
