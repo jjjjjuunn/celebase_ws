@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-30
 agent: claude-opus-4-8 (1M context) + workflow (7 expand subagents)
 task_id: CHORE-SEEDS-RECIPE-VARIATIONS-001
-commit_sha: PENDING
+commit_sha: 56d7acb
 files_changed:
   - db/seeds/data/tia-clair-toomey.json
   - db/seeds/data/tabitha-brown.json
