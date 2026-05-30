@@ -238,5 +238,7 @@
   { "name": "Mung Beans", "category": "legume", "allergens": [] },
   { "name": "Bacon", "category": "protein", "allergens": [] },
   { "name": "Bagel", "category": "grain", "allergens": ["gluten"] },
-  { "name": "Collard Greens", "category": "vegetable", "allergens": [] }
+  { "name": "Collard Greens", "category": "vegetable", "allergens": [] },
+  { "name": "Beef Liver", "category": "protein", "allergens": [] },
+  { "name": "Millet", "category": "grain", "allergens": [] }
 ]

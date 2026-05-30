@@ -443,6 +443,880 @@
         }
       ],
       "tips": "Blend the greens with liquid before adding frozen fruit to avoid chunky green bits in the finished smoothie."
+    },
+    {
+      "title": "Scrambled Eggs with Kale and Avocado",
+      "description": "Soft scrambled eggs folded with wilted kale and served alongside sliced avocado on a single plate.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 8,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 360,
+        "protein_g": 22,
+        "carbs_g": 12,
+        "fat_g": 25,
+        "fiber_g": 6,
+        "sugar_g": 2,
+        "sodium_mg": 340
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat a non-stick skillet over medium heat and add a drizzle of olive oil. Add the kale and cook for 2 minutes, stirring, until wilted. Season lightly with sea salt and black pepper, then push to the side of the pan.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Crack eggs into the pan alongside the kale and stir gently with a spatula over low-medium heat, folding the curds slowly until just set and still glossy. Fold the wilted kale through the eggs.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Fan sliced avocado alongside the eggs on the plate, season with a pinch of sea salt and black pepper, and serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "stems removed, roughly chopped"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Pull the eggs off the heat while they still look slightly underdone — residual heat finishes them without making them rubbery."
+    },
+    {
+      "title": "Blueberry Banana Almond Milk Smoothie Bowl",
+      "description": "A thick blended base of frozen banana, blueberries, almond milk, and plant protein poured into a bowl and topped with crunchy granola.",
+      "meal_type": "breakfast",
+      "prep_time_min": 7,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 28,
+        "carbs_g": 48,
+        "fat_g": 6,
+        "fiber_g": 7,
+        "sugar_g": 22,
+        "sodium_mg": 230
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add the frozen banana, blueberries, and almond milk to a blender. Start on low and increase to high, blending until smooth. The mixture should be noticeably thicker than a drinkable smoothie — add a splash more almond milk only if the blender stalls.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Add the plant protein powder and blend for another 20 seconds until fully incorporated.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Pour into a wide bowl and top with granola. Serve immediately before the granola softens.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 0.25,
+          "unit": "cup"
+        }
+      ],
+      "tips": "Use unsweetened almond milk to keep added sugar low. A high-powered blender is helpful for achieving the thick, spoonable texture."
+    },
+    {
+      "title": "Strawberry Protein Overnight Oat-Free Parfait",
+      "description": "Layered Greek yogurt with fresh sliced strawberries and banana coins, crowned with crunchy granola — assembled the night before for a no-cook grab-and-go breakfast.",
+      "meal_type": "breakfast",
+      "prep_time_min": 8,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 20,
+        "carbs_g": 44,
+        "fat_g": 8,
+        "fiber_g": 4,
+        "sugar_g": 26,
+        "sodium_mg": 120
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Hull and slice the strawberries into rounds. Slice the banana into coins.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Spoon half the Greek yogurt into a jar or tall glass. Layer half the strawberries and half the banana coins over the yogurt. Repeat with the remaining yogurt and fruit.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Cover and refrigerate overnight, or for at least 30 minutes. Top with granola just before eating to preserve the crunch.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "hulled and sliced"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced into coins"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 0.25,
+          "unit": "cup"
+        }
+      ],
+      "tips": "If assembling ahead, store the granola separately in a small bag and add it in the morning to keep it from going soggy."
+    },
+    {
+      "title": "Salmon and Brown Rice Power Bowl",
+      "description": "Baked or pan-seared salmon fillet over a bed of steamed brown rice and massaged kale, finished with sliced avocado and a squeeze of lemon.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 42,
+        "carbs_g": 40,
+        "fat_g": 22,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "sodium_mg": 480
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook brown rice according to package instructions. While the rice cooks, season the salmon fillet on both sides with sea salt, black pepper, and garlic powder.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a skillet over medium-high heat. Add salmon skin-side up and sear for 4 minutes without moving. Flip and cook for another 3 to 4 minutes until the fish flakes easily.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "While the salmon finishes, drizzle the kale with a few drops of olive oil and a pinch of sea salt, then massage with your hands for 1 minute until softened.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Spoon rice into a bowl, arrange the massaged kale and avocado slices alongside, place the salmon on top, and squeeze lemon juice over everything before serving.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry, cooked"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Massaging raw kale with a tiny bit of oil and salt breaks down the tough fibers and removes bitterness without any cooking."
+    },
+    {
+      "title": "Cod and Sweet Potato Brown Rice Bowl",
+      "description": "Baked cod fillet served over fluffy brown rice with roasted sweet potato cubes — a lean, filling midday bowl built entirely from whole foods.",
+      "meal_type": "lunch",
+      "prep_time_min": 12,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 38,
+        "carbs_g": 54,
+        "fat_g": 8,
+        "fiber_g": 6,
+        "sugar_g": 7,
+        "sodium_mg": 430
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Cook brown rice according to package instructions. Toss cubed sweet potato with olive oil, paprika, sea salt, and black pepper. Spread on a lined baking sheet and roast for 15 minutes.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Push sweet potato cubes to one side of the pan. Place the cod fillet on the cleared half and season with garlic powder, sea salt, black pepper, and a drizzle of olive oil.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Return the pan to the oven and bake for a further 10 minutes until the cod is opaque and separates easily with a fork.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Spoon the rice into a bowl, arrange the roasted sweet potato cubes around the edge, and place the cod in the center. Squeeze lemon over the fish before serving.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "peeled and cubed"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry, cooked"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Cut the sweet potato into roughly equal cubes so they roast evenly. Cod is done when it turns fully opaque and flakes at the thickest point."
+    },
+    {
+      "title": "Kale and Avocado Egg Salad Bowl",
+      "description": "Hard-boiled eggs mashed with ripe avocado and served over a bed of raw or lightly wilted kale — a simple, filling pescatarian-friendly lunch.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 24,
+        "carbs_g": 12,
+        "fat_g": 27,
+        "fiber_g": 7,
+        "sugar_g": 2,
+        "sodium_mg": 360
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Place eggs in a saucepan, cover with cold water, and bring to a boil over medium-high heat. Once boiling, reduce heat and simmer for 10 minutes. Transfer eggs to an ice bath for 5 minutes, then peel.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Halve the avocado and scoop the flesh into a bowl. Roughly mash with a fork, leaving some texture. Season with sea salt, black pepper, and a squeeze of lemon juice.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Chop the peeled eggs and fold them into the avocado mixture. Arrange kale in a bowl, spoon the egg-avocado mixture over the top, and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "stems removed, roughly torn"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "For slightly softer kale, massage it with a few drops of olive oil and a pinch of salt for one minute before assembling the bowl."
+    },
+    {
+      "title": "Salmon with Brown Rice and Kale",
+      "description": "Oven-roasted salmon fillet alongside steamed brown rice and sauteed kale — a streamlined, satisfying dinner with clean flavors.",
+      "meal_type": "dinner",
+      "prep_time_min": 8,
+      "cook_time_min": 22,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 530,
+        "protein_g": 44,
+        "carbs_g": 38,
+        "fat_g": 18,
+        "fiber_g": 6,
+        "sugar_g": 2,
+        "sodium_mg": 470
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Cook brown rice according to package instructions. Pat the salmon dry and season on both sides with sea salt, black pepper, garlic powder, and paprika.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Place salmon on a lined baking sheet skin-side down, drizzle with olive oil, and roast for 12 to 14 minutes until the flesh is opaque and flakes easily.",
+          "duration_min": 14
+        },
+        {
+          "step": 3,
+          "text": "While the salmon roasts, heat a small pan over medium heat and saute the kale with a splash of water and a drizzle of olive oil for 2 to 3 minutes until wilted. Season with sea salt.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Plate the brown rice, arrange the sauteed kale alongside, and place the salmon on top. Squeeze lemon juice over everything before serving.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "dry, cooked"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Roasting salmon skin-side down on parchment keeps the flesh moist and allows easy removal from the pan without sticking."
+    },
+    {
+      "title": "Cod and Sweet Potato Kale Mash",
+      "description": "Baked cod fillet served alongside sweet potato mashed together with wilted kale — a lower-carb dinner that swaps brown rice for creamy sweet potato.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 40,
+        "carbs_g": 36,
+        "fat_g": 9,
+        "fiber_g": 7,
+        "sugar_g": 9,
+        "sodium_mg": 460
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Season the cod fillet with sea salt, black pepper, garlic powder, and a drizzle of olive oil. Place on a lined baking sheet and bake for 12 to 14 minutes until opaque and flaking.",
+          "duration_min": 14
+        },
+        {
+          "step": 2,
+          "text": "While the cod bakes, prick the sweet potato all over with a fork and microwave on high for 6 to 8 minutes until completely tender, or boil peeled cubes for 12 minutes and drain.",
+          "duration_min": 8
+        },
+        {
+          "step": 3,
+          "text": "In a pan over medium heat, wilt the kale with a splash of water for 2 minutes. Season lightly, then roughly chop the wilted kale and fold it into the mashed sweet potato flesh along with a drizzle of olive oil and sea salt.",
+          "duration_min": 4
+        },
+        {
+          "step": 4,
+          "text": "Plate the sweet potato-kale mash alongside the baked cod and squeeze lemon juice over the fish before serving.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Fold the kale into the sweet potato while both are still hot so the residual heat finishes softening the greens without a separate cooking step."
+    },
+    {
+      "title": "Baked Salmon with Sweet Potato and Avocado",
+      "description": "Herb-seasoned baked salmon fillet served with roasted sweet potato wedges and fresh sliced avocado — a whole-food dinner plate with balanced protein, carbs, and fat.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 580,
+        "protein_g": 40,
+        "carbs_g": 38,
+        "fat_g": 26,
+        "fiber_g": 8,
+        "sugar_g": 9,
+        "sodium_mg": 450
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Slice the sweet potato into wedges, toss with olive oil, paprika, sea salt, and black pepper, and spread on a lined baking sheet. Roast for 15 minutes.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Season the salmon fillet on both sides with sea salt, black pepper, garlic powder, and thyme. Nestle it onto the baking sheet alongside the sweet potato wedges and drizzle with the remaining olive oil.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Return the pan to the oven and bake for a further 12 minutes until the salmon is opaque and the sweet potato wedges are golden at the edges.",
+          "duration_min": 12
+        },
+        {
+          "step": 4,
+          "text": "Plate the salmon and sweet potato wedges, fan fresh avocado slices alongside, and squeeze lemon juice over the fish. Serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced into wedges"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "A squeeze of lemon just before serving brightens the rich salmon fat and ties the three components together without needing any sauce."
+    },
+    {
+      "title": "Banana Almond Milk Protein Shake",
+      "description": "A quick two-ingredient protein shake blending banana with almond milk and a scoop of plant protein — minimal prep, high protein between meals.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 270,
+        "protein_g": 26,
+        "carbs_g": 30,
+        "fat_g": 4,
+        "fiber_g": 3,
+        "sugar_g": 16,
+        "sodium_mg": 200
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add the banana, almond milk, and plant protein powder to a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend on high for 30 to 45 seconds until completely smooth. Pour into a glass and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        }
+      ],
+      "tips": "A ripe banana with brown spots adds more sweetness without any added sugar. Use a frozen banana for a thicker, colder shake."
+    },
+    {
+      "title": "Blueberry Greek Yogurt Bowl",
+      "description": "Plain Greek yogurt topped with fresh blueberries — a no-prep snack with high protein and a bright, antioxidant-rich topping.",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 180,
+        "protein_g": 17,
+        "carbs_g": 20,
+        "fat_g": 3,
+        "fiber_g": 2,
+        "sugar_g": 14,
+        "sodium_mg": 75
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Spoon the Greek yogurt into a bowl.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Top with fresh blueberries and, if desired, a light drizzle of honey. Serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp",
+          "is_optional": true
+        }
+      ],
+      "tips": "Plain 2% Greek yogurt gives the best balance of protein and creaminess. Full-fat varieties work equally well if preferred."
+    },
+    {
+      "title": "Strawberry Banana Protein Smoothie (Snack Size)",
+      "description": "A smaller-portion strawberry-banana protein smoothie blended with almond milk — a between-meal shake using the same core ingredients as the signature breakfast smoothie.",
+      "meal_type": "snack",
+      "prep_time_min": 4,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 250,
+        "protein_g": 24,
+        "carbs_g": 28,
+        "fat_g": 4,
+        "fiber_g": 3,
+        "sugar_g": 16,
+        "sodium_mg": 190
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add the almond milk, frozen banana, and hulled strawberries to a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add the plant protein powder.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Blend on high for 30 to 45 seconds until smooth and creamy. Pour into a glass and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "hulled"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        }
+      ],
+      "tips": "Using frozen banana eliminates the need for ice and keeps the smoothie thick and cold without diluting the flavor."
     }
   ]
 }

@@ -29,6 +29,30 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-30
+agent: claude-opus-4-8 (1M context) + workflow (7 expand subagents)
+task_id: CHORE-SEEDS-RECIPE-VARIATIONS-001
+commit_sha: 56d7acb
+files_changed:
+  - db/seeds/data/tia-clair-toomey.json
+  - db/seeds/data/tabitha-brown.json
+  - db/seeds/data/megan-thee-stallion.json
+  - db/seeds/data/madelaine-petsch.json
+  - db/seeds/data/lindsey-vonn.json
+  - db/seeds/data/gisele-bundchen.json
+  - db/seeds/data/cameron-diaz.json
+  - db/seeds/data/_ingredients.json
+verified_by: claude-opus-4-8 (seed data 정적검증 ingredient 전수매칭 + claim validator 17/63 + 실 staging 재적재 → DB 7명 17~18 recipes 확인)
+---
+### 완료: Tier-1 레시피 변형 84개 통합 — 카탈로그 병목 해소 (CHORE-SEEDS-RECIPE-VARIATIONS-001)
+- **문제(§4)**: base_diet 당 끼니당 1레시피(셀럽당 5~6) → 엔진이 끼니 변형/다일 플랜을 못 만드는 카탈로그 천장.
+- **조치**: 콘텐츠팀 `celebase-recipe-variations.json`(7명×12 light recipe = 84)을 full SeedRecipe 로 확장 — Workflow 7 subagent 병렬(각자 recipe-variations + _ingredients pool + 기존 `<slug>.json` 스타일 Read → note→multi-step instructions, 식재료 240-pool 매핑/remap, full 7-key nutrition 추정). title dedup 후 각 `<slug>.json` recipes[] 에 append → 셀럽당 **17~18 recipes**(36→120).
+- **식재료 매핑**: generics/변형(oats→Rolled Oats, steak→Beef Sirloin, lean ground beef→Ground Beef 93% Lean 등) remap, 진짜 신규 2개만 추가(Beef Liver/protein, Millet/grain → _ingredients 242). HTML 엔티티(&amp;) merge 시 unescape.
+- **검증**: seed data 정적검증(ingredient 전수매칭/shape/enum) + claim validator(17/63 불변) + **실 staging 재적재**(seed-staging.sh, 멱등) → staging DB 7명 17~18 recipes 외부 확인. 끼니 b/l/d/snack 다일분 풀로 엔진 다양성 천장 제거.
+### 미완료: Ariana·Jennifer(기존 시드) 레시피 변형 동일 패턴 추가(콘텐츠, 요청 시). approx→정밀 nutrition(현 추정치, 엔진은 user TDEE 스케일이라 무영향). base_diet 셀럽 NOT NULL 제거 + recipe↔template 다대다(중장기 천장 완전 제거, 백로그).
+### 연관 파일: db/seeds/data/<7 slug>.json, db/seeds/data/_ingredients.json, celebase-recipe-variations.json(콘텐츠 원천)
+
+---
+date: 2026-05-30
 agent: claude-opus-4-8 (1M context)
 task_id: CHORE-SEEDS-STAGING-001
 commit_sha: b9acb76

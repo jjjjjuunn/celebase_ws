@@ -466,6 +466,1004 @@
           "preparation": "juiced"
         }
       ]
+    },
+    {
+      "title": "Steel-Cut Oats with Roasted Tomato and Collard Greens",
+      "description": "Steel-cut oats cooked until chewy and topped with oven-roasted tomato halves, wilted collard greens sauteed in olive oil, and soft-cooked egg whites finished with fresh lemon.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 30,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 310,
+        "protein_g": 20,
+        "carbs_g": 36,
+        "fat_g": 7,
+        "fiber_g": 7,
+        "sugar_g": 5,
+        "sodium_mg": 390
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Halve the tomato, drizzle with a little olive oil, season with sea salt and black pepper, and roast cut-side up for 18 to 20 minutes until softened and lightly caramelized.",
+          "duration_min": 20
+        },
+        {
+          "step": 2,
+          "text": "Meanwhile, bring 1.5 cups of water to a boil in a small saucepan. Stir in steel-cut oats, reduce heat, and simmer, stirring occasionally, until tender and creamy, about 20 minutes.",
+          "duration_min": 20
+        },
+        {
+          "step": 3,
+          "text": "Heat olive oil in a small skillet over medium heat. Add garlic and cook 30 seconds, then add collard greens and saute until wilted and tender, about 4 minutes. Season with sea salt and black pepper.",
+          "duration_min": 5
+        },
+        {
+          "step": 4,
+          "text": "In the same skillet, add egg whites and cook over medium-low heat, stirring gently, until just set, about 2 minutes. Spoon oats into a bowl, top with collard greens, egg whites, and roasted tomato. Squeeze lemon over the entire bowl.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Roast the tomato while the oats cook to save time. Collard greens can be swapped for kale or spinach.",
+      "ingredients": [
+        {
+          "ingredient_name": "Steel-Cut Oats",
+          "quantity": 0.33,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Collard Greens",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "chiffonade"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Savory Oat Bowl with Zucchini, Egg Whites, and Lemon",
+      "description": "Rolled oats cooked savory-style in water and topped with golden-sauteed zucchini slices, soft-cooked egg whites, and a bright squeeze of fresh lemon.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 12,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 19,
+        "carbs_g": 33,
+        "fat_g": 7,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 360
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Bring 1 cup of water to a boil in a small saucepan. Stir in rolled oats and cook, stirring frequently, until creamy, about 5 minutes. Season lightly with sea salt and black pepper.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "While oats cook, heat olive oil in a skillet over medium heat. Add zucchini slices in a single layer and cook, turning once, until golden on both sides, about 5 minutes. Season with sea salt.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Push zucchini to the edge of the skillet and add egg whites to the center. Cook over medium-low heat, stirring gently, until just set, about 2 minutes. Spoon oats into a bowl, arrange zucchini and egg whites on top, and finish with a squeeze of lemon.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Slice zucchini thin so it cooks quickly alongside the oats. A squeeze of lemon at the end brightens the whole bowl.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "sliced thin"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Collard Green and Egg White Oat Skillet",
+      "description": "Rolled oats par-cooked then folded into a skillet with sauteed collard greens, diced fresh tomato, and egg whites stirred through, served with lemon over the top.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 14,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 325,
+        "protein_g": 22,
+        "carbs_g": 37,
+        "fat_g": 8,
+        "fiber_g": 7,
+        "sugar_g": 5,
+        "sodium_mg": 410
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook rolled oats in 1 cup of water until mostly set but still slightly wet, about 4 minutes. Remove from heat and set aside.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a skillet over medium heat. Add garlic and cook 30 seconds, then add collard greens and cook until wilted, about 3 minutes. Add diced tomato and stir for 1 minute.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Fold the par-cooked oats into the skillet with the vegetables. Pour egg whites over the top and stir gently until the egg whites are just set throughout, about 2 to 3 minutes. Season with sea salt and black pepper.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Serve directly from the skillet or transfer to a bowl. Squeeze fresh lemon juice over the top and finish with chili flakes if desired.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Using a non-stick or well-seasoned cast iron skillet makes this one-pan method easy. Do not overcook the egg whites — pull the skillet off heat while they still look slightly wet.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Collard Greens",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "chiffonade"
+        },
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 3,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Chili Flakes",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "title": "Lentil and Tomato Soup with Lemon",
+      "description": "Red lentils simmered with crushed tomatoes and olive oil until thick and creamy, finished with a generous squeeze of lemon juice to brighten the bowl.",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 18,
+        "carbs_g": 50,
+        "fat_g": 7,
+        "fiber_g": 12,
+        "sugar_g": 6,
+        "sodium_mg": 420
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a medium saucepan over medium heat. Add garlic and cook until fragrant, about 30 seconds. Add diced tomato and cook, stirring occasionally, until the tomatoes soften and break down, about 5 minutes.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Rinse lentils and add to the pot along with 2 cups of water. Stir, bring to a boil, then reduce heat to a gentle simmer. Cook, stirring occasionally, until lentils are completely tender and the soup is thick, about 20 to 25 minutes.",
+          "duration_min": 25
+        },
+        {
+          "step": 3,
+          "text": "Season generously with sea salt and black pepper. Remove from heat and stir in fresh lemon juice. Taste and adjust seasoning. Ladle into bowls and garnish with a drizzle of extra virgin olive oil and fresh parsley if available.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Red lentils break down faster than green and create a naturally creamy texture without blending. Add more water if the soup thickens too much.",
+      "ingredients": [
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped",
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "title": "Chickpea and Zucchini Bowl with Lemon Olive Oil",
+      "description": "Pan-roasted chickpeas and diced zucchini tossed with ripe tomato, extra virgin olive oil, and fresh lemon, served at room temperature as a hearty grain-free bowl.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 390,
+        "protein_g": 16,
+        "carbs_g": 46,
+        "fat_g": 15,
+        "fiber_g": 11,
+        "sugar_g": 7,
+        "sodium_mg": 380
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Pat chickpeas dry with a paper towel. Heat 1 tablespoon olive oil in a large skillet over medium-high heat. Add chickpeas and cook, shaking the pan occasionally, until golden and slightly crisp on the outside, about 8 minutes. Season with sea salt and black pepper.",
+          "duration_min": 9
+        },
+        {
+          "step": 2,
+          "text": "Add diced zucchini to the skillet and cook, stirring occasionally, until tender and lightly golden, about 5 minutes. Stir in diced tomato and cook 1 more minute until just warmed through.",
+          "duration_min": 6
+        },
+        {
+          "step": 3,
+          "text": "Remove from heat. Drizzle remaining olive oil and fresh lemon juice over the pan contents. Toss gently to coat, taste and adjust seasoning. Serve warm or at room temperature, garnished with fresh parsley or basil if available.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Patting chickpeas completely dry before cooking is key to achieving a crispy exterior in the pan. This bowl is equally good served warm or at room temperature.",
+      "ingredients": [
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "drained and rinsed, patted dry"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped",
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "title": "Whole-Wheat Pasta with White Beans and Collard Greens",
+      "description": "Whole-wheat pasta tossed with white beans, ribboned collard greens wilted in pasta water, diced fresh tomato, and a lemon-olive oil finish.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 20,
+        "carbs_g": 76,
+        "fat_g": 11,
+        "fiber_g": 14,
+        "sugar_g": 6,
+        "sodium_mg": 440
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Bring a large pot of salted water to a boil. Add whole wheat pasta and cook until al dente according to package directions. In the last 2 minutes of cooking, add the chiffonaded collard greens directly to the pasta water to wilt. Reserve 0.5 cup of pasta water before draining.",
+          "duration_min": 12
+        },
+        {
+          "step": 2,
+          "text": "Heat olive oil in a large skillet over medium heat. Add garlic and cook 30 seconds. Add diced tomato and cook until softened, about 3 minutes. Add white beans and stir to warm through.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Add the drained pasta and wilted collard greens to the skillet. Toss everything together with a splash of reserved pasta water to loosen. Finish with fresh lemon juice, season with sea salt, black pepper, and oregano. Serve immediately.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Wilting the collard greens directly in the pasta water saves a pan and softens the greens perfectly. Use the starchy pasta water to bind the sauce without extra oil.",
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "White Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Collard Greens",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "chiffonade"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Quinoa-Stuffed Zucchini with Tomato and Chickpeas",
+      "description": "Zucchini halves hollowed out and filled with cooked quinoa mixed with crushed tomato and chickpeas, drizzled with olive oil and roasted until tender, served with lemon wedges.",
+      "meal_type": "dinner",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 18,
+        "carbs_g": 58,
+        "fat_g": 13,
+        "fiber_g": 11,
+        "sugar_g": 8,
+        "sodium_mg": 400
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Cook quinoa in 1 cup of water with a pinch of sea salt until all liquid is absorbed, about 15 minutes. Fluff with a fork and set aside.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Halve zucchini lengthwise and scoop out the centers with a spoon, leaving a 0.25-inch border. Finely chop the scooped flesh and set aside. Arrange hollowed zucchini cut-side up on a baking sheet.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "In a bowl, combine cooked quinoa, chickpeas, diced tomato, and the reserved chopped zucchini flesh. Season with sea salt, black pepper, and oregano. Stir in 1 tablespoon olive oil and a squeeze of lemon juice.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Spoon the quinoa filling into each zucchini half, pressing gently to pack. Drizzle with remaining olive oil. Roast at 400 degrees F until the zucchini is tender and the filling is lightly golden, about 20 to 22 minutes. Serve with lemon wedges.",
+          "duration_min": 22
+        }
+      ],
+      "tips": "Chop and fold the scooped zucchini flesh back into the filling so nothing goes to waste. The boats can be assembled ahead and refrigerated until ready to roast.",
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "half juiced, half cut into wedges"
+        },
+        {
+          "ingredient_name": "Oregano",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Whole-Wheat Pasta with Lentil Tomato Sauce",
+      "description": "Whole-wheat pasta topped with a slow-simmered lentil and crushed tomato ragu finished in olive oil, brightened at the table with a squeeze of fresh lemon.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 35,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 510,
+        "protein_g": 24,
+        "carbs_g": 80,
+        "fat_g": 10,
+        "fiber_g": 15,
+        "sugar_g": 7,
+        "sodium_mg": 450
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a medium saucepan over medium heat. Add garlic and cook 30 seconds. Add diced tomato, season with sea salt and black pepper, and cook until the tomatoes break down into a sauce, about 8 minutes.",
+          "duration_min": 9
+        },
+        {
+          "step": 2,
+          "text": "Rinse lentils and add to the tomato sauce along with 1.5 cups of water. Stir to combine, bring to a gentle boil, then reduce heat and simmer until lentils are fully tender and the sauce is thick, about 22 to 25 minutes. Stir occasionally and add a splash of water if it dries out.",
+          "duration_min": 25
+        },
+        {
+          "step": 3,
+          "text": "While the sauce simmers, cook whole wheat pasta in salted boiling water until al dente. Reserve 0.25 cup pasta water before draining.",
+          "duration_min": 12
+        },
+        {
+          "step": 4,
+          "text": "Stir remaining olive oil into the lentil sauce and taste for seasoning. Toss drained pasta with the sauce, adding a splash of pasta water to loosen if needed. Plate and squeeze fresh lemon juice over each portion.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Green or brown lentils hold their shape better in a ragu; red lentils will melt into the sauce for a smoother texture. Both work well here.",
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Lentils",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped",
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "title": "Mediterranean Collard Green and Bean Stew",
+      "description": "Collard greens braised low and slow with chickpeas, crushed tomato, and olive oil until the greens are silky and the broth is thick, finished with lemon.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 35,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 370,
+        "protein_g": 17,
+        "carbs_g": 48,
+        "fat_g": 12,
+        "fiber_g": 13,
+        "sugar_g": 7,
+        "sodium_mg": 430
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a large, deep skillet or Dutch oven over medium heat. Add garlic and cook until fragrant, about 30 seconds. Add diced tomato and cook, stirring occasionally, until the tomatoes break down, about 6 minutes.",
+          "duration_min": 7
+        },
+        {
+          "step": 2,
+          "text": "Add collard greens and stir to coat in the tomato base. Pour in 1 cup of water, season with sea salt and black pepper, and bring to a simmer. Cover and braise over low heat until the collard greens are very tender and silky, about 20 minutes.",
+          "duration_min": 22
+        },
+        {
+          "step": 3,
+          "text": "Stir in chickpeas and simmer uncovered for another 8 minutes until the broth is thick and the chickpeas are warmed through. Squeeze fresh lemon juice over the stew, stir, and taste for seasoning. Serve in deep bowls with crusty bread or on its own.",
+          "duration_min": 9
+        }
+      ],
+      "tips": "The longer the collard greens braise, the more tender and silky they become. Do not rush this step — 20 full minutes makes the difference.",
+      "ingredients": [
+        {
+          "ingredient_name": "Collard Greens",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "chiffonade"
+        },
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Lemon-Marinated White Bean Dip",
+      "description": "White beans mashed with extra virgin olive oil and fresh lemon juice into a smooth, creamy dip, served with raw vegetables or enjoyed on its own as an afternoon snack.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 190,
+        "protein_g": 9,
+        "carbs_g": 24,
+        "fat_g": 7,
+        "fiber_g": 6,
+        "sugar_g": 1,
+        "sodium_mg": 230
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Drain and rinse white beans thoroughly. Transfer to a bowl and mash with a fork until mostly smooth, leaving some texture. Alternatively, blend briefly in a food processor for a silkier result.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Stir in olive oil, fresh lemon juice, minced garlic, sea salt, and black pepper. Mix well until fully incorporated. Taste and adjust lemon or salt as needed. Transfer to a serving bowl and drizzle a little extra olive oil on top before serving.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "For a silkier texture, blend the beans with the olive oil and lemon in a food processor. Serve with sliced cucumber, carrot sticks, or bell pepper strips.",
+      "ingredients": [
+        {
+          "ingredient_name": "White Beans",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 1,
+          "unit": "clove",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Crispy Roasted Chickpeas with Lemon",
+      "description": "Chickpeas tossed in olive oil and roasted at high heat until golden and crispy, then squeezed with fresh lemon straight from the oven for a crunchy, portable snack.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 210,
+        "protein_g": 10,
+        "carbs_g": 26,
+        "fat_g": 7,
+        "fiber_g": 7,
+        "sugar_g": 2,
+        "sodium_mg": 270
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 425 degrees F. Drain, rinse, and thoroughly pat chickpeas dry with paper towels — removing as much moisture as possible is key to crispiness. Spread on a rimmed baking sheet in a single layer.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Drizzle olive oil over the chickpeas and toss to coat. Season with sea salt, black pepper, and paprika if using. Roast for 25 to 30 minutes, shaking the pan halfway through, until the chickpeas are deeply golden and crispy.",
+          "duration_min": 30
+        },
+        {
+          "step": 3,
+          "text": "Remove from the oven and immediately squeeze fresh lemon juice over the hot chickpeas. Toss to coat and serve warm. They will crisp further as they cool.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Completely dry chickpeas before roasting — any residual moisture will steam them instead of crisping them. They are crunchiest the day they are made.",
+      "ingredients": [
+        {
+          "ingredient_name": "Chickpeas",
+          "quantity": 1.5,
+          "unit": "cups",
+          "preparation": "drained, rinsed, and patted completely dry"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "is_optional": true
+        }
+      ]
+    },
+    {
+      "title": "Zucchini Slices with Lemon Olive Oil Drizzle",
+      "description": "Thinly sliced raw or lightly grilled zucchini drizzled with extra virgin olive oil and fresh lemon juice for a minimal, low-calorie between-meal snack.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 5,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 90,
+        "protein_g": 2,
+        "carbs_g": 6,
+        "fat_g": 7,
+        "fiber_g": 1,
+        "sugar_g": 3,
+        "sodium_mg": 120
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Slice zucchini into thin rounds or lengthwise ribbons. If grilling: heat a grill pan or skillet over medium-high heat, brush zucchini with a tiny bit of olive oil, and grill for 1 to 2 minutes per side until light grill marks form. If serving raw: simply arrange slices on a plate.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Arrange zucchini slices on a plate. Drizzle with extra virgin olive oil and squeeze fresh lemon juice over the top. Season with sea salt and black pepper. Serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Raw zucchini has a pleasant crunch and works very well here. Grilling adds a smoky char but is entirely optional for this minimal snack.",
+      "ingredients": [
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced thin"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
     }
   ]
 }
