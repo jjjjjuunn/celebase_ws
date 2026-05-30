@@ -148,7 +148,7 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
               }}
               style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
             >
-              <Text variant="label" tone={active ? 'onBrand' : 'muted'}>
+              <Text style={[styles.tabText, active ? styles.tabTextActive : styles.tabTextInactive]}>
                 {cat.label}
               </Text>
             </Pressable>
@@ -200,7 +200,7 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: theme.color.bg },
+    container: { flex: 1, backgroundColor: theme.news.paper },
     header: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -223,8 +223,17 @@ function makeStyles(theme: Theme) {
       paddingVertical: theme.space(2),
       borderRadius: theme.radius.pill,
     },
-    chipActive: { backgroundColor: theme.color.brand },
-    chipInactive: { backgroundColor: theme.color.surface },
+    chipActive: { backgroundColor: theme.news.forest },
+    chipInactive: { backgroundColor: theme.news.cream2 },
+    tabText: {
+      fontFamily: theme.font.mono,
+      fontSize: 11.5,
+      fontWeight: theme.weight.semibold,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+    },
+    tabTextActive: { color: theme.news.lime },
+    tabTextInactive: { color: theme.news.muted },
     // ClaimCard 가 자체 marginHorizontal(space(4)) 을 가지므로 listContent 는 수직 여백만.
     listContent: { paddingVertical: theme.space(2), paddingBottom: theme.space(8) },
     centered: { flex: 1, justifyContent: 'center' },

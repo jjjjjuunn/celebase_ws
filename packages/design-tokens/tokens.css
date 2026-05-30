@@ -241,6 +241,36 @@
   --cb-icon-md: 20px;
   --cb-icon-lg: 24px;
   --cb-icon-xl: 32px;
+
+  /* =====================================================
+     9. NEWS SURFACE — Design Canvas v1 (IMPL-MOBILE-NEWS-CARD-CANVAS-001)
+     Editorial wellness · faceless · typography-led. Scoped to the News
+     feed/ClaimCard/ClaimDetail; global semantics (§2 above) stay until design
+     ships per-screen canvases. Values = celebase-design-tokens.css.
+     ===================================================== */
+  --cb-news-paper:   #FBF7EE;   /* News bg (warm paper)        */
+  --cb-news-cream:   #F1E9D8;   /* card bg                     */
+  --cb-news-cream-2: #E7DBC2;   /* inactive chip / skeleton    */
+  --cb-news-ink:     #20231C;   /* text (warm near-black)      */
+  --cb-news-ink-soft:#4B4A3B;   /* card body text              */
+  --cb-news-forest:  #1C4536;   /* primary/dark · monogram     */
+  --cb-news-forest-2:#2C6A4E;   /* mid green                   */
+  --cb-news-lime:    #CDE25A;   /* accent · live CTA           */
+  --cb-news-clay:    #C96A40;   /* warn · secondary            */
+  --cb-news-line:    #D7CBAE;   /* hairline border             */
+  --cb-news-muted:   #6F6C59;   /* muted text                  */
+  /* trust badges (News) — A solid · B/C outline · D clay+면책 · E 미렌더 */
+  --cb-news-trust-a-bg: #1C4536;            --cb-news-trust-a-fg: #CDE25A;
+  --cb-news-trust-b-fg: #2C6A4E;            --cb-news-trust-b-border: rgba(44,106,78,0.40);
+  --cb-news-trust-c-fg: #C96A40;            --cb-news-trust-c-border: rgba(201,106,64,0.45);
+  --cb-news-trust-d-bg: rgba(201,106,64,0.14); --cb-news-trust-d-fg: #C96A40;
+  /* per-card CTA */
+  --cb-news-cta-live-bg: #CDE25A; --cb-news-cta-live-fg: #20231C;
+  --cb-news-cta-soon-fg: #1C4536;
+  /* trend (no-celeb) monogram glyph */
+  --cb-news-trend-bg: #CDE25A; --cb-news-trend-fg: #20231C;
+  /* category chip */
+  --cb-news-chip-fg: #2C6A4E; --cb-news-chip-bg: rgba(44,106,78,0.10); --cb-news-chip-border: rgba(44,106,78,0.25);
 }
 
 /* =====================================================
