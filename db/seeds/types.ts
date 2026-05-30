@@ -44,7 +44,9 @@ export interface SeedBaseDiet {
   description: string;
   philosophy: string;
   diet_type: string;
-  avg_daily_kcal: number;
+  // null = 공개 문서화된 reference kcal 없음. 엔진이 유저 TDEE 로 스케일하므로
+  // null 이 정직한 기본값 (CHORE-SEEDS-BASE-DIET-TIER1-001, handoff §2 수치 비조작).
+  avg_daily_kcal: number | null;
   macro_ratio: { protein_pct: number; carbs_pct: number; fat_pct: number };
   included_foods: string[];
   excluded_foods: string[];

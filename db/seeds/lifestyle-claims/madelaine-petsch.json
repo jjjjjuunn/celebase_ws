@@ -1,0 +1,63 @@
+{
+  "celebrity_slug": "madelaine-petsch",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Follows a whole-food vegan diet she credits for sustained energy and clear skin",
+      "body": "Petsch has spoken openly about maintaining a strictly vegan, whole-food diet built around oats, brown rice, quinoa, black beans, spinach, and avocado. In interviews she has described her typical day of eating as meal-by-meal structured around plant staples rather than processed substitutes, and she has noted that clean plant-based eating supports both her energy levels on set and her skin clarity.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/madelaine-petsch-what-i-eat-in-a-day-vegan/",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": "madelaine-petsch",
+      "tags": [
+        "vegan",
+        "whole-food",
+        "energy",
+        "skin",
+        "plant-based"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/food/madelaine-petsch-what-i-eat-in-a-day-vegan/",
+          "excerpt": "Petsch walks through her day of eating, describing a whole-food vegan approach anchored by oats, grains, legumes, and leafy greens.",
+          "is_primary": true,
+          "published_date": "2019-06-15"
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Describes veganism as a lifestyle commitment rooted in ethics and environmental care, not just diet",
+      "body": "Petsch has consistently framed her veganism as extending beyond food to encompass a broader ethical commitment to animal welfare and environmental sustainability. She has described plant-based eating as the natural expression of values she holds across all areas of her life.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/madelaine-petsch-vegan-lifestyle-environment/",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": null,
+      "tags": [
+        "vegan",
+        "ethics",
+        "environment",
+        "lifestyle",
+        "animal-welfare"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/food/madelaine-petsch-vegan-lifestyle-environment/",
+          "excerpt": "Madelaine Petsch explains that her vegan lifestyle goes beyond food — it is rooted in a commitment to animal welfare and the environment.",
+          "is_primary": true,
+          "published_date": "2021-03-10"
+        }
+      ]
+    }
+  ]
+}

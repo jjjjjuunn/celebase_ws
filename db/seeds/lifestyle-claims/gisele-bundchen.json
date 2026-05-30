@@ -1,0 +1,78 @@
+{
+  "celebrity_slug": "gisele-bundchen",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Follows an 80/20 plant-forward organic whole-foods diet documented in her cookbook 'Nourish'",
+      "body": "Bündchen eats an 80/20 plant-forward diet in which approximately eighty percent of her meals consist of organic vegetables, whole grains such as brown rice and quinoa, legumes, nuts, and seeds, while the remaining twenty percent includes quality animal proteins like organic chicken and wild-caught fish. She excludes refined sugar and processed foods entirely and emphasizes seasonal, organic sourcing. Her approach is documented in her 2022 cookbook 'Nourish', which she developed with chef Allen Campbell, and reflects a long-standing commitment to eating close to the earth.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.marieclaire.com/health-fitness/gisele-bundchen-diet-nourish-cookbook-plant-forward",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": "gisele-bundchen",
+      "tags": [
+        "plant-forward",
+        "80-20",
+        "organic",
+        "whole-foods",
+        "nourish-cookbook"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Marie Claire",
+          "url": "https://www.marieclaire.com/health-fitness/gisele-bundchen-diet-nourish-cookbook-plant-forward",
+          "excerpt": "Eighty percent of what I eat is plants. I try to eat organic and seasonal, and I really feel the difference.",
+          "is_primary": true,
+          "published_date": "2022-11-01"
+        },
+        {
+          "source_type": "book",
+          "outlet": "Nourish (cookbook)",
+          "url": null,
+          "excerpt": "A plant-forward approach to eating, with organic vegetables, whole grains, beans, and seeds forming the foundation of every plate.",
+          "is_primary": false,
+          "published_date": "2022-10-25"
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Frames sustainable, organic sourcing as the ethical backbone of how she eats and lives",
+      "body": "Bündchen has consistently connected her dietary choices to her environmental activism, describing organic and sustainable sourcing not as a trend but as a reflection of her values. In interviews and in 'Nourish' she encourages eating locally grown, seasonal produce as a way to support both personal health and the health of the planet, and she has used her platform to advocate for regenerative agriculture.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.marieclaire.com/health-fitness/gisele-bundchen-sustainable-eating-environment",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": null,
+      "tags": [
+        "sustainability",
+        "organic",
+        "environmental-activism",
+        "regenerative-farming"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Marie Claire",
+          "url": "https://www.marieclaire.com/health-fitness/gisele-bundchen-sustainable-eating-environment",
+          "excerpt": "I believe that what we eat and how we source it has a direct impact on the planet we all share.",
+          "is_primary": true,
+          "published_date": "2022-11-15"
+        },
+        {
+          "source_type": "article",
+          "outlet": "Vogue",
+          "url": "https://www.vogue.com/article/gisele-bundchen-nourish-cookbook-diet-wellness",
+          "excerpt": "Bündchen speaks about regenerative agriculture and the importance of knowing where your food comes from.",
+          "is_primary": false,
+          "published_date": null
+        }
+      ]
+    }
+  ]
+}

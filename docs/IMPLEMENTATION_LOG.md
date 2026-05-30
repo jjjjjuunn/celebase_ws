@@ -29,6 +29,40 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-29
+agent: claude-opus-4-8 (1M context) + workflow (6 author + 6 self-check subagents)
+task_id: CHORE-SEEDS-BASE-DIET-TIER1-001
+commit_sha: PENDING
+files_changed:
+  - db/seeds/data/tia-clair-toomey.json
+  - db/seeds/data/tabitha-brown.json
+  - db/seeds/data/megan-thee-stallion.json
+  - db/seeds/data/madelaine-petsch.json
+  - db/seeds/data/lindsey-vonn.json
+  - db/seeds/data/gisele-bundchen.json
+  - db/seeds/lifestyle-claims/tia-clair-toomey.json
+  - db/seeds/lifestyle-claims/tabitha-brown.json
+  - db/seeds/lifestyle-claims/megan-thee-stallion.json
+  - db/seeds/lifestyle-claims/madelaine-petsch.json
+  - db/seeds/lifestyle-claims/lindsey-vonn.json
+  - db/seeds/lifestyle-claims/gisele-bundchen.json
+  - db/seeds/data/_ingredients.json
+  - db/seeds/run.ts
+  - db/seeds/types.ts
+  - scripts/validate-claim-seeds.py
+verified_by: claude-opus-4-8 (validate-claim-seeds.py 16명/62 claim + seed data 정적검증 ingredient 전수매칭 + 실 Postgres seed end-to-end + DB SQL로 State A/kcal/끼니 검증)
+---
+### 완료: Tier-1 셀럽 base_diet 시드 6명 (design handoff §3) — State A 전환 카드 (CHORE-SEEDS-BASE-DIET-TIER1-001)
+- **시드 6명**: Tia-Clair Toomey, Tabitha Brown, Megan Thee Stallion, Madelaine Petsch, Lindsey Vonn, Gisele Bündchen → `data/<slug>.json`(celebrity+base_diet+5~6 recipes) + `lifestyle-claims/<slug>.json`(food claim w/ base_diet_id_slug + philosophy claim). 셀럽 8→14명, claim 50→62.
+- **State A 배선**: 각 food claim 의 `base_diet_id_slug=자기 slug` → loader resolveBaseDietId → `lifestyle_claims.base_diet_id` 세팅 → ClaimDetail "Make my Plan" CTA 라이브 (DB 검증: 6/6 food claim has_base_diet=t, published).
+- **§2 수치 비조작**: `avg_daily_kcal` = 공개 문서화된 경우만(Tia=2250 documented range), 나머지 NULL — 엔진이 user TDEE×goal 로 스케일(calorie_adjuster.py base_diet kcal 미참조 확인). `types.ts` `number|null` 로 갱신. macro_ratio(NOT NULL)는 아키타입 유도 구조값(claim 아님).
+- **§5 ALLOWED_DOMAINS**: 실사용 3개만 최소 추가(forksoverknives/underarmour/marieclaire) — validator 는 HTTP 0건(SSRF 아님, 인용정책 리스트). ⚠️ 법무 사인오프 대상. Cameron Diaz 는 allowlist 1차 출처(본인 저서뿐) 부재로 **보류**.
+- **신규 식재료**: Bacon, Bagel 2개만 `_ingredients.json` 추가(loader resolveIngredientId throw 방지 — 31 레시피 식재료 전수 매칭).
+- **검증**: validate-claim-seeds.py(16명/62 claim PASS) + seed data 정적검증(ingredient/shape/enum) + **실 Postgres 마이그레이션+seed end-to-end 적재 성공**(239 ingredient, 31 recipe, 12 claim 커밋) + DB SQL(State A/kcal/끼니 커버리지). authoring 은 Workflow 6 author + 6 self-check subagent(strict JSON schema).
+### 미완료: **레시피 변형**(끼니×수일분 — base_diet 당 현재 끼니당 1개, §4 카탈로그 병목; 콘텐츠팀 공급). **Cameron Diaz** 시드(allowlist 가능 1차 출처 확보 후). ALLOWED_DOMAINS 전체 §5 리스트(과학 도메인 등) 확장(법무+콘텐츠). 소스 URL 사람 검증(현 시드 URL 은 eng-authored placeholder — 콘텐츠팀 최종 확인). CTA 제네릭 카피 가드(디자인 slide-6). 스테이징 backfill.
+### 연관 파일: db/seeds/data/*.json (6 new), db/seeds/lifestyle-claims/*.json (6 new), db/seeds/data/_ingredients.json, db/seeds/run.ts, db/seeds/types.ts, scripts/validate-claim-seeds.py
+
+---
+date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
 task_id: IMPL-MOBILE-GUEST-NEWS-HOME-001
 commit_sha: 0aa802a

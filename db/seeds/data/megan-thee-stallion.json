@@ -1,0 +1,448 @@
+{
+  "slug": "megan-thee-stallion",
+  "display_name": "Megan Thee Stallion",
+  "short_bio": "Multi-platinum rapper and entertainer Megan Thee Stallion fuels her high-energy performances with a lean, fish-forward pescatarian approach centered on salmon, cod, kale, sweet potato, and plant protein shakes.",
+  "avatar_url": "https://picsum.photos/seed/megan-thee-stallion/400/400",
+  "cover_image_url": "https://picsum.photos/seed/megan-thee-stallion-cover/800/600",
+  "category": "general",
+  "tags": [
+    "pescatarian",
+    "high-protein",
+    "fish-forward",
+    "hot-girl",
+    "fitness",
+    "lean"
+  ],
+  "is_featured": false,
+  "sort_order": 13,
+  "base_diet": {
+    "name": "Hot Girl Lean Pescatarian Plan",
+    "description": "A lean, fish-forward pescatarian eating pattern built around salmon, cod, sweet potatoes, kale, and brown rice. Protein is anchored by seafood and Greek yogurt, carbohydrates come from nutrient-dense whole foods, and healthy fats round out every meal.",
+    "philosophy": "Megan Thee Stallion's documented diet centers on clean, whole-food eating to support demanding rehearsal and performance schedules. Her approach prioritizes lean fish proteins, fiber-rich vegetables, and complex carbohydrates from sweet potatoes and brown rice, with no red meat and no sugary drinks.",
+    "diet_type": "pescatarian",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 30,
+      "carbs_pct": 40,
+      "fat_pct": 30
+    },
+    "included_foods": [
+      "salmon",
+      "cod",
+      "sweet potato",
+      "kale",
+      "brown rice",
+      "greek yogurt",
+      "granola",
+      "blueberries",
+      "strawberries",
+      "plant protein powder",
+      "almond milk",
+      "banana",
+      "avocado"
+    ],
+    "excluded_foods": [
+      "red meat",
+      "pork",
+      "sugary drinks",
+      "soda",
+      "processed snacks",
+      "refined sugar"
+    ],
+    "key_supplements": [
+      "Plant Protein Powder"
+    ],
+    "source_refs": [
+      {
+        "type": "interview",
+        "outlet": "Women's Health",
+        "date": "2023-06-01"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Hot Girl Strawberry Banana Protein Smoothie",
+      "description": "A thick, creamy strawberry-banana protein shake blended with almond milk and plant protein powder — the quick pre-workout fuel documented in Megan's routine.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 28,
+        "carbs_g": 38,
+        "fat_g": 6,
+        "fiber_g": 5,
+        "sugar_g": 18,
+        "sodium_mg": 210
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add almond milk, frozen banana, and strawberries to a blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add plant protein powder and honey.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Blend on high until smooth and creamy, about 45 seconds. Pour and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "hulled"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Use frozen strawberries if fresh are unavailable for a thicker consistency. Vanilla-flavored plant protein works best here."
+    },
+    {
+      "title": "Pan-Seared Salmon over Mixed Greens",
+      "description": "A golden-crusted salmon fillet served over a bed of mixed greens with avocado slices and a bright lemon-olive oil dressing — Megan's go-to high-protein lunch.",
+      "meal_type": "lunch",
+      "prep_time_min": 8,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 38,
+        "carbs_g": 12,
+        "fat_g": 32,
+        "fiber_g": 6,
+        "sugar_g": 3,
+        "sodium_mg": 420
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Pat the salmon fillet dry and season both sides with sea salt, black pepper, and garlic powder.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium-high heat until shimmering. Add salmon skin-side up and sear without moving for 4 minutes.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Flip and cook for another 3 to 4 minutes until the fish is cooked through and flakes easily.",
+          "duration_min": 4
+        },
+        {
+          "step": 4,
+          "text": "Arrange mixed greens and avocado on a plate. Lay salmon on top and drizzle with olive oil and lemon juice. Serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 6,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Let the salmon sit at room temperature for 10 minutes before cooking for more even heat distribution."
+    },
+    {
+      "title": "Baked Cod with Sweet Potato and Kale",
+      "description": "Herb-seasoned cod fillets roasted alongside cubed sweet potato and sauteed kale — a nutrient-dense dinner that anchors Megan's fish-forward evening meals.",
+      "meal_type": "dinner",
+      "prep_time_min": 12,
+      "cook_time_min": 25,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 42,
+        "carbs_g": 36,
+        "fat_g": 12,
+        "fiber_g": 7,
+        "sugar_g": 8,
+        "sodium_mg": 480
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 degrees F. Toss cubed sweet potato with half the olive oil, paprika, and a pinch of sea salt. Spread on a baking sheet.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Roast sweet potatoes for 15 minutes until starting to soften.",
+          "duration_min": 15
+        },
+        {
+          "step": 3,
+          "text": "Push sweet potatoes to the sides of the pan and add cod fillets to the center. Season fish with sea salt, black pepper, garlic powder, and thyme. Drizzle remaining olive oil over everything.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Return pan to oven and bake for 10 minutes until cod is opaque and flakes easily.",
+          "duration_min": 10
+        },
+        {
+          "step": 5,
+          "text": "While the fish finishes, saute kale in a separate pan with a splash of water for 2 minutes until wilted. Season lightly and plate alongside the cod and sweet potato. Squeeze lemon over everything before serving.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Cod Fillet",
+          "quantity": 12,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 2,
+          "unit": "medium",
+          "preparation": "peeled and cubed"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 3,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Line the baking sheet with parchment paper for easy cleanup. Cod is done when it turns from translucent to opaque white and separates easily with a fork."
+    },
+    {
+      "title": "Greek Yogurt Parfait with Granola and Berries",
+      "description": "Layered Greek yogurt with crunchy granola, fresh blueberries, and sliced strawberries — a satisfying high-protein snack that Megan has cited as a staple between meals.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 20,
+        "carbs_g": 36,
+        "fat_g": 7,
+        "fiber_g": 4,
+        "sugar_g": 20,
+        "sodium_mg": 90
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Spoon Greek yogurt into a glass or bowl.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Top with granola, blueberries, and sliced strawberries.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Drizzle with honey and serve immediately for maximum crunch.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Greek Yogurt",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Granola",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Strawberries",
+          "quantity": 4,
+          "unit": "pieces",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Use plain 2% or full-fat Greek yogurt for the best protein content and creamiest texture."
+    },
+    {
+      "title": "Kale and Blueberry Recovery Smoothie",
+      "description": "A nutrient-dense green smoothie with kale, blueberries, banana, and plant protein — designed for post-workout muscle recovery with antioxidant-rich ingredients.",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 300,
+        "protein_g": 25,
+        "carbs_g": 40,
+        "fat_g": 5,
+        "fiber_g": 6,
+        "sugar_g": 22,
+        "sodium_mg": 190
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add almond milk and kale to the blender first and blend until the kale is fully broken down, about 30 seconds.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add frozen banana, blueberries, and plant protein powder.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Blend on high for 60 seconds until completely smooth. Add more almond milk if needed to reach desired consistency.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Kale",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "stems removed"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        }
+      ],
+      "tips": "Blend the greens with liquid before adding frozen fruit to avoid chunky green bits in the finished smoothie."
+    }
+  ]
+}

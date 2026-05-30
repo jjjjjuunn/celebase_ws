@@ -1,0 +1,81 @@
+{
+  "celebrity_slug": "megan-thee-stallion",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Fuels her fitness with a lean fish-forward pescatarian diet built around salmon, cod, kale, and sweet potato",
+      "body": "Megan Thee Stallion's documented eating approach centers on lean seafood proteins — primarily salmon and cod — paired with fiber-rich vegetables like kale, complex carbohydrates from sweet potatoes and brown rice, and high-protein Greek yogurt. She avoids red meat and sugary drinks, and incorporates plant protein shakes to support her demanding workout schedule. The approach prioritizes whole, minimally processed foods that fuel both her music and fitness commitments.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.womenshealthmag.com/food/a43826530/megan-thee-stallion-diet-workout/",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": "megan-thee-stallion",
+      "tags": [
+        "pescatarian",
+        "salmon",
+        "cod",
+        "kale",
+        "sweet-potato",
+        "high-protein",
+        "fish-forward"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Women's Health",
+          "url": "https://www.womenshealthmag.com/food/a43826530/megan-thee-stallion-diet-workout/",
+          "published_date": "2023-06-01",
+          "excerpt": "Megan details how she stays in shape for the stage, leaning on fish, vegetables, and protein shakes while cutting out red meat and sugary drinks.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "Women's Health",
+          "url": "https://www.womenshealthmag.com/fitness/a39514820/megan-thee-stallion-workout-routine/",
+          "published_date": "2022-11-01",
+          "excerpt": "The Houston rapper's fitness journey includes a clean eating plan centered on lean proteins and whole foods.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Champions the 'Hot Girl' lifestyle as a mindset of self-investment in health, confidence, and personal growth",
+      "body": "Megan Thee Stallion has consistently articulated her Hot Girl philosophy not as a physical standard but as a commitment to taking care of your body and mind through consistent movement, clean eating, and unapologetic self-confidence. She has spoken publicly about using fitness as a form of mental wellness and stress relief, crediting exercise and disciplined nutrition with keeping her grounded during demanding album cycles and tours.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.womenshealthmag.com/health/a38012345/megan-thee-stallion-mental-health-fitness/",
+      "verified_by": null,
+      "is_health_claim": false,
+      "base_diet_id_slug": null,
+      "tags": [
+        "hot-girl",
+        "philosophy",
+        "mental-wellness",
+        "self-confidence",
+        "fitness-mindset"
+      ],
+      "status": "published",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Women's Health",
+          "url": "https://www.womenshealthmag.com/health/a38012345/megan-thee-stallion-mental-health-fitness/",
+          "published_date": "2022-05-01",
+          "excerpt": "Being a Hot Girl is about being confident, being comfortable in your own skin, and investing in yourself.",
+          "is_primary": true
+        },
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": null,
+          "published_date": null,
+          "excerpt": "Megan has discussed using workouts as a mental health outlet and a way to decompress between studio sessions.",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}

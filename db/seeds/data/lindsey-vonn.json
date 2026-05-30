@@ -1,0 +1,463 @@
+{
+  "slug": "lindsey-vonn",
+  "display_name": "Lindsey Vonn",
+  "short_bio": "Lindsey Vonn is a retired World Cup alpine ski racer and the most decorated American ski racer in history. Her lean high-protein diet, documented by Under Armour and MyFitnessPal, fueled her record 82 World Cup victories and sustained peak athletic performance across decades of elite competition.",
+  "avatar_url": "https://picsum.photos/seed/lindsey-vonn/400/400",
+  "cover_image_url": "https://picsum.photos/seed/lindsey-vonn-cover/800/600",
+  "category": "protein",
+  "tags": [
+    "high-protein",
+    "athlete",
+    "omnivore",
+    "performance",
+    "lean-muscle",
+    "olympic"
+  ],
+  "is_featured": false,
+  "sort_order": 15,
+  "base_diet": {
+    "name": "Lean High-Protein Athlete Diet",
+    "description": "A performance-focused omnivore eating pattern built around lean proteins, complex carbohydrates timed to training, and healthy fats. Each meal is structured to deliver dense protein and micronutrient support for muscle repair, endurance, and recovery, anchored by whole-food sources like eggs, chicken breast, salmon, quinoa, and fresh vegetables.",
+    "philosophy": "Fuel every training session with intentional macros. Eat real, whole foods at every meal, prioritize protein at each sitting to protect lean muscle, and time carbohydrates around workouts for energy and recovery. Consistency in nutrition is treated as a competitive advantage, not an afterthought.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 30,
+      "carbs_pct": 35,
+      "fat_pct": 35
+    },
+    "included_foods": [
+      "Eggs",
+      "Egg Whites",
+      "Chicken Breast",
+      "Salmon Fillet",
+      "Quinoa",
+      "Spinach",
+      "Asparagus",
+      "Almonds",
+      "Kiwi",
+      "Blueberries",
+      "Almond Butter",
+      "Peanut Butter",
+      "Dark Chocolate",
+      "Bell Pepper",
+      "Mushrooms",
+      "Broccoli",
+      "Yellow Onion"
+    ],
+    "excluded_foods": [],
+    "key_supplements": [
+      "Whey Protein Powder"
+    ],
+    "source_refs": [
+      {
+        "type": "article",
+        "outlet": "Under Armour",
+        "date": "2015-11-01",
+        "url": "https://about.underarmour.com/news/2015/11/lindsey-vonn-get-strong-nutrition"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Egg Scramble with Peppers, Mushrooms and Onion",
+      "description": "A satisfying high-protein morning scramble built from three whole eggs sauteed with colorful bell pepper, earthy mushrooms, and yellow onion. This is the exact breakfast documented in Lindsey Vonn's performance nutrition plan and delivers approximately 22 grams of protein to start the day.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 464,
+        "protein_g": 22,
+        "carbs_g": 14,
+        "fat_g": 36,
+        "fiber_g": 3,
+        "sugar_g": 6,
+        "sodium_mg": 420
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large",
+          "preparation": "beaten"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Mushrooms",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Heat olive oil in a non-stick skillet over medium heat.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add diced yellow onion and diced bell pepper. Saute until softened.",
+          "duration_min": 4
+        },
+        {
+          "step": 3,
+          "text": "Add sliced mushrooms and continue cooking until mushrooms release their moisture and begin to brown.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Pour beaten eggs over the vegetables. Season with sea salt and black pepper. Gently fold and scramble until eggs are just set.",
+          "duration_min": 2
+        },
+        {
+          "step": 5,
+          "text": "Transfer to a plate and serve immediately.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Do not overcook the eggs. Pull the pan off heat while the eggs are still slightly glossy for the best texture."
+    },
+    {
+      "title": "Roast Chicken Breast with Quinoa and Spinach",
+      "description": "A powerhouse midday meal featuring a generous portion of seasoned chicken breast over fluffy quinoa and wilted spinach. Documented as Lindsey Vonn's go-to lunch, this dish delivers approximately 58 grams of protein for sustained muscle support throughout training.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 25,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 560,
+        "protein_g": 58,
+        "carbs_g": 40,
+        "fat_g": 14,
+        "fiber_g": 5,
+        "sugar_g": 2,
+        "sodium_mg": 480
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 200,
+          "unit": "g",
+          "preparation": "seasoned and roasted"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Season chicken breast with sea salt, black pepper, and a drizzle of olive oil.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Roast chicken breast in the oven until cooked through and internal temperature reaches 74C (165F).",
+          "duration_min": 22
+        },
+        {
+          "step": 3,
+          "text": "Meanwhile, cook quinoa in 1 cup of water. Bring to a boil, then reduce heat, cover, and simmer until water is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 4,
+          "text": "In a pan, heat remaining olive oil over medium heat. Add minced garlic and saute for 30 seconds, then add spinach and wilt.",
+          "duration_min": 2
+        },
+        {
+          "step": 5,
+          "text": "Slice rested chicken and serve over quinoa alongside wilted spinach. Finish with a squeeze of lemon juice.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Let the chicken rest for 5 minutes after roasting before slicing so the juices redistribute evenly."
+    },
+    {
+      "title": "Baked Salmon with Quinoa and Asparagus",
+      "description": "Lindsey Vonn's documented dinner: omega-3-rich salmon fillet baked alongside tender asparagus spears, served over quinoa. This meal delivers approximately 53 grams of protein and 574 calories, supporting overnight muscle repair and recovery.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 574,
+        "protein_g": 53,
+        "carbs_g": 38,
+        "fat_g": 20,
+        "fiber_g": 6,
+        "sugar_g": 3,
+        "sodium_mg": 520
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.5,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Asparagus",
+          "quantity": 150,
+          "unit": "g",
+          "preparation": "woody ends trimmed"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "half sliced, half juiced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 200C (400F). Cook quinoa in 1 cup of water: bring to a boil, cover, and simmer until liquid is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Place salmon fillet on a lined baking sheet. Toss asparagus spears in olive oil, salt, pepper, and minced garlic, and arrange alongside the salmon.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Top salmon with lemon slices. Bake until salmon flakes easily with a fork and asparagus is tender.",
+          "duration_min": 18
+        },
+        {
+          "step": 4,
+          "text": "Serve salmon and asparagus over quinoa. Finish with a squeeze of fresh lemon juice.",
+          "duration_min": null
+        }
+      ],
+      "tips": "For best texture, do not overbake the salmon. Remove from the oven as soon as it flakes with gentle pressure from a fork."
+    },
+    {
+      "title": "Almonds, Kiwi and Blueberries",
+      "description": "Lindsey Vonn's documented snack: a simple trio of raw almonds, fresh kiwi, and blueberries that delivers healthy fats, antioxidants, and natural sugars for a quick energy refuel between meals or before a lighter training session.",
+      "meal_type": "snack",
+      "prep_time_min": 3,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 220,
+        "protein_g": 6,
+        "carbs_g": 24,
+        "fat_g": 13,
+        "fiber_g": 5,
+        "sugar_g": 14,
+        "sodium_mg": 10
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 28,
+          "unit": "g",
+          "preparation": "raw"
+        },
+        {
+          "ingredient_name": "Kiwi",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "peeled and sliced"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "fresh or thawed"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Peel and slice the kiwi.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Arrange almonds, kiwi slices, and blueberries on a small plate or in a container.",
+          "duration_min": 2
+        }
+      ],
+      "tips": "Measure the almonds by weight (28g is about 23 almonds) to keep the fat content consistent with the documented macros."
+    },
+    {
+      "title": "Post-Workout Egg White Omelet with Chicken, Broccoli and Bell Pepper",
+      "description": "A lean, high-protein post-workout meal documented in Lindsey Vonn's performance nutrition plan. Egg whites and chicken breast deliver a rapid protein hit with minimal fat, while broccoli and bell pepper add micronutrients to support recovery.",
+      "meal_type": "snack",
+      "prep_time_min": 8,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 320,
+        "protein_g": 48,
+        "carbs_g": 12,
+        "fat_g": 8,
+        "fiber_g": 3,
+        "sugar_g": 5,
+        "sodium_mg": 480
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Egg Whites",
+          "quantity": 4,
+          "unit": "large",
+          "preparation": "beaten"
+        },
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 100,
+          "unit": "g",
+          "preparation": "cooked and diced"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "small florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Lightly coat a non-stick pan with olive oil and heat over medium heat. Add broccoli florets and diced bell pepper and saute until just tender.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Add diced cooked chicken breast to the pan and toss with vegetables to warm through.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour beaten egg whites over the filling. Season with sea salt and black pepper. Cook without stirring until edges are set, then fold omelet in half.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Slide onto a plate and serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use pre-cooked chicken breast from the lunch prep batch to cut assembly time down to under 5 minutes after a workout."
+    }
+  ]
+}
