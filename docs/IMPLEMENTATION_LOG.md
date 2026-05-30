@@ -28,6 +28,23 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-30
+agent: claude-opus-4-8 (1M context)
+task_id: CHORE-SEEDS-STAGING-001
+commit_sha: b9acb76
+files_changed:
+  - scripts/seed-staging.sh
+verified_by: claude-opus-4-8 (staging EC2 seed 실행 → 외부 staging.celebase.app /api/celebrities=17, /api/claims/feed=63, 신규 7명 State A 전원 연결)
+---
+### 완료: staging 시드 적재 + 재현 스크립트 — 공유 데모 환경 언블록 (CHORE-SEEDS-STAGING-001)
+- **문제**: staging content-service DB 가 lifestyle_claims **0건**(구 셀럽 10명만, 2026-05-20 deploy 당시 claim 시드 부재) → News 데모가 staging 에서 텅 빔. 디자인/콘텐츠/이해관계자 데모의 공통 블로커.
+- **조치**: 현재 repo db/seeds(17 celeb data + 17 claim files)를 staging EC2 로 scp → app_default network 의 node:20 컨테이너로 `tsx seeds/run.ts` 실행(DB pw 는 db 컨테이너 env 런타임 read — 스크립트 시크릿 하드코딩 없음). loader 멱등+트랜잭션이라 기존 10셀럽 유지하며 신규 7명 + 전체 63 claim 추가.
+- **결과(외부 검증)**: `https://staging.celebase.app/api/celebrities` = **17명**, `/api/claims/feed` = **63 claim**, 신규 7명 food → State A(base_diet) 전원 연결, 면책 claim 6건. mobile `.env`(staging 기본) → 로컬 스택 없이 시뮬레이터 풀 데모 가능.
+- **재현 스크립트** `scripts/seed-staging.sh`: tar→scp→container seed→외부 검증. 반복 staging 시드/재provision 시 1커맨드.
+### 미완료: CD seed autorun(CHORE-STAGING-MIGRATION-AUTORUN-001 — 현 DB 볼륨엔 적재됨, 볼륨 재생성 시 본 스크립트 수동 재실행). `.env.staging` git/SSM 미추적(CHORE-STAGING-ENV-MANAGEMENT-001). Madelaine 출처 사람 클릭(콘텐츠). avatar 모노그램 렌더(mobile News card Canvas v1 구현).
+### 연관 파일: scripts/seed-staging.sh, db/seeds/**
+
+---
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + general-purpose subagent (Cameron authoring)
 task_id: CHORE-SEEDS-BASE-DIET-TIER1-002
