@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-30
 agent: claude-opus-4-8 (1M context) + advisor (scope review)
 task_id: IMPL-MOBILE-NEWS-CARD-CANVAS-001
-commit_sha: PENDING
+commit_sha: 0dfac57
 files_changed:
   - packages/design-tokens/tokens.css
   - packages/design-tokens/src/tokens.native.ts
