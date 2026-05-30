@@ -29,6 +29,34 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-29
+agent: claude-opus-4-8 (1M context) + codex-review (L3) + gemini (plan adversarial)
+task_id: IMPL-MOBILE-GUEST-NEWS-HOME-001
+commit_sha: 0aa802a
+files_changed:
+  - apps/mobile/src/services/auth-bootstrap.ts
+  - apps/mobile/src/lib/auth-events.ts
+  - apps/mobile/src/lib/guest-mode.tsx
+  - apps/mobile/src/navigation/RootNavigator.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/lib/use-meal-plan-credits.ts
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/__tests__/guest-mode.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tsc 0 / eslint 0 / jest 216 incl. guest no-boot-kick) + codex-review L3 + gemini/advisor plan review
+---
+### 완료: News 게스트 홈 (네비 피벗) — 무토큰 진입 (IMPL-MOBILE-GUEST-NEWS-HOME-001)
+- **피벗**: cold-start 무토큰 → Login 이 아니라 **게스트 진입(News 트렌드 카드뉴스 홈)**. 로그인은 게이트 액션에서만. 비전 "첫 화면=웰니스 트렌드 카드뉴스" 실현.
+- **게스트 상태 채널**: `bootstrapSession` 무토큰→'guest'. `auth-events` `signalLoginRequired/onLoginRequiredSignal`(+__resetAuthEvents clear). 신규 minimal `lib/guest-mode.tsx`(`GuestModeProvider`/`useIsGuest`, 풀 AuthContext 아님).
+- **RootNavigator**: phase `loading|guest|auth|main`. guest||main→Main(GuestModeProvider 래핑), onLoginRequired→auth, **onLogout→auth 전 reason 유지**(guest=cold-start 전용). 
+- **MainTabsNavigator**: 게스트 [Celebrities, News] 2탭 + initialRoute News; authed 4탭 + Celebrities(기존). conditional Tab.Screen.
+- **boot-kick 가드**: `useMealPlanCredits(skip)` 게스트 no-op(hook 규칙 준수). ClaimDetail 게스트 CTA→"Sign in to make your plan"(`signalLoginRequired`, 크레딧 분기보다 먼저) + **MealPlanGenerateSheet 게스트 미렌더**(mount fetch hazard 차단). NewsScreen 헤더 게스트 "Sign in".
+- **검증**: mobile tsc 0, eslint 0, jest 216/216(신규 guest no-boot-kick 2 — News/ClaimDetail 게스트 경로 protected endpoint 0건 + signalLogout 미발생 단언; auth-bootstrap 테스트 'login'→'guest' 갱신). spec.md §7.2 sync. **3-리뷰어**: advisor + Codex(plan) + Gemini(plan) — 2 Gemini 블로커(benign-logout→guest 탭제거 크래시 / sheet mount hazard) 사전 반영, Codex(impl) review.
+### 미완료: **return-intent**(로그인/가입 후 원래 claim 복귀) — 전환 퍼널 핵심 fast-follow 최상단. LoginScreen 'Browse as guest'(logout 후 게스트 복귀). benign expiry graceful guest-return(탭 mid-session 제거 핸들링 후). authed News-first(initialRoute). record-log-sha.sh.
+### 연관 파일: apps/mobile/src/navigation/RootNavigator.tsx, apps/mobile/src/navigation/MainTabsNavigator.tsx, apps/mobile/src/lib/guest-mode.tsx, apps/mobile/src/lib/auth-events.ts, apps/mobile/src/screens/ClaimDetailScreen.tsx, apps/mobile/src/screens/NewsScreen.tsx, spec.md
+
+---
+date: 2026-05-29
 agent: claude-opus-4-8 (1M context)
 task_id: CHORE-SEEDS-CELEB-OPTIONAL-TREND-001
 commit_sha: 79388eb

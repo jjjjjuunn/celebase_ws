@@ -12,6 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ClaimType, schemas } from '@celebbase/shared-types';
 
 import { ClaimCard } from '../components/ClaimCard';
+import { signalLoginRequired } from '../lib/auth-events';
+import { useIsGuest } from '../lib/guest-mode';
 import { listClaims } from '../services/claims';
 import { listCelebrities } from '../services/celebrities';
 import { EmptyState, Text, useTheme, type Theme } from '../ui';
@@ -54,6 +56,7 @@ type FeedState =
 export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const isGuest = useIsGuest();
   const [category, setCategory] = useState<NewsCategory>('diet');
   const [state, setState] = useState<FeedState>({ phase: 'loading' });
   const [reloadKey, setReloadKey] = useState(0);
@@ -110,10 +113,26 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
-        <Text variant="h1">News</Text>
-        <Text variant="bodySm" tone="muted">
-          셀럽들의 웰니스를 한눈에.
-        </Text>
+        <View style={styles.headerTextCol}>
+          <Text variant="h1">News</Text>
+          <Text variant="bodySm" tone="muted">
+            셀럽들의 웰니스를 한눈에.
+          </Text>
+        </View>
+        {isGuest ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sign in"
+            onPress={() => {
+              signalLoginRequired();
+            }}
+            style={styles.signInBtn}
+          >
+            <Text variant="label" tone="brand">
+              Sign in
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={styles.categoryRow}>
@@ -183,11 +202,15 @@ function makeStyles(theme: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.color.bg },
     header: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
       paddingHorizontal: theme.space(4),
       paddingTop: theme.space(2),
       paddingBottom: theme.space(3),
-      gap: theme.space(1),
     },
+    headerTextCol: { flex: 1, gap: theme.space(1) },
+    signInBtn: { paddingVertical: theme.space(1), paddingHorizontal: theme.space(2) },
     categoryRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',

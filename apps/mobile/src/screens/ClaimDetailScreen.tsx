@@ -13,6 +13,8 @@ import type { schemas } from '@celebbase/shared-types';
 
 import { ClaimCard } from '../components/ClaimCard';
 import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
+import { signalLoginRequired } from '../lib/auth-events';
+import { useIsGuest } from '../lib/guest-mode';
 import { useMealPlanCredits } from '../lib/use-meal-plan-credits';
 import { isAllowedSourceUrl } from '../lib/url-allowlist';
 import { getClaim } from '../services/claims';
@@ -106,9 +108,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const showInspiredCta = isFoodCard && claim.base_diet_id !== null;
   const showComingSoon = isFoodCard && claim.base_diet_id === null;
   const [sheetVisible, setSheetVisible] = useState(false);
+  // 게스트(무토큰): credits fetch skip(boot-kick 회피) + CTA 는 로그인 게이트로 분기.
+  const isGuest = useIsGuest();
   // 시트는 잔여 크레딧이 필요. fail-closed: credits=null(fetch 실패) → 잔량 0 으로 취급.
   // unlimited admin override(credits_remaining===null) → 7. 정상값 → 그대로.
-  const { credits, loading: creditsLoading } = useMealPlanCredits();
+  const { credits, loading: creditsLoading } = useMealPlanCredits(isGuest);
   const maxDays =
     credits === null
       ? 0
@@ -155,38 +159,56 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       ) : null}
 
       {showInspiredCta && claim.base_diet_id !== null ? (
-        <>
+        isGuest ? (
+          // 게스트: 시트 미렌더(mount 시 protected fetch hazard 회피) — 로그인 게이트로.
+          // 게스트 분기를 크레딧 분기보다 먼저 둬 "크레딧 부족" alert 오노출 방지.
           <TouchableOpacity
             onPress={() => {
-              if (ctaDisabled) {
-                Alert.alert('크레딧 부족', '식단 생성에 사용할 크레딧이 없어요.');
-                return;
-              }
-              setSheetVisible(true);
+              signalLoginRequired();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Eat like this celebrity"
-            disabled={creditsLoading}
-            style={[styles.ctaActive, ctaDisabled ? styles.ctaActiveDisabled : null]}
+            accessibilityLabel="Sign in to make your plan"
+            style={styles.ctaActive}
           >
             <Text variant="body" tone="brand" style={styles.ctaActiveText}>
-              Eat like this celebrity
+              Sign in to make your plan
             </Text>
             <Ionicons name="arrow-forward" size={18} color={theme.color.brand} />
           </TouchableOpacity>
-          <MealPlanGenerateSheet
-            visible={sheetVisible}
-            maxDays={maxDays}
-            initialBaseDietId={claim.base_diet_id}
-            onClose={() => {
-              setSheetVisible(false);
-            }}
-            onGenerated={() => {
-              setSheetVisible(false);
-              Alert.alert('생성 완료!', '식단 탭에서 확인해주세요.');
-            }}
-          />
-        </>
+        ) : (
+          <>
+            <TouchableOpacity
+              onPress={() => {
+                if (ctaDisabled) {
+                  Alert.alert('크레딧 부족', '식단 생성에 사용할 크레딧이 없어요.');
+                  return;
+                }
+                setSheetVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Eat like this celebrity"
+              disabled={creditsLoading}
+              style={[styles.ctaActive, ctaDisabled ? styles.ctaActiveDisabled : null]}
+            >
+              <Text variant="body" tone="brand" style={styles.ctaActiveText}>
+                Eat like this celebrity
+              </Text>
+              <Ionicons name="arrow-forward" size={18} color={theme.color.brand} />
+            </TouchableOpacity>
+            <MealPlanGenerateSheet
+              visible={sheetVisible}
+              maxDays={maxDays}
+              initialBaseDietId={claim.base_diet_id}
+              onClose={() => {
+                setSheetVisible(false);
+              }}
+              onGenerated={() => {
+                setSheetVisible(false);
+                Alert.alert('생성 완료!', '식단 탭에서 확인해주세요.');
+              }}
+            />
+          </>
+        )
       ) : showComingSoon ? (
         // food 카드인데 연결된 식단 소스 없음 → "준비 중"(demand 신호용 affordance).
         <View style={styles.ctaComingSoon} accessibilityRole="text">

@@ -90,10 +90,37 @@ export function signalLogin(reason: LoginReason): void {
   }
 }
 
+// ── Login-required (게스트 → 로그인 게이트) ───────────────────────────────
+// IMPL-MOBILE-GUEST-NEWS-HOME-001: 게스트가 게이트 액션("Make my Plan", "Sign in")
+// 을 탭하면 호출 → RootNavigator 가 phase 'guest' → 'auth' 로 전환(Login 노출).
+// reason 없음 — 단순 "로그인 필요" 신호.
+type LoginRequiredHandler = () => void;
+const loginRequiredHandlers = new Set<LoginRequiredHandler>();
+
+/** Login-required 신호를 구독한다. 반환 함수로 구독 해제. */
+export function onLoginRequiredSignal(handler: LoginRequiredHandler): () => void {
+  loginRequiredHandlers.add(handler);
+  return (): void => {
+    loginRequiredHandlers.delete(handler);
+  };
+}
+
+/** 모든 구독자에게 login-required 신호를 즉시 동기로 전달한다. */
+export function signalLoginRequired(): void {
+  for (const handler of loginRequiredHandlers) {
+    try {
+      handler();
+    } catch {
+      // 핸들러 에러 격리.
+    }
+  }
+}
+
 /**
  * 테스트 전용 — 등록된 모든 handler 를 제거한다.
  */
 export function __resetAuthEvents(): void {
   logoutHandlers.clear();
   loginHandlers.clear();
+  loginRequiredHandlers.clear();
 }

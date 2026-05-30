@@ -18,7 +18,13 @@ jest.mock('expo-secure-store', () => {
 
 import * as SecureStore from 'expo-secure-store';
 
-import { setTokens, setAccessToken, setRefreshToken, clearTokens } from '../../src/lib/secure-store';
+import {
+  setTokens,
+  setAccessToken,
+  setRefreshToken,
+  clearTokens,
+  getAccessToken,
+} from '../../src/lib/secure-store';
 import { bootstrapSession } from '../../src/services/auth-bootstrap';
 
 const resetSecureStoreMemory = (SecureStore as unknown as { __resetMemory: () => void }).__resetMemory;
@@ -33,23 +39,26 @@ describe('bootstrapSession()', () => {
     await expect(bootstrapSession()).resolves.toBe('authenticated');
   });
 
-  it('토큰 둘 다 없음 → login', async () => {
-    await expect(bootstrapSession()).resolves.toBe('login');
+  it('토큰 둘 다 없음 → guest', async () => {
+    await expect(bootstrapSession()).resolves.toBe('guest');
   });
 
-  it('access_token 만 있음 (비정상 상태) → login', async () => {
+  it('access_token 만 있음 (비정상 상태) → guest + stale token 정리', async () => {
     await setAccessToken('a');
-    await expect(bootstrapSession()).resolves.toBe('login');
+    await expect(bootstrapSession()).resolves.toBe('guest');
+    // 게스트는 진짜 무토큰이어야 함 — stale access token 이 정리돼 public fetch 에
+    // Bearer 가 안 붙는다(no-boot-kick 보장; Codex L3 hypothesis).
+    await expect(getAccessToken()).resolves.toBeNull();
   });
 
-  it('refresh_token 만 있음 (비정상 상태) → login', async () => {
+  it('refresh_token 만 있음 (비정상 상태) → guest', async () => {
     await setRefreshToken('r');
-    await expect(bootstrapSession()).resolves.toBe('login');
+    await expect(bootstrapSession()).resolves.toBe('guest');
   });
 
-  it('clearTokens 후 → login', async () => {
+  it('clearTokens 후 → guest', async () => {
     await setTokens({ access_token: 'a', refresh_token: 'r' });
     await clearTokens();
-    await expect(bootstrapSession()).resolves.toBe('login');
+    await expect(bootstrapSession()).resolves.toBe('guest');
   });
 });
