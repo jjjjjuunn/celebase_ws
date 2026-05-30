@@ -237,5 +237,6 @@
   { "name": "Split Peas", "category": "legume", "allergens": [] },
   { "name": "Mung Beans", "category": "legume", "allergens": [] },
   { "name": "Bacon", "category": "protein", "allergens": [] },
-  { "name": "Bagel", "category": "grain", "allergens": ["gluten"] }
+  { "name": "Bagel", "category": "grain", "allergens": ["gluten"] },
+  { "name": "Collard Greens", "category": "vegetable", "allergens": [] }
 ]

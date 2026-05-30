@@ -1,0 +1,58 @@
+{
+  "celebrity_slug": "cameron-diaz",
+  "claims": [
+    {
+      "claim_type": "food",
+      "base_diet_id_slug": "cameron-diaz",
+      "trust_grade": "B",
+      "status": "published",
+      "is_health_claim": true,
+      "verified_by": "content-team (source-verified 2026-05-29)",
+      "headline": "Cameron Diaz starts her day with savory oatmeal loaded with zucchini, collard greens, and egg whites as her go-to whole-food breakfast",
+      "body": "In a People feature on her diet and exercise habits, Cameron Diaz described making a savory oatmeal bowl with zucchini, collard greens, and egg whites as a regular morning meal. She also highlighted whole-wheat and quinoa pasta as staple grains, and has spoken about drinking a rice-based probiotic beverage and squeezing fresh lemon daily. Her overall approach centers on crowding refined sugar and processed foods out of her diet by replacing them with whole, nutrient-dense ingredients, using an 80/20 framework that leaves room for flexibility without rigid restriction.",
+      "primary_source_url": "https://people.com/food/cameron-diaz-the-body-book-diet-exercise-plan/",
+      "tags": [
+        "savory-oatmeal",
+        "whole-foods",
+        "80-20",
+        "mediterranean",
+        "anti-sugar",
+        "longevity"
+      ],
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "People",
+          "url": "https://people.com/food/cameron-diaz-the-body-book-diet-exercise-plan/",
+          "is_primary": true
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "base_diet_id_slug": null,
+      "trust_grade": "B",
+      "status": "published",
+      "is_health_claim": true,
+      "verified_by": "content-team (source-verified 2026-05-29)",
+      "headline": "Cameron Diaz views aging as something to embrace actively, not fight, and sees food and daily habits as the foundation of long-term vitality",
+      "body": "In a Good Morning America interview, Cameron Diaz discussed her broader wellness philosophy as one of acceptance and active participation in her own health rather than resistance to aging. She expressed a view that understanding how the body changes over time, and responding with intentional food choices and lifestyle habits, is more effective and sustainable than chasing a fixed youthful ideal. This philosophy underpins her approach to eating, which focuses on consistent whole-food habits rather than short-term diets or extreme restriction.",
+      "primary_source_url": "https://www.youtube.com/watch?v=MjkOuFxUE6g",
+      "tags": [
+        "longevity",
+        "mindset",
+        "aging-well",
+        "whole-foods",
+        "wellness-philosophy"
+      ],
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "Good Morning America",
+          "url": "https://www.youtube.com/watch?v=MjkOuFxUE6g",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

@@ -32,6 +32,8 @@ const CELEBRITY_FILES = [
   'madelaine-petsch',
   'lindsey-vonn',
   'gisele-bundchen',
+  // 콘텐츠팀이 allowlisted 1차 출처(People + GMA/YouTube) 확보 → 7번째 시드 언블록.
+  'cameron-diaz',
 ];
 
 function readJson<T>(relativePath: string): T {

@@ -29,6 +29,32 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-29
+agent: claude-opus-4-8 (1M context) + general-purpose subagent (Cameron authoring)
+task_id: CHORE-SEEDS-BASE-DIET-TIER1-002
+commit_sha: PENDING
+files_changed:
+  - db/seeds/lifestyle-claims/tia-clair-toomey.json
+  - db/seeds/lifestyle-claims/tabitha-brown.json
+  - db/seeds/lifestyle-claims/megan-thee-stallion.json
+  - db/seeds/lifestyle-claims/madelaine-petsch.json
+  - db/seeds/lifestyle-claims/lindsey-vonn.json
+  - db/seeds/lifestyle-claims/gisele-bundchen.json
+  - db/seeds/data/cameron-diaz.json
+  - db/seeds/lifestyle-claims/cameron-diaz.json
+  - db/seeds/data/_ingredients.json
+  - db/seeds/run.ts
+verified_by: claude-opus-4-8 (validate-claim-seeds.py 17명/63 claim + seed data 정적검증 + 실 Postgres fresh 재적재 + 로컬 BFF feed 로 7명 검증 URL 확인)
+---
+### 완료: 콘텐츠팀 검증 실 URL 적용 + Cameron Diaz 7번째 시드 (CHORE-SEEDS-BASE-DIET-TIER1-002)
+- **검증 URL 교체**(콘텐츠팀 회신 §1): 6명 claim 의 eng-placeholder URL → WebFetch/Playwright 검증된 실 기사 URL(Tia/Megan YouTube, Tabitha forksoverknives, Madelaine People/Elle, Lindsey Under Armour, Gisele Marie Claire). food source `is_primary:true` + claim primary_source_url 일치. `verified_by` → "content-team (source-verified 2026-05-29)".
+- **Vonn philosophy 생략**(결정 §3-1 b): philosophy 출처가 HuffPost(미-allowlist) → claim 생략, food(Under Armour, 매크로 검증)만으로 State A 충분. **신규 도메인 0 → validator/법무 변경 불필요**.
+- **Cameron Diaz 언블록**(§2): allowlisted 1차 출처(People food + GMA/YouTube philosophy) 확보 → 7번째 시드. base_diet 프레이밍 보정 — 검증 People 기사 식단(savory oatmeal w/ zucchini·collard greens·egg whites, whole-wheat/quinoa pasta, 레몬, 통식품)만 사용, 비-allowlist 2차 출처 항목(brown rice couscous / Sunday meal-prep) **제외**. diet_type omnivore, kcal null(§2), is_health_claim true(longevity 건강 frame → 면책 자동). 신규 식재료 Collard Greens 1개.
+- **검증**: validate-claim-seeds.py(17명/63 claim PASS) + seed data 정적검증(ingredient 전수매칭) + **실 Postgres fresh 재적재**(truncate→reseed, 63 claim) + **로컬 BFF(:3100) feed 로 7명 전원 검증 URL + State A 확인**.
+### 미완료: 레시피 변형(끼니×수일분 — 콘텐츠팀 공급, _ingredients.json + recipes[] 공유 요청 §5). Petsch URL 출시 전 사람 클릭 확인(콘텐츠, eng 조치 불필요). ALLOWED_DOMAINS 과학 도메인 per-use 확장. 스테이징 시드/배포.
+### 연관 파일: db/seeds/lifestyle-claims/*.json (6 updated + cameron-diaz new), db/seeds/data/cameron-diaz.json, db/seeds/data/_ingredients.json, db/seeds/run.ts
+
+---
+date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + workflow (6 author + 6 self-check subagents)
 task_id: CHORE-SEEDS-BASE-DIET-TIER1-001
 commit_sha: 5e301d1
