@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-29
 agent: claude-opus-4-8 (1M context) + workflow (6 author + 6 self-check subagents)
 task_id: CHORE-SEEDS-BASE-DIET-TIER1-001
-commit_sha: PENDING
+commit_sha: 5e301d1
 files_changed:
   - db/seeds/data/tia-clair-toomey.json
   - db/seeds/data/tabitha-brown.json
