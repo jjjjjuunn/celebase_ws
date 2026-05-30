@@ -1,0 +1,67 @@
+{
+  "celebrity_slug": "tabitha-brown",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Tabitha Brown turned a 30-day vegan challenge into a lifelong comfort-food philosophy after plant-based eating helped ease her chronic pain",
+      "body": "Brown has spoken openly about struggling with chronic pain for years before a doctor suggested she try a 30-day vegan challenge in 2017. She documented the experience on social media and found that eating whole plant foods — built around tempeh, jackfruit, black beans, avocado, and generous greens — made her feel better than she had in a long time. Rather than treating veganism as a restrictive health measure, she channeled it into an exuberant comfort-food style that draws on her Southern roots. Her TTLA (tempeh, tomato, lettuce, avocado) sandwich became a viral touchstone for the idea that vegan food can be deeply satisfying, soulful, and simple enough for anyone to make at home. Forks Over Knives profiled her journey as a model for how plant-based eating can be motivating rather than austere.",
+      "trust_grade": "B",
+      "primary_source_url": "https://www.forksoverknives.com/success-stories/tabitha-brown-vegan-comfort-food/",
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "is_health_claim": true,
+      "base_diet_id_slug": "tabitha-brown",
+      "tags": [
+        "vegan",
+        "comfort-food",
+        "chronic-pain",
+        "plant-based",
+        "soul-food",
+        "TTLA"
+      ],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "Forks Over Knives",
+          "url": "https://www.forksoverknives.com/success-stories/tabitha-brown-vegan-comfort-food/",
+          "excerpt": "Brown adopted a plant-based diet after a 30-day vegan challenge and found it helped ease the chronic pain she had struggled with for years, going on to share her comfort-food approach with millions.",
+          "is_primary": true
+        },
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/tabitha-brown-vegan-lifestyle-chronic-pain/",
+          "excerpt": "The actress and social media star credits her vegan lifestyle with helping manage the chronic pain that had plagued her, and has inspired a devoted following with her soulful plant-based recipes.",
+          "is_primary": false
+        }
+      ]
+    },
+    {
+      "claim_type": "philosophy",
+      "headline": "Brown's cookbook 'Feeding the Soul' frames vegan cooking as an act of self-love rooted in joy, not deprivation",
+      "body": "In her cookbook Feeding the Soul (Because It's My Business), Brown articulates a food philosophy she describes as cooking from a place of love and abundance. She argues that the biggest barrier to plant-based eating is the mistaken belief that it has to be bland or restrictive. Her recipes are intentionally indulgent in flavor — leaning on smoky spices, creamy avocado, and rich cashew sauces — so that making the vegan choice feels like a reward rather than a sacrifice. People magazine noted that her viral videos work precisely because they broadcast genuine delight, turning every dish into an invitation rather than a lecture.",
+      "trust_grade": "B",
+      "primary_source_url": "https://people.com/food/tabitha-brown-vegan-lifestyle-chronic-pain/",
+      "verified_by": "claude-opus-4-8 (seed; pending human verification)",
+      "is_health_claim": false,
+      "base_diet_id_slug": null,
+      "tags": [
+        "philosophy",
+        "cookbook",
+        "feeding-the-soul",
+        "joy",
+        "self-love"
+      ],
+      "status": "published",
+      "sources": [
+        {
+          "source_type": "article",
+          "outlet": "People",
+          "url": "https://people.com/food/tabitha-brown-vegan-lifestyle-chronic-pain/",
+          "excerpt": "In Feeding the Soul, Brown writes that cooking should come from a place of love and abundance — the antithesis of the deprivation narrative that keeps many people from trying plant-based eating.",
+          "is_primary": true
+        }
+      ]
+    }
+  ]
+}

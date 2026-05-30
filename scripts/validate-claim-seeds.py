@@ -36,6 +36,12 @@ ALLOWED_DOMAINS: frozenset[str] = frozenset(
         "youtube.com",
         "tiktok.com",
         "x.com",
+        # CHORE-SEEDS-BASE-DIET-TIER1-001 — editorial citation outlets for Tier-1
+        # celeb base_diet claims (design handoff §5). 인용정책 확장(이 validator 는
+        # HTTP 0건 — SSRF 가드 아님). ⚠️ 법무 사인오프 대상. 실사용 출처만 최소 추가:
+        "forksoverknives.com",  # Tabitha Brown
+        "underarmour.com",  # Lindsey Vonn (about.underarmour.com 서브도메인 매칭)
+        "marieclaire.com",  # Gisele Bündchen
     ]
 )
 

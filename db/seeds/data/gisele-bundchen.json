@@ -1,0 +1,505 @@
+{
+  "slug": "gisele-bundchen",
+  "display_name": "Gisele Bündchen",
+  "short_bio": "Supermodel, author, and environmental activist Gisele Bündchen follows an 80/20 plant-forward whole-foods approach documented in her cookbook 'Nourish', eating organic vegetables, whole grains, and beans for 80% of her meals while allowing quality animal proteins such as organic chicken and wild-caught fish for the remaining 20%.",
+  "avatar_url": "https://picsum.photos/seed/gisele-bundchen/400/400",
+  "cover_image_url": "https://picsum.photos/seed/gisele-bundchen-cover/800/600",
+  "category": "general",
+  "tags": [
+    "plant-forward",
+    "organic",
+    "whole-foods",
+    "80-20",
+    "sustainable"
+  ],
+  "is_featured": false,
+  "sort_order": 16,
+  "base_diet": {
+    "name": "80/20 Plant-Forward Organic Whole-Foods Diet",
+    "description": "An 80/20 plant-forward eating style grounded in organic, seasonal whole foods. Eighty percent of meals center on vegetables, whole grains such as brown rice and quinoa, legumes, nuts, and seeds; the remaining twenty percent includes quality animal proteins like organic chicken breast, wild-caught salmon, and eggs. Refined sugar and processed foods are excluded entirely.",
+    "philosophy": "Gisele prioritizes organic, seasonal produce and whole, minimally processed ingredients. Her approach is documented in her cookbook 'Nourish' and emphasizes eating in harmony with the environment: abundant plant foods form the foundation, with moderate animal protein used as an accent rather than the centerpiece.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 20,
+      "carbs_pct": 55,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "organic vegetables",
+      "brown rice",
+      "quinoa",
+      "black beans",
+      "white beans",
+      "pumpkin seeds",
+      "sunflower seeds",
+      "almonds",
+      "walnuts",
+      "organic chicken breast",
+      "wild-caught salmon",
+      "cod",
+      "eggs",
+      "avocado",
+      "ezekiel bread",
+      "dark chocolate",
+      "mixed greens",
+      "sweet potato"
+    ],
+    "excluded_foods": [
+      "processed foods",
+      "refined sugar",
+      "artificial additives"
+    ],
+    "key_supplements": [
+      "Spirulina",
+      "Hemp Seeds",
+      "Chia Seeds"
+    ],
+    "source_refs": [
+      {
+        "type": "book",
+        "outlet": "Nourish (cookbook, Gisele Bündchen)",
+        "date": "2022-10-25"
+      },
+      {
+        "type": "interview",
+        "outlet": "Marie Claire",
+        "date": "2022-11-01"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Tropical Green Smoothie",
+      "description": "A vibrant fruit-and-greens blended breakfast with banana, mango, spinach, and chia seeds — Gisele's style of starting the day with plant nutrition.",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 8,
+        "carbs_g": 48,
+        "fat_g": 8,
+        "fiber_g": 7,
+        "sugar_g": 26,
+        "sodium_mg": 80
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add all ingredients to a high-speed blender.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend on high until completely smooth, about 60 seconds. Add more coconut water if too thick.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Pour into a glass and serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Frozen Mango",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "packed"
+        },
+        {
+          "ingredient_name": "Coconut Water",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "tips": "Use fully ripe frozen banana for natural sweetness without added sugar. Spinach blends in without altering flavor."
+    },
+    {
+      "title": "Avocado and Egg Toast on Ezekiel Bread",
+      "description": "Two organic eggs with creamy mashed avocado on toasted Ezekiel bread, finished with pumpkin seeds and fresh herbs — a nourishing brunch staple.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 8,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 22,
+        "carbs_g": 34,
+        "fat_g": 22,
+        "fiber_g": 9,
+        "sugar_g": 2,
+        "sodium_mg": 360
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Toast two slices of Ezekiel bread until golden and crisp.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Meanwhile, cook two eggs to your liking — poached or fried in a small amount of avocado oil.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Mash the avocado with a squeeze of lemon, sea salt, and black pepper. Spread onto the toast.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Top with the eggs, scatter pumpkin seeds and fresh cilantro over the top, and serve.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Ezekiel Bread",
+          "quantity": 2,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 2,
+          "unit": "large"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "mashed"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.25,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Ezekiel bread is best kept frozen for freshness — defrost slices directly in the toaster."
+    },
+    {
+      "title": "Organic Chicken Bowl with Brown Rice and Roasted Vegetables",
+      "description": "An 80% vegetable plate with roasted broccoli, sweet potato, zucchini, and bell pepper over brown rice, topped with a simply seasoned organic chicken breast.",
+      "meal_type": "lunch",
+      "prep_time_min": 15,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 520,
+        "protein_g": 36,
+        "carbs_g": 58,
+        "fat_g": 14,
+        "fiber_g": 10,
+        "sugar_g": 7,
+        "sodium_mg": 420
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 400 F. Cook brown rice according to package directions.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Toss broccoli florets, cubed sweet potato, sliced zucchini, and bell pepper strips with olive oil, garlic powder, cumin, sea salt, and black pepper. Spread on a baking sheet in a single layer.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Roast vegetables for 25 minutes, flipping halfway, until caramelized at the edges.",
+          "duration_min": 25
+        },
+        {
+          "step": 4,
+          "text": "While vegetables roast, season chicken breast with paprika, sea salt, and black pepper. Cook in a lightly oiled skillet over medium heat for 6 to 7 minutes per side until cooked through. Rest 3 minutes before slicing.",
+          "duration_min": 16
+        },
+        {
+          "step": 5,
+          "text": "Divide brown rice between bowls, arrange roasted vegetables alongside, and top with sliced chicken. Squeeze lemon over everything and garnish with fresh parsley.",
+          "duration_min": 3
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Chicken Breast",
+          "quantity": 10,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Sweet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "peeled and cubed"
+        },
+        {
+          "ingredient_name": "Zucchini",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "strips"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        }
+      ],
+      "tips": "Cook a double batch of brown rice to use throughout the week. The 80/20 plate ratio means vegetables should visually outnumber the protein on the bowl."
+    },
+    {
+      "title": "Dark Chocolate and Almond Energy Snack",
+      "description": "A handful of raw almonds paired with two squares of dark chocolate — a satisfying whole-foods treat that avoids refined sugar.",
+      "meal_type": "snack",
+      "prep_time_min": 2,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 210,
+        "protein_g": 6,
+        "carbs_g": 14,
+        "fat_g": 15,
+        "fiber_g": 3,
+        "sugar_g": 7,
+        "sodium_mg": 10
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Measure almonds and chocolate into a small bowl or snack bag. Pair and enjoy.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Almonds",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Dark Chocolate",
+          "quantity": 1,
+          "unit": "oz"
+        }
+      ],
+      "tips": "Choose dark chocolate with at least 70% cacao to keep added sugar minimal. Pair with a few walnuts for extra omega-3s if desired."
+    },
+    {
+      "title": "Herb-Baked Salmon with Quinoa and Mixed Greens",
+      "description": "A light, omega-3-rich dinner: wild-caught salmon fillet baked with fresh herbs, served alongside fluffy quinoa and a simple mixed-greens salad dressed with lemon and olive oil.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 2,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 38,
+        "carbs_g": 36,
+        "fat_g": 20,
+        "fiber_g": 5,
+        "sugar_g": 3,
+        "sodium_mg": 380
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 375 F. Rinse and cook quinoa in vegetable broth according to package directions, about 15 minutes.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Place salmon fillets skin-side down on a parchment-lined baking sheet. Drizzle with olive oil and lemon juice, scatter fresh dill and parsley over the top, and season with sea salt and black pepper.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Bake salmon at 375 F for 14 to 16 minutes until it flakes easily with a fork.",
+          "duration_min": 16
+        },
+        {
+          "step": 4,
+          "text": "Toss mixed greens with a drizzle of olive oil, fresh lemon juice, sea salt, and sliced cucumber. Divide quinoa between plates, add the greens alongside, and place a salmon fillet on top. Garnish with pumpkin seeds.",
+          "duration_min": 4
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Salmon Fillet",
+          "quantity": 12,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "dry"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cucumber",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Dill",
+          "quantity": 2,
+          "unit": "tsp",
+          "preparation": "fresh or dried"
+        },
+        {
+          "ingredient_name": "Parsley",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "chopped"
+        },
+        {
+          "ingredient_name": "Pumpkin Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.375,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Cooking quinoa in vegetable broth instead of water adds depth. The salmon is ready when it turns opaque and the thickest part flakes with gentle pressure."
+    }
+  ]
+}

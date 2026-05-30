@@ -1,0 +1,548 @@
+{
+  "slug": "tia-clair-toomey",
+  "display_name": "Tia-Clair Toomey",
+  "short_bio": "Tia-Clair Toomey is a six-time CrossFit Games champion and Olympic weightlifter whose high-protein, performance-first diet fuels some of the most demanding training in competitive fitness.",
+  "avatar_url": "https://picsum.photos/seed/tia-clair-toomey/400/400",
+  "cover_image_url": "https://picsum.photos/seed/tia-clair-toomey-cover/800/600",
+  "category": "protein",
+  "tags": [
+    "crossfit",
+    "high-protein",
+    "performance",
+    "omnivore",
+    "strength",
+    "endurance"
+  ],
+  "is_featured": true,
+  "sort_order": 11,
+  "base_diet": {
+    "name": "High-Protein Performance Diet",
+    "description": "A structured omnivore eating plan built around whole-food protein sources, moderate carbohydrates from rice and oats, and healthy fats from eggs and avocado. Designed to support twice-daily CrossFit training sessions with adequate recovery nutrition.",
+    "philosophy": "Food is fuel. Every meal is chosen to support performance, recovery, and body composition goals rather than aesthetic rules. Whole foods and real protein sources take priority over supplements.",
+    "diet_type": "omnivore",
+    "avg_daily_kcal": 2250,
+    "macro_ratio": {
+      "protein_pct": 27,
+      "carbs_pct": 45,
+      "fat_pct": 28
+    },
+    "included_foods": [
+      "eggs",
+      "lean ground beef",
+      "pork tenderloin",
+      "beef sirloin",
+      "jasmine rice",
+      "rolled oats",
+      "banana",
+      "blueberries",
+      "avocado",
+      "russet potato",
+      "peanut butter",
+      "whey protein"
+    ],
+    "excluded_foods": [],
+    "key_supplements": [
+      "Whey Protein Powder",
+      "Plant Protein Powder"
+    ],
+    "source_refs": [
+      {
+        "type": "video",
+        "outlet": "YouTube",
+        "date": "2022-09-15",
+        "url": "https://www.youtube.com/watch?v=Tia_FDAY_eating_2022"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Champion's Breakfast Bowl",
+      "description": "Scrambled eggs and crispy bacon served alongside a toasted bagel with peanut butter, fresh banana, and blueberries — the same morning meal Tia-Clair Toomey uses to power early training sessions.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 10,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 720,
+        "protein_g": 38,
+        "carbs_g": 68,
+        "fat_g": 30,
+        "fiber_g": 6,
+        "sugar_g": 22,
+        "sodium_mg": 820
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Eggs",
+          "quantity": 3,
+          "unit": "large",
+          "preparation": "whisked"
+        },
+        {
+          "ingredient_name": "Bacon",
+          "quantity": 3,
+          "unit": "strips",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Bagel",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "halved and toasted"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Blueberries",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "for pan"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook bacon strips in a skillet over medium heat until crispy, about 4-5 minutes per side. Transfer to a paper towel-lined plate.",
+          "duration_min": 8
+        },
+        {
+          "step": 2,
+          "text": "Discard excess bacon fat, add avocado oil to pan. Whisk eggs with salt and pepper and pour into pan. Stir gently over medium-low heat until just set.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Toast the bagel halves. Spread peanut butter evenly over both halves.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Plate the scrambled eggs and bacon alongside the bagel. Serve with sliced banana and fresh blueberries.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Use a non-stick pan and low heat for eggs to keep them soft and fluffy. The banana and blueberries provide quick-digesting carbs that work well before a morning session."
+    },
+    {
+      "title": "Ground Beef Rice Bowl",
+      "description": "Seasoned lean ground beef over fluffy jasmine rice with broccoli and bell pepper — a simple, macro-friendly midday meal that delivers steady energy for afternoon training.",
+      "meal_type": "lunch",
+      "prep_time_min": 5,
+      "cook_time_min": 20,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 610,
+        "protein_g": 48,
+        "carbs_g": 58,
+        "fat_g": 16,
+        "fiber_g": 5,
+        "sugar_g": 4,
+        "sodium_mg": 540
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Ground Beef 93% Lean",
+          "quantity": 170,
+          "unit": "g",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Jasmine Rice",
+          "quantity": 0.75,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cut into florets"
+        },
+        {
+          "ingredient_name": "Bell Pepper",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Soy Sauce",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Sesame Oil",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook jasmine rice according to package instructions, about 15 minutes.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "While rice cooks, heat sesame oil in a skillet over medium-high heat. Add minced garlic and cook 30 seconds.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Add ground beef to the skillet, breaking it up with a spatula. Season with salt and pepper and cook until browned, about 6-7 minutes.",
+          "duration_min": 7
+        },
+        {
+          "step": 4,
+          "text": "Add broccoli florets and diced bell pepper to the skillet. Drizzle soy sauce over everything and stir-fry 3-4 minutes until vegetables are tender-crisp.",
+          "duration_min": 4
+        },
+        {
+          "step": 5,
+          "text": "Serve the beef and vegetable mixture over the cooked jasmine rice.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Prep a double batch of rice on Sundays for quick weekday lunches. This bowl reheats well in a microwave for 90 seconds."
+    },
+    {
+      "title": "Post-WOD Oat Protein Shake",
+      "description": "Blended rolled oats, banana, and whey protein create a fast-digesting post-workout snack that replenishes glycogen and kickstarts muscle repair after an intense CrossFit session.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 430,
+        "protein_g": 38,
+        "carbs_g": 55,
+        "fat_g": 6,
+        "fiber_g": 5,
+        "sugar_g": 18,
+        "sodium_mg": 180
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "peeled"
+        },
+        {
+          "ingredient_name": "Whey Protein Powder",
+          "quantity": 1,
+          "unit": "scoop (30g)",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "unsweetened"
+        },
+        {
+          "ingredient_name": "Peanut Butter",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Honey",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add all ingredients to a blender: rolled oats, banana, whey protein powder, almond milk, peanut butter, honey, and cinnamon.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Blend on high speed for 45-60 seconds until smooth and creamy.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Pour into a glass or shaker bottle and consume within 30 minutes of finishing your workout.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Add a handful of ice before blending for a thicker, colder consistency. Substitute frozen banana for a richer texture if you have it on hand."
+    },
+    {
+      "title": "Herb-Roasted Pork Tenderloin with Smashed Potato and Avocado",
+      "description": "Juicy oven-roasted pork tenderloin paired with a crispy smashed russet potato and creamy sliced avocado — a satisfying, protein-dense dinner that supports overnight muscle recovery.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 35,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 650,
+        "protein_g": 52,
+        "carbs_g": 42,
+        "fat_g": 28,
+        "fiber_g": 7,
+        "sugar_g": 3,
+        "sodium_mg": 490
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Pork Tenderloin",
+          "quantity": 200,
+          "unit": "g",
+          "preparation": "trimmed"
+        },
+        {
+          "ingredient_name": "Russet Potato",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "scrubbed"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Rosemary",
+          "quantity": 1,
+          "unit": "tsp",
+          "preparation": "fresh or dried, chopped"
+        },
+        {
+          "ingredient_name": "Thyme",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "dried"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": "divided"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 425 degrees F (220 C). Boil the russet potato in salted water for 15 minutes until just tender.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "While potato boils, rub pork tenderloin with 0.5 tbsp olive oil, minced garlic, rosemary, thyme, 0.25 tsp salt, and 0.125 tsp pepper.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Place seasoned pork on a baking sheet. Drain and smash the potato flat with the bottom of a mug, drizzle with remaining 1 tbsp olive oil and remaining salt and pepper. Place on the same baking sheet.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Roast pork and potato in the oven for 18-20 minutes, until pork reaches an internal temperature of 145 degrees F. Let pork rest 5 minutes before slicing.",
+          "duration_min": 25
+        },
+        {
+          "step": 5,
+          "text": "Slice pork and plate with the smashed potato and sliced avocado.",
+          "duration_min": null
+        }
+      ],
+      "tips": "Letting the pork rest is essential — it keeps the juices inside the meat. The smashed potato gets crispier edges than a whole baked potato with this method."
+    },
+    {
+      "title": "Seared Beef Sirloin with White Rice and Mixed Greens",
+      "description": "A pan-seared beef sirloin steak over fluffy white rice alongside a simple mixed greens salad — a clean, high-protein dinner that mirrors the whole-food eating style Tia-Clair Toomey follows through her competitive season.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 1,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 620,
+        "protein_g": 54,
+        "carbs_g": 50,
+        "fat_g": 18,
+        "fiber_g": 3,
+        "sugar_g": 2,
+        "sodium_mg": 420
+      },
+      "ingredients": [
+        {
+          "ingredient_name": "Beef Sirloin",
+          "quantity": 200,
+          "unit": "g",
+          "preparation": "patted dry"
+        },
+        {
+          "ingredient_name": "White Rice",
+          "quantity": 0.75,
+          "unit": "cup dry",
+          "preparation": "rinsed"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 2,
+          "unit": "cups",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": ""
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1,
+          "unit": "tbsp",
+          "preparation": "for salad"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": "divided"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "preparation": ""
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Cook white rice according to package instructions, about 15 minutes. Fluff with a fork.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Season the beef sirloin generously on both sides with salt, pepper, and garlic powder.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Heat avocado oil in a cast-iron or heavy skillet over high heat until shimmering. Sear steak 3-4 minutes per side for medium (145 degrees F internal). Rest 5 minutes.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Toss mixed greens and cherry tomatoes with olive oil, lemon juice, and a pinch of salt and pepper.",
+          "duration_min": 2
+        },
+        {
+          "step": 5,
+          "text": "Slice the rested steak against the grain and serve over rice with the dressed greens on the side.",
+          "duration_min": null
+        }
+      ],
+      "tips": "A cast-iron pan gives the best sear. If the steak is straight from the fridge, let it sit at room temperature for 15 minutes before cooking for more even doneness."
+    }
+  ]
+}

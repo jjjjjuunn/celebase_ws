@@ -1,0 +1,471 @@
+{
+  "slug": "madelaine-petsch",
+  "display_name": "Madelaine Petsch",
+  "short_bio": "Madelaine Petsch is an actress best known for her role as Cheryl Blossom on Riverdale, and a committed vegan who follows a whole-food plant-based diet built around oats, grains, legumes, and fresh produce.",
+  "avatar_url": "https://picsum.photos/seed/madelaine-petsch/400/400",
+  "cover_image_url": "https://picsum.photos/seed/madelaine-petsch-cover/800/600",
+  "category": "diet",
+  "tags": [
+    "vegan",
+    "whole-food",
+    "plant-based",
+    "grain-forward",
+    "legumes"
+  ],
+  "is_featured": false,
+  "sort_order": 14,
+  "base_diet": {
+    "name": "Whole-Food Vegan Performance Diet",
+    "description": "A whole-food, plant-based diet centered on rolled oats, brown rice, quinoa, black beans, and an abundance of fresh vegetables and fruit. Every meal is built from minimally processed ingredients with no animal products.",
+    "philosophy": "Petsch follows a strictly whole-food vegan approach, emphasizing nutrient-dense staples like oats, legumes, and leafy greens over processed substitutes. The diet prioritises sustained energy, clear skin, and ethical consistency.",
+    "diet_type": "vegan",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 15,
+      "carbs_pct": 58,
+      "fat_pct": 27
+    },
+    "included_foods": [
+      "rolled oats",
+      "almond milk",
+      "cacao nibs",
+      "raspberries",
+      "brown rice",
+      "quinoa",
+      "black beans",
+      "broccoli",
+      "spinach",
+      "mixed greens",
+      "avocado",
+      "almond butter",
+      "frozen banana",
+      "vegan cheese"
+    ],
+    "excluded_foods": [
+      "meat",
+      "poultry",
+      "fish",
+      "dairy",
+      "eggs",
+      "honey",
+      "processed foods"
+    ],
+    "key_supplements": [
+      "B12",
+      "Vitamin D",
+      "Omega-3 (algae-based)",
+      "Iron",
+      "Zinc"
+    ],
+    "source_refs": [
+      {
+        "type": "interview",
+        "outlet": "People",
+        "date": "2019-06-01"
+      },
+      {
+        "type": "article",
+        "outlet": "People",
+        "date": "2021-03-15"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "Overnight Oats with Cacao Nibs and Raspberries",
+      "description": "Creamy overnight oats soaked in almond milk and topped with cacao nibs and fresh raspberries — Madelaine's go-to morning meal.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 370,
+        "protein_g": 11,
+        "carbs_g": 56,
+        "fat_g": 12,
+        "fiber_g": 9,
+        "sugar_g": 10,
+        "sodium_mg": 110
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add rolled oats, almond milk, chia seeds, and maple syrup to a jar or container. Stir well to combine.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Cover and refrigerate overnight (or for at least 6 hours) until the oats are thick and creamy.",
+          "duration_min": null
+        },
+        {
+          "step": 3,
+          "text": "In the morning, stir the oats and add a splash more almond milk if a looser consistency is preferred.",
+          "duration_min": 1
+        },
+        {
+          "step": 4,
+          "text": "Top with fresh raspberries and cacao nibs. Serve cold.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Prepare the jar the evening before for a completely hands-off breakfast. Swap raspberries for any seasonal berry.",
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Raspberries",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cacao Nibs",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "title": "Green Grain Salad with Quinoa and Black Beans",
+      "description": "A hearty grain salad with fluffy quinoa, black beans, mixed greens, avocado, and a bright lemon-olive oil dressing.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 490,
+        "protein_g": 18,
+        "carbs_g": 62,
+        "fat_g": 18,
+        "fiber_g": 14,
+        "sugar_g": 3,
+        "sodium_mg": 260
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Rinse quinoa under cold water. Combine with 1.5 cups water in a small saucepan. Bring to a boil, reduce to a simmer, cover, and cook until all water is absorbed.",
+          "duration_min": 15
+        },
+        {
+          "step": 2,
+          "text": "Fluff quinoa with a fork and allow to cool for 5 minutes.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "In a large bowl, whisk together extra virgin olive oil, lemon juice, sea salt, and black pepper to make the dressing.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Add quinoa, black beans, mixed greens, cherry tomatoes, and sliced avocado to the bowl. Toss gently to coat everything in the dressing.",
+          "duration_min": 3
+        }
+      ],
+      "tips": "Cook quinoa in advance and refrigerate for up to 3 days to speed up assembly. Add hemp seeds for extra protein.",
+      "ingredients": [
+        {
+          "ingredient_name": "Quinoa",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "dry, rinsed"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 0.75,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Mixed Greens",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Cherry Tomatoes",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.125,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "Roasted Broccoli Steaks with Brown Rice and Black Beans",
+      "description": "Thick broccoli florets roasted until caramelised and served over brown rice and spiced black beans — a satisfying whole-food vegan dinner.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 30,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 510,
+        "protein_g": 20,
+        "carbs_g": 80,
+        "fat_g": 12,
+        "fiber_g": 16,
+        "sugar_g": 4,
+        "sodium_mg": 340
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Preheat oven to 425 F. Cut broccoli into large flat steaks and toss with extra virgin olive oil, smoked paprika, sea salt, and black pepper.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Spread broccoli in a single layer on a baking sheet and roast until edges are caramelised and tender.",
+          "duration_min": 22
+        },
+        {
+          "step": 3,
+          "text": "While broccoli roasts, heat extra virgin olive oil in a small pan over medium heat. Saute diced yellow onion and minced garlic until soft.",
+          "duration_min": 5
+        },
+        {
+          "step": 4,
+          "text": "Add black beans and cumin to the pan. Stir and cook until warmed through. Season with sea salt.",
+          "duration_min": 4
+        },
+        {
+          "step": 5,
+          "text": "Serve roasted broccoli over cooked brown rice, topped with the spiced black beans.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Cook brown rice ahead of time and reheat to save 30 minutes. A squeeze of fresh lemon over the finished plate brightens all the flavours.",
+      "ingredients": [
+        {
+          "ingredient_name": "Broccoli",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "cut into large florets"
+        },
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Extra Virgin Olive Oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "title": "One-Ingredient Banana Ice Cream with Almond Butter",
+      "description": "Frozen banana blended into silky, naturally sweet ice cream swirled with almond butter — a simple whole-food dessert snack.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 265,
+        "protein_g": 6,
+        "carbs_g": 38,
+        "fat_g": 11,
+        "fiber_g": 4,
+        "sugar_g": 22,
+        "sodium_mg": 50
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Remove frozen banana from freezer and let it thaw for 2 minutes to soften slightly.",
+          "duration_min": 2
+        },
+        {
+          "step": 2,
+          "text": "Break the frozen banana into chunks and add to a high-speed blender or food processor.",
+          "duration_min": 1
+        },
+        {
+          "step": 3,
+          "text": "Blend, stopping to scrape down the sides as needed, until the mixture is completely smooth and creamy.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Transfer to a bowl and swirl in almond butter. Serve immediately for a soft-serve texture or freeze for 30 minutes for a firmer scoop.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Peel and slice ripe bananas before freezing them in a zip-lock bag so they are always ready. Top with cacao nibs for extra texture.",
+      "ingredients": [
+        {
+          "ingredient_name": "Frozen Banana",
+          "quantity": 2,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Butter",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "title": "Spinach and Berry Power Smoothie",
+      "description": "A vibrant green-purple smoothie packed with spinach, frozen berries, banana, and plant protein — a quick whole-food fuel source.",
+      "meal_type": "smoothie",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 1,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 290,
+        "protein_g": 20,
+        "carbs_g": 38,
+        "fat_g": 5,
+        "fiber_g": 7,
+        "sugar_g": 18,
+        "sodium_mg": 130
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Add almond milk, spinach, and plant protein powder to a blender first so the liquid helps blend the greens smoothly.",
+          "duration_min": 1
+        },
+        {
+          "step": 2,
+          "text": "Add frozen mixed berries and banana. Blend on high until completely smooth.",
+          "duration_min": 2
+        },
+        {
+          "step": 3,
+          "text": "Taste and adjust sweetness with a small amount of maple syrup if desired. Pour into a glass and serve immediately.",
+          "duration_min": 1
+        }
+      ],
+      "tips": "Use fresh spinach rather than frozen to avoid a grainy texture. The berries provide enough chill without extra ice.",
+      "ingredients": [
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Frozen Mixed Berries",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 0.5,
+          "unit": "whole"
+        },
+        {
+          "ingredient_name": "Almond Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Plant Protein Powder",
+          "quantity": 1,
+          "unit": "scoop"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 0.5,
+          "unit": "tsp",
+          "is_optional": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,638 @@
+{
+  "slug": "tabitha-brown",
+  "display_name": "Tabitha Brown",
+  "short_bio": "Actress, author, and social media star Tabitha Brown became a beacon of vegan comfort food after a 30-day plant-based challenge helped her manage chronic pain. Her approachable, soul-warming recipes prove that vegan eating can be deeply satisfying and joyful.",
+  "avatar_url": "https://picsum.photos/seed/tabitha-brown/400/400",
+  "cover_image_url": "https://picsum.photos/seed/tabitha-brown-cover/800/600",
+  "category": "vegetarian",
+  "tags": [
+    "vegan",
+    "comfort-food",
+    "plant-based",
+    "soul-food",
+    "whole-foods"
+  ],
+  "is_featured": false,
+  "sort_order": 12,
+  "base_diet": {
+    "name": "Vegan Comfort Food Kitchen",
+    "description": "A whole-food vegan approach rooted in comfort and soul. Tempeh, jackfruit, and black beans stand in for meat while generous portions of greens, grains, and avocado make every plate satisfying and nourishing.",
+    "philosophy": "Brown adopted a plant-based diet after a 30-day vegan challenge dramatically eased the chronic pain she had struggled with for years. She believes vegan food should feel like a hug — comforting, flavorful, and accessible to everyone, not just seasoned health enthusiasts. Her approach centers whole, minimally processed plants prepared with generous seasoning and Southern-inspired technique.",
+    "diet_type": "vegan",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 15,
+      "carbs_pct": 60,
+      "fat_pct": 25
+    },
+    "included_foods": [
+      "tempeh",
+      "jackfruit",
+      "vegan cheese",
+      "avocado",
+      "tomato",
+      "romaine lettuce",
+      "spinach",
+      "mushrooms",
+      "carrot",
+      "vegetable broth",
+      "brown rice",
+      "black beans",
+      "whole wheat bread",
+      "hemp seeds",
+      "nutritional yeast"
+    ],
+    "excluded_foods": [
+      "meat",
+      "poultry",
+      "fish",
+      "dairy",
+      "eggs",
+      "honey"
+    ],
+    "key_supplements": [
+      "B12",
+      "Vitamin D",
+      "Omega-3 (algae)",
+      "Plant Protein Powder",
+      "Hemp Seeds"
+    ],
+    "source_refs": [
+      {
+        "type": "article",
+        "outlet": "Forks Over Knives",
+        "date": "2020-03-01",
+        "url": "https://www.forksoverknives.com/success-stories/tabitha-brown-vegan-comfort-food/"
+      },
+      {
+        "type": "interview",
+        "outlet": "People",
+        "date": "2021-06-15",
+        "url": "https://people.com/food/tabitha-brown-vegan-lifestyle-chronic-pain/"
+      }
+    ]
+  },
+  "recipes": [
+    {
+      "title": "TTLA Sandwich",
+      "description": "Tabitha's signature tempeh bacon, tomato, romaine, and avocado sandwich on whole wheat bread — hearty, smoky, and completely plant-based.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 12,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 420,
+        "protein_g": 20,
+        "carbs_g": 42,
+        "fat_g": 18,
+        "fiber_g": 9,
+        "sugar_g": 5,
+        "sodium_mg": 610
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Slice tempeh into thin strips. Whisk together tamari, smoked paprika, maple syrup, and a pinch of garlic powder in a shallow bowl. Marinate tempeh strips for 5 minutes.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a skillet over medium-high heat. Cook tempeh strips 3 to 4 minutes per side until caramelized and crispy.",
+          "duration_min": 7
+        },
+        {
+          "step": 3,
+          "text": "Toast the whole wheat bread slices. Mash half the avocado with a squeeze of lemon juice and a pinch of sea salt, then spread onto the toast.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Layer tempeh strips, tomato slices, and romaine lettuce leaves onto the avocado toast. Close the sandwich and serve immediately.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Tempeh",
+          "quantity": 8,
+          "unit": "oz",
+          "preparation": "thinly sliced"
+        },
+        {
+          "ingredient_name": "Whole Wheat Bread",
+          "quantity": 4,
+          "unit": "slices",
+          "preparation": "toasted"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "halved"
+        },
+        {
+          "ingredient_name": "Tomato",
+          "quantity": 1,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Romaine Lettuce",
+          "quantity": 4,
+          "unit": "leaves"
+        },
+        {
+          "ingredient_name": "Tamari",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lemon",
+          "quantity": 0.5,
+          "unit": "whole",
+          "preparation": "juiced"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Press the tempeh for 15 minutes before marinating for extra-crispy strips. The sandwich is best assembled just before serving so the bread stays crisp."
+    },
+    {
+      "title": "Pulled Jackfruit Tacos",
+      "description": "Smoky pulled jackfruit seasoned with cumin, smoked paprika, and black pepper, piled into corn tortillas with avocado and fresh cilantro.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 3,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 380,
+        "protein_g": 10,
+        "carbs_g": 58,
+        "fat_g": 13,
+        "fiber_g": 10,
+        "sugar_g": 8,
+        "sodium_mg": 540
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Drain jackfruit and pull apart with your hands or two forks to create a shredded texture. Pat dry with paper towels.",
+          "duration_min": 5
+        },
+        {
+          "step": 2,
+          "text": "Heat avocado oil in a large skillet over medium heat. Add diced yellow onion and cook until softened, about 4 minutes. Add minced garlic and cook 1 more minute.",
+          "duration_min": 5
+        },
+        {
+          "step": 3,
+          "text": "Add jackfruit to the skillet along with cumin, smoked paprika, black pepper, and sea salt. Stir well to coat. Cook over medium-high heat, pressing jackfruit with a spatula to encourage browning, for about 10 minutes until edges are caramelized.",
+          "duration_min": 10
+        },
+        {
+          "step": 4,
+          "text": "Warm corn tortillas in a dry pan for 30 seconds each side. Fill with jackfruit, sliced avocado, and fresh cilantro. Squeeze lime juice over each taco.",
+          "duration_min": 5
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Jackfruit",
+          "quantity": 20,
+          "unit": "oz",
+          "preparation": "drained and shredded (young green in brine)"
+        },
+        {
+          "ingredient_name": "Corn Tortillas",
+          "quantity": 6,
+          "unit": "pieces"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 0.25,
+          "unit": "cup",
+          "preparation": "roughly chopped"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "cut into wedges"
+        }
+      ],
+      "tips": "Use young green jackfruit packed in brine or water, not syrup. The longer you cook it while pressing, the more the shreds mimic pulled pork texture."
+    },
+    {
+      "title": "Creamy Vegan Mac and Cheese",
+      "description": "Whole wheat pasta smothered in a golden, cashew-and-vegan-cheese sauce boosted with nutritional yeast for a rich, comforting mac that satisfies without compromise.",
+      "meal_type": "dinner",
+      "prep_time_min": 10,
+      "cook_time_min": 20,
+      "servings": 4,
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": 480,
+        "protein_g": 18,
+        "carbs_g": 64,
+        "fat_g": 17,
+        "fiber_g": 8,
+        "sugar_g": 4,
+        "sodium_mg": 520
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Soak raw cashews in hot water for 10 minutes, then drain. Cook whole wheat pasta according to package directions until al dente. Reserve 0.5 cup pasta water before draining.",
+          "duration_min": 12
+        },
+        {
+          "step": 2,
+          "text": "Blend soaked cashews with oat milk, nutritional yeast, garlic powder, onion powder, turmeric, sea salt, and black pepper until completely smooth. Add 2 to 3 tablespoons pasta water to reach a creamy, pourable consistency.",
+          "duration_min": 3
+        },
+        {
+          "step": 3,
+          "text": "Pour cashew cream into a saucepan over medium-low heat. Add shredded vegan cheese and stir until melted and smooth, about 3 minutes.",
+          "duration_min": 3
+        },
+        {
+          "step": 4,
+          "text": "Toss drained pasta with the cheese sauce until evenly coated. Taste and adjust seasoning. Serve immediately, garnished with an extra pinch of smoked paprika.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Whole Wheat Pasta",
+          "quantity": 12,
+          "unit": "oz"
+        },
+        {
+          "ingredient_name": "Vegan Cheese",
+          "quantity": 1,
+          "unit": "cup",
+          "preparation": "shredded"
+        },
+        {
+          "ingredient_name": "Raw Cashews",
+          "quantity": 0.5,
+          "unit": "cup",
+          "preparation": "soaked in hot water 10 min then drained"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Nutritional Yeast",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Garlic Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Onion Powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Turmeric",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ],
+      "tips": "Turmeric gives the sauce its golden hue without adding much flavor. Do not over-blend the cashew cream — stop once it is silky smooth to avoid it becoming too thick."
+    },
+    {
+      "title": "Carrot Sticks and Hummus",
+      "description": "Crisp carrot sticks served alongside creamy hummus — Tabitha's go-to simple snack that keeps energy steady between meals.",
+      "meal_type": "snack",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 160,
+        "protein_g": 6,
+        "carbs_g": 20,
+        "fat_g": 7,
+        "fiber_g": 6,
+        "sugar_g": 6,
+        "sodium_mg": 280
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Peel carrots and cut into evenly sized sticks, about 3 inches long and 0.5 inch wide.",
+          "duration_min": 4
+        },
+        {
+          "step": 2,
+          "text": "Spoon hummus into a small bowl. Arrange carrot sticks alongside and serve.",
+          "duration_min": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Carrot",
+          "quantity": 3,
+          "unit": "medium",
+          "preparation": "peeled and cut into sticks"
+        },
+        {
+          "ingredient_name": "Hummus",
+          "quantity": 0.5,
+          "unit": "cup"
+        }
+      ],
+      "tips": "Refrigerate cut carrot sticks in cold water up to 3 days — they stay crunchier than storing them dry."
+    },
+    {
+      "title": "Brown Rice, Black Bean, and Greens Bowl",
+      "description": "A nourishing grain bowl of fluffy brown rice and seasoned black beans over a bed of fresh spinach, finished with sliced avocado and a squeeze of lime — simple soul food that fuels the whole day.",
+      "meal_type": "lunch",
+      "prep_time_min": 10,
+      "cook_time_min": 15,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 440,
+        "protein_g": 16,
+        "carbs_g": 68,
+        "fat_g": 12,
+        "fiber_g": 14,
+        "sugar_g": 4,
+        "sodium_mg": 480
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "In a saucepan over medium heat, warm avocado oil. Add diced yellow onion and cook until translucent, about 5 minutes. Add minced garlic and cook 1 minute more.",
+          "duration_min": 6
+        },
+        {
+          "step": 2,
+          "text": "Add drained black beans to the pan along with vegetable broth, cumin, smoked paprika, sea salt, and black pepper. Simmer uncovered for 8 to 10 minutes until the liquid reduces and beans are lightly saucy.",
+          "duration_min": 9
+        },
+        {
+          "step": 3,
+          "text": "Divide fresh spinach between two bowls. Spoon warm black beans over the spinach — the heat will gently wilt the greens.",
+          "duration_min": 2
+        },
+        {
+          "step": 4,
+          "text": "Add a generous scoop of cooked brown rice to each bowl. Top with sliced avocado and squeeze lime juice over everything. Garnish with fresh cilantro.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Brown Rice",
+          "quantity": 2,
+          "unit": "cup",
+          "preparation": "cooked"
+        },
+        {
+          "ingredient_name": "Black Beans",
+          "quantity": 1.5,
+          "unit": "cup",
+          "preparation": "drained and rinsed"
+        },
+        {
+          "ingredient_name": "Spinach",
+          "quantity": 3,
+          "unit": "cup",
+          "preparation": "fresh"
+        },
+        {
+          "ingredient_name": "Avocado",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Yellow Onion",
+          "quantity": 0.5,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "ingredient_name": "Garlic",
+          "quantity": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "ingredient_name": "Vegetable Broth",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Cumin",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Smoked Paprika",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Sea Salt",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Avocado Oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Lime",
+          "quantity": 1,
+          "unit": "whole",
+          "preparation": "cut into wedges"
+        },
+        {
+          "ingredient_name": "Cilantro",
+          "quantity": 2,
+          "unit": "tbsp",
+          "preparation": "roughly chopped"
+        }
+      ],
+      "tips": "Batch-cook brown rice ahead of time and refrigerate for up to 4 days — it reheats beautifully with a splash of vegetable broth."
+    },
+    {
+      "title": "Overnight Oats with Banana and Chia",
+      "description": "Creamy overnight oats layered with chia seeds, sliced banana, and a drizzle of maple syrup — a no-cook breakfast Tabitha reaches for when mornings are busy but nourishment still matters.",
+      "meal_type": "breakfast",
+      "prep_time_min": 5,
+      "cook_time_min": 0,
+      "servings": 2,
+      "difficulty": "easy",
+      "nutrition": {
+        "calories": 340,
+        "protein_g": 10,
+        "carbs_g": 56,
+        "fat_g": 9,
+        "fiber_g": 9,
+        "sugar_g": 18,
+        "sodium_mg": 95
+      },
+      "instructions": [
+        {
+          "step": 1,
+          "text": "Combine rolled oats, chia seeds, oat milk, maple syrup, cinnamon, and vanilla extract in a jar or container. Stir well to combine.",
+          "duration_min": 3
+        },
+        {
+          "step": 2,
+          "text": "Cover and refrigerate overnight or for at least 6 hours until the oats have absorbed the liquid and thickened.",
+          "duration_min": null
+        },
+        {
+          "step": 3,
+          "text": "In the morning, stir the oats and add a splash more oat milk if desired for a thinner consistency. Top with sliced banana and hemp seeds before serving.",
+          "duration_min": 2
+        }
+      ],
+      "ingredients": [
+        {
+          "ingredient_name": "Rolled Oats",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Chia Seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Oat Milk",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredient_name": "Maple Syrup",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredient_name": "Cinnamon",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Vanilla Extract",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredient_name": "Banana",
+          "quantity": 1,
+          "unit": "medium",
+          "preparation": "sliced"
+        },
+        {
+          "ingredient_name": "Hemp Seeds",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ],
+      "tips": "Prepare two or three jars at once on Sunday night for grab-and-go breakfasts through midweek. The oats keep in the refrigerator for up to 3 days."
+    }
+  ]
+}

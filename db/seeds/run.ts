@@ -23,6 +23,15 @@ const CELEBRITY_FILES = [
   'joaquin-phoenix',
   'jennifer-aniston',
   'tom-brady',
+  // CHORE-SEEDS-BASE-DIET-TIER1-001 — Tier-1 base_diet 확장 (design handoff §3).
+  // 각 slug 는 data/<slug>.json + lifestyle-claims/<slug>.json 둘 다 필요.
+  // (Cameron Diaz 는 allowlist 가능한 1차 출처 부재로 보류 — handoff back §3.)
+  'tia-clair-toomey',
+  'tabitha-brown',
+  'megan-thee-stallion',
+  'madelaine-petsch',
+  'lindsey-vonn',
+  'gisele-bundchen',
 ];
 
 function readJson<T>(relativePath: string): T {
