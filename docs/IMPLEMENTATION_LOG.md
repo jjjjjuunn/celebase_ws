@@ -29,6 +29,30 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-30
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-MOBILE-NEWS-NAV-ABSORB-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/navigation/types.ts
+  - spec.md
+verified_by: claude-opus-4-8 (typecheck 0 / lint 0 / jest 216 incl. guest no-boot-kick)
+---
+### 완료: News-first nav 흡수 — Celebrities 탭 제거 + Meal Plan 헤더 버튼 (IMPL-MOBILE-NEWS-NAV-ABSORB-001)
+- 사용자 결정(2026-05-30): 단독 Celebrities 탭(셀럽 attribution 이 News 피드에 이미 중복) 제거, Meal Plan 을 탭 대신 News 헤더 "My Plan" 버튼으로 흡수("이용할 사람만").
+- MainTabsNavigator: 표시 탭 = 게스트 News 단독(탭바 숨김) / authed News + SettingsTab. Plan 탭은 `tabBarButton: () => null` 로 숨김+등록 유지. initialRouteName='News' 공통. CelebritiesNavigator import/탭 제거.
+- NewsScreen: authed 전용 "My Plan" 헤더 버튼(`!isGuest && onOpenPlan`) — guest 'Sign in' 패턴 mirror. NewsNavigator 가 `navigate('Plan', { screen: 'MealPlan' })` 버블로 wiring.
+- boot-kick 불변식 유지: MealPlanScreen 은 protected → 버튼 게스트 미노출. guest no-boot-kick 테스트 통과.
+- ClaimDetail 생성완료 alert "식단 탭" → "News 헤더의 My Plan" 갱신. spec.md §7.2 sync.
+- 검증: tsc 0 / eslint 0 / jest 216 pass(36 suites).
+### 미완료: legacy Celebrities/Discover orphan + mock-data dead-code 정리(CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001). News 카드뉴스 캐러셀(스코프 논의 중). 숨김 Plan 탭 특성상 Meal Plan 진입 후 back 은 News 탭 재탭으로 복귀.
+### 연관 파일: apps/mobile/src/navigation/MainTabsNavigator.tsx, apps/mobile/src/navigation/NewsNavigator.tsx, apps/mobile/src/screens/NewsScreen.tsx, apps/mobile/src/screens/ClaimDetailScreen.tsx, apps/mobile/src/navigation/types.ts, spec.md
+
+---
+date: 2026-05-30
 agent: claude-opus-4-8 (1M context) + advisor (scope review)
 task_id: IMPL-MOBILE-NEWS-CARD-CANVAS-001
 commit_sha: 0dfac57

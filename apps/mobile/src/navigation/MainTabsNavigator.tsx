@@ -1,11 +1,14 @@
-// Main 4-tab bottom navigator — 로그인 후 진입.
-//   - Celebrities: 셀럽 그리드 + 셀럽/claim 디테일
-//   - Plan: 식단 (Meal Plan)
-//   - News: 아티클 피드
-//   - SettingsTab: account/subscription/legal (+ 사용자 프로필 병합 예정)
+// Main bottom navigator — News-first (IMPL-MOBILE-NEWS-NAV-ABSORB-001).
+//   - News: 셀럽 wellness claim 피드 (게스트·authed 공통 홈)
+//   - Plan: 식단 (Meal Plan) — 탭바에서 숨김(등록은 유지). News 헤더 "My Plan" 버튼 ·
+//           ClaimDetail "Make my Plan" 게이트로만 진입. authed 전용(protected).
+//   - SettingsTab: account/subscription/legal — authed 전용
 //
-// 사용자 스펙 (2026-05-24): 하단 4탭 — 좌→우 Celebrities / Meal Plan / News / Settings.
-// (2026-05-14 원안의 "Meal & Routine" → routine 미노출 결정으로 "Meal Plan" 으로 변경)
+// 흡수 결정 (사용자 2026-05-30): 단독 Celebrities 탭은 셀럽 attribution 이 News 피드에
+// 이미 노출돼 중복 → 제거. Meal Plan 은 탭 대신 News 헤더 버튼으로 흡수(이용할 사람만).
+//   - 게스트: News 단일 → 탭바 숨김(Plan/Settings 는 protected → boot-kick 회피).
+//   - authed: News(표시) + SettingsTab(표시), Plan 은 등록·숨김.
+// (legacy CelebritiesNavigator/screens 는 orphan 으로 잔존 — dead-code 정리는 후속 CHORE.)
 
 import { useMemo, type ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
@@ -14,7 +17,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useIsGuest } from '../lib/guest-mode';
 import { useTheme, type Theme } from '../ui';
-import { CelebritiesNavigator } from './CelebritiesNavigator';
 import { NewsNavigator } from './NewsNavigator';
 import { PlanNavigator } from './PlanNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
@@ -23,19 +25,17 @@ import type { MainTabsParamList } from './types';
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TAB_LABELS = {
-  Celebrities: 'Celebrities',
-  Plan: 'Meal Plan',
   News: 'News',
+  Plan: 'Meal Plan',
   SettingsTab: 'Settings',
 } as const;
 
-// Ionicons outline line-icons (thin, Lucide-adjacent) replace the placeholder
-// emoji. Font-based (@expo/vector-icons) → loaded at runtime, no native rebuild.
+// Ionicons outline line-icons (thin, Lucide-adjacent). Font-based
+// (@expo/vector-icons) → loaded at runtime, no native rebuild.
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 const TAB_ICONS: Record<keyof typeof TAB_LABELS, IoniconName> = {
-  Celebrities: 'star-outline',
-  Plan: 'restaurant-outline',
   News: 'newspaper-outline',
+  Plan: 'restaurant-outline',
   SettingsTab: 'settings-outline',
 };
 
@@ -46,27 +46,27 @@ function tabIcon(name: keyof typeof TAB_LABELS, color: string, size: number): Re
 export function MainTabsNavigator(): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  // 게스트: News 홈 + Celebrities/News 2탭만(Plan/Settings 는 protected → boot-kick 회피).
-  // authed: 기존 4탭 + Celebrities 기본(로그인 후 News 로 dump 방지; News-first 는 fast-follow).
+  // 게스트: News 단일 홈 → 탭바 숨김. authed: News + Settings(2탭 표시), Plan 은 숨김.
   const isGuest = useIsGuest();
 
   return (
     <Tab.Navigator
-      initialRouteName={isGuest ? 'News' : 'Celebrities'}
+      initialRouteName="News"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.color.brand,
         tabBarInactiveTintColor: theme.color.textMuted,
-        tabBarStyle: styles.tabBar,
+        // 게스트는 News 한 화면뿐 → 탭바 숨김(단일 탭 바 노출 방지).
+        tabBarStyle: isGuest ? styles.tabBarHidden : styles.tabBar,
         tabBarLabelStyle: styles.label,
       }}
     >
       <Tab.Screen
-        name="Celebrities"
-        component={CelebritiesNavigator}
+        name="News"
+        component={NewsNavigator}
         options={{
-          tabBarLabel: TAB_LABELS.Celebrities,
-          tabBarIcon: ({ color, size }) => tabIcon('Celebrities', color, size),
+          tabBarLabel: TAB_LABELS.News,
+          tabBarIcon: ({ color, size }) => tabIcon('News', color, size),
         }}
       />
       {!isGuest ? (
@@ -76,17 +76,12 @@ export function MainTabsNavigator(): React.JSX.Element {
           options={{
             tabBarLabel: TAB_LABELS.Plan,
             tabBarIcon: ({ color, size }) => tabIcon('Plan', color, size),
+            // 탭바에서 숨김 — News 헤더 "My Plan" 버튼 / ClaimDetail 게이트로만 진입.
+            // 등록은 유지하므로 navigate('Plan', { screen: 'MealPlan' }) 동작.
+            tabBarButton: () => null,
           }}
         />
       ) : null}
-      <Tab.Screen
-        name="News"
-        component={NewsNavigator}
-        options={{
-          tabBarLabel: TAB_LABELS.News,
-          tabBarIcon: ({ color, size }) => tabIcon('News', color, size),
-        }}
-      />
       {!isGuest ? (
         <Tab.Screen
           name="SettingsTab"
@@ -104,6 +99,7 @@ export function MainTabsNavigator(): React.JSX.Element {
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
     tabBar: { backgroundColor: theme.color.surface, borderTopColor: theme.color.border },
+    tabBarHidden: { display: 'none' },
     label: { fontSize: theme.type.caption, fontWeight: theme.weight.semibold },
   });
 }

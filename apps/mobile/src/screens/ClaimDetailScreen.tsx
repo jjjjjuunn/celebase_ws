@@ -204,7 +204,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
               }}
               onGenerated={() => {
                 setSheetVisible(false);
-                Alert.alert('생성 완료!', '식단 탭에서 확인해주세요.');
+                Alert.alert('생성 완료!', 'News 헤더의 My Plan 에서 확인하세요.');
               }}
             />
           </>

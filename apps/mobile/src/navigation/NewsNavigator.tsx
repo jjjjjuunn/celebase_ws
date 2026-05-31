@@ -17,6 +17,11 @@ function NewsFeedRoute({
       onClaimPress={(claimId) => {
         navigation.navigate('ClaimDetail', { claimId });
       }}
+      // authed 전용 "My Plan" 헤더 버튼 → Plan 탭(숨김)으로 버블 네비게이트.
+      // navigate 는 부모 탭 네비게이터로 버블되어 'Plan' 라우트를 찾는다.
+      onOpenPlan={() => {
+        navigation.navigate('Plan', { screen: 'MealPlan' });
+      }}
     />
   );
 }

@@ -2199,6 +2199,17 @@ RootStack (NavigationContainer) — phase: loading | guest | auth | main
 - `IMPL-MOBILE-NEWS-DETAIL-001` — ArticleDetail screen + News stack 확장
 - `IMPL-MOBILE-PROFILE-IN-SETTINGS-001` — ProfileScreen 의 SettingsScreen 흡수 + ProfileNavigator 제거
 
+#### 7.2 Mobile News-first nav absorption *(IMPL-MOBILE-NEWS-NAV-ABSORB-001)*
+
+IMPL-MOBILE-TABS-PIVOT-001 / GUEST-NEWS-HOME-001 의 탭 구성을 News-first 로 단순화한다 (사용자 결정 2026-05-30). UX 근거 — 셀럽 attribution 은 News 피드 카드에 이미 노출되어 단독 `Celebrities` 탭은 중복이고, `Meal Plan` 은 모든 사용자가 상시 쓰는 탭이 아니라 "이용할 사람만" 들어가는 보조 진입점이다.
+
+- **표시 탭**: 게스트 = `News` 단독(탭바 숨김 — 단일 화면). authed = `News` + `SettingsTab` (2탭 표시). `initialRouteName` = `News` (공통).
+- **`Celebrities` 탭 제거**: 셀럽 wellness 는 News 피드 카드 attribution 으로 노출. legacy `CelebritiesNavigator`/`CelebritiesScreen`/`CelebrityDetailScreen` 은 mock-only orphan 으로 잔존 — `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` 가 dead-code 정리.
+- **`Meal Plan` 흡수**: `Plan` 탭은 탭바에서 숨기되(`tabBarButton: () => null`) navigator 등록은 유지. 진입점은 (1) News 헤더 **"My Plan"** 버튼(authed 전용 — guest 'Sign in' affordance 와 동일 패턴, `navigate('Plan', { screen: 'MealPlan' })` 로 부모 탭 버블) + (2) ClaimDetail "Make my Plan" 게이트.
+- **boot-kick 불변식**: MealPlanScreen 은 mount 시 protected fetch → "My Plan" 버튼은 `!isGuest` + `onOpenPlan` 존재 시에만 렌더(게스트 미노출). ClaimDetail 생성 완료 alert 카피를 "식단 탭" → "News 헤더의 My Plan" 으로 갱신.
+
+본 흡수는 TABS-PIVOT-001 의 셀럽-first 가설을 News-first 로 대체한다 — 단독 `Celebrities`/`Meal Plan` 탭의 진입 가치가 낮다는 사용자 판단(2026-05-30)을 반영하며, 셀럽별 브라우징이 다시 필요해지면 카드 셀럽명 탭 기반 필터 뷰로 fast-follow 한다 (탭 부활 아님).
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

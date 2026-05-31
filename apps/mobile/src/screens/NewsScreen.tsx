@@ -39,6 +39,11 @@ const CATEGORY_BY_CLAIM_TYPE: Partial<Record<ClaimType, NewsCategory>> = {
 interface NewsScreenProps {
   /** 카드 탭 시 — ClaimDetail 로 이동. */
   onClaimPress: (claimId: string) => void;
+  /**
+   * authed 전용 — News 헤더 "My Plan" 버튼 → Meal Plan 진입.
+   * 미전달(또는 게스트)이면 버튼 미렌더. (게스트는 대신 "Sign in" 노출.)
+   */
+  onOpenPlan?: () => void;
 }
 
 // claim + (joined) celebrity + 매핑된 News 카테고리.
@@ -53,7 +58,7 @@ type FeedState =
   | { phase: 'error'; message: string }
   | { phase: 'loaded'; items: EnrichedClaim[] };
 
-export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element {
+export function NewsScreen({ onClaimPress, onOpenPlan }: NewsScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const isGuest = useIsGuest();
@@ -130,6 +135,18 @@ export function NewsScreen({ onClaimPress }: NewsScreenProps): React.JSX.Element
           >
             <Text variant="label" tone="brand">
               Sign in
+            </Text>
+          </Pressable>
+        ) : onOpenPlan !== undefined ? (
+          // authed: 단독 Plan 탭 대신 News 헤더에서 Meal Plan 진입(흡수). 이용할 사람만.
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="My Plan"
+            onPress={onOpenPlan}
+            style={styles.signInBtn}
+          >
+            <Text variant="label" tone="brand">
+              My Plan
             </Text>
           </Pressable>
         ) : null}
