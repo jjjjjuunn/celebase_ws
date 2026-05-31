@@ -2210,6 +2210,17 @@ IMPL-MOBILE-TABS-PIVOT-001 / GUEST-NEWS-HOME-001 의 탭 구성을 News-first �
 
 본 흡수는 TABS-PIVOT-001 의 셀럽-first 가설을 News-first 로 대체한다 — 단독 `Celebrities`/`Meal Plan` 탭의 진입 가치가 낮다는 사용자 판단(2026-05-30)을 반영하며, 셀럽별 브라우징이 다시 필요해지면 카드 셀럽명 탭 기반 필터 뷰로 fast-follow 한다 (탭 부활 아님).
 
+#### 7.2 Mobile claim story carousel (Lean v1) *(IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001)*
+
+ClaimDetail 을 단일 세로 화면에서 **가로 스와이프 카드뉴스 캐러셀**로 재구성한다 (State A pilot `celebase-pilot-stateA-beyonce.html` 내러티브). 사용자가 기대한 "이미지 기반 카드뉴스" 는 사진이 아니라 **다중 슬라이드 편집 스토리** 포맷이라는 재정의(2026-05-30)를 반영한다.
+
+Lean v1 은 신규 스키마·콘텐츠 의존 없이 기존 claim 필드 + 정적 템플릿만으로 슬라이드를 구성한다 (슬라이드 hero 이미지·per-claim science 카피는 디자인 이미지 시스템 + 콘텐츠 모델 확정 후 additive 강화).
+
+- **슬라이드 구성**: decode(후킹) → what they do(전문+trust+출처) → [the catch → rescaled to you](State A 한정) → your turn(CTA). State A = 5슬라이드 / State B·non-food = 3슬라이드.
+- **CTA·boot-kick 보존**: 마지막 슬라이드가 기존 게이트 로직 유지 — 게스트 "Sign in to make your plan"(signalLoginRequired, 시트 미렌더) / authed "Eat like this celebrity"(MealPlanGenerateSheet) / State B "맞춤 식단 준비 중". 면책은 trust D·health 시 마지막 슬라이드.
+- **렌더링**: 가로 `ScrollView pagingEnabled` 에 전 슬라이드 동시 마운트(가상화 없음, ≤5장). 영역 높이 onLayout 측정 → 슬라이드별 세로 스크롤 바운드. Canvas v1(`theme.news.*`) cream/forest 카드 · Fraunces · lime CTA · dots+counter.
+- **CL-ENGINE·CL-PRODUCT-CLAIM 준수**: "칼로리·매크로·취향 리스케일"만 약속, 하드코딩 질문 수("3 questions") 금지 → "몇 가지 질문" 일반 표현.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```
