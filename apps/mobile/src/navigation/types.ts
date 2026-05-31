@@ -70,8 +70,9 @@ export type SettingsStackParamList = {
 };
 
 // ── Main tabs ───────────────────────────────────────────────
-// 활성 4탭: Celebrities / Plan(Meal Plan) / News / SettingsTab.
-// Discover / ProfileTab 은 orphan navigator 의 타입 호환 유지용 — 정리 시 제거.
+// News-first (IMPL-MOBILE-NEWS-NAV-ABSORB-001): 표시 탭 = News + SettingsTab(authed).
+// Plan 은 등록·숨김(News 헤더 "My Plan" / ClaimDetail 게이트로 진입). 게스트는 News 단독.
+// Celebrities / Discover / ProfileTab 은 orphan navigator 의 타입 호환 유지용 — 정리 시 제거.
 export type MainTabsParamList = {
   Celebrities: NavigatorScreenParams<CelebritiesStackParamList>;
   Plan: NavigatorScreenParams<PlanStackParamList>;
