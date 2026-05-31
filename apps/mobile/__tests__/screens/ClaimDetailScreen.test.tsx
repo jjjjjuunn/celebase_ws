@@ -46,6 +46,7 @@ const CLAIM_BASE = {
   is_active: true,
   created_at: '2026-04-15T00:00:00.000Z',
   updated_at: '2026-04-15T00:00:00.000Z',
+  story: null,
 };
 
 const SOURCE_BASE = {
@@ -149,7 +150,8 @@ describe('<ClaimDetailScreen />', () => {
     await screen.findByText('celery juice ritual');
 
     // IMPL-MOBILE-CLAIM-CTA-001: "Coming soon" 정적 텍스트는 active CTA 로 교체됨.
-    expect(screen.getByLabelText('Eat like this celebrity')).toBeTruthy();
+    // CTA 라벨은 "Make my Plan" 으로 통일(IMPL-MOBILE-CLAIM-STORY-SCHEMA-001).
+    expect(screen.getByLabelText('Make my Plan')).toBeTruthy();
     expect(screen.queryByText('Coming soon')).toBeNull();
   });
 
@@ -161,8 +163,8 @@ describe('<ClaimDetailScreen />', () => {
     renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.queryByText('Eat like this celebrity')).toBeNull();
-    expect(screen.getByText('맞춤 식단 준비 중 — 곧 만나요')).toBeTruthy();
+    expect(screen.queryByText('Make my Plan')).toBeNull();
+    expect(screen.getByText('Personalized plan — coming soon')).toBeTruthy();
   });
 
   it('비-food claim(beauty) → base_diet_id 있어도 CTA·"준비 중" 둘 다 미노출 (food 게이트)', async () => {
@@ -181,8 +183,8 @@ describe('<ClaimDetailScreen />', () => {
     renderScreen(<ClaimDetailScreen claimId={CLAIM_BASE.id} onBack={jest.fn()} />);
     await screen.findByText('celery juice ritual');
 
-    expect(screen.queryByText('Eat like this celebrity')).toBeNull();
-    expect(screen.queryByText('맞춤 식단 준비 중 — 곧 만나요')).toBeNull();
+    expect(screen.queryByText('Make my Plan')).toBeNull();
+    expect(screen.queryByText('Personalized plan — coming soon')).toBeNull();
   });
 
   it('source.url 이 allowlist 외 → "Source link unavailable" 표기 + Link role 미부착', async () => {

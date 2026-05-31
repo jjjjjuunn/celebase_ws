@@ -1,13 +1,15 @@
-// Wellness claim 스토리 — feed 카드 탭 시 진입. Design Canvas v1 카드뉴스 캐러셀(Lean v1,
-// IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001). State A pilot 내러티브를 가로 스와이프 슬라이드로:
-//   decode → what they do(+출처) → [the catch → rescaled to you] → your turn(CTA).
-// 슬라이드 콘텐츠는 기존 claim 데이터 + 정적 템플릿만 사용(신규 스키마/콘텐츠 의존 0).
+// Wellness claim 스토리 — feed 카드 탭 시 진입. Design Canvas v1 카드뉴스 캐러셀.
+// 가로 스와이프: decode → what they do(+출처) → [science] → [the catch → rescaled to you] → your turn(CTA).
+//
+// 콘텐츠 원본: claim.story(JSONB, IMPL-MOBILE-CLAIM-STORY-SCHEMA-001) 가 있으면 6슬라이드 리치
+// 카피를, 없으면(NULL) 영어 정적 템플릿 fallback 을 렌더한다. story 텍스트는 `**bold**`/`*accent*`
+// 인라인 마크업을 RichText 로 렌더(리터럴 마커 노출 없음).
 //
 // CTA wiring(IMPL-MOBILE-CLAIM-CTA-001) 보존: 마지막 슬라이드의 "Make my Plan" 게이트가
 // claim.base_diet_id 를 MealPlanGenerateSheet 에 넘겨 셀럽 picker 를 스킵한다.
 // 게스트 boot-kick 불변식(PR195) 보존: 게스트는 credits fetch skip + 시트 미렌더 + 로그인 게이트.
 //
-// 모든 슬라이드는 가로 ScrollView 에 동시 마운트된다(가상화 없음 — 슬라이드 수 ≤ 5).
+// 모든 슬라이드는 가로 ScrollView 에 동시 마운트된다(가상화 없음 — 슬라이드 수 ≤ 6).
 
 import { Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,6 +23,8 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type StyleProp,
+  type TextStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -49,7 +53,7 @@ type DetailState =
 const HEALTH_DISCLAIMER =
   'This information is for educational purposes only and is not intended as medical advice. Consult a physician for medical decisions.';
 
-// claim_type → 표시 버킷(ClaimCard BUCKET_LABEL 과 정합). decode eyebrow 에 사용.
+// claim_type → 표시 버킷(ClaimCard BUCKET_LABEL 과 정합). decode eyebrow fallback 에 사용.
 const BUCKET_LABEL: Record<string, string> = {
   food: 'Diet',
   beauty: 'Beauty',
@@ -59,6 +63,55 @@ const BUCKET_LABEL: Record<string, string> = {
   brand: 'Wellness',
   philosophy: 'Wellness',
 };
+
+// ── 인라인 마크업: `**bold**` / `*accent*` → 스타일된 Text span ─────────
+export type RichToken = { t: string; kind: 'bold' | 'accent' | 'normal' };
+
+// exported for unit test (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001).
+export function parseRich(text: string): RichToken[] {
+  const tokens: RichToken[] = [];
+  const re = /\*\*[^*]+\*\*|\*[^*]+\*/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) tokens.push({ t: text.slice(last, m.index), kind: 'normal' });
+    const matched = m[0];
+    const isBold = matched.startsWith('**');
+    tokens.push({ t: isBold ? matched.slice(2, -2) : matched.slice(1, -1), kind: isBold ? 'bold' : 'accent' });
+    last = re.lastIndex;
+  }
+  if (last < text.length) tokens.push({ t: text.slice(last), kind: 'normal' });
+  return tokens;
+}
+
+function RichText({
+  text,
+  style,
+}: {
+  text: string;
+  style: StyleProp<TextStyle>;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const tokens = parseRich(text);
+  return (
+    <Text style={style}>
+      {tokens.map((tok, i) => (
+        <Text
+          key={`${tok.kind}-${String(i)}-${tok.t.slice(0, 6)}`}
+          style={
+            tok.kind === 'bold'
+              ? { fontWeight: theme.weight.bold }
+              : tok.kind === 'accent'
+                ? { fontStyle: 'italic' }
+                : undefined
+          }
+        >
+          {tok.t}
+        </Text>
+      ))}
+    </Text>
+  );
+}
 
 export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): React.JSX.Element {
   const theme = useTheme();
@@ -107,7 +160,7 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
           <EmptyState
             icon="alert-circle-outline"
             title="Couldn't load this claim."
-            body="잠시 후 다시 시도해주세요."
+            body="Please try again in a moment."
           />
         </View>
       ) : (
@@ -126,6 +179,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { width } = useWindowDimensions();
   const { claim, sources } = data;
+  const s = claim.story; // ClaimStory | null — 있으면 리치 카피, 없으면 영어 템플릿 fallback.
 
   const showDisclaimer = claim.trust_grade === 'D' || claim.is_health_claim;
   // "Make my Plan" 루프는 food 카드 한정. food + 플랜 소스 = 활성(State A) /
@@ -146,6 +200,8 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const ctaDisabled = !creditsLoading && maxDays === 0;
 
   const bucket = (BUCKET_LABEL[claim.claim_type] ?? 'Wellness').toUpperCase();
+  // CTA 라벨 통일: story 의 button 우선, 없으면 "Make my Plan"(피드 ClaimCard 와 일치).
+  const liveButtonLabel = s?.cta.button ?? 'Make my Plan';
 
   // ── 마지막 슬라이드 CTA(상태별) ───────────────────────────────
   const ctaNode = showInspiredCta ? (
@@ -167,26 +223,33 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       <TouchableOpacity
         onPress={() => {
           if (ctaDisabled) {
-            Alert.alert('크레딧 부족', '식단 생성에 사용할 크레딧이 없어요.');
+            Alert.alert('No credits left', 'You have no meal-plan credits remaining.');
             return;
           }
           setSheetVisible(true);
         }}
         accessibilityRole="button"
-        accessibilityLabel="Eat like this celebrity"
+        accessibilityLabel={liveButtonLabel}
         disabled={creditsLoading}
         style={[styles.ctaLive, ctaDisabled ? styles.ctaDisabled : null]}
       >
-        <Text style={styles.ctaLiveText}>Eat like this celebrity</Text>
+        <Text style={styles.ctaLiveText}>{liveButtonLabel}</Text>
         <Ionicons name="arrow-forward" size={18} color={theme.news.ctaLive.fg} />
       </TouchableOpacity>
     )
   ) : showComingSoon ? (
     <View style={styles.ctaComingSoon} accessibilityRole="text">
       <Ionicons name="time-outline" size={18} color={theme.news.lime} />
-      <Text style={styles.ctaComingSoonText}>맞춤 식단 준비 중 — 곧 만나요</Text>
+      <Text style={styles.ctaComingSoonText}>Personalized plan — coming soon</Text>
     </View>
   ) : null;
+
+  const disclaimerText =
+    s?.cta.disclaimer != null && s.cta.disclaimer !== ''
+      ? s.cta.disclaimer
+      : showDisclaimer
+        ? HEALTH_DISCLAIMER
+        : null;
 
   // ── 슬라이드 구성 ─────────────────────────────────────────────
   const slides: Array<{ key: string; tone: 'light' | 'dark'; node: React.ReactNode }> = [];
@@ -197,31 +260,47 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     tone: 'light',
     node: (
       <>
-        <Text style={styles.eyebrow}>{`${bucket} · CELEBRITY DECODE`}</Text>
-        <Text style={styles.headline}>{claim.headline}</Text>
-        <Text style={styles.subtitle}>
-          그들이 실제로 무엇을 하는지 — 그리고 당신에게 맞게 리스케일.
-        </Text>
+        <Text style={styles.eyebrow}>{s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`}</Text>
+        <RichText text={s?.hook.headline ?? claim.headline} style={styles.headline} />
+        <RichText
+          text={s?.hook.sub ?? 'What they actually do — and what it looks like rescaled to you.'}
+          style={styles.subtitle}
+        />
         <View style={styles.swipeHint}>
-          <Text style={styles.swipeHintText}>넘기기</Text>
+          <Text style={styles.swipeHintText}>{s?.hook.swipe ?? 'Swipe'}</Text>
           <Ionicons name="arrow-forward" size={14} color={theme.news.muted} />
         </View>
       </>
     ),
   });
 
-  // 2) What they do — 전문 + trust + 출처.
+  // 2) What they do — 전문/불릿 + trust + 출처.
   slides.push({
     key: 'what',
     tone: 'light',
     node: (
       <>
-        <Text style={styles.eyebrow}>WHAT THEY DO</Text>
-        <Text style={styles.bodyText}>
-          {claim.body !== null && claim.body !== ''
-            ? claim.body
-            : '출처를 기반으로 정리한 그들의 실제 루틴입니다.'}
-        </Text>
+        <Text style={styles.eyebrow}>{s?.what.eyebrow ?? 'WHAT THEY DO'}</Text>
+        {s !== null ? (
+          <>
+            <RichText text={s.what.headline} style={styles.headlineSm} />
+            {s.what.rows.map((row, i) => (
+              <View key={`what-${String(i)}`} style={styles.bulletRow}>
+                <Text style={styles.bulletDot}>•</Text>
+                <RichText text={row} style={styles.bulletText} />
+              </View>
+            ))}
+            {s.what.source != null && s.what.source !== '' ? (
+              <Text style={styles.sourceNote}>{s.what.source}</Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.bodyText}>
+            {claim.body !== null && claim.body !== ''
+              ? claim.body
+              : 'Their real routine, compiled from the sources below.'}
+          </Text>
+        )}
         <View style={styles.trustRow}>
           <TrustGradeBadge grade={claim.trust_grade} />
         </View>
@@ -237,59 +316,120 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     ),
   });
 
-  // 3·4) The catch / Rescaled to you — State A 한정(엔진-정직 약속).
+  // 3) Science — story.science 있을 때만(✓ checks + ! caveat).
+  if (s?.science != null) {
+    const sci = s.science;
+    slides.push({
+      key: 'science',
+      tone: 'light',
+      node: (
+        <>
+          <Text style={styles.eyebrow}>{sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'}</Text>
+          <RichText text={sci.headline} style={styles.headlineSm} />
+          {sci.checks.map((c, i) => (
+            <View key={`sci-${String(i)}`} style={styles.bulletRow}>
+              <Ionicons name="checkmark" size={16} color={theme.news.forest} style={styles.checkIcon} />
+              <RichText text={c} style={styles.bulletText} />
+            </View>
+          ))}
+          {sci.caveat != null && sci.caveat !== '' ? (
+            <View style={styles.caveatRow}>
+              <Ionicons name="alert-circle-outline" size={16} color={theme.news.clay} style={styles.checkIcon} />
+              <RichText text={sci.caveat} style={styles.caveatText} />
+            </View>
+          ) : null}
+          {sci.source != null && sci.source !== '' ? (
+            <Text style={styles.sourceNote}>{sci.source}</Text>
+          ) : null}
+        </>
+      ),
+    });
+  }
+
+  // 4·5) The catch / Rescaled to you — State A 한정(엔진-정직 약속).
   if (showInspiredCta) {
     slides.push({
       key: 'catch',
       tone: 'dark',
       node: (
         <>
-          <Text style={styles.eyebrowOnDark}>BUT HERE&apos;S THE CATCH</Text>
-          <Text style={styles.headlineOnDark}>그들의 몸·목표에 맞춰진 식단이에요.</Text>
-          <Text style={styles.bodyOnDark}>
-            그대로 복사하면 칼로리와 3대 매크로가 당신의 하루엔 맞지 않아요.
-          </Text>
+          <Text style={styles.eyebrowOnDark}>{s?.catch.eyebrow ?? "BUT HERE'S THE CATCH"}</Text>
+          <RichText
+            text={s?.catch.headline ?? 'Built for their body & goals.'}
+            style={styles.headlineOnDark}
+          />
+          <RichText
+            text={
+              s?.catch.body ??
+              'Copy it exactly and the calories and macros may simply not fit your day.'
+            }
+            style={styles.bodyOnDark}
+          />
         </>
       ),
     });
+
+    const profiles = s?.rescaled.profiles ?? [
+      { who: 'Your calories', what: "Set to your daily target — not a performer's." },
+      { who: 'Your macros', what: 'Protein · carbs · fat split to your goal.' },
+      { who: 'Your foods', what: "Swaps for what you'll actually eat & can find." },
+    ];
     slides.push({
       key: 'rescale',
       tone: 'light',
       node: (
         <>
-          <Text style={styles.eyebrow}>RESCALED TO YOU</Text>
-          <Text style={styles.headline}>같은 베이스. 당신의 숫자.</Text>
+          <Text style={styles.eyebrow}>{s?.rescaled.eyebrow ?? 'RESCALED TO YOU'}</Text>
+          <RichText
+            text={s?.rescaled.headline ?? 'Same base. Your numbers.'}
+            style={styles.headlineSm}
+          />
           <View style={styles.rescaleRows}>
-            <RescaleRow theme={theme} label="YOUR CALORIES" desc="퍼포머가 아니라 당신의 하루 목표로." />
-            <RescaleRow theme={theme} label="YOUR MACROS" desc="단백질·탄수·지방을 당신 목표에 맞춰 분배." />
-            <RescaleRow theme={theme} label="YOUR FOODS" desc="실제로 먹을 수 있는 재료로 치환." />
+            {profiles.map((p, i) => (
+              <View key={`resc-${String(i)}`} style={styles.rescaleRow}>
+                <Text style={styles.rescaleLabel}>{p.who.toUpperCase()}</Text>
+                <RichText text={p.what} style={styles.rescaleDesc} />
+              </View>
+            ))}
           </View>
         </>
       ),
     });
   }
 
-  // 5) Your turn — CTA(상태별) + 면책.
+  // 6) Your turn — CTA(상태별) + 면책.
   slides.push({
     key: 'cta',
     tone: 'dark',
     node: (
       <>
         <Text style={styles.eyebrowOnDark}>
-          {showInspiredCta ? 'YOUR TURN' : showComingSoon ? 'COMING SOON' : 'MORE'}
+          {s?.cta.eyebrow ?? (showInspiredCta ? 'YOUR TURN' : showComingSoon ? 'COMING SOON' : 'MORE')}
         </Text>
-        <Text style={styles.headlineOnDark}>
-          {showInspiredCta
-            ? '당신 버전으로 만들어요.'
-            : showComingSoon
-              ? '맞춤 식단을 만드는 중이에요.'
-              : '출처에서 더 깊이 알아보세요.'}
-        </Text>
+        <RichText
+          text={
+            s?.cta.headline ??
+            (showInspiredCta
+              ? 'Get your version.'
+              : showComingSoon
+                ? 'A personalized plan is coming soon.'
+                : 'Explore the sources to learn more.')
+          }
+          style={styles.headlineOnDark}
+        />
         {showInspiredCta ? (
-          <Text style={styles.bodyOnDark}>몇 가지 질문이면 끝 — 엔진이 칼로리·매크로·취향으로 리스케일.</Text>
+          <RichText
+            text={
+              s?.cta.sub ??
+              'Answer a few quick questions — we rescale to your calories, macros & tastes.'
+            }
+            style={styles.bodyOnDark}
+          />
         ) : null}
         {ctaNode}
-        {showDisclaimer ? <Text style={styles.disclaimerOnDark}>{HEALTH_DISCLAIMER}</Text> : null}
+        {disclaimerText !== null ? (
+          <Text style={styles.disclaimerOnDark}>{disclaimerText}</Text>
+        ) : null}
       </>
     ),
   });
@@ -355,26 +495,10 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           }}
           onGenerated={() => {
             setSheetVisible(false);
-            Alert.alert('생성 완료!', 'News 헤더의 My Plan 에서 확인하세요.');
+            Alert.alert('Plan created', 'Find it under My Plan in the News header.');
           }}
         />
       ) : null}
-    </View>
-  );
-}
-
-interface RescaleRowProps {
-  theme: Theme;
-  label: string;
-  desc: string;
-}
-
-function RescaleRow({ theme, label, desc }: RescaleRowProps): React.JSX.Element {
-  const styles = useMemo(() => makeStyles(theme), [theme]);
-  return (
-    <View style={styles.rescaleRow}>
-      <Text style={styles.rescaleLabel}>{label}</Text>
-      <Text style={styles.rescaleDesc}>{desc}</Text>
     </View>
   );
 }
@@ -436,7 +560,12 @@ function makeStyles(theme: Theme) {
 
     bodyRoot: { flex: 1 },
     carouselArea: { flex: 1 },
-    slideScroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: theme.space(4), paddingVertical: theme.space(3) },
+    slideScroll: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: theme.space(4),
+      paddingVertical: theme.space(3),
+    },
     card: {
       borderRadius: 22,
       borderWidth: 1,
@@ -472,6 +601,14 @@ function makeStyles(theme: Theme) {
       lineHeight: 36,
       letterSpacing: -0.4,
     },
+    headlineSm: {
+      fontFamily: theme.font.display,
+      fontSize: 24,
+      fontWeight: theme.weight.medium,
+      color: n.ink,
+      lineHeight: 30,
+      letterSpacing: -0.3,
+    },
     headlineOnDark: {
       fontFamily: theme.font.display,
       fontSize: 30,
@@ -484,6 +621,22 @@ function makeStyles(theme: Theme) {
     bodyText: { fontFamily: theme.font.body, fontSize: 15, color: n.inkSoft, lineHeight: 23 },
     bodyMuted: { fontFamily: theme.font.body, fontSize: 14, color: n.muted },
     bodyOnDark: { fontFamily: theme.font.body, fontSize: 15, color: n.cream2, lineHeight: 23 },
+
+    bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(2) },
+    bulletDot: { fontFamily: theme.font.body, fontSize: 15, color: n.clay, lineHeight: 22 },
+    bulletText: { flex: 1, fontFamily: theme.font.body, fontSize: 14.5, color: n.inkSoft, lineHeight: 22 },
+    checkIcon: { marginTop: 3 },
+    caveatRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: theme.space(2),
+      marginTop: theme.space(1),
+      paddingTop: theme.space(2),
+      borderTopWidth: 1,
+      borderTopColor: n.line,
+    },
+    caveatText: { flex: 1, fontFamily: theme.font.body, fontSize: 14.5, color: n.ink, lineHeight: 22 },
+    sourceNote: { fontFamily: theme.font.mono, fontSize: 10.5, color: n.muted, lineHeight: 15, marginTop: theme.space(1) },
 
     swipeHint: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: theme.space(2) },
     swipeHintText: {
@@ -504,9 +657,19 @@ function makeStyles(theme: Theme) {
       letterSpacing: 1,
       textTransform: 'uppercase',
     },
-    sourceRow: { flexDirection: 'row', alignItems: 'center', gap: theme.space(2), paddingVertical: theme.space(1) },
+    sourceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(2),
+      paddingVertical: theme.space(1),
+    },
     sourceRowDisabled: { paddingVertical: theme.space(1), gap: 2 },
-    sourceLink: { fontFamily: theme.font.body, fontSize: 14, color: n.forest, textDecorationLine: 'underline' },
+    sourceLink: {
+      fontFamily: theme.font.body,
+      fontSize: 14,
+      color: n.forest,
+      textDecorationLine: 'underline',
+    },
     sourceOutlet: { fontFamily: theme.font.body, fontSize: 14, color: n.muted },
     sourceUnavailable: { fontFamily: theme.font.mono, fontSize: 11, color: n.clay },
 
@@ -533,7 +696,12 @@ function makeStyles(theme: Theme) {
       borderRadius: theme.radius.pill,
     },
     ctaDisabled: { opacity: 0.55 },
-    ctaLiveText: { fontFamily: theme.font.body, fontSize: 15, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
+    ctaLiveText: {
+      fontFamily: theme.font.body,
+      fontSize: 15,
+      fontWeight: theme.weight.bold,
+      color: n.ctaLive.fg,
+    },
     ctaComingSoon: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -546,8 +714,20 @@ function makeStyles(theme: Theme) {
       borderWidth: 1.5,
       borderColor: n.lime,
     },
-    ctaComingSoonText: { fontFamily: theme.font.body, fontSize: 14, fontWeight: theme.weight.bold, color: n.lime },
-    disclaimerOnDark: { fontFamily: theme.font.mono, fontSize: 10, color: n.cream2, lineHeight: 15, marginTop: theme.space(2), opacity: 0.85 },
+    ctaComingSoonText: {
+      fontFamily: theme.font.body,
+      fontSize: 14,
+      fontWeight: theme.weight.bold,
+      color: n.lime,
+    },
+    disclaimerOnDark: {
+      fontFamily: theme.font.mono,
+      fontSize: 10,
+      color: n.cream2,
+      lineHeight: 15,
+      marginTop: theme.space(2),
+      opacity: 0.85,
+    },
 
     footer: {
       flexDirection: 'row',

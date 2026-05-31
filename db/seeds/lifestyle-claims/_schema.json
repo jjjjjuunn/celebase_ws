@@ -72,6 +72,92 @@
           "type": ["string", "null"],
           "description": "선택. base_diets 의 slug (loader 가 id 로 매핑) — IMPL-020 사용"
         },
+        "story": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "description": "선택. 카드뉴스 6슬라이드 리치 카피(앱 캐러셀 + SNS 단일 원본). null/생략 ⇒ 앱 템플릿 fallback. 모든 텍스트 plain(HTML 금지) + **bold**/*accent* 인라인 마크업. (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001)",
+          "required": ["hook", "what", "catch", "rescaled", "cta"],
+          "properties": {
+            "hook": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["headline", "sub"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "sub": { "type": "string", "maxLength": 400 },
+                "swipe": { "type": "string", "maxLength": 40 }
+              }
+            },
+            "what": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["headline", "rows"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "rows": { "type": "array", "items": { "type": "string", "maxLength": 400 }, "minItems": 1, "maxItems": 4 },
+                "source": { "type": "string", "maxLength": 400 }
+              }
+            },
+            "science": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "required": ["headline", "checks"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "checks": { "type": "array", "items": { "type": "string", "maxLength": 400 }, "maxItems": 4 },
+                "caveat": { "type": "string", "maxLength": 400 },
+                "source": { "type": "string", "maxLength": 400 }
+              }
+            },
+            "catch": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["headline", "body"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "body": { "type": "string", "maxLength": 600 }
+              }
+            },
+            "rescaled": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["headline", "profiles"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["who", "what"],
+                    "properties": {
+                      "who": { "type": "string", "maxLength": 80 },
+                      "what": { "type": "string", "maxLength": 400 }
+                    }
+                  }
+                },
+                "source": { "type": "string", "maxLength": 400 }
+              }
+            },
+            "cta": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["headline", "sub"],
+              "properties": {
+                "eyebrow": { "type": "string", "maxLength": 80 },
+                "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "button": { "type": "string", "maxLength": 40 },
+                "sub": { "type": "string", "maxLength": 400 },
+                "disclaimer": { "type": "string", "maxLength": 800 }
+              }
+            }
+          }
+        },
         "tags": {
           "type": "array",
           "items": { "type": "string", "maxLength": 50 },

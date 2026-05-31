@@ -29,6 +29,34 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-31
+agent: claude-opus-4-8 (1M context) + advisor (architecture review)
+task_id: IMPL-MOBILE-CLAIM-STORY-SCHEMA-001
+commit_sha: 065378f
+files_changed:
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+  - db/migrations/0027_lifestyle_claims_story.sql
+  - db/seeds/lifestyle-claims/_schema.json
+  - db/seeds/loaders/claimsLoader.ts
+  - db/seeds/lifestyle-claims/cameron-diaz.json
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - scripts/validate-claim-seeds.py
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (shared-types build · mobile tc/lint/test 220 · content-service tc/test 95 · web tc/claims-bff 15 · validate-claim-seeds PASS) + advisor (detail-only 아키텍처 검증) + L3 self-adversarial
+---
+### 완료: claim.story 통합 콘텐츠 스키마 — 카드뉴스 리치 카피 단일 원본 (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001)
+- 콘텐츠/디자인 핸드오프(2026-05-31) 구현: `lifestyle_claims.story`(JSONB, nullable, detail-only) 도입. 앱 캐러셀이 story 있으면 6슬라이드 리치 카피(decode→what→science?→catch→rescaled→cta), 없으면 영어 템플릿 fallback. story=null 기존 63 claim 무중단.
+- **detail-only 아키텍처(advisor)**: feed wire(LifestyleClaimWireSchema)·base entity·parity guard 불변 → 피드 payload lean. detail 만 `LifestyleClaimDetailWireSchema = wire.extend({story})` + findById SQL 에 `lc.story` 추가(CLAIM_COLUMNS 미변경). BFF Zod strip 이 linchpin — detail 스키마 확장으로 해결.
+- 6레이어 lockstep: migration 0027 · _schema.json(story, additionalProperties:false) · loader(backfill-if-NULL, $14::jsonb) · shared-types(ClaimStory 양방향 parity) · content-service findById · ClaimDetailScreen(story-or-fallback + science 슬라이드 + RichText 마크업) · validate-claim-seeds.py(leaf 재귀 html-safe).
+- Cameron 식단 claim 에 story 삽입(CONTENT-GATE PASS·승인본). CTA "Make my Plan" 통일. 게스트 boot-kick·면책·SourceRow allowlist 보존 — 기존 ClaimDetail 9 + guest no-boot-kick 테스트 갱신 통과. parseRich 유닛테스트 4 신규.
+- CL 준수: NAME-CTA(버튼 제네릭)·IMAGE(텍스트만)·PRODUCT-CLAIM("a few quick questions")·ENGINE(리스케일 약속만)·§9.3#1(plain-text 재귀).
+- 검증: shared-types build · mobile tc 0/lint 0/test 220 · content-service tc 0/test 95 · web tc 0/claims-bff 15 · validate-claim-seeds PASS. spec.md §7.2 sync.
+### 미완료: staging 가시화 — migration 0027 + 재시드(seed-staging.sh) 실행해야 Cameron 6슬라이드 노출(CHORE-STAGING-MIGRATION-AUTORUN 갭, 수동). 나머지 62 claim story 작성(콘텐츠 처리량). SNS card-system ↔ seed story 미러 방향. 카테고리 accent 토큰(Beauty=rose/Wellness=green — 디자인 제공 대기). RichText accent=italic(v1.1 serif). 슬라이드 hero 이미지(별도 핸드오프, 음식/오브제).
+### 연관 파일: packages/shared-types/src/{entities.ts,schemas/lifestyle-claims.ts}, db/migrations/0027_lifestyle_claims_story.sql, db/seeds/lifestyle-claims/{_schema.json,cameron-diaz.json}, db/seeds/loaders/claimsLoader.ts, services/content-service/src/repositories/lifestyle-claim.repository.ts, scripts/validate-claim-seeds.py, apps/mobile/src/screens/ClaimDetailScreen.tsx, spec.md
+
+---
+date: 2026-05-31
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001
 commit_sha: 63210a4

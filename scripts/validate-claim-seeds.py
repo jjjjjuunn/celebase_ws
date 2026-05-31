@@ -90,6 +90,24 @@ def validate_html_safe(text: str | None, ctx: str, errors: list[str]) -> None:
         errors.append(f"{ctx}: '<' 문자 포함 — HTML 태그 의심 (§9.3 #1)")
 
 
+def validate_story_html_safe(value: Any, ctx: str, errors: list[str]) -> None:
+    """story(JSONB)의 모든 문자열 leaf 에 §9.3 #1 plain-text 검사를 재귀 적용.
+
+    `**bold**`/`*accent*` 인라인 마크업은 허용되지만 '<'(HTML)는 금지된다.
+    스키마 검증(_schema.json additionalProperties:false)은 구조를 별도로 강제한다.
+    """
+    if value is None:
+        return
+    if isinstance(value, str):
+        validate_html_safe(value, ctx, errors)
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            validate_story_html_safe(v, f"{ctx}.{k}", errors)
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            validate_story_html_safe(v, f"{ctx}[{i}]", errors)
+
+
 def validate_claim(
     claim: dict[str, Any], slug: str, idx: int, errors: list[str]
 ) -> None:
@@ -98,6 +116,8 @@ def validate_claim(
     # §9.3 #1: plain text fields
     validate_html_safe(claim["headline"], f"{ctx_base}.headline", errors)
     validate_html_safe(claim.get("body"), f"{ctx_base}.body", errors)
+    # story 의 모든 텍스트 leaf 도 plain-text 강제 (카드뉴스 리치 카피).
+    validate_story_html_safe(claim.get("story"), f"{ctx_base}.story", errors)
 
     # §9.3 #2: URL allowlist
     p_url = claim.get("primary_source_url")

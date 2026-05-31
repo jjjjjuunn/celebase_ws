@@ -353,6 +353,32 @@ export interface PhiAccessLog {
 
 // ── lifestyle_claims ───────────────────────────────────────────────────────
 
+/**
+ * 카드뉴스 6슬라이드 리치 카피 — `lifestyle_claims.story` (JSONB, nullable, detail-only).
+ * 앱 캐러셀(ClaimDetailScreen)과 SNS 카드의 단일 콘텐츠 원본. NULL이면 앱은 하드코딩
+ * 템플릿 fallback. 모든 텍스트는 plain(HTML `<` 금지) + `**bold**`/`*accent*` 인라인 마크업.
+ * (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001 / 디자인 핸드오프 2026-05-31)
+ * Zod 동기화: packages/shared-types/src/schemas/lifestyle-claims.ts ClaimStorySchema.
+ */
+export interface ClaimStorySlide {
+  eyebrow?: string | undefined;
+  headline: string;
+}
+export interface ClaimStory {
+  hook: ClaimStorySlide & { sub: string; swipe?: string | undefined };
+  what: ClaimStorySlide & { rows: string[]; source?: string | undefined };
+  science?:
+    | (ClaimStorySlide & { checks: string[]; caveat?: string | undefined; source?: string | undefined })
+    | null
+    | undefined;
+  catch: ClaimStorySlide & { body: string };
+  rescaled: ClaimStorySlide & {
+    profiles: Array<{ who: string; what: string }>;
+    source?: string | undefined;
+  };
+  cta: ClaimStorySlide & { button?: string | undefined; sub: string; disclaimer?: string | undefined };
+}
+
 export interface LifestyleClaim {
   id: string;
   celebrity_id: string | null;
