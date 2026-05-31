@@ -2221,6 +2221,16 @@ Lean v1 은 신규 스키마·콘텐츠 의존 없이 기존 claim 필드 + 정�
 - **렌더링**: 가로 `ScrollView pagingEnabled` 에 전 슬라이드 동시 마운트(가상화 없음, ≤5장). 영역 높이 onLayout 측정 → 슬라이드별 세로 스크롤 바운드. Canvas v1(`theme.news.*`) cream/forest 카드 · Fraunces · lime CTA · dots+counter.
 - **CL-ENGINE·CL-PRODUCT-CLAIM 준수**: "칼로리·매크로·취향 리스케일"만 약속, 하드코딩 질문 수("3 questions") 금지 → "몇 가지 질문" 일반 표현.
 
+#### 7.2 Claim story rich-copy schema *(IMPL-MOBILE-CLAIM-STORY-SCHEMA-001)*
+
+카드뉴스 6슬라이드 카피의 단일 콘텐츠 원본으로 `lifestyle_claims.story` (JSONB, nullable, detail-only) 를 도입한다. 앱 캐러셀(ClaimDetailScreen)은 `claim.story` 가 있으면 리치 6슬라이드(decode → what → science? → catch → rescaled → cta)를, 없으면(NULL) 영어 정적 템플릿 fallback 을 렌더한다. SNS 카드도 동일 `story` 를 소비해 이중 작성을 종료한다 (콘텐츠/디자인 핸드오프 2026-05-31, 결정 ③).
+
+story 는 `findById`(detail) 에서만 select 한다 — 피드 리스트(`LifestyleClaimWireSchema`)는 미포함이라 payload 가 lean 하다. 계약은 `LifestyleClaimDetailWireSchema = LifestyleClaimWireSchema.extend({ story: ClaimStorySchema.nullable() })` 이며 shape 는 seed `_schema.json` 의 claim.story(additionalProperties:false)와 일치한다. 모든 텍스트는 plain(HTML 금지 — validate-claim-seeds.py 가 leaf 재귀 검사) + `**bold**`/`*accent*` 인라인 마크업(RichText 렌더 — 리터럴 마커 미노출).
+
+- **레이어(lockstep)**: 마이그레이션 0027(ADD COLUMN story JSONB) · `_schema.json` · loader(backfill-if-NULL) · shared-types(ClaimStory + 양방향 parity guard) · content-service findById · ClaimDetailScreen · validator.
+- **CTA 통일**: 마지막 슬라이드 버튼 = `story.cta.button ?? "Make my Plan"` (기존 "Eat like this celebrity" 통일). 게이트 동작·게스트 boot-kick 불변식 보존.
+- **영어화(결정 ①)**: story 카피 + fallback 템플릿 모두 영어. CL-NAME-CTA(셀럽명 미포함)·CL-ENGINE·CL-PRODUCT-CLAIM 준수.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

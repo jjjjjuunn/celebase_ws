@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ClaimType, ClaimStatus, TrustGrade } from '../enums.js';
-import type { LifestyleClaim, ClaimSource } from '../entities.js';
+import type { LifestyleClaim, ClaimSource, ClaimStory } from '../entities.js';
 
 // ── Wire schemas (API 직렬화 형식: Date → ISO 8601 string) ─────────────
 
@@ -49,10 +49,55 @@ export const LifestyleClaimWireSchema = z.object({
 });
 export type LifestyleClaimWire = z.infer<typeof LifestyleClaimWireSchema>;
 
+// ── Story (카드뉴스 6슬라이드 리치 카피 — detail-only JSONB) ────────────
+// 모든 텍스트 plain + `**bold**`/`*accent*` 인라인 마크업. 비-strict(미래 필드 strip,
+// forward-compat) — 권위 검증은 seed 의 _schema.json(additionalProperties:false).
+
+const StorySlideHeadSchema = {
+  eyebrow: z.string().optional(),
+  headline: z.string(),
+};
+
+export const ClaimStorySchema = z.object({
+  hook: z.object({ ...StorySlideHeadSchema, sub: z.string(), swipe: z.string().optional() }),
+  what: z.object({
+    ...StorySlideHeadSchema,
+    rows: z.array(z.string()).min(1).max(4),
+    source: z.string().optional(),
+  }),
+  science: z
+    .object({
+      ...StorySlideHeadSchema,
+      checks: z.array(z.string()).max(4),
+      caveat: z.string().optional(),
+      source: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
+  catch: z.object({ ...StorySlideHeadSchema, body: z.string() }),
+  rescaled: z.object({
+    ...StorySlideHeadSchema,
+    profiles: z.array(z.object({ who: z.string(), what: z.string() })),
+    source: z.string().optional(),
+  }),
+  cta: z.object({
+    ...StorySlideHeadSchema,
+    button: z.string().optional(),
+    sub: z.string(),
+    disclaimer: z.string().optional(),
+  }),
+});
+
 // ── Response schemas ──────────────────────────────────────────────────
 
+// detail claim = feed wire + story(nullable). story 는 detail-only(피드는 미포함 — payload lean).
+export const LifestyleClaimDetailWireSchema = LifestyleClaimWireSchema.extend({
+  story: ClaimStorySchema.nullable(),
+});
+export type LifestyleClaimDetailWire = z.infer<typeof LifestyleClaimDetailWireSchema>;
+
 export const LifestyleClaimDetailResponseSchema = z.object({
-  claim: LifestyleClaimWireSchema,
+  claim: LifestyleClaimDetailWireSchema,
   sources: z.array(ClaimSourceWireSchema),
 });
 export type LifestyleClaimDetailResponse = z.infer<
@@ -106,4 +151,10 @@ const _claimSourceWireRowParity =
     created_at: string;
   };
 void _claimSourceWireRowParity;
+
+// ClaimStorySchema(Zod) ↔ ClaimStory(entity) 양방향 parity (drift guard).
+const _claimStoryParity = null as unknown as z.infer<typeof ClaimStorySchema> satisfies ClaimStory;
+void _claimStoryParity;
+const _claimStoryParityRev = null as unknown as ClaimStory satisfies z.infer<typeof ClaimStorySchema>;
+void _claimStoryParityRev;
 

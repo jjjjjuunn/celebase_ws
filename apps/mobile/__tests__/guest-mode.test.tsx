@@ -44,6 +44,7 @@ const CLAIM = {
   is_active: true,
   created_at: '2026-04-15T00:00:00.000Z',
   updated_at: '2026-04-15T00:00:00.000Z',
+  story: null,
 };
 
 function makeResponse(status: number, body: unknown): Response {
@@ -119,7 +120,8 @@ describe('guest mode — no boot-kick', () => {
     await screen.findByText('plant-based reset');
     // 게스트 CTA = "Sign in to make your plan" (활성 CTA 아님).
     expect(screen.getByLabelText('Sign in to make your plan')).toBeTruthy();
-    expect(screen.queryByLabelText('Eat like this celebrity')).toBeNull();
+    // authed 활성 CTA("Make my Plan")는 게스트에 노출 안 됨(로그인 게이트만).
+    expect(screen.queryByLabelText('Make my Plan')).toBeNull();
     // 핵심: protected(/api/meal-plans/credits 등) 0건 + logout 미발생 → boot-kick 없음.
     expect(protectedCalls()).toEqual([]);
     expect(logoutSpy).not.toHaveBeenCalled();

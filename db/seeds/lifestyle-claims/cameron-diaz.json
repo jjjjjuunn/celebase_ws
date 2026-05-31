@@ -4,6 +4,56 @@
     {
       "claim_type": "food",
       "base_diet_id_slug": "cameron-diaz",
+      "story": {
+        "hook": {
+          "eyebrow": "DIET · CELEBRITY DECODE",
+          "headline": "Cameron Diaz's longevity plate, *decoded.*",
+          "sub": "What she's said she eats on her Mediterranean, 80/20 approach — and what it looks like *rescaled to you.*"
+        },
+        "what": {
+          "eyebrow": "WHAT SHE DOES",
+          "headline": "Mediterranean, whole-food, 80/20.",
+          "rows": [
+            "Savory oats with **zucchini, collard greens & egg whites** — her go-to whole-food breakfast.",
+            "**Whole-wheat & quinoa pasta** as staple grains, a **rice-based probiotic drink,** and a daily squeeze of lemon.",
+            "**Crowds out refined sugar & processed food** with whole foods — an **80/20** framework, not rigid restriction."
+          ],
+          "source": "Sources: People (on \"The Body Book\"); Cameron Diaz, \"The Body Book\" / \"The Longevity Book\"."
+        },
+        "science": {
+          "eyebrow": "WHAT THE SCIENCE SAYS",
+          "headline": "One of the most-studied patterns — and 80/20 is doable.",
+          "checks": [
+            "Mediterranean eating is **associated with** better heart health — lower LDL & blood pressure.",
+            "In the landmark **PREDIMED** trial, a Mediterranean diet with olive oil or nuts was linked to **about a third fewer major cardiovascular events.**",
+            "It's also **associated with** healthy aging & longevity (Blue Zones)."
+          ],
+          "caveat": "\"Associated with\" isn't a guarantee — and **her calorie & protein needs aren't yours.**",
+          "source": "Per Mayo Clinic; PREDIMED (NEJM) / NCBI review."
+        },
+        "catch": {
+          "eyebrow": "BUT HERE'S THE CATCH",
+          "headline": "Her plate was built for *her* body & goals.",
+          "body": "What works at her calorie and protein needs won't automatically fit yours. Copy the exact plate — the portions, and the macros — and it simply may not match your day."
+        },
+        "rescaled": {
+          "eyebrow": "RESCALED TO YOU",
+          "headline": "Same Mediterranean base. Your numbers.",
+          "profiles": [
+            { "who": "Your calories", "what": "Set to **your** daily target — not a celebrity's." },
+            { "who": "Your macros", "what": "Protein · carbs · fat **split to your goal.**" },
+            { "who": "Your foods", "what": "Swaps for what you'll **actually eat & can find.**" }
+          ],
+          "source": "Built from your onboarding answers — her real Mediterranean template, rescaled."
+        },
+        "cta": {
+          "eyebrow": "YOUR TURN",
+          "headline": "Get *your* personalized Mediterranean plan.",
+          "button": "Make my Plan",
+          "sub": "Answer a few quick questions. We tailor a Mediterranean week to your calories, macros & tastes.",
+          "disclaimer": "Editorial based on publicly reported information (People; \"The Body Book\" / \"The Longevity Book\"). celebase is not affiliated with, endorsed by, or sponsored by Cameron Diaz. Not medical advice; individual results vary."
+        }
+      },
       "trust_grade": "B",
       "status": "published",
       "is_health_claim": true,

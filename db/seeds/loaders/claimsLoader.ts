@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import type { ClaimStory } from '@celebbase/shared-types';
 
 // Shape of db/seeds/lifestyle-claims/<slug>.json. Authored to the lifestyle_claims
 // + claim_sources schema (migration 0014). base_diet_id / disclaimer_key are
@@ -30,6 +31,11 @@ export interface SeedClaim {
    * NULL/omitted ⇒ CTA hidden.
    */
   base_diet_id_slug?: string | null;
+  /**
+   * Optional. 카드뉴스 6슬라이드 리치 카피(detail-only). 앱 캐러셀 + SNS 단일 원본.
+   * 생략/null ⇒ 앱은 하드코딩 템플릿 fallback. (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001)
+   */
+  story?: ClaimStory | null;
   tags?: string[];
   status?: string;
   sources?: SeedClaimSource[];
@@ -100,8 +106,12 @@ export async function loadClaims(
 
     // IS NOT DISTINCT FROM — celebrity_id NULL(무셀럽 카드)에서도 (NULL=NULL) 매칭되어
     // 멱등성 유지(= 단순 `celebrity_id = $1` 은 NULL 을 못 잡아 재시드 시 중복 삽입).
-    const existing = await client.query<{ id: string; base_diet_id: string | null }>(
-      `SELECT id, base_diet_id FROM lifestyle_claims
+    const existing = await client.query<{
+      id: string;
+      base_diet_id: string | null;
+      story: unknown;
+    }>(
+      `SELECT id, base_diet_id, story FROM lifestyle_claims
         WHERE celebrity_id IS NOT DISTINCT FROM $1 AND headline = $2
         LIMIT 1`,
       [celebrityId, claim.headline],
@@ -117,6 +127,14 @@ export async function loadClaims(
           [baseDietId, existing.rows[0].id],
         );
       }
+      // Backfill story under the same fill-if-NULL rule (rows pre-date the story
+      // field). Don't clobber an existing story (operator/admin override).
+      if (claim.story != null && existing.rows[0].story === null) {
+        await client.query('UPDATE lifestyle_claims SET story = $1::jsonb WHERE id = $2', [
+          JSON.stringify(claim.story),
+          existing.rows[0].id,
+        ]);
+      }
       continue;
     }
 
@@ -129,8 +147,8 @@ export async function loadClaims(
       `INSERT INTO lifestyle_claims (
          celebrity_id, claim_type, headline, body, trust_grade, primary_source_url,
          verified_by, is_health_claim, disclaimer_key, base_diet_id, tags, status,
-         published_at
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         published_at, story
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)
        RETURNING id`,
       [
         celebrityId,
@@ -146,6 +164,7 @@ export async function loadClaims(
         claim.tags ?? [],
         status,
         publishedAt,
+        claim.story != null ? JSON.stringify(claim.story) : null,
       ],
     );
     const claimId = rows[0]?.id;

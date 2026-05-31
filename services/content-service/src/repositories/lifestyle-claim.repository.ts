@@ -2,6 +2,7 @@ import type pg from 'pg';
 import type {
   LifestyleClaim,
   ClaimSource,
+  ClaimStory,
   ClaimType,
   ClaimStatus,
   TrustGrade,
@@ -31,6 +32,12 @@ export interface ListResult<T> {
 
 export interface LifestyleClaimWithSources extends LifestyleClaim {
   sources: ClaimSource[];
+}
+
+// detail-only: findById 는 story(JSONB) 를 함께 반환한다. 피드/리스트/admin 은 story 를
+// select 하지 않아 payload 가 lean 하다(CLAIM_COLUMNS 미포함). (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001)
+export interface LifestyleClaimDetailWithSources extends LifestyleClaimWithSources {
+  story: ClaimStory | null;
 }
 
 interface CursorPayload {
@@ -104,12 +111,13 @@ function buildNextCursor(items: LifestyleClaim[], hasNext: boolean): string | nu
 export async function findById(
   pool: pg.Pool,
   id: string,
-): Promise<LifestyleClaimWithSources | null> {
+): Promise<LifestyleClaimDetailWithSources | null> {
   // LEFT JOIN + NULL-allowing celeb-active guard: celebrity-linked claims still
   // require an active celebrity; celebrity-optional trend cards (celebrity_id IS NULL)
   // are returned without a celebrity. (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)
+  // detail-only: lc.story 를 함께 select(피드 리스트는 미포함). pg 가 JSONB → object 파싱.
   const sql = `
-    SELECT ${CLAIM_COLUMNS}
+    SELECT ${CLAIM_COLUMNS}, lc.story
     FROM lifestyle_claims AS lc
     LEFT JOIN celebrities AS c
       ON c.id = lc.celebrity_id
@@ -119,7 +127,7 @@ export async function findById(
       AND (lc.celebrity_id IS NULL OR c.is_active = TRUE)
     LIMIT 1
   `;
-  const { rows } = await pool.query<LifestyleClaim>(sql, [id]);
+  const { rows } = await pool.query<LifestyleClaim & { story: ClaimStory | null }>(sql, [id]);
   const claim = rows[0];
   if (!claim) return null;
 
