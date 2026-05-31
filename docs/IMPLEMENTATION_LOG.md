@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-30
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-NEWS-NAV-ABSORB-001
-commit_sha: PENDING
+commit_sha: 5995c95
 files_changed:
   - apps/mobile/src/navigation/MainTabsNavigator.tsx
   - apps/mobile/src/navigation/NewsNavigator.tsx
