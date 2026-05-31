@@ -28,6 +28,26 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-05-31
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001
+commit_sha: 63210a4
+files_changed:
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (tsc 0 / lint 0 / jest 216 incl. ClaimDetail 9 + guest no-boot-kick; Release 시뮬레이터 빌드 성공)
+---
+### 완료: ClaimDetail → 카드뉴스 캐러셀 Lean v1 (IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001)
+- 사용자 재정의(2026-05-31): "이미지 기반 카드뉴스" = 사진이 아니라 State A pilot 같은 다중 슬라이드 스와이프 스토리 포맷. Lean v1 = 기존 claim 필드 + 정적 템플릿만(신규 스키마/콘텐츠 의존 0).
+- ClaimDetailScreen 전면 재구성: 세로 단일 화면 → 가로 ScrollView pagingEnabled 캐러셀. decode → what they do(+trust+출처) → [the catch → rescaled to you](State A) → your turn(CTA). State A 5장 / State B·non-food 3장.
+- CTA·boot-kick·면책·SourceRow allowlist 로직 그대로 보존(레이아웃만 슬라이드화) → 전 슬라이드 동시 마운트라 기존 ClaimDetail 9 + guest no-boot-kick 테스트 무수정 통과.
+- Canvas v1(theme.news.*): cream/forest 카드, Fraunces 헤드라인, lime CTA, dots+counter 푸터. onLayout 높이 측정 → 슬라이드 세로 스크롤 바운드.
+- CL-PRODUCT-CLAIM 준수: "질문 3개" 하드코딩 → "몇 가지 질문" 일반화. CL-ENGINE: 칼로리·매크로·취향 리스케일만 약속.
+- 검증: tsc 0 / eslint 0 / jest 216(36 suites) / Release 시뮬레이터 빌드 성공. spec.md §7.2 sync.
+### 미완료: 슬라이드 hero 이미지(음식/오브제 — CL-IMAGE 얼굴 금지) + per-claim what-she-does/science 콘텐츠(디자인 이미지 시스템·콘텐츠 모델 확정 후 additive). State B/non-food 슬라이드 카피 폴리시. 캐러셀 스와이프 제스처 실기기 검증.
+### 연관 파일: apps/mobile/src/screens/ClaimDetailScreen.tsx, spec.md
+
+---
 date: 2026-05-30
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-NEWS-NAV-ABSORB-001
