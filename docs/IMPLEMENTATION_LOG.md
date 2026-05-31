@@ -29,6 +29,31 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-30
+agent: claude-opus-4-8 (1M context) + advisor (scope review)
+task_id: IMPL-MOBILE-NEWS-CARD-CANVAS-001
+commit_sha: 0dfac57
+files_changed:
+  - packages/design-tokens/tokens.css
+  - packages/design-tokens/src/tokens.native.ts
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/components/ClaimCard.tsx
+  - apps/mobile/src/components/TrustGradeBadge.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tsc 0 / eslint 0 / jest 216·guest no-boot-kick 유지 / fe_token_hardcode pass)
+---
+### 완료: News 카드 UI — Design Canvas v1 구현 (IMPL-MOBILE-NEWS-CARD-CANVAS-001)
+- **디자인 Canvas v1**(디자인 클로즈아웃 §2 수용 체크리스트) 을 모바일 News 표면에 구현. faceless editorial — Fraunces 헤드라인 · 타이포 모노그램 · trust 배지 · per-card CTA.
+- **News-scoped 토큰**(advisor 판단): 전역 팔레트(gold/ink) 리테마 대신 `--cb-news-*`(paper/cream/forest/lime/clay/trust/cta) primitives 를 design-tokens 에 추가 + `theme.news` 노출. 미설계 화면 무단 리컬러 회피 — 전역 마이그레이션은 디자인 per-screen 캔버스 도착 시.
+- **ClaimCard 재설계**: 모노그램(셀럽 사진 미렌더 — `uri` 미전달; 무셀럽=lime 글리프) + 이름/eyebrow + 카테고리 chip + Fraunces h3 + body(피드만) + botrow(trust 배지 + "Source: {outlet} ↗" + per-card CTA) + 면책(피드, D/health). detail-header variant 는 compact(body/CTA/면책은 ClaimDetail 책임 — 중복 방지).
+- **TrustGradeBadge**: Canvas — A solid forest/lime · B·C outline · D clay+border · **E 미렌더**(draft only).
+- **per-card CTA(게스트 안전)**: food+base_diet→"Make my Plan"(live) / 무소스·트렌드→"준비 중·알림"(soon) / non-food→없음. 시각 affordance만 — 카드 전체가 ClaimDetail 로 네비(피드 protected fetch 0 → 게스트 boot-kick 회피, PR195 불변식). NewsScreen: paper bg + forest/lime 버킷탭.
+- **검증**: mobile tsc 0, eslint 0, jest 216/216(guest no-boot-kick 포함 — CTA navigate-only 로 속성 유지), fe_token_hardcode pass. spec.md §7.2 sync.
+### 미완료: 빈상태/스켈레톤 Canvas 브랜딩(현 EmptyState+스피너로 "빈화면 금지"는 충족, 정확한 Canvas 버전은 polish). Hanken Grotesk(body)+Spline Sans Mono(mono) 폰트 스왑(전역 — fast-follow; Fraunces 는 적용됨). 디자인의 staging §2 리뷰 1회(수렴점). staging 재배포(EAS dev build).
+### 연관 파일: apps/mobile/src/components/ClaimCard.tsx, apps/mobile/src/components/TrustGradeBadge.tsx, apps/mobile/src/screens/NewsScreen.tsx, apps/mobile/src/ui/theme.ts, packages/design-tokens/tokens.css, spec.md
+
+---
+date: 2026-05-30
 agent: claude-opus-4-8 (1M context) + workflow (7 expand subagents)
 task_id: CHORE-SEEDS-RECIPE-VARIATIONS-001
 commit_sha: 56d7acb

@@ -84,6 +84,35 @@ export interface Theme {
   };
   /** Trust grade signal colors (A best → E lowest). Theme-invariant signal palette. */
   trust: Record<TrustGradeKey, { bg: string; fg: string }>;
+  /**
+   * News surface palette — Design Canvas v1 (IMPL-MOBILE-NEWS-CARD-CANVAS-001).
+   * Editorial wellness, faceless. Scoped to News feed / ClaimCard / ClaimDetail;
+   * theme-invariant (fixed brand palette, not light/dark reactive).
+   */
+  news: {
+    paper: string;
+    cream: string;
+    cream2: string;
+    ink: string;
+    inkSoft: string;
+    forest: string;
+    forest2: string;
+    lime: string;
+    clay: string;
+    line: string;
+    muted: string;
+    /** Trust badges — A solid · B/C outline · D clay+disclaimer · E not rendered. */
+    trust: {
+      A: { bg: string; fg: string };
+      B: { fg: string; border: string };
+      C: { fg: string; border: string };
+      D: { bg: string; fg: string; border: string };
+    };
+    ctaLive: { bg: string; fg: string };
+    ctaSoonFg: string;
+    trend: { bg: string; fg: string };
+    chip: { fg: string; bg: string; border: string };
+  };
 }
 
 export type SpaceStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
@@ -197,6 +226,37 @@ function buildTheme(mode: ThemeMode): Theme {
       C: { bg: resolveToken(mode, '--cb-color-trust-c-bg'), fg: resolveToken(mode, '--cb-color-trust-c-fg') },
       D: { bg: resolveToken(mode, '--cb-color-trust-d-bg'), fg: resolveToken(mode, '--cb-color-trust-d-fg') },
       E: { bg: resolveToken(mode, '--cb-color-trust-e-bg'), fg: resolveToken(mode, '--cb-color-trust-e-fg') },
+    },
+    news: {
+      paper: resolveToken(mode, '--cb-news-paper'),
+      cream: resolveToken(mode, '--cb-news-cream'),
+      cream2: resolveToken(mode, '--cb-news-cream-2'),
+      ink: resolveToken(mode, '--cb-news-ink'),
+      inkSoft: resolveToken(mode, '--cb-news-ink-soft'),
+      forest: resolveToken(mode, '--cb-news-forest'),
+      forest2: resolveToken(mode, '--cb-news-forest-2'),
+      lime: resolveToken(mode, '--cb-news-lime'),
+      clay: resolveToken(mode, '--cb-news-clay'),
+      line: resolveToken(mode, '--cb-news-line'),
+      muted: resolveToken(mode, '--cb-news-muted'),
+      trust: {
+        A: { bg: resolveToken(mode, '--cb-news-trust-a-bg'), fg: resolveToken(mode, '--cb-news-trust-a-fg') },
+        B: { fg: resolveToken(mode, '--cb-news-trust-b-fg'), border: resolveToken(mode, '--cb-news-trust-b-border') },
+        C: { fg: resolveToken(mode, '--cb-news-trust-c-fg'), border: resolveToken(mode, '--cb-news-trust-c-border') },
+        D: {
+          bg: resolveToken(mode, '--cb-news-trust-d-bg'),
+          fg: resolveToken(mode, '--cb-news-trust-d-fg'),
+          border: resolveToken(mode, '--cb-news-trust-c-border'),
+        },
+      },
+      ctaLive: { bg: resolveToken(mode, '--cb-news-cta-live-bg'), fg: resolveToken(mode, '--cb-news-cta-live-fg') },
+      ctaSoonFg: resolveToken(mode, '--cb-news-cta-soon-fg'),
+      trend: { bg: resolveToken(mode, '--cb-news-trend-bg'), fg: resolveToken(mode, '--cb-news-trend-fg') },
+      chip: {
+        fg: resolveToken(mode, '--cb-news-chip-fg'),
+        bg: resolveToken(mode, '--cb-news-chip-bg'),
+        border: resolveToken(mode, '--cb-news-chip-border'),
+      },
     },
   };
 }

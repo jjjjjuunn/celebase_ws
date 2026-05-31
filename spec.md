@@ -2163,6 +2163,12 @@ IMPL-MOBILE-M5-NAV-001 의 4탭 (Discover / Plan / Profile / Settings) 은 본 t
 - **News** (📰): 웰니스 트렌드 카드 피드 (News-first 퍼널 입구). 실 `lifestyle_claims` 를 Diet / Beauty / Wellness 로 카테고리화해 `ClaimCard` 로 렌더 → 카드 탭 시 `ClaimDetail`. 기존 `Profile` 탭 슬롯 대체. (IMPL-MOBILE-NEWS-FEED-001.) **셀럽은 optional (IMPL-MOBILE-TREND-CARD-CELEB-OPTIONAL-001)**: 셀럽 attribution 이 있으면 client-side join 으로 표시. food 카드 중 셀럽 base_diet 가 연결된 것만 "Make my Plan"(Eat like this celebrity) CTA 를 활성화하고, 셀럽/식단 소스가 없는 food 카드는 "준비 중"(coming soon) 으로 표시한다. 비-food 카드(Beauty/Wellness)는 밀플랜 CTA 가 없다.
 - **Settings** (⚙️): Apple Guideline 5.1.1(v) 충족 + Profile 카드 (avatar + tier badge + Upgrade) 흡수.
 
+**News 카드 디자인 — Design Canvas v1 (IMPL-MOBILE-NEWS-CARD-CANVAS-001).** `ClaimCard` 는 faceless editorial 이다.
+셀럽 사진 대신 타이포 모노그램(이니셜·forest 원; 무셀럽 트렌드 카드는 lime 글리프)을 렌더하고, 셀럽 이름은 에디토리얼 슬롯(이름행·헤드라인·body)에만 노출하며 CTA 카피는 제네릭으로 고정한다(법적 §3-1, 사진 licensing/퍼블리시티 회피).
+카드 구성: 카테고리 chip(Diet/Beauty/Wellness), Fraunces 헤드라인, trust_grade 배지(A solid forest / B·C outline / D clay+면책 자동 / E 미렌더), 탭 가능한 출처("Source: {outlet} ↗"), per-card CTA.
+per-card CTA 는 food+base_diet → "Make my Plan"(live lime), 무소스/트렌드 → "준비 중·알림"(soon ghost), non-food → 없음 으로 분기한다. 단 피드 카드는 protected fetch 없이 ClaimDetail 로 네비게이트만 하고 실제 게이트된 액션은 ClaimDetail 에서 실행한다(무토큰 게스트 boot-kick 회피, PR 195 불변식 유지).
+News 표면은 News-scoped 토큰(`--cb-news-*`: paper/cream/forest/lime/clay)을 사용하며, 전역 팔레트는 디자인이 화면별 캔버스를 전달할 때 점진 마이그레이션한다(Fraunces 헤드라인은 적용, Hanken/Spline 본문·모노 폰트 스왑은 fast-follow).
+
 ```
 RootStack (NavigationContainer) — phase: loading | guest | auth | main
   ├── Main (guest: cold-start 무토큰) — BottomTabs 2탭 [Celebrities, News], News 홈
