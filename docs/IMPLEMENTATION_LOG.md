@@ -8322,3 +8322,25 @@ verified_by: claude-opus-4-7 + codex (content-service typecheck/eslint clean, co
 - **Review tier**: L3 (인증/접근 제어 hot path) — Codex 1-pass (단일 파일·단순 화이트리스트 추가) + Claude self-review. Gemini fallback 미적용(변경 범위 최소).
 ### 미완료: spec.md sync — `docs/SPEC-PIVOT-PLAN.md` 행 확인 후 spec patch 또는 SPEC-SYNC-DEFER.md 작성 (PR 머지 전). 런타임 검증 — 무토큰 curl `/api/claims/feed` 200 응답 + payload (Phase 1.2 News 피드 build 시점에 동시 검증). record-log-sha.sh.
 ### 연관 파일: services/content-service/src/index.ts
+
+---
+date: 2026-05-31
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-WEB-LANDING-DECODE-001
+commit_sha: PENDING
+files_changed:
+  - apps/web/src/app/page.tsx
+  - apps/web/src/landing/**
+  - apps/web/public/cardnews/**
+  - apps/web/package.json
+  - pnpm-lock.yaml
+verified_by: claude-opus-4-8 (web typecheck 0 + lint 0 landing + fe_token_hardcode pass + next build success)
+---
+### 완료: 마케팅 랜딩(/) Celebrity Decode 리디자인 + 실데이터 worked example (IMPL-WEB-LANDING-DECODE-001)
+- 기존 디자인 시스템(--cb-* 토큰) 유지, 콘텐츠+모션만 보강. CardNewsShowcase(#decode): 실제 카드뉴스 슬라이드 임베드 + 스크롤 연동 spread-from-centre(SpreadCell, framer useScroll) + 편집 파이프라인 + more-in-feed + "What you get" flagship(레시피/식단 포함).
+- The Payoff: db/seeds/data 실제 셀럽 base diet(Cristiano Ronaldo 3,200 / Natalie Portman 1,900 / Jennifer Aniston 1,700 kcal — 1M/2F) → illustrative 샘플 유저 타깃, 셀럽 vs 나 신체 프로필 비교, 식단 출처 표기. 이전의 임의 수치를 DB 실데이터로 교체.
+- FAQ 섹션, AI 메뉴 선정 카피, feed trust-grade 정렬(A→B→C), 로드 시 scroll-to-top, CountUp 탭전환 갱신 버그 수정.
+- 빌드 픽스: framer-motion + lenis 를 apps/web/package.json 에 선언 + pnpm-lock.yaml 갱신 — Docker --frozen-lockfile --offline 빌드 정상화(기존엔 사용하나 미선언).
+- 검증: web typecheck 0, lint 0(landing), fe_token_hardcode pass, next build 성공, frozen-lockfile in sync, no-JS/reduced-motion 페일세이프 유지.
+### 미완료: 실존 셀럽 사진·이름·식단 공개 노출 — likeness/법무 사인오프 권고(머지 전). record-log-sha.sh (commit_sha 갱신).
+### 연관 파일: apps/web/src/landing/CardNewsShowcase.tsx, apps/web/src/landing/WorkedExample.tsx, apps/web/src/landing/data.ts, apps/web/package.json
