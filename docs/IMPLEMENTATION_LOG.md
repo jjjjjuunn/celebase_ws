@@ -35,7 +35,8 @@ commit_sha: PENDING
 files_changed:
   - docker/caddy/Caddyfile
   - apps/web/src/landing/SiteFooter.tsx
-verified_by: claude-opus-4-8 (caddy 2.8.4 validate PASS · 3-way adversarial plan review) + operator (post-deploy curl/dig E2E)
+  - services/commerce-service/tests/integration/internal-subscriptions.integration.test.ts
+verified_by: claude-opus-4-8 (caddy 2.8.4 validate PASS · commerce-svc internal-subscriptions 19/19 local PASS · 3-way adversarial plan review) + operator (post-deploy curl/dig E2E)
 ---
 ### 완료: celebase.app(prod apex) 랜딩 런칭 + apex 공개면 스코프 (CHORE-WEB-APEX-DOMAIN-001)
 - **문제**: 팀원 랜딩(#184→#203)이 `celebase.app`이 아닌 `staging.celebase.app`에만 노출. apex DNS 레코드 부재 + `apps/web` 한 앱이 랜딩·legal·BFF·frozen웹제품을 겸함. 모바일 Settings/Paywall이 하드코딩한 `celebase.app/terms`·`/privacy`가 깨진 상태. 랜딩 "Sign in"→frozen 웹`/login`→Cognito redirect_mismatch.
@@ -43,6 +44,7 @@ verified_by: claude-opus-4-8 (caddy 2.8.4 validate PASS · 3-way adversarial pla
 - **Caddyfile**: 기존 `{$STAGING_DOMAIN}` 블록 불변. 신규 `celebase.app` 블록 추가 — `@blocked path /api/* /auth/refresh /login /signup /home* /dashboard* /celebrities* /recipes* /plans* /track* /account* /onboarding* /slice*` → `respond 404`, 그 외(랜딩·/terms·/privacy·정적자원) → `reverse_proxy web:3000`. apex·staging 독립 LE 인증서. `caddy validate` PASS.
 - **SiteFooter.tsx**: Sign-in `<Link href="/login">` 제거(Terms/Privacy 유지) → redirect_mismatch 소멸(링크 제거 + apex `/login` 404 이중).
 - 리뷰 판정: Codex HIGH(apex BFF/frozen 노출 → blocklist로 close), prod모바일→staging데이터(모바일 .env가 이미 staging → moot), Gemini noindex/LE-staging-dance(REJECT — 랜딩은 색인 목적·박스 이미 LE 정상).
+- **CI unblock(동봉)**: commerce-service `internal-subscriptions.integration.test.ts`의 `activeEntitlementSnapshot.expires_date`가 `2026-06-01`(adapter는 `expires_date > Date.now()`로 active 판정) → 2026-06-01T00:00Z(UTC 자정) 경과 후 fixture가 "expired/free"로 뒤집혀 happy-path 4건 실패하며 **레포 전체 CI를 차단**(내 변경 무관, main 마지막 green은 자정 전). `2099-06-01`로 이동 + 재발 방지 주석. 단독 PR 대신 본 PR에 동봉(한 CD 사이클). 로컬 19/19 PASS.
 ### 미완료: **운영 컷오버(머지 전/후 수동)** — (1) Cloudflare에 `celebase.app` A→184.32.66.152 **DNS-only(grey)** 추가 + `dig` 확인(LE 발급 전제). (2) SSH 사전점검: host `/app/docker-compose.yml`의 Caddyfile bind-mount 경로 일치, SG inbound 80/443. (3) 머지→CD 배포 후 E2E: `curl https://celebase.app`(200,LE issuer)·`/terms`·`/privacy`(200)·`/api/health`·`/home`·`/login`(404)·staging 비회귀. www·HSTS·robots는 런칭 후 폴리시. 향후 prod API 필요 시 apex 과적재 대신 `api.celebase.app`+전용 prod 박스.
 ### 연관 파일: docker/caddy/Caddyfile, apps/web/src/landing/SiteFooter.tsx, apps/mobile/.env(참조), apps/mobile/src/screens/{SettingsScreen,PaywallScreen}.tsx(참조), .github/workflows/cd.yml(참조)
 

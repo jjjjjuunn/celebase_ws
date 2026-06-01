@@ -125,7 +125,10 @@ const activeEntitlementSnapshot: RevenuecatSubscriberSnapshot = {
       product_identifier: 'celebbase_premium_monthly',
       is_active: true,
       purchase_date: '2026-04-01T00:00:00Z',
-      expires_date: '2026-06-01T00:00:00Z',
+      // Must stay in the future — the adapter derives is_active from
+      // `expires_date > Date.now()`. A near-future date is a time-bomb that
+      // flips this fixture to "expired/free" once the clock passes it.
+      expires_date: '2099-06-01T00:00:00Z',
       billing_issues_detected_at: null,
       unsubscribe_detected_at: null,
     },
@@ -167,7 +170,7 @@ describe('POST /internal/subscriptions/refresh-from-revenuecat', () => {
     expect(body.tier).toBe('premium');
     expect(body.status).toBe('active');
     expect(body.source).toBe('purchase');
-    expect(body.current_period_end).toBe('2026-06-01T00:00:00.000Z');
+    expect(body.current_period_end).toBe('2099-06-01T00:00:00.000Z');
 
     expect(getSubscriber).toHaveBeenCalledWith(validUserId);
     expect(mockUpsertRevenuecat).toHaveBeenCalledTimes(1);
