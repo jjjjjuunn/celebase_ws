@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-31
 agent: claude-opus-4-8 (1M context) + advisor + codex + gemini (3-way plan review)
 task_id: CHORE-WEB-APEX-DOMAIN-001
-commit_sha: PENDING
+commit_sha: 842d944
 files_changed:
   - docker/caddy/Caddyfile
   - apps/web/src/landing/SiteFooter.tsx
