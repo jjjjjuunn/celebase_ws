@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-05-31
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-CLAIM-STORY-POLISH-001
-commit_sha: PENDING
+commit_sha: b5bde6e
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/App.tsx
