@@ -1,5 +1,9 @@
-# CelebBase staging — TLS termination + reverse proxy → BFF (apps/web).
+# CelebBase — TLS termination + reverse proxy.
 # CHORE-MOBILE-STAGING-BFF-001 Phase B.
+# CHORE-WEB-APEX-DOMAIN-001: serves TWO sites from this one box —
+#   1. {$STAGING_DOMAIN} (e.g. staging.celebase.app) — full app + mobile BFF gateway.
+#   2. celebase.app (prod apex) — public landing + legal pages ONLY (BFF / frozen
+#      web product are 404'd here; mobile uses staging.celebase.app as its API base).
 #
 # Caddy reads {$STAGING_DOMAIN} from container env (set by compose).
 # Cert storage: /data/caddy/certificates/<issuer>/<domain>/ — persisted to
@@ -39,6 +43,34 @@
 
 	# Everything else → BFF (apps/web). Includes /api/* (regular BFF routes)
 	# plus SSR pages that may still be served from apps/web.
+	reverse_proxy web:3000
+
+	encode gzip
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# ── Production apex — public landing + legal ONLY (CHORE-WEB-APEX-DOMAIN-001) ──
+# Shares the same `web` container as the staging block above, but scopes the
+# public surface to the marketing landing (/) + legal pages (/terms, /privacy).
+# The mobile BFF (/api/*, /auth/refresh) and the frozen web product routes are
+# 404'd here — no client needs them on the apex (mobile's EXPO_PUBLIC_BFF_BASE_URL
+# points at staging.celebase.app). Removing them keeps staging BE/data off the
+# public prod domain and kills the dead web Hosted-UI login path (/login).
+#
+# Cloudflare: the celebase.app A record MUST be "DNS only" (grey cloud) so Caddy's
+# Let's Encrypt HTTP-01 / TLS-ALPN-01 challenge reaches this origin directly.
+# Add the A record (→ this box) BEFORE deploying, or the first cert issuance
+# loops until DNS resolves.
+celebase.app {
+	# Block BFF + frozen app/auth/onboarding/slice routes; landing static assets
+	# (/_next/*, /cardnews/*, favicon) and /terms, /privacy fall through to web.
+	@blocked path /api/* /auth/refresh /login /login/* /signup /signup/* /home /home/* /dashboard /dashboard/* /celebrities /celebrities/* /recipes /recipes/* /plans /plans/* /track /track/* /account /account/* /onboarding /onboarding/* /slice /slice/*
+	respond @blocked 404
+
 	reverse_proxy web:3000
 
 	encode gzip

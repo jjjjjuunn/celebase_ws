@@ -14,9 +14,6 @@ export function SiteFooter({ year }: { year: number }) {
             <Link href="/privacy" className={styles.footerLink}>
               Privacy Policy
             </Link>
-            <Link href="/login" className={styles.footerLink}>
-              Sign in
-            </Link>
           </nav>
         </div>
         <p className={styles.disclaimer}>
