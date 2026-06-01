@@ -215,6 +215,7 @@ export function ClaimCard({
 
 function makeStyles(theme: Theme) {
   const n = theme.news;
+  const f = theme.news.font; // News-scoped 브랜드 폰트(Fraunces / Hanken Grotesk / Spline Sans Mono)
   return StyleSheet.create({
     card: {
       backgroundColor: n.cream,
@@ -229,13 +230,13 @@ function makeStyles(theme: Theme) {
     monogram: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     monogramCeleb: { backgroundColor: n.forest },
     monogramTrend: { backgroundColor: n.trend.bg },
-    monogramText: { fontFamily: theme.font.display, fontSize: 13.5, fontWeight: theme.weight.semibold },
+    monogramText: { fontFamily: f.display, fontSize: 13.5, fontWeight: theme.weight.semibold },
     monogramTextCeleb: { color: n.cream },
     monogramTextTrend: { color: n.trend.fg },
     whoCol: { flex: 1 },
-    whoName: { fontFamily: theme.font.body, fontSize: 13.5, fontWeight: theme.weight.bold, color: n.ink, lineHeight: 16 },
+    whoName: { fontFamily: f.body, fontSize: 13.5, fontWeight: theme.weight.bold, color: n.ink, lineHeight: 16 },
     eyebrow: {
-      fontFamily: theme.font.mono,
+      fontFamily: f.mono,
       fontSize: 10,
       fontWeight: theme.weight.medium,
       color: n.muted,
@@ -251,7 +252,7 @@ function makeStyles(theme: Theme) {
       paddingVertical: 4,
     },
     chipText: {
-      fontFamily: theme.font.mono,
+      fontFamily: f.mono,
       fontSize: 9.5,
       fontWeight: theme.weight.semibold,
       color: n.chip.fg,
@@ -259,7 +260,7 @@ function makeStyles(theme: Theme) {
       textTransform: 'uppercase',
     },
     headline: {
-      fontFamily: theme.font.display,
+      fontFamily: f.display,
       fontSize: 20,
       fontWeight: theme.weight.medium,
       color: n.ink,
@@ -267,17 +268,17 @@ function makeStyles(theme: Theme) {
       letterSpacing: -0.2,
     },
     dimmed: { color: n.muted },
-    bodyText: { fontFamily: theme.font.body, fontSize: 13, color: n.inkSoft, lineHeight: 18, marginTop: 6 },
+    bodyText: { fontFamily: f.body, fontSize: 13, color: n.inkSoft, lineHeight: 18, marginTop: 6 },
     botRow: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 13, flexWrap: 'wrap' },
     source: {
-      fontFamily: theme.font.mono,
+      fontFamily: f.mono,
       fontSize: 10.5,
       color: n.muted,
       textDecorationLine: 'underline',
     },
     ctaSpacer: { marginLeft: 'auto' },
     ctaLive: { backgroundColor: n.ctaLive.bg, borderRadius: theme.radius.pill, paddingHorizontal: 13, paddingVertical: 8 },
-    ctaLiveText: { fontFamily: theme.font.body, fontSize: 12.5, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
+    ctaLiveText: { fontFamily: f.body, fontSize: 12.5, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
     ctaSoon: {
       borderRadius: theme.radius.pill,
       borderWidth: 1.5,
@@ -285,8 +286,8 @@ function makeStyles(theme: Theme) {
       paddingHorizontal: 12,
       paddingVertical: 7,
     },
-    ctaSoonText: { fontFamily: theme.font.body, fontSize: 12, fontWeight: theme.weight.bold, color: n.ctaSoonFg },
-    disclaimer: { fontFamily: theme.font.mono, fontSize: 9, color: n.muted, lineHeight: 13, marginTop: 8 },
+    ctaSoonText: { fontFamily: f.body, fontSize: 12, fontWeight: theme.weight.bold, color: n.ctaSoonFg },
+    disclaimer: { fontFamily: f.mono, fontSize: 9, color: n.muted, lineHeight: 13, marginTop: 8 },
     lockOverlay: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -296,6 +297,6 @@ function makeStyles(theme: Theme) {
       borderTopWidth: 1,
       borderTopColor: n.line,
     },
-    lockLabel: { fontFamily: theme.font.body, fontWeight: theme.weight.bold, color: n.forest, fontSize: 13 },
+    lockLabel: { fontFamily: f.body, fontWeight: theme.weight.bold, color: n.forest, fontSize: 13 },
   });
 }

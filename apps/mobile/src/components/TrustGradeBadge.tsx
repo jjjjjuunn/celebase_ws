@@ -50,7 +50,7 @@ function makeStyles(theme: Theme) {
       alignSelf: 'flex-start',
     },
     label: {
-      fontFamily: theme.font.mono,
+      fontFamily: theme.news.font.mono,
       fontSize: 10,
       fontWeight: theme.weight.semibold,
       letterSpacing: 0.6,

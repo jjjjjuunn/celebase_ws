@@ -112,6 +112,12 @@ export interface Theme {
     ctaSoonFg: string;
     trend: { bg: string; fg: string };
     chip: { fg: string; bg: string; border: string };
+    /**
+     * News-scoped 브랜드 폰트 (App.tsx 가 bare name 으로 로드 — card-system 과 일치).
+     * display=Fraunces(serif), body=Hanken Grotesk, mono=Spline Sans Mono.
+     * News 피드/카드뉴스 전용 — 앱 전역 theme.font 는 미변경.
+     */
+    font: { display: string; body: string; mono: string };
   };
 }
 
@@ -256,6 +262,13 @@ function buildTheme(mode: ThemeMode): Theme {
         fg: resolveToken(mode, '--cb-news-chip-fg'),
         bg: resolveToken(mode, '--cb-news-chip-bg'),
         border: resolveToken(mode, '--cb-news-chip-border'),
+      },
+      // News-scoped 브랜드 폰트. display 는 기존 Fraunces 토큰 재사용, body/mono 는
+      // App.tsx 가 로드하는 bare name(Hanken Grotesk / Spline Sans Mono).
+      font: {
+        display: firstFamily(resolveToken(mode, '--cb-font-family-display')),
+        body: 'Hanken Grotesk',
+        mono: 'Spline Sans Mono',
       },
     },
   };

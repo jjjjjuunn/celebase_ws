@@ -1,15 +1,16 @@
-// Wellness claim 스토리 — feed 카드 탭 시 진입. Design Canvas v1 카드뉴스 캐러셀.
+// Wellness claim 스토리 — feed 카드 탭 시 진입. 카드뉴스 캐러셀 (card-system 디자인 포팅).
 // 가로 스와이프: decode → what they do(+출처) → [science] → [the catch → rescaled to you] → your turn(CTA).
 //
-// 콘텐츠 원본: claim.story(JSONB, IMPL-MOBILE-CLAIM-STORY-SCHEMA-001) 가 있으면 6슬라이드 리치
-// 카피를, 없으면(NULL) 영어 정적 템플릿 fallback 을 렌더한다. story 텍스트는 `**bold**`/`*accent*`
-// 인라인 마크업을 RichText 로 렌더(리터럴 마커 노출 없음).
+// 아트디렉션: celebase card-system(card-template.html) 의 네이티브 포팅 — Motif 블롭 · 큰 Fraunces
+// 헤드라인 · 컬러 accent(forest-2/lime) · 번호/체크 칩 · 따옴표 · STATE 뱃지 · cele*base* 워드마크.
+// News-scoped 폰트(theme.news.font: Fraunces / Hanken Grotesk / Spline Sans Mono). 타이포는 앱이
+// 렌더(이미지에 글자 굽지 않음 — 다국어·수정·법적, safezone 스펙).
 //
-// CTA wiring(IMPL-MOBILE-CLAIM-CTA-001) 보존: 마지막 슬라이드의 "Make my Plan" 게이트가
-// claim.base_diet_id 를 MealPlanGenerateSheet 에 넘겨 셀럽 picker 를 스킵한다.
-// 게스트 boot-kick 불변식(PR195) 보존: 게스트는 credits fetch skip + 시트 미렌더 + 로그인 게이트.
+// 콘텐츠 원본: claim.story(JSONB) 가 있으면 6슬라이드 리치, 없으면 영어 템플릿 fallback.
+// `**bold**`/`*accent*` 인라인 마크업은 RichText 로 렌더(accent=serif italic, 옵션 컬러).
 //
-// 모든 슬라이드는 가로 ScrollView 에 동시 마운트된다(가상화 없음 — 슬라이드 수 ≤ 6).
+// CTA·게스트 boot-kick 불변식(PR195) 보존: 게스트는 credits skip + 시트 미렌더 + 로그인 게이트.
+// 전 슬라이드 동시 마운트(가상화 없음 — ≤6).
 
 import { Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
@@ -53,7 +54,6 @@ type DetailState =
 const HEALTH_DISCLAIMER =
   'This information is for educational purposes only and is not intended as medical advice. Consult a physician for medical decisions.';
 
-// claim_type → 표시 버킷(ClaimCard BUCKET_LABEL 과 정합). decode eyebrow fallback 에 사용.
 const BUCKET_LABEL: Record<string, string> = {
   food: 'Diet',
   beauty: 'Beauty',
@@ -64,8 +64,8 @@ const BUCKET_LABEL: Record<string, string> = {
   philosophy: 'Wellness',
 };
 
-// ── 인라인 마크업: `**bold**` / `*accent*` → 스타일된 Text span ─────────
-export type RichToken = { t: string; kind: 'bold' | 'accent' | 'normal' };
+// ── 인라인 마크업: `**bold**`(faux-bold) / `*accent*`(serif italic + 옵션 컬러) ────
+type RichToken = { t: string; kind: 'bold' | 'accent' | 'normal' };
 
 // exported for unit test (IMPL-MOBILE-CLAIM-STORY-SCHEMA-001).
 export function parseRich(text: string): RichToken[] {
@@ -87,28 +87,41 @@ export function parseRich(text: string): RichToken[] {
 function RichText({
   text,
   style,
+  accentColor,
 }: {
   text: string;
   style: StyleProp<TextStyle>;
+  accentColor?: string;
 }): React.JSX.Element {
   const theme = useTheme();
   const tokens = parseRich(text);
   return (
     <Text style={style}>
-      {tokens.map((tok, i) => (
-        <Text
-          key={`${tok.kind}-${String(i)}-${tok.t.slice(0, 6)}`}
-          style={
-            tok.kind === 'bold'
-              ? { fontWeight: theme.weight.bold }
-              : tok.kind === 'accent'
-                ? { fontStyle: 'italic' }
-                : undefined
-          }
-        >
-          {tok.t}
-        </Text>
-      ))}
+      {tokens.map((tok, i) => {
+        const key = `${tok.kind}-${String(i)}-${tok.t.slice(0, 6)}`;
+        if (tok.kind === 'bold') {
+          return (
+            <Text key={key} style={{ fontWeight: theme.weight.bold }}>
+              {tok.t}
+            </Text>
+          );
+        }
+        if (tok.kind === 'accent') {
+          // 에디토리얼 accent — serif(Fraunces) italic + 옵션 컬러(헤드라인은 forest-2/lime).
+          return (
+            <Text
+              key={key}
+              style={[
+                { fontFamily: theme.news.font.display, fontStyle: 'italic' },
+                accentColor !== undefined ? { color: accentColor } : null,
+              ]}
+            >
+              {tok.t}
+            </Text>
+          );
+        }
+        return <Text key={key}>{tok.t}</Text>;
+      })}
     </Text>
   );
 }
@@ -179,20 +192,16 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { width } = useWindowDimensions();
   const { claim, sources } = data;
-  const s = claim.story; // ClaimStory | null — 있으면 리치 카피, 없으면 영어 템플릿 fallback.
+  const s = claim.story; // ClaimStory | null
 
   const showDisclaimer = claim.trust_grade === 'D' || claim.is_health_claim;
-  // "Make my Plan" 루프는 food 카드 한정. food + 플랜 소스 = 활성(State A) /
-  // food + 소스 없음 = "준비 중"(State B) / 비-food = CTA 미표시.
   const isFoodCard = claim.claim_type === 'food';
   const showInspiredCta = isFoodCard && claim.base_diet_id !== null;
   const showComingSoon = isFoodCard && claim.base_diet_id === null;
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  // 가로 페이저 안 세로 스크롤을 위해 캐러셀 영역 높이를 측정해 각 슬라이드에 바운드.
   const [areaH, setAreaH] = useState(0);
-  // 게스트(무토큰): credits fetch skip(boot-kick 회피) + CTA 는 로그인 게이트로 분기.
   const isGuest = useIsGuest();
   const { credits, loading: creditsLoading } = useMealPlanCredits(isGuest);
   const maxDays =
@@ -200,24 +209,24 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const ctaDisabled = !creditsLoading && maxDays === 0;
 
   const bucket = (BUCKET_LABEL[claim.claim_type] ?? 'Wellness').toUpperCase();
-  // CTA 라벨 통일: story 의 button 우선, 없으면 "Make my Plan"(피드 ClaimCard 와 일치).
   const liveButtonLabel = s?.cta.button ?? 'Make my Plan';
+  // 카테고리 accent — Diet/Beauty=clay, Wellness=forest-2. (Beauty rose 토큰은 후속.)
+  const isWellness =
+    claim.claim_type === 'workout' || claim.claim_type === 'sleep' || claim.claim_type === 'supplement';
+  const accent = isWellness ? theme.news.forest2 : theme.news.clay;
 
-  // ── 마지막 슬라이드 CTA(상태별) ───────────────────────────────
   const ctaNode = showInspiredCta ? (
     isGuest ? (
-      // 게스트: 시트 미렌더(mount 시 protected fetch hazard 회피) — 로그인 게이트로.
-      // 게스트 분기를 크레딧 분기보다 먼저 둬 "크레딧 부족" alert 오노출 방지.
       <TouchableOpacity
         onPress={() => {
           signalLoginRequired();
         }}
         accessibilityRole="button"
         accessibilityLabel="Sign in to make your plan"
-        style={styles.ctaLive}
+        style={styles.ctaBtn}
       >
-        <Text style={styles.ctaLiveText}>Sign in to make your plan</Text>
-        <Ionicons name="arrow-forward" size={18} color={theme.news.ctaLive.fg} />
+        <Text style={styles.ctaBtnText}>Sign in to make your plan</Text>
+        <Text style={styles.ctaArrow}>→</Text>
       </TouchableOpacity>
     ) : (
       <TouchableOpacity
@@ -231,16 +240,16 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
         accessibilityRole="button"
         accessibilityLabel={liveButtonLabel}
         disabled={creditsLoading}
-        style={[styles.ctaLive, ctaDisabled ? styles.ctaDisabled : null]}
+        style={[styles.ctaBtn, ctaDisabled ? styles.ctaDisabled : null]}
       >
-        <Text style={styles.ctaLiveText}>{liveButtonLabel}</Text>
-        <Ionicons name="arrow-forward" size={18} color={theme.news.ctaLive.fg} />
+        <Text style={styles.ctaBtnText}>{liveButtonLabel}</Text>
+        <Text style={styles.ctaArrow}>→</Text>
       </TouchableOpacity>
     )
   ) : showComingSoon ? (
-    <View style={styles.ctaComingSoon} accessibilityRole="text">
-      <Ionicons name="time-outline" size={18} color={theme.news.lime} />
-      <Text style={styles.ctaComingSoonText}>Personalized plan — coming soon</Text>
+    <View style={styles.ctaGhost} accessibilityRole="text">
+      <Text style={styles.ctaGhostText}>Personalized plan — coming soon</Text>
+      <Text style={styles.ctaGhostArrow}>→</Text>
     </View>
   ) : null;
 
@@ -254,48 +263,58 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   // ── 슬라이드 구성 ─────────────────────────────────────────────
   const slides: Array<{ key: string; tone: 'light' | 'dark'; node: React.ReactNode }> = [];
 
-  // 1) Decode — 후킹.
+  // 1) Decode
   slides.push({
     key: 'decode',
     tone: 'light',
     node: (
       <>
-        <Text style={styles.eyebrow}>{s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`}</Text>
-        <RichText text={s?.hook.headline ?? claim.headline} style={styles.headline} />
+        <Blob color={theme.news.lime} size={230} top={-70} right={-60} opacity={0.85} />
+        <Blob color={accent} size={120} bottom={90} right={-40} opacity={0.45} />
+        <Eyebrow theme={theme} text={s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`} dot={accent} />
+        <RichText
+          text={s?.hook.headline ?? claim.headline}
+          style={styles.hHook}
+          accentColor={theme.news.forest2}
+        />
         <RichText
           text={s?.hook.sub ?? 'What they actually do — and what it looks like rescaled to you.'}
-          style={styles.subtitle}
+          style={styles.sub}
         />
-        <View style={styles.swipeHint}>
-          <Text style={styles.swipeHintText}>{s?.hook.swipe ?? 'Swipe'}</Text>
-          <Ionicons name="arrow-forward" size={14} color={theme.news.muted} />
+        <View style={styles.swipeRow}>
+          <Text style={styles.swipe}>{(s?.hook.swipe ?? 'SWIPE').toUpperCase()}</Text>
+          <Ionicons name="arrow-forward" size={14} color={theme.news.forest} />
         </View>
       </>
     ),
   });
 
-  // 2) What they do — 전문/불릿 + trust + 출처.
+  // 2) What they do
   slides.push({
     key: 'what',
     tone: 'light',
     node: (
       <>
-        <Text style={styles.eyebrow}>{s?.what.eyebrow ?? 'WHAT THEY DO'}</Text>
+        <Eyebrow theme={theme} text={s?.what.eyebrow ?? 'WHAT THEY DO'} dot={accent} />
         {s !== null ? (
           <>
-            <RichText text={s.what.headline} style={styles.headlineSm} />
-            {s.what.rows.map((row, i) => (
-              <View key={`what-${String(i)}`} style={styles.bulletRow}>
-                <Text style={styles.bulletDot}>•</Text>
-                <RichText text={row} style={styles.bulletText} />
-              </View>
-            ))}
+            <RichText text={s.what.headline} style={styles.hLight} />
+            <View style={styles.rows}>
+              {s.what.rows.map((row, i) => (
+                <View key={`what-${String(i)}`} style={styles.row}>
+                  <View style={styles.numChip}>
+                    <Text style={styles.numChipText}>{`0${String(i + 1)}`}</Text>
+                  </View>
+                  <RichText text={row} style={styles.rowText} />
+                </View>
+              ))}
+            </View>
             {s.what.source != null && s.what.source !== '' ? (
-              <Text style={styles.sourceNote}>{s.what.source}</Text>
+              <Text style={styles.srcNote}>{s.what.source}</Text>
             ) : null}
           </>
         ) : (
-          <Text style={styles.bodyText}>
+          <Text style={styles.body}>
             {claim.body !== null && claim.body !== ''
               ? claim.body
               : 'Their real routine, compiled from the sources below.'}
@@ -316,7 +335,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     ),
   });
 
-  // 3) Science — story.science 있을 때만(✓ checks + ! caveat).
+  // 3) Science (story 한정)
   if (s?.science != null) {
     const sci = s.science;
     slides.push({
@@ -324,46 +343,55 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       tone: 'light',
       node: (
         <>
-          <Text style={styles.eyebrow}>{sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'}</Text>
-          <RichText text={sci.headline} style={styles.headlineSm} />
-          {sci.checks.map((c, i) => (
-            <View key={`sci-${String(i)}`} style={styles.bulletRow}>
-              <Ionicons name="checkmark" size={16} color={theme.news.forest} style={styles.checkIcon} />
-              <RichText text={c} style={styles.bulletText} />
-            </View>
-          ))}
-          {sci.caveat != null && sci.caveat !== '' ? (
-            <View style={styles.caveatRow}>
-              <Ionicons name="alert-circle-outline" size={16} color={theme.news.clay} style={styles.checkIcon} />
-              <RichText text={sci.caveat} style={styles.caveatText} />
-            </View>
-          ) : null}
+          <Eyebrow theme={theme} text={sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'} dot={accent} />
+          <RichText text={sci.headline} style={styles.hLight} />
+          <View style={styles.rows}>
+            {sci.checks.map((c, i) => (
+              <View key={`sci-${String(i)}`} style={styles.row}>
+                <View style={[styles.markChip, styles.markOk]}>
+                  <Text style={styles.markOkText}>✓</Text>
+                </View>
+                <RichText text={c} style={styles.rowText} />
+              </View>
+            ))}
+            {sci.caveat != null && sci.caveat !== '' ? (
+              <View style={styles.row}>
+                <View style={[styles.markChip, styles.markWarn]}>
+                  <Text style={styles.markWarnText}>!</Text>
+                </View>
+                <RichText text={sci.caveat} style={styles.rowText} />
+              </View>
+            ) : null}
+          </View>
           {sci.source != null && sci.source !== '' ? (
-            <Text style={styles.sourceNote}>{sci.source}</Text>
+            <Text style={styles.srcNote}>{sci.source}</Text>
           ) : null}
         </>
       ),
     });
   }
 
-  // 4·5) The catch / Rescaled to you — State A 한정(엔진-정직 약속).
+  // 4·5) The catch / Rescaled to you (State A 한정)
   if (showInspiredCta) {
     slides.push({
       key: 'catch',
       tone: 'dark',
       node: (
         <>
-          <Text style={styles.eyebrowOnDark}>{s?.catch.eyebrow ?? "BUT HERE'S THE CATCH"}</Text>
+          <Text style={styles.quoteMark}>{'”'}</Text>
+          <Blob color={theme.news.forest2} size={220} bottom={-70} left={-60} opacity={0.55} />
+          <Eyebrow theme={theme} text={s?.catch.eyebrow ?? "BUT HERE'S THE CATCH"} dot={theme.news.lime} onDark />
           <RichText
             text={s?.catch.headline ?? 'Built for their body & goals.'}
-            style={styles.headlineOnDark}
+            style={styles.hDark}
+            accentColor={theme.news.lime}
           />
           <RichText
             text={
               s?.catch.body ??
               'Copy it exactly and the calories and macros may simply not fit your day.'
             }
-            style={styles.bodyOnDark}
+            style={styles.bodyDark}
           />
         </>
       ),
@@ -379,16 +407,13 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       tone: 'light',
       node: (
         <>
-          <Text style={styles.eyebrow}>{s?.rescaled.eyebrow ?? 'RESCALED TO YOU'}</Text>
-          <RichText
-            text={s?.rescaled.headline ?? 'Same base. Your numbers.'}
-            style={styles.headlineSm}
-          />
-          <View style={styles.rescaleRows}>
+          <Eyebrow theme={theme} text={s?.rescaled.eyebrow ?? 'RESCALED TO YOU'} dot={accent} />
+          <RichText text={s?.rescaled.headline ?? 'Same base. Your numbers.'} style={styles.hLight} />
+          <View style={styles.profiles}>
             {profiles.map((p, i) => (
-              <View key={`resc-${String(i)}`} style={styles.rescaleRow}>
-                <Text style={styles.rescaleLabel}>{p.who.toUpperCase()}</Text>
-                <RichText text={p.what} style={styles.rescaleDesc} />
+              <View key={`resc-${String(i)}`} style={styles.profile}>
+                <Text style={[styles.profileWho, { color: accent }]}>{p.who.toUpperCase()}</Text>
+                <RichText text={p.what} style={styles.profileWhat} />
               </View>
             ))}
           </View>
@@ -397,15 +422,24 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     });
   }
 
-  // 6) Your turn — CTA(상태별) + 면책.
+  // 6) Your turn — CTA + 면책
   slides.push({
     key: 'cta',
     tone: 'dark',
     node: (
       <>
-        <Text style={styles.eyebrowOnDark}>
-          {s?.cta.eyebrow ?? (showInspiredCta ? 'YOUR TURN' : showComingSoon ? 'COMING SOON' : 'MORE')}
-        </Text>
+        {showInspiredCta ? (
+          <View style={styles.stateBadge}>
+            <Text style={styles.stateBadgeText}>STATE A · LIVE</Text>
+          </View>
+        ) : null}
+        <Blob color={theme.news.forest2} size={200} top={-60} right={-60} opacity={0.5} />
+        <Eyebrow
+          theme={theme}
+          text={s?.cta.eyebrow ?? (showInspiredCta ? 'YOUR TURN' : showComingSoon ? 'COMING SOON' : 'MORE')}
+          dot={theme.news.lime}
+          onDark
+        />
         <RichText
           text={
             s?.cta.headline ??
@@ -415,29 +449,28 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                 ? 'A personalized plan is coming soon.'
                 : 'Explore the sources to learn more.')
           }
-          style={styles.headlineOnDark}
+          style={styles.hDark}
+          accentColor={theme.news.lime}
         />
+        {ctaNode}
         {showInspiredCta ? (
           <RichText
             text={
               s?.cta.sub ??
               'Answer a few quick questions — we rescale to your calories, macros & tastes.'
             }
-            style={styles.bodyOnDark}
+            style={styles.ctaSub}
           />
         ) : null}
-        {ctaNode}
-        {disclaimerText !== null ? (
-          <Text style={styles.disclaimerOnDark}>{disclaimerText}</Text>
-        ) : null}
+        {disclaimerText !== null ? <Text style={styles.disclaimer}>{disclaimerText}</Text> : null}
       </>
     ),
   });
 
+  const total = slides.length;
   const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / width);
-    const clamped = Math.max(0, Math.min(idx, slides.length - 1));
-    setActiveIndex(clamped);
+    setActiveIndex(Math.max(0, Math.min(idx, total - 1)));
   };
 
   return (
@@ -454,7 +487,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={onMomentumEnd}
         >
-          {slides.map((slide) => (
+          {slides.map((slide, i) => (
             <View key={slide.key} style={{ width, ...(areaH > 0 ? { height: areaH } : {}) }}>
               <ScrollView
                 contentContainerStyle={styles.slideScroll}
@@ -464,6 +497,14 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                   style={[styles.card, slide.tone === 'dark' ? styles.cardDark : styles.cardLight]}
                 >
                   {slide.node}
+                  <View style={styles.foot}>
+                    <Text style={slide.tone === 'dark' ? styles.wordmarkDark : styles.wordmark}>
+                      cele<Text style={styles.wordmarkB}>base</Text>
+                    </Text>
+                    <Text style={slide.tone === 'dark' ? styles.pagenoDark : styles.pageno}>
+                      {`0${String(i + 1)} / 0${String(total)}`}
+                    </Text>
+                  </View>
                 </View>
               </ScrollView>
             </View>
@@ -471,18 +512,10 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
         </ScrollView>
       </View>
 
-      <View style={styles.footer}>
-        <View style={styles.dots}>
-          {slides.map((slide, i) => (
-            <View
-              key={slide.key}
-              style={[styles.dot, i === activeIndex ? styles.dotActive : null]}
-            />
-          ))}
-        </View>
-        <Text style={styles.counter}>
-          {`${String(activeIndex + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}
-        </Text>
+      <View style={styles.dots}>
+        {slides.map((slide, i) => (
+          <View key={slide.key} style={[styles.dot, i === activeIndex ? styles.dotActive : null]} />
+        ))}
       </View>
 
       {showInspiredCta && !isGuest && claim.base_diet_id !== null ? (
@@ -499,6 +532,56 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           }}
         />
       ) : null}
+    </View>
+  );
+}
+
+// ── 소형 컴포넌트 ─────────────────────────────────────────────
+interface BlobProps {
+  color: string;
+  size: number;
+  opacity: number;
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+}
+function Blob({ color, size, opacity, top, bottom, left, right }: BlobProps): React.JSX.Element {
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity,
+        ...(top !== undefined ? { top } : {}),
+        ...(bottom !== undefined ? { bottom } : {}),
+        ...(left !== undefined ? { left } : {}),
+        ...(right !== undefined ? { right } : {}),
+      }}
+    />
+  );
+}
+
+function Eyebrow({
+  theme,
+  text,
+  dot,
+  onDark = false,
+}: {
+  theme: Theme;
+  text: string;
+  dot: string;
+  onDark?: boolean;
+}): React.JSX.Element {
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <View style={styles.eyebrowRow}>
+      <View style={[styles.eyebrowDot, { backgroundColor: dot }]} />
+      <Text style={onDark ? styles.eyebrowTextDark : styles.eyebrowText}>{text}</Text>
     </View>
   );
 }
@@ -545,12 +628,13 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
 
 function makeStyles(theme: Theme) {
   const n = theme.news;
+  const f = n.font;
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: n.paper },
     header: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(2) },
     backButton: { paddingVertical: theme.space(2), alignSelf: 'flex-start' },
     backButtonText: {
-      fontFamily: theme.font.mono,
+      fontFamily: f.mono,
       fontSize: 13,
       fontWeight: theme.weight.semibold,
       color: n.forest,
@@ -569,176 +653,125 @@ function makeStyles(theme: Theme) {
     card: {
       borderRadius: 22,
       borderWidth: 1,
-      padding: theme.space(6),
-      minHeight: 360,
+      paddingHorizontal: theme.space(6),
+      paddingTop: theme.space(7),
+      paddingBottom: theme.space(5),
+      minHeight: 440,
+      overflow: 'hidden',
       justifyContent: 'center',
-      gap: theme.space(3),
     },
     cardLight: { backgroundColor: n.cream, borderColor: n.line },
     cardDark: { backgroundColor: n.forest, borderColor: n.forest },
 
-    eyebrow: {
-      fontFamily: theme.font.mono,
-      fontSize: 11,
+    eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    eyebrowDot: { width: 8, height: 8, borderRadius: 4 },
+    eyebrowText: {
+      fontFamily: f.mono,
+      fontSize: 12,
       fontWeight: theme.weight.semibold,
-      color: n.clay,
-      letterSpacing: 1.2,
+      color: n.forest,
+      letterSpacing: 1.6,
       textTransform: 'uppercase',
     },
-    eyebrowOnDark: {
-      fontFamily: theme.font.mono,
-      fontSize: 11,
+    eyebrowTextDark: {
+      fontFamily: f.mono,
+      fontSize: 12,
       fontWeight: theme.weight.semibold,
       color: n.lime,
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
-    },
-    headline: {
-      fontFamily: theme.font.display,
-      fontSize: 30,
-      fontWeight: theme.weight.medium,
-      color: n.ink,
-      lineHeight: 36,
-      letterSpacing: -0.4,
-    },
-    headlineSm: {
-      fontFamily: theme.font.display,
-      fontSize: 24,
-      fontWeight: theme.weight.medium,
-      color: n.ink,
-      lineHeight: 30,
-      letterSpacing: -0.3,
-    },
-    headlineOnDark: {
-      fontFamily: theme.font.display,
-      fontSize: 30,
-      fontWeight: theme.weight.medium,
-      color: n.cream,
-      lineHeight: 36,
-      letterSpacing: -0.4,
-    },
-    subtitle: { fontFamily: theme.font.body, fontSize: 15, color: n.inkSoft, lineHeight: 22 },
-    bodyText: { fontFamily: theme.font.body, fontSize: 15, color: n.inkSoft, lineHeight: 23 },
-    bodyMuted: { fontFamily: theme.font.body, fontSize: 14, color: n.muted },
-    bodyOnDark: { fontFamily: theme.font.body, fontSize: 15, color: n.cream2, lineHeight: 23 },
-
-    bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(2) },
-    bulletDot: { fontFamily: theme.font.body, fontSize: 15, color: n.clay, lineHeight: 22 },
-    bulletText: { flex: 1, fontFamily: theme.font.body, fontSize: 14.5, color: n.inkSoft, lineHeight: 22 },
-    checkIcon: { marginTop: 3 },
-    caveatRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: theme.space(2),
-      marginTop: theme.space(1),
-      paddingTop: theme.space(2),
-      borderTopWidth: 1,
-      borderTopColor: n.line,
-    },
-    caveatText: { flex: 1, fontFamily: theme.font.body, fontSize: 14.5, color: n.ink, lineHeight: 22 },
-    sourceNote: { fontFamily: theme.font.mono, fontSize: 10.5, color: n.muted, lineHeight: 15, marginTop: theme.space(1) },
-
-    swipeHint: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: theme.space(2) },
-    swipeHintText: {
-      fontFamily: theme.font.mono,
-      fontSize: 11,
-      color: n.muted,
-      letterSpacing: 1,
+      letterSpacing: 1.6,
       textTransform: 'uppercase',
     },
 
-    trustRow: { flexDirection: 'row' },
-    sourcesSection: { gap: theme.space(2), marginTop: theme.space(1) },
-    sectionTitle: {
-      fontFamily: theme.font.mono,
-      fontSize: 10.5,
-      fontWeight: theme.weight.bold,
-      color: n.muted,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-    sourceRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.space(2),
-      paddingVertical: theme.space(1),
-    },
-    sourceRowDisabled: { paddingVertical: theme.space(1), gap: 2 },
-    sourceLink: {
-      fontFamily: theme.font.body,
-      fontSize: 14,
-      color: n.forest,
-      textDecorationLine: 'underline',
-    },
-    sourceOutlet: { fontFamily: theme.font.body, fontSize: 14, color: n.muted },
-    sourceUnavailable: { fontFamily: theme.font.mono, fontSize: 11, color: n.clay },
+    hHook: { fontFamily: f.display, fontSize: 40, fontWeight: theme.weight.medium, color: n.ink, lineHeight: 44, letterSpacing: -0.6, marginTop: theme.space(4) },
+    hLight: { fontFamily: f.display, fontSize: 28, fontWeight: theme.weight.medium, color: n.ink, lineHeight: 32, letterSpacing: -0.3, marginTop: theme.space(3), marginBottom: theme.space(3) },
+    hDark: { fontFamily: f.display, fontSize: 34, fontWeight: theme.weight.medium, color: n.cream, lineHeight: 38, letterSpacing: -0.4, marginTop: theme.space(4) },
+    sub: { fontFamily: f.body, fontSize: 16, color: n.inkSoft, lineHeight: 24, marginTop: theme.space(4) },
+    body: { fontFamily: f.body, fontSize: 16, color: n.inkSoft, lineHeight: 25 },
+    bodyMuted: { fontFamily: f.body, fontSize: 14, color: n.muted },
+    bodyDark: { fontFamily: f.body, fontSize: 16, color: n.cream2, lineHeight: 25, marginTop: theme.space(4) },
 
-    rescaleRows: { gap: theme.space(3), marginTop: theme.space(2) },
-    rescaleRow: { borderTopWidth: 1, borderTopColor: n.line, paddingTop: theme.space(2), gap: 3 },
-    rescaleLabel: {
-      fontFamily: theme.font.mono,
-      fontSize: 10.5,
-      fontWeight: theme.weight.semibold,
-      color: n.clay,
-      letterSpacing: 1,
-    },
-    rescaleDesc: { fontFamily: theme.font.body, fontSize: 14, color: n.inkSoft, lineHeight: 20 },
+    swipeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: theme.space(4) },
+    swipe: { fontFamily: f.mono, fontSize: 12, color: n.forest, letterSpacing: 2.4, fontWeight: theme.weight.semibold },
 
-    ctaLive: {
-      flexDirection: 'row',
+    rows: { gap: theme.space(3) },
+    row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.space(3) },
+    numChip: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      backgroundColor: n.cream2,
+      borderWidth: 1.4,
+      borderColor: n.line,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    numChipText: { fontFamily: f.mono, fontSize: 13, fontWeight: theme.weight.semibold, color: n.forest },
+    markChip: { width: 32, height: 32, borderRadius: 10, borderWidth: 1.4, alignItems: 'center', justifyContent: 'center' },
+    markOk: { backgroundColor: n.cream2, borderColor: n.forest2 },
+    markOkText: { fontSize: 15, color: n.forest2, fontWeight: theme.weight.bold },
+    markWarn: { backgroundColor: n.cream2, borderColor: n.clay },
+    markWarnText: { fontSize: 15, color: n.clay, fontWeight: theme.weight.bold },
+    rowText: { flex: 1, fontFamily: f.body, fontSize: 15, color: n.inkSoft, lineHeight: 22, marginTop: 4 },
+
+    srcNote: { fontFamily: f.mono, fontSize: 10.5, color: n.muted, lineHeight: 16, marginTop: theme.space(4) },
+    trustRow: { flexDirection: 'row', marginTop: theme.space(3) },
+    sourcesSection: { gap: theme.space(2), marginTop: theme.space(3) },
+    sectionTitle: { fontFamily: f.mono, fontSize: 10.5, fontWeight: theme.weight.bold, color: n.muted, letterSpacing: 1, textTransform: 'uppercase' },
+    sourceRow: { flexDirection: 'row', alignItems: 'center', gap: theme.space(2), paddingVertical: theme.space(1) },
+    sourceRowDisabled: { paddingVertical: theme.space(1), gap: 2 },
+    sourceLink: { fontFamily: f.body, fontSize: 14, color: n.forest, textDecorationLine: 'underline' },
+    sourceOutlet: { fontFamily: f.body, fontSize: 14, color: n.muted },
+    sourceUnavailable: { fontFamily: f.mono, fontSize: 11, color: n.clay },
+
+    profiles: { marginTop: theme.space(2) },
+    profile: { borderTopWidth: 1.4, borderTopColor: n.line, paddingVertical: theme.space(3), gap: 4 },
+    profileWho: { fontFamily: f.mono, fontSize: 11, fontWeight: theme.weight.semibold, letterSpacing: 1 },
+    profileWhat: { fontFamily: f.body, fontSize: 15, color: n.inkSoft, lineHeight: 21 },
+
+    quoteMark: { position: 'absolute', top: -34, right: 8, fontFamily: f.display, fontSize: 150, color: n.lime, opacity: 0.14 },
+    stateBadge: { position: 'absolute', top: theme.space(4), right: theme.space(4), backgroundColor: n.lime, borderRadius: theme.radius.pill, paddingHorizontal: 10, paddingVertical: 5 },
+    stateBadgeText: { fontFamily: f.mono, fontSize: 9.5, fontWeight: theme.weight.bold, color: n.ink, letterSpacing: 1 },
+
+    ctaBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: theme.space(2),
-      marginTop: theme.space(3),
+      alignSelf: 'flex-start',
+      marginTop: theme.space(5),
       paddingVertical: theme.space(4),
-      paddingHorizontal: theme.space(5),
+      paddingHorizontal: theme.space(6),
       backgroundColor: n.ctaLive.bg,
       borderRadius: theme.radius.pill,
     },
     ctaDisabled: { opacity: 0.55 },
-    ctaLiveText: {
-      fontFamily: theme.font.body,
-      fontSize: 15,
-      fontWeight: theme.weight.bold,
-      color: n.ctaLive.fg,
-    },
-    ctaComingSoon: {
+    ctaBtnText: { fontFamily: f.body, fontSize: 18, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
+    ctaArrow: { fontFamily: f.mono, fontSize: 18, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
+    ctaGhost: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
       gap: theme.space(2),
-      marginTop: theme.space(3),
-      paddingVertical: theme.space(4),
+      alignSelf: 'flex-start',
+      marginTop: theme.space(5),
+      paddingVertical: theme.space(3),
       paddingHorizontal: theme.space(5),
       borderRadius: theme.radius.pill,
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: n.lime,
     },
-    ctaComingSoonText: {
-      fontFamily: theme.font.body,
-      fontSize: 14,
-      fontWeight: theme.weight.bold,
-      color: n.lime,
-    },
-    disclaimerOnDark: {
-      fontFamily: theme.font.mono,
-      fontSize: 10,
-      color: n.cream2,
-      lineHeight: 15,
-      marginTop: theme.space(2),
-      opacity: 0.85,
-    },
+    ctaGhostText: { fontFamily: f.body, fontSize: 16, fontWeight: theme.weight.bold, color: n.lime },
+    ctaGhostArrow: { fontFamily: f.mono, fontSize: 16, fontWeight: theme.weight.bold, color: n.lime },
+    ctaSub: { fontFamily: f.body, fontSize: 15, color: n.cream2, lineHeight: 22, marginTop: theme.space(4) },
+    disclaimer: { fontFamily: f.mono, fontSize: 9.5, color: n.cream2, lineHeight: 15, marginTop: theme.space(3), opacity: 0.8 },
 
-    footer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: theme.space(5),
-      paddingVertical: theme.space(3),
-    },
-    dots: { flexDirection: 'row', gap: 6 },
+    foot: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: theme.space(5) },
+    wordmark: { fontFamily: f.display, fontSize: 18, fontWeight: theme.weight.semibold, color: n.ink },
+    wordmarkDark: { fontFamily: f.display, fontSize: 18, fontWeight: theme.weight.semibold, color: n.cream },
+    wordmarkB: { color: n.clay },
+    pageno: { fontFamily: f.mono, fontSize: 11, color: n.muted, letterSpacing: 1.4 },
+    pagenoDark: { fontFamily: f.mono, fontSize: 11, color: n.cream2, letterSpacing: 1.4, opacity: 0.7 },
+
+    dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingVertical: theme.space(3) },
     dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: n.line },
     dotActive: { backgroundColor: n.forest, width: 20 },
-    counter: { fontFamily: theme.font.mono, fontSize: 11, color: n.muted, letterSpacing: 1 },
   });
 }
