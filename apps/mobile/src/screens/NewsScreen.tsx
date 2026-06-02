@@ -243,7 +243,7 @@ function makeStyles(theme: Theme) {
     chipActive: { backgroundColor: theme.news.forest },
     chipInactive: { backgroundColor: theme.news.cream2 },
     tabText: {
-      fontFamily: theme.font.mono,
+      fontFamily: theme.news.font.mono,
       fontSize: 11.5,
       fontWeight: theme.weight.semibold,
       letterSpacing: 0.6,

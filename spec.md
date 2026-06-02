@@ -2231,6 +2231,16 @@ story 는 `findById`(detail) 에서만 select 한다 — 피드 리스트(`Lifes
 - **CTA 통일**: 마지막 슬라이드 버튼 = `story.cta.button ?? "Make my Plan"` (기존 "Eat like this celebrity" 통일). 게이트 동작·게스트 boot-kick 불변식 보존.
 - **영어화(결정 ①)**: story 카피 + fallback 템플릿 모두 영어. CL-NAME-CTA(셀럽명 미포함)·CL-ENGINE·CL-PRODUCT-CLAIM 준수.
 
+#### 7.2 Mobile carousel art-direction port *(IMPL-MOBILE-CLAIM-STORY-POLISH-001)*
+
+캐러셀(ClaimDetailScreen)의 비주얼을 디자인 원본 `card-system/card-template.html` 에 맞춰 네이티브 포팅한다. 기존 Lean v1 은 콘텐츠·구조는 맞으나 아트디렉션이 미니멀했다 — 사용자 피드백(2026-05-31) 반영. 이미지가 아니라 **타이포+모티프 폴리시** 가 핵심이다(디자인 슬라이드도 사진 0장).
+
+포팅 요소: Motif 컬러 블롭(lime/clay/forest-2) · 큰 Fraunces 헤드라인 · 컬러 accent(`*accent*` → forest-2/lime serif italic) · 번호칩(01·02·03)/체크칩(✓·!) · catch 따옴표 · STATE A·LIVE 뱃지 · cele*base* 워드마크 + 인-카드 페이지넘버. 타이포는 앱이 렌더(이미지에 글자 미굽음 — safezone 스펙).
+
+- **News-scoped 폰트**: `theme.news.font` = Fraunces(display) + **Hanken Grotesk**(body) + **Spline Sans Mono**(mono). App.tsx 가 bare name 으로 로드. News 피드/카드뉴스(ClaimCard·ClaimDetail·TrustGradeBadge·NewsScreen)만 적용 — 앱 전역 `theme.font` 미변경.
+- **CTA·boot-kick·텍스트/라벨 불변**: 게이트 로직·접근성 라벨·출처 allowlist 보존(시각만 변경) → 기존 테스트 무수정 통과.
+- **근사 처리(후속)**: `**bold**` = faux-bold(단일 weight 로드) · 블롭 blur 생략 · Beauty rose accent 토큰 미정(현 clay). 음식 hero 이미지(safezone A)는 별도.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

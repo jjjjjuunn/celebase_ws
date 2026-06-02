@@ -29,6 +29,31 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-05-31
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-MOBILE-CLAIM-STORY-POLISH-001
+commit_sha: b5bde6e
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/App.tsx
+  - apps/mobile/src/ui/theme.ts
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/components/ClaimCard.tsx
+  - apps/mobile/src/components/TrustGradeBadge.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tc 0 / lint 0 / test 220 — 텍스트·라벨 보존)
+---
+### 완료: 카드뉴스 캐러셀 아트디렉션 포팅 + News-scoped 폰트 (IMPL-MOBILE-CLAIM-STORY-POLISH-001)
+- 사용자 피드백(2026-05-31): 캐러셀 구조는 맞으나 임팩트 약함 → 디자인 원본 card-system/card-template.html 을 네이티브 포팅. (이미지 문제 아님 — 디자인 슬라이드도 사진 0장, 타이포+모티프 폴리시가 핵심.)
+- ClaimDetailScreen 포팅: Motif 컬러 블롭(lime/clay/forest-2) · 큰 Fraunces(hook 40 등) · 컬러 accent(`*accent*`→forest-2/lime serif italic) · 번호칩(01-03)/체크칩(✓·!) · catch 따옴표 · STATE A·LIVE 뱃지 · cele*base* 워드마크+인카드 페이지넘버.
+- News-scoped 폰트: theme.news.font = Fraunces + Hanken Grotesk(body) + Spline Sans Mono(mono). App.tsx 로드, ClaimCard·TrustGradeBadge·NewsScreen·ClaimDetail 적용. 앱 전역 theme.font 미변경(회귀 위험 0).
+- CTA·boot-kick·텍스트/라벨·출처 allowlist 보존(시각만 변경) → 기존 테스트 220 무수정 통과. RichText 에 accentColor 파라미터 추가.
+- 근사: **bold**=faux-bold, 블롭 blur 생략, Beauty rose accent 미정(clay). 검증: tc 0 / lint 0 / test 220. spec.md §7.2 sync.
+### 미완료: 피드 카드 짧은 제목(story.hook.headline 을 feed wire 노출 — 계약 변경, fast-follow). 음식 hero 이미지(safezone A, 이미지 시스템 후). Beauty rose accent 토큰. **bold** 실 weight 로드. 캐러셀 실기기 비주얼 확인.
+### 연관 파일: apps/mobile/{package.json,App.tsx,src/ui/theme.ts,src/screens/ClaimDetailScreen.tsx,src/components/ClaimCard.tsx,src/components/TrustGradeBadge.tsx,src/screens/NewsScreen.tsx}, spec.md
+
+---
+date: 2026-05-31
 agent: claude-opus-4-8 (1M context) + advisor + codex + gemini (3-way plan review)
 task_id: CHORE-WEB-APEX-DOMAIN-001
 commit_sha: 842d944

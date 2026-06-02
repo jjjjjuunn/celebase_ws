@@ -11,6 +11,9 @@ import * as Font from 'expo-font';
 import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
 import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans';
 import { JetBrainsMono_600SemiBold } from '@expo-google-fonts/jetbrains-mono';
+// News/카드뉴스 브랜드 폰트 (News-scoped) — Design Canvas card-system 과 일치.
+import { HankenGrotesk_500Medium } from '@expo-google-fonts/hanken-grotesk';
+import { SplineSansMono_600SemiBold } from '@expo-google-fonts/spline-sans-mono';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureCognito } from './src/lib/cognito';
@@ -47,6 +50,9 @@ export default function App(): React.JSX.Element {
       Fraunces: Fraunces_600SemiBold,
       'Plus Jakarta Sans': PlusJakartaSans_500Medium,
       'JetBrains Mono': JetBrainsMono_600SemiBold,
+      // News-scoped 브랜드 폰트 (theme.news.font 이 이 bare name 으로 참조).
+      'Hanken Grotesk': HankenGrotesk_500Medium,
+      'Spline Sans Mono': SplineSansMono_600SemiBold,
     })
       .then(() => {
         setFontsReady(true);
