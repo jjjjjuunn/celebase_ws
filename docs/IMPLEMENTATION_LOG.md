@@ -533,7 +533,7 @@ verified_by: claude-opus-4-7 + advisor (mobile typecheck/lint/jest)
 date: 2026-05-21
 agent: claude-opus-4-7
 task_id: FEAT-MOBILE-AUTH-FORM-001
-commit_sha: PENDING
+commit_sha: 24b53b8
 files_changed:
   - apps/mobile/src/components/AuthCardLayout.tsx
   - apps/mobile/src/components/FormField.tsx
@@ -749,7 +749,7 @@ verified_by: claude-opus-4-7 + advisor + gemini-2.5-flash-adversarial + claude-d
 date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1) + gemini-2.5-pro-via-cli-0.42 (r1)
 task_id: CHORE-MEAL-AGGRESSIVE-PROTEIN-001
-commit_sha: PENDING
+commit_sha: c616fc0
 files_changed:
   - services/meal-plan-engine/src/engine/macro_rebalancer.py
   - services/meal-plan-engine/src/engine/pipeline.py
@@ -784,7 +784,7 @@ verified_by: claude-opus-4-7 + codex-review-1x + gemini-adversarial-1x + claude-
 date: 2026-05-17
 agent: claude-opus-4-7
 task_id: SPEC-SYNC-MEAL-P0-P1-001
-commit_sha: PENDING
+commit_sha: 78b3972
 files_changed:
   - spec.md
 verified_by: claude-opus-4-7 + claude-direct-grep
@@ -818,7 +818,7 @@ verified_by: claude-opus-4-7 + claude-direct-grep
 date: 2026-05-17
 agent: claude-opus-4-7 + advisor
 task_id: CHORE-MEAL-TARGET-KCAL-SOT-001
-commit_sha: PENDING
+commit_sha: 2557f56
 files_changed:
   - services/user-service/src/services/bio-profile.service.ts
   - .claude/rules/domain/ai-engine.md
@@ -841,7 +841,7 @@ verified_by: claude-opus-4-7 + claude-direct-pnpm-test
 date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
 task_id: IMPL-MEAL-P1-GOAL-PACE-001
-commit_sha: PENDING
+commit_sha: 1e82461
 files_changed:
   - services/meal-plan-engine/src/engine/phi_minimizer.py
   - services/meal-plan-engine/src/engine/calorie_adjuster.py
@@ -875,7 +875,7 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-2x + claude-
 date: 2026-05-17
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1)
 task_id: IMPL-MEAL-P1-BMR-DISPATCH-001
-commit_sha: PENDING
+commit_sha: 64ff7d3
 files_changed:
   - services/user-service/src/services/bio-profile.service.ts
   - services/user-service/tests/unit/bio-profile.service.test.ts
@@ -902,7 +902,7 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-1x + claude-
 date: 2026-05-16
 agent: claude-opus-4-7 + codex-gpt-5-codex (r1+r2) + gemini-2.5-pro-via-cli-0.42 (r1+r2) + advisor
 task_id: IMPL-MEAL-P1-PROFILE-SCHEMA-001
-commit_sha: PENDING
+commit_sha: 1493ae3
 files_changed:
   - db/migrations/0021_bio_profiles_p1_extension.sql
   - packages/shared-types/src/entities.ts
@@ -928,7 +928,7 @@ verified_by: claude-opus-4-7 + codex-review-2x + gemini-adversarial-2x + claude-
 date: 2026-05-15
 agent: claude-opus-4-7
 task_id: IMPL-MOBILE-TABS-PIVOT-001
-commit_sha: PENDING
+commit_sha: e21b525
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/src/lib/mock-data.ts
@@ -8066,7 +8066,7 @@ verified_by: claude-opus-4-7 (mobile typecheck + eslint --max-warnings=0 clean; 
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
 task_id: IMPL-MOBILE-ONBOARDING-ROUTING-001
-commit_sha: PENDING
+commit_sha: 56c6180
 files_changed:
   - apps/mobile/src/screens/SelectionScreen.tsx
   - apps/mobile/src/navigation/RootNavigator.tsx
@@ -8088,7 +8088,7 @@ verified_by: claude-opus-4-7 (mobile typecheck clean; SelectionScreen 3/3; iOS S
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
 task_id: PAYWALL-DEVPREVIEW-PRICE-001
-commit_sha: PENDING
+commit_sha: 722c64d
 files_changed:
   - apps/mobile/src/screens/PaywallScreen.tsx
   - apps/mobile/__tests__/decisions.test.ts
@@ -8106,7 +8106,7 @@ verified_by: claude-opus-4-7 (mobile typecheck/lint/test CI green; decisions.tes
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
 task_id: IMPL-MOBILE-SOCIAL-SELECTION-001
-commit_sha: PENDING
+commit_sha: 69e5765
 files_changed:
   - packages/shared-types/src/schemas/users.ts
   - services/user-service/src/services/auth.service.ts
@@ -8131,7 +8131,7 @@ verified_by: claude-opus-4-7 (shared-types build; user-service 208/208 incl. 4 n
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
 task_id: IMPL-MOBILE-SIGNUP-DISPLAYNAME-001
-commit_sha: PENDING
+commit_sha: 11cda16
 files_changed:
   - packages/shared-types/src/schemas/auth.ts
   - services/user-service/src/routes/auth.routes.ts
@@ -8160,7 +8160,7 @@ verified_by: claude-opus-4-7 (shared-types build; user-service 209/209 incl. sig
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context) + advisor + codex + gemini (plan review)
 task_id: IMPL-ACCOUNT-RESTORE-001
-commit_sha: PENDING
+commit_sha: a64ac31
 files_changed:
   - packages/shared-types/src/schemas/auth.ts
   - packages/shared-types/src/schemas/users.ts
@@ -8186,7 +8186,7 @@ verified_by: claude-opus-4-7 + advisor (user-service 213→ incl. 5 restore case
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: IMPL-ACCOUNT-RESTORE-001
-commit_sha: PENDING
+commit_sha: 8c513c7
 files_changed:
   - apps/mobile/src/lib/auth-errors.ts
   - apps/mobile/src/lib/restore.ts
@@ -8213,7 +8213,7 @@ verified_by: claude-opus-4-7 (mobile 200/200 incl. signIn ACCOUNT_DELETED→Acco
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
 task_id: CHORE-WEB-LEGAL-HOMEPAGE-001
-commit_sha: PENDING
+commit_sha: c527dc2
 files_changed:
   - apps/web/src/app/page.tsx
   - apps/web/src/app/terms/page.tsx
@@ -8232,7 +8232,7 @@ verified_by: claude-opus-4-7 (web tsc 0 + eslint 0 + next build OK; fe_token_har
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
 task_id: CHORE-MOBILE-RELEASE-ENV-001
-commit_sha: PENDING
+commit_sha: 610460c
 files_changed:
   - apps/mobile/src/lib/api-client.ts
   - apps/mobile/src/lib/cognito.ts
@@ -8252,7 +8252,7 @@ verified_by: claude-opus-4-7 (mobile tsc + eslint --max-warnings=0; jest 200/200
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: CHORE-SENTRY-PHI-REDACTION-001
-commit_sha: PENDING
+commit_sha: 43f5fa2
 files_changed:
   - packages/service-core/src/sentry.ts
   - packages/service-core/src/sentry-scrub.ts
@@ -8273,7 +8273,7 @@ verified_by: claude-opus-4-7 (origin/main 머지 후 재검증 — service-core 
 date: 2026-05-27
 agent: claude-opus-4-7 (1M context)
 task_id: IMPL-PHI-LAUNCH-V1-REMOVAL-001
-commit_sha: PENDING
+commit_sha: 9260064
 files_changed:
   - apps/mobile/src/onboarding/OnboardingFlow.tsx
   - apps/mobile/src/onboarding/types.ts
@@ -8293,7 +8293,7 @@ verified_by: claude-opus-4-7 (mobile tsc 0 + jest 206/206; grep acceptance 0 med
 date: 2026-05-28
 agent: claude-opus-4-7 (1M context)
 task_id: IMPL-NEWS-CLAIM-BASEDIET-WIRING-001
-commit_sha: PENDING
+commit_sha: 23f58bf
 files_changed:
   - db/seeds/loaders/claimsLoader.ts
   - db/seeds/lifestyle-claims/ariana-grande.json
@@ -8318,7 +8318,7 @@ verified_by: claude-opus-4-7 (validate-claim-seeds 50/50 pass; CI ts/lint via PR
 date: 2026-05-28
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: CHORE-MOBILE-REVENUECAT-DEMO-GATE-001
-commit_sha: PENDING
+commit_sha: 599c92c
 files_changed:
   - apps/mobile/App.tsx
   - apps/mobile/.env.example
@@ -8336,7 +8336,7 @@ verified_by: claude-opus-4-7 (mobile tsc 0 + lint 0 + jest 206/206)
 date: 2026-05-28
 agent: claude-opus-4-7 (1M context) + advisor
 task_id: IMPL-MOBILE-CLAIM-CTA-001
-commit_sha: PENDING
+commit_sha: 4fc1d97
 files_changed:
   - apps/mobile/src/components/MealPlanGenerateSheet.tsx
   - apps/mobile/src/screens/ClaimDetailScreen.tsx
@@ -8356,7 +8356,7 @@ verified_by: claude-opus-4-7 (mobile tsc 0 + lint 0 + jest 206/206)
 date: 2026-05-28
 agent: claude-opus-4-7 (1M context) + codex (security review)
 task_id: CHORE-MOBILE-NEWS-CATALOG-PUBLIC-001
-commit_sha: PENDING
+commit_sha: 4fc1d97
 files_changed:
   - services/content-service/src/index.ts
 verified_by: claude-opus-4-7 + codex (content-service typecheck/eslint clean, codex L3 security review PASS)
@@ -8373,7 +8373,7 @@ verified_by: claude-opus-4-7 + codex (content-service typecheck/eslint clean, co
 date: 2026-05-31
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-WEB-LANDING-DECODE-001
-commit_sha: PENDING
+commit_sha: 5cf2e22
 files_changed:
   - apps/web/src/app/page.tsx
   - apps/web/src/landing/**

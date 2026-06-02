@@ -29,6 +29,14 @@
 
 **다음 (출시 트랙 잔여)**: G1 (Apple Dev/Google Play/RevenueCat live + IAP) 는 사용자 manual 시작 대기 · G2 (PHI 제거/Privacy/App Privacy) · G3 (prod EC2 + Cognito prod pool + backup) · G4 (EAS prod build + Store). FE UI 와이어링은 `docs/FE-WIRING-TODO.md §B` 참조.
 
+## Progress Log — 2026-05-31 (apex landing 선행 + G3 cutover 델타)
+
+> `CHORE-WEB-APEX-DOMAIN-001` (PR #205) 로 prod apex 도메인 `celebase.app` 을 **선행 런칭**. prod EC2 (G3c) 부재 상태라 **staging 박스(184.32.66.152)에 landing-only scope 로 임시 거치**. 사용자 의도 "1박스 공유는 pre-launch 적정" 유지.
+
+- ✅ Cloudflare `celebase.app` A → staging EC2 (DNS-only), Caddy 별도 site 블록 + LE 인증서. 랜딩(#203) + `/terms`·`/privacy` 만 서빙, `/api/*`·frozen 웹 라우트는 404 (BFF·staging 데이터 비노출).
+- ✅ 모바일 Settings/Paywall 의 `celebase.app/terms`·`/privacy` 하드코딩 링크 복구. 모바일 API base 는 여전히 `staging.celebase.app` (`apps/mobile/.env`) — apex 는 `/api` 미서빙.
+- ⚠️ **G3 cutover 델타**: G3c-2 ("Cloudflare DNS celebase.app apex A record") 가 **prod 가 아닌 staging 을 임시로 가리키는 상태**. prod EC2 (CHORE-PROD-EC2-001) 가동 시 apex + 랜딩을 prod 로 이전 + 모바일 prod API base 결정 필요 → 신규 backlog **CHORE-PROD-APEX-CUTOVER-001** (§"G3 Staging Ops Backlog").
+
 ---
 
 ## Context
@@ -232,7 +240,7 @@
 | Sub | 내용 |
 |-----|------|
 | G3c-1 | prod EC2 instance + Elastic IP + Security Group |
-| G3c-2 | Cloudflare DNS `celebase.app` apex A record |
+| G3c-2 | Cloudflare DNS `celebase.app` apex A record (⚠️ 2026-05-31 현재 staging 박스에 임시 거치 — CHORE-PROD-APEX-CUTOVER-001 로 prod 이전) |
 | G3c-3 | prod secrets injection (Cognito prod / SES verified domain / RevenueCat live) — IAM role 또는 Secrets Manager |
 | G3c-4 | prod docker-compose: 5 BE + web + caddy + db + redis 모두 배포 |
 | G3c-5 | DB migration first-run (CHORE-STAGING-MIGRATION-PIPELINE-001 의 runner 사용) |
@@ -258,6 +266,7 @@
 | **INFRA-MOBILE-SQS-TERRAFORM-001** | 수동 생성된 SQS+IAM 스택 전부 `infra/terraform/staging/` 로 import (prod EC2 G3c 재현성). 대상: ① SQS queue `celebase-staging-meal-plan-jobs` ② IAM role `celebase-staging-mpe-sqs` + 인라인 정책 `mpe-sqs-access` (Send/Receive/Delete, 큐 ARN 한정) ③ instance profile `celebase-staging-mpe-sqs` ④ EC2 `i-03cebf092c900627d` association ⑤ **metadata hop limit 2** (컨테이너 IMDS 필수). meal-plan-engine `SQS_QUEUE_URL` import-time guard 의존 | MEDIUM | terraform 미반영 = 인스턴스 교체 시 role/association/hop-limit 소실 → SQS `NoCredentialsError` 재발 (FIX-STAGING-MPE-SQS-CREDS-001 에서 발생·해소) |
 | **CHORE-STAGING-ENV-MANAGEMENT-001** | `/app/.env.staging` + `/app/apps/web/.env.staging` 가 EC2 위에서만 갱신 (git/SSM 미추적). web BE URL 교정·user-service env override 등 staging-local 변경이 재provision 시 소실. SSM Parameter Store / Secrets Manager 로 이관 | MEDIUM | G3c-3 prod secrets injection 과 통합 가능 |
 | **CHORE-STAGING-MPE-HEALTHCHECK-001** | meal-plan-engine (python:3.12-slim) 에 wget/curl 부재 → healthcheck 항상 fail → "unhealthy" 라벨 (서비스 `/health` 200 정상, cosmetic). healthcheck 를 `python3 -c "import urllib.request; urllib.request.urlopen(...)"` 로 교체 (cd.yml 4be 템플릿 + staging compose) | LOW | orchestration 라벨만, 기능 정상 |
+| **CHORE-PROD-APEX-CUTOVER-001** ⚠️ 신규 (2026-05-31) | prod EC2 (CHORE-PROD-EC2-001) 가동 시 apex 컷오버: ① Cloudflare `celebase.app` A 레코드를 staging IP(184.32.66.152) → prod IP 로 이전 ② 랜딩+legal 을 prod 에서 서빙 (apex Caddy 블록 `docker/caddy/Caddyfile` 을 prod Caddyfile 로 이전) ③ **모바일 prod API base 결정**: `celebase.app`(=prod box full app) vs `api.celebase.app`(별도 서브도메인, 권장) — 후자 채택 시 G3c-2 / G3b-2(callback_urls) / CHORE-EAS-PROD-BUILD-001(`EXPO_PUBLIC_BFF_BASE_URL`) 정렬 ④ staging `docker/caddy/Caddyfile` 의 apex landing-only 블록 제거(staging-only 복귀) | MEDIUM | CHORE-WEB-APEX-DOMAIN-001(PR #205)에서 apex 를 staging 에 선행 거친 데 따른 cutover. G3c-1~3 와 lockstep. apex 가 현재 landing-only scope 라 prod 전환까지 사용자 노출 위험은 없음 |
 
 **G1-f 에 흡수 (별도 chore 아님)**: staging tier-sync E2E 는 commerce `REVENUECAT_ENABLED=true` + vendor secret 필요 → G1-f (sandbox sync E2E) acceptance 의 전제. wire 경로 자체는 `CHORE-TIER-SYNC-WIRE-VERIFY-001` 에서 검증됨. 로컬은 기본 `false` 라 `/api/subscriptions/sync` 404 (정상).
 
