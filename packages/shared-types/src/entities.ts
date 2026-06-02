@@ -363,6 +363,10 @@ export interface PhiAccessLog {
 export interface ClaimStorySlide {
   eyebrow?: string | undefined;
   headline: string;
+  // hero 이미지(음식/오브제 — CL-IMAGE). 절대 URL(앱 <Image> 직접 로드). null/생략 ⇒ 텍스트 전용.
+  image?: string | null | undefined;
+  // 이미지 배치. 생략 시 역할별 기본값(hook=fullbleed, 그 외=band) — ClaimDetailScreen.
+  layout?: 'fullbleed' | 'band' | undefined;
 }
 export interface ClaimStory {
   hook: ClaimStorySlide & { sub: string; swipe?: string | undefined };

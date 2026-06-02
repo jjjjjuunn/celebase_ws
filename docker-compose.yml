@@ -135,6 +135,9 @@ services:
       DATABASE_URL: postgresql://celebbase:devpw@postgres:5432/celebbase_dev
       LOG_LEVEL: info
       SENTRY_DSN: ${SENTRY_DSN:-}
+      # admin moderation/CMS — host env 또는 root .env 에 설정 시 /admin/* 가 X-Admin-Token 요구
+      # (admin-studio 가 동일 값 보유). 미설정 ⇒ dev stub(admin-auth.ts 가 NODE_ENV=development 에서 허용).
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
     depends_on:
       postgres:
         condition: service_healthy

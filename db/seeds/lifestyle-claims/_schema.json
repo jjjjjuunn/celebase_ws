@@ -86,7 +86,9 @@
                 "eyebrow": { "type": "string", "maxLength": 80 },
                 "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
                 "sub": { "type": "string", "maxLength": 400 },
-                "swipe": { "type": "string", "maxLength": 40 }
+                "swipe": { "type": "string", "maxLength": 40 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri", "description": "hero 이미지 절대 URL(음식/오브제, CL-IMAGE). 생략/null ⇒ 텍스트 전용." },
+                "layout": { "enum": ["fullbleed", "band"], "description": "이미지 배치. 생략 시 역할별 기본(hook=fullbleed)." }
               }
             },
             "what": {
@@ -97,7 +99,9 @@
                 "eyebrow": { "type": "string", "maxLength": 80 },
                 "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
                 "rows": { "type": "array", "items": { "type": "string", "maxLength": 400 }, "minItems": 1, "maxItems": 4 },
-                "source": { "type": "string", "maxLength": 400 }
+                "source": { "type": "string", "maxLength": 400 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri" },
+                "layout": { "enum": ["fullbleed", "band"] }
               }
             },
             "science": {
@@ -109,7 +113,9 @@
                 "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
                 "checks": { "type": "array", "items": { "type": "string", "maxLength": 400 }, "maxItems": 4 },
                 "caveat": { "type": "string", "maxLength": 400 },
-                "source": { "type": "string", "maxLength": 400 }
+                "source": { "type": "string", "maxLength": 400 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri" },
+                "layout": { "enum": ["fullbleed", "band"] }
               }
             },
             "catch": {
@@ -119,7 +125,9 @@
               "properties": {
                 "eyebrow": { "type": "string", "maxLength": 80 },
                 "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
-                "body": { "type": "string", "maxLength": 600 }
+                "body": { "type": "string", "maxLength": 600 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri" },
+                "layout": { "enum": ["fullbleed", "band"] }
               }
             },
             "rescaled": {
@@ -141,7 +149,9 @@
                     }
                   }
                 },
-                "source": { "type": "string", "maxLength": 400 }
+                "source": { "type": "string", "maxLength": 400 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri" },
+                "layout": { "enum": ["fullbleed", "band"] }
               }
             },
             "cta": {
@@ -153,7 +163,9 @@
                 "headline": { "type": "string", "minLength": 1, "maxLength": 200 },
                 "button": { "type": "string", "maxLength": 40 },
                 "sub": { "type": "string", "maxLength": 400 },
-                "disclaimer": { "type": "string", "maxLength": 800 }
+                "disclaimer": { "type": "string", "maxLength": 800 },
+                "image": { "type": ["string", "null"], "maxLength": 2048, "format": "uri" },
+                "layout": { "enum": ["fullbleed", "band"] }
               }
             }
           }

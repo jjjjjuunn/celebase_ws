@@ -2241,6 +2241,14 @@ story 는 `findById`(detail) 에서만 select 한다 — 피드 리스트(`Lifes
 - **CTA·boot-kick·텍스트/라벨 불변**: 게이트 로직·접근성 라벨·출처 allowlist 보존(시각만 변경) → 기존 테스트 무수정 통과.
 - **근사 처리(후속)**: `**bold**` = faux-bold(단일 weight 로드) · 블롭 blur 생략 · Beauty rose accent 토큰 미정(현 clay). 음식 hero 이미지(safezone A)는 별도.
 
+#### 7.2 Claim story per-slide hero 이미지 *(IMPL-MOBILE-CLAIM-HERO-IMG-001)*
+
+story 슬라이드에 선택적 hero 이미지를 도입한다. `StorySlideHeadSchema` 에 `image`(절대 URL, nullable·optional) + `layout`(`'fullbleed' | 'band'`) 을 추가하고 `_schema.json`·`entities.ClaimStorySlide` parity 를 맞춘다. **텍스트는 여전히 앱이 라이브 렌더**한다 — 이미지에 글자를 굽지 않는다(다국어·편집·법무 안전). 렌더: hook=`fullbleed`(이미지+scrim+오버레이 텍스트), info 슬라이드=`band`(상단 이미지+하단 텍스트), `image:null`=텍스트 전용(회귀 0). 이미지 호스트는 S3 에셋 도메인 allowlist 로 제한(오타·사설버킷 차단, fetch 안 함 — SSRF 없음).
+
+#### 7.2 Claim 운영 admin CMS *(IMPL-CONTENT-ADMIN-CMS-001)*
+
+비전공 운영자가 claim+story 를 작성·편집·발행하는 경로. content-service `/admin/claims`(POST 생성 · PATCH 부분편집) + 기존 `transition`. **불변식**: `status=published` 가 되는 모든 경로(create-as-published · update-to-published · draft→published transition)는 DB write *이전에* `assertLegalGate()` 단일 choke-point 를 통과한다 — BLOCK 1건이라도면 throw → write 없음(published 잔류 방지). 게이트는 `content-legal-scan.py` 결정적 체크를 구조화 story 로 TS 포팅(`content-legal-gate.ts`): CL-FTC-GUAR(보장 표현)·CL-NAME-CTA(CTA 내 셀럽명)·CL-DISC(비제휴·의료 disclaimer)=BLOCK, CL-ENGINE=HIGH·CL-PRODUCT-CLAIM=MEDIUM=경고. UI 는 monorepo 밖 로컬 툴(`admin-studio`, image-studio 패턴 — `apps/web` frozen 회피, 토큰은 로컬 `.env`). admin 라우트는 `X-Admin-Token`(`ADMIN_API_TOKEN`) 가드(IMPL-021).
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

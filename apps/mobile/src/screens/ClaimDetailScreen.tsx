@@ -16,6 +16,7 @@ import { Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   ScrollView,
   StyleSheet,
@@ -261,29 +262,52 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
         : null;
 
   // ── 슬라이드 구성 ─────────────────────────────────────────────
-  const slides: Array<{ key: string; tone: 'light' | 'dark'; node: React.ReactNode }> = [];
+  const slides: Array<{
+    key: string;
+    tone: 'light' | 'dark';
+    node: React.ReactNode;
+    hero?: { url: string; layout: 'fullbleed' | 'band' } | null;
+  }> = [];
 
-  // 1) Decode
+  // hero 이미지(있으면). hook=fullbleed(표지), 정보 슬라이드=band(상단 이미지/하단 글).
+  // v1: 비-hook 슬라이드는 layout 무관 band 로 렌더(정보슬라이드 fullbleed-in-app 은 후속).
+  const hookImage = s?.hook.image ?? null;
+  const hookFb = hookImage !== null && (s?.hook.layout ?? 'fullbleed') === 'fullbleed';
+  const whatImage = s?.what.image ?? null;
+  const scienceImage = s?.science?.image ?? null;
+  const rescaledImage = s?.rescaled.image ?? null;
+
+  // 1) Decode — 이미지 있으면 fullbleed(표지): 이미지 위 scrim + 밝은 글자 오버레이.
   slides.push({
     key: 'decode',
     tone: 'light',
+    hero: hookImage !== null ? { url: hookImage, layout: hookFb ? 'fullbleed' : 'band' } : null,
     node: (
       <>
-        <Blob color={theme.news.lime} size={230} top={-70} right={-60} opacity={0.85} />
-        <Blob color={accent} size={120} bottom={90} right={-40} opacity={0.45} />
-        <Eyebrow theme={theme} text={s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`} dot={accent} />
+        {!hookFb ? (
+          <>
+            <Blob color={theme.news.lime} size={230} top={-70} right={-60} opacity={0.85} />
+            <Blob color={accent} size={120} bottom={90} right={-40} opacity={0.45} />
+          </>
+        ) : null}
+        <Eyebrow
+          theme={theme}
+          text={s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`}
+          dot={hookFb ? theme.news.lime : accent}
+          onDark={hookFb}
+        />
         <RichText
           text={s?.hook.headline ?? claim.headline}
-          style={styles.hHook}
-          accentColor={theme.news.forest2}
+          style={hookFb ? styles.hHookOnImg : styles.hHook}
+          accentColor={hookFb ? theme.news.lime : theme.news.forest2}
         />
         <RichText
           text={s?.hook.sub ?? 'What they actually do — and what it looks like rescaled to you.'}
-          style={styles.sub}
+          style={hookFb ? styles.subOnImg : styles.sub}
         />
         <View style={styles.swipeRow}>
-          <Text style={styles.swipe}>{(s?.hook.swipe ?? 'SWIPE').toUpperCase()}</Text>
-          <Ionicons name="arrow-forward" size={14} color={theme.news.forest} />
+          <Text style={hookFb ? styles.swipeOnImg : styles.swipe}>{(s?.hook.swipe ?? 'SWIPE').toUpperCase()}</Text>
+          <Ionicons name="arrow-forward" size={14} color={hookFb ? theme.news.lime : theme.news.forest} />
         </View>
       </>
     ),
@@ -293,6 +317,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   slides.push({
     key: 'what',
     tone: 'light',
+    hero: whatImage !== null ? { url: whatImage, layout: 'band' } : null,
     node: (
       <>
         <Eyebrow theme={theme} text={s?.what.eyebrow ?? 'WHAT THEY DO'} dot={accent} />
@@ -341,6 +366,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     slides.push({
       key: 'science',
       tone: 'light',
+      hero: scienceImage !== null ? { url: scienceImage, layout: 'band' } : null,
       node: (
         <>
           <Eyebrow theme={theme} text={sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'} dot={accent} />
@@ -405,6 +431,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     slides.push({
       key: 'rescale',
       tone: 'light',
+      hero: rescaledImage !== null ? { url: rescaledImage, layout: 'band' } : null,
       node: (
         <>
           <Eyebrow theme={theme} text={s?.rescaled.eyebrow ?? 'RESCALED TO YOU'} dot={accent} />
@@ -487,28 +514,57 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={onMomentumEnd}
         >
-          {slides.map((slide, i) => (
-            <View key={slide.key} style={{ width, ...(areaH > 0 ? { height: areaH } : {}) }}>
-              <ScrollView
-                contentContainerStyle={styles.slideScroll}
-                showsVerticalScrollIndicator={false}
-              >
-                <View
-                  style={[styles.card, slide.tone === 'dark' ? styles.cardDark : styles.cardLight]}
+          {slides.map((slide, i) => {
+            const fb = slide.hero?.layout === 'fullbleed';
+            const band = slide.hero?.layout === 'band';
+            const footDark = slide.tone === 'dark' || fb;
+            return (
+              <View key={slide.key} style={{ width, ...(areaH > 0 ? { height: areaH } : {}) }}>
+                <ScrollView
+                  contentContainerStyle={styles.slideScroll}
+                  showsVerticalScrollIndicator={false}
                 >
-                  {slide.node}
-                  <View style={styles.foot}>
-                    <Text style={slide.tone === 'dark' ? styles.wordmarkDark : styles.wordmark}>
-                      cele<Text style={styles.wordmarkB}>base</Text>
-                    </Text>
-                    <Text style={slide.tone === 'dark' ? styles.pagenoDark : styles.pageno}>
-                      {`0${String(i + 1)} / 0${String(total)}`}
-                    </Text>
+                  <View
+                    style={[
+                      styles.card,
+                      fb ? styles.cardImage : slide.tone === 'dark' ? styles.cardDark : styles.cardLight,
+                      band ? styles.cardBand : null,
+                    ]}
+                  >
+                    {fb && slide.hero !== null && slide.hero !== undefined ? (
+                      <>
+                        <Image
+                          source={{ uri: slide.hero.url }}
+                          style={StyleSheet.absoluteFill}
+                          resizeMode="cover"
+                          accessibilityIgnoresInvertColors
+                        />
+                        <View style={styles.scrim} pointerEvents="none" />
+                        <View style={styles.scrimBottom} pointerEvents="none" />
+                      </>
+                    ) : null}
+                    {band && slide.hero !== null && slide.hero !== undefined ? (
+                      <Image
+                        source={{ uri: slide.hero.url }}
+                        style={styles.bandImage}
+                        resizeMode="cover"
+                        accessibilityIgnoresInvertColors
+                      />
+                    ) : null}
+                    {slide.node}
+                    <View style={styles.foot}>
+                      <Text style={footDark ? styles.wordmarkDark : styles.wordmark}>
+                        cele<Text style={styles.wordmarkB}>base</Text>
+                      </Text>
+                      <Text style={footDark ? styles.pagenoDark : styles.pageno}>
+                        {`0${String(i + 1)} / 0${String(total)}`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </ScrollView>
-            </View>
-          ))}
+                </ScrollView>
+              </View>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -662,6 +718,20 @@ function makeStyles(theme: Theme) {
     },
     cardLight: { backgroundColor: n.cream, borderColor: n.line },
     cardDark: { backgroundColor: n.forest, borderColor: n.forest },
+    // hero 이미지 레이아웃 (image:null 이면 미적용 — 텍스트 카드 그대로)
+    cardImage: { backgroundColor: n.forest, borderColor: n.forest, justifyContent: 'flex-end' },
+    cardBand: { justifyContent: 'flex-start' },
+    bandImage: {
+      height: 160,
+      marginTop: -theme.space(7),
+      marginHorizontal: -theme.space(6),
+      marginBottom: theme.space(4),
+    },
+    scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: n.ink, opacity: 0.28 },
+    scrimBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '62%', backgroundColor: n.ink, opacity: 0.5 },
+    hHookOnImg: { fontFamily: f.display, fontSize: 40, fontWeight: theme.weight.medium, color: n.cream, lineHeight: 44, letterSpacing: -0.6, marginTop: theme.space(4) },
+    subOnImg: { fontFamily: f.body, fontSize: 16, color: n.cream2, lineHeight: 24, marginTop: theme.space(4) },
+    swipeOnImg: { fontFamily: f.mono, fontSize: 12, color: n.lime, letterSpacing: 2.4, fontWeight: theme.weight.semibold },
 
     eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     eyebrowDot: { width: 8, height: 8, borderRadius: 4 },

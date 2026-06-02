@@ -5,12 +5,22 @@ const mockListForModeration = jest.fn();
 const mockFindByIdAdmin = jest.fn();
 const mockTransitionStatus = jest.fn();
 const mockSetHealthClaim = jest.fn();
+const mockCreateClaim = jest.fn();
+const mockUpdateClaim = jest.fn();
+const mockResolveCelebrityIdBySlug = jest.fn();
+const mockResolveBaseDietIdByCelebSlug = jest.fn();
+const mockGetCelebrityDisplayName = jest.fn();
 
 jest.unstable_mockModule('../../src/repositories/lifestyle-claim.repository.js', () => ({
   listForModeration: mockListForModeration,
   findByIdAdmin: mockFindByIdAdmin,
   transitionStatus: mockTransitionStatus,
   setHealthClaim: mockSetHealthClaim,
+  createClaim: mockCreateClaim,
+  updateClaim: mockUpdateClaim,
+  resolveCelebrityIdBySlug: mockResolveCelebrityIdBySlug,
+  resolveBaseDietIdByCelebSlug: mockResolveBaseDietIdByCelebSlug,
+  getCelebrityDisplayName: mockGetCelebrityDisplayName,
 }));
 
 const { lifestyleClaimAdminRoutes } = await import(
@@ -86,6 +96,14 @@ beforeEach(() => {
   mockFindByIdAdmin.mockReset();
   mockTransitionStatus.mockReset();
   mockSetHealthClaim.mockReset();
+  mockCreateClaim.mockReset();
+  mockUpdateClaim.mockReset();
+  mockResolveCelebrityIdBySlug.mockReset();
+  mockResolveBaseDietIdByCelebSlug.mockReset();
+  mockGetCelebrityDisplayName.mockReset();
+  // transition→published 경로가 게이트용으로 findByIdAdmin 을 호출한다.
+  // 기본은 story 없는 claim(게이트 N/A) — 발행 transition 테스트가 그대로 통과하도록.
+  mockFindByIdAdmin.mockResolvedValue({ ...baseClaim, story: null, sources: [] });
 });
 
 describe('Admin auth — X-Admin-Token guard', () => {
@@ -477,6 +495,173 @@ describe('PATCH /admin/claims/:id/health-claim', () => {
     });
     expect(res.statusCode).toBe(400);
     expect(mockSetHealthClaim).not.toHaveBeenCalled();
+    await app.close();
+  });
+});
+
+// ── Admin CMS write (IMPL-CONTENT-ADMIN-CMS-001) — create/edit + legal gate ──
+const CELEB_ID = '99999999-9999-7999-8999-999999999999';
+
+function cleanStory(): Record<string, unknown> {
+  return {
+    hook: { headline: 'Her plate, decoded.', sub: 'What she eats.' },
+    what: { headline: 'Whole foods, 80/20.', rows: ['Oats with greens.'] },
+    catch: { headline: 'Built for her body.', body: "Her needs aren't yours." },
+    rescaled: { headline: 'Your numbers.', profiles: [{ who: 'Your calories', what: 'Your target.' }] },
+    cta: {
+      headline: 'Get your personalized plan.',
+      button: 'Make my Plan',
+      sub: 'Answer a few quick questions.',
+      disclaimer: 'celebase is not affiliated with the named individual. Not medical advice.',
+    },
+  };
+}
+
+function createPayload(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    celebrity_slug: 'cameron-diaz',
+    claim_type: 'food',
+    headline: 'Cameron Diaz savory oatmeal',
+    trust_grade: 'B',
+    is_health_claim: true,
+    tags: ['oatmeal'],
+    status: 'draft',
+    sources: [{ source_type: 'interview', outlet: 'People', url: 'https://people.com/x', is_primary: true }],
+    story: cleanStory(),
+    ...over,
+  };
+}
+
+describe('POST /admin/claims (create)', () => {
+  it('creates a draft claim (no gate) → 201', async () => {
+    mockResolveCelebrityIdBySlug.mockResolvedValue(CELEB_ID);
+    mockCreateClaim.mockResolvedValue({ ...baseClaim, story: cleanStory(), sources: [] });
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: createPayload(),
+    });
+    expect(res.statusCode).toBe(201);
+    expect(mockCreateClaim).toHaveBeenCalledTimes(1);
+    await app.close();
+  });
+
+  it('publishes a clean story → gate passes → 201', async () => {
+    mockResolveCelebrityIdBySlug.mockResolvedValue(CELEB_ID);
+    mockGetCelebrityDisplayName.mockResolvedValue('Cameron Diaz');
+    mockCreateClaim.mockResolvedValue({ ...baseClaim, status: 'published', story: cleanStory(), sources: [] });
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: createPayload({ status: 'published' }),
+    });
+    expect(res.statusCode).toBe(201);
+    expect(mockCreateClaim).toHaveBeenCalledTimes(1);
+    await app.close();
+  });
+
+  it('blocks publish when celebrity name is in the CTA (gate BLOCK) → 400, no write', async () => {
+    mockResolveCelebrityIdBySlug.mockResolvedValue(CELEB_ID);
+    mockGetCelebrityDisplayName.mockResolvedValue('Cameron Diaz');
+    const bad = cleanStory();
+    (bad.cta as Record<string, unknown>).headline = 'Eat like Cameron Diaz.';
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: createPayload({ status: 'published', story: bad }),
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe('VALIDATION_ERROR');
+    expect(mockCreateClaim).not.toHaveBeenCalled();
+    await app.close();
+  });
+
+  it('404 when celebrity_slug not found', async () => {
+    mockResolveCelebrityIdBySlug.mockResolvedValue(null);
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: createPayload(),
+    });
+    expect(res.statusCode).toBe(404);
+    expect(mockCreateClaim).not.toHaveBeenCalled();
+    await app.close();
+  });
+
+  it('400 on missing required field (claim_type)', async () => {
+    const p = createPayload();
+    delete p.claim_type;
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/claims',
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: p,
+    });
+    expect(res.statusCode).toBe(400);
+    expect(mockCreateClaim).not.toHaveBeenCalled();
+    await app.close();
+  });
+});
+
+describe('PATCH /admin/claims/:id (update)', () => {
+  it('updates story on an existing draft claim → 200', async () => {
+    mockFindByIdAdmin.mockResolvedValue({ ...baseClaim, story: null, sources: [] });
+    mockUpdateClaim.mockResolvedValue({ ...baseClaim, story: cleanStory(), sources: [] });
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/admin/claims/${baseClaim.id}`,
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: { story: cleanStory() },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(mockUpdateClaim).toHaveBeenCalledTimes(1);
+    await app.close();
+  });
+
+  it('blocks update-to-published with a bad story → 400, no write', async () => {
+    mockFindByIdAdmin.mockResolvedValue({
+      ...baseClaim,
+      celebrity_id: CELEB_ID,
+      is_health_claim: true,
+      story: null,
+      sources: [],
+    });
+    mockGetCelebrityDisplayName.mockResolvedValue('Cameron Diaz');
+    const bad = cleanStory();
+    (bad.cta as Record<string, unknown>).headline = 'Eat like Cameron Diaz.';
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/admin/claims/${baseClaim.id}`,
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: { status: 'published', story: bad },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(mockUpdateClaim).not.toHaveBeenCalled();
+    await app.close();
+  });
+
+  it('404 when claim missing', async () => {
+    mockFindByIdAdmin.mockResolvedValue(null);
+    const app = await makeApp({ withToken: true });
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/admin/claims/${baseClaim.id}`,
+      headers: { 'x-admin-token': VALID_TOKEN, 'content-type': 'application/json' },
+      payload: { headline: 'New headline' },
+    });
+    expect(res.statusCode).toBe(404);
+    expect(mockUpdateClaim).not.toHaveBeenCalled();
     await app.close();
   });
 });

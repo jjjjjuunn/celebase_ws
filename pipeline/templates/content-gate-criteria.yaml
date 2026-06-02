@@ -1,0 +1,70 @@
+version: "1.0"
+
+# CONTENT-GATE — 콘텐츠 출처·법적 게이트.
+# 코드용 gate-criteria.yaml 과 동일 구조 (required_checks + claude_judgment +
+# max_iterations + on_max_fail). 차이점:
+#   - 입력이 코드가 아니라 콘텐츠 아티팩트 (claim seed JSON / 6슬라이드 카피)
+#   - required_checks 는 CI 훅이 아니라 **content-source-legal-gate 서브에이전트가
+#     직접 실행**하는 명령이다 (Bash). 서브에이전트가 결과를 리포트로 종합한다.
+#   - 규칙 정의·rule→check 매핑은 .claude/rules/domain/content-legal.md.
+# Prime directive: advisory pre-flight. junwon 이 법적 게이트키퍼.
+# BLOCK/HIGH 1건이라도 → on_max_fail 전에 ESCALATE_TO_HUMAN.
+
+gates:
+  content_source_fact:
+    description: "출처/사실 게이트 — claim seed JSON 의 출처·allowlist·State A 연결 검증"
+    input_artifact: "db/seeds/lifestyle-claims/<slug>.json"
+    cwd: "celebase_ws"
+    required_checks:
+      - name: claim_seed_validator
+        command: "python3 scripts/validate-claim-seeds.py"
+        pass_condition: "exit_code == 0"
+        covers: ["CL-SRC-SCHEMA", "CL-SRC-ALLOWLIST", "CL-SRC-PRIMARY", "CL-SRC-TRUSTGATE", "CL-SRC-CELEBLINK"]
+        note: "전체 seed 디렉토리를 검증. 대상 slug 의 finding 만 발췌해 판정."
+    claude_judgment:
+      - id: state_a_integrity
+        severity: strict
+        description: "food claim 이 base_diet_id_slug 로 연결되고 db/seeds/data/<slug>.json base_diet 가 실제 food 인가 (State A). 아니면 slide-6 은 State B 여야 한다. (CL-STATE-A)"
+      - id: source_supports_claim
+        severity: strict
+        description: "primary source 가 claim 문구를 실제 뒷받침하는가 — '먹는다'(O)/'보증'(X). WebFetch 로 확인, UA차단 시 '사람 클릭 필요' 플래그. (CL-SRC-SUPPORTS)"
+      - id: false_light
+        severity: strict
+        description: "생존 인물 false-light/허위 매칭 없음 — 정확한 출처 사실만. (CL-FALSELIGHT)"
+      - id: health_claim_flag
+        severity: normal
+        description: "is_health_claim 이 내용과 일치. (CL-HEALTHFLAG)"
+    max_iterations: 3
+    on_max_fail: "ESCALATE_TO_HUMAN"
+
+  content_legal_copy:
+    description: "법적/카피 게이트 — 6슬라이드 카피의 네이밍권·CTA·FTC·엔진-정직·이미지 검토"
+    input_artifact: "6슬라이드 카피 (Notion 카드 본문 → 텍스트 파일로 export)"
+    cwd: "celebase_ws"
+    required_checks:
+      - name: legal_copy_scan
+        command: 'python3 scripts/content-legal-scan.py <copy.md> --celeb "<name>" [--health-claim]'
+        pass_condition: "exit_code == 0"
+        covers: ["CL-NAME-CTA", "CL-FTC-GUAR", "CL-DISC"]
+        note: "disclaimer 라인의 비제휴 셀럽명은 예외 처리됨. BLOCK 시 exit 1."
+    claude_judgment:
+      - id: nominative_fair_use
+        severity: strict
+        description: "명목적 공정이용 3요건 (식별 필요 / 최소 사용 / 후원 암시 없음) — CA §3344·SB683, Lanham, New Kids. (CL-NOMINATIVE)"
+      - id: name_editorial_only
+        severity: strict
+        description: "셀럽명이 에디토리얼 본문(1–3 슬라이드)에만, CTA/버튼/푸시/광고엔 없음. (CL-NAME-EDITORIAL)"
+      - id: ftc_over_promise
+        severity: strict
+        description: "결과·의료 단정 없음, 'associated with/linked to' 유지. (CL-FTC-PROMISE)"
+      - id: engine_honest
+        severity: strict
+        description: "칼로리·3대 매크로·취향 리스케일만 약속. 섬유질 그램·ramp·페르소나 금지. (CL-ENGINE)"
+      - id: image_rules
+        severity: strict
+        description: "이미지 디렉션 = 얼굴 X·로고 X·타이포 중심, AI 셀럽 얼굴 금지. (CL-IMAGE)"
+      - id: product_claim_accuracy
+        severity: normal
+        description: "우리 제품 자기주장(온보딩 질문 수·플랜 길이·기능 상태)이 실제 제품(apps/mobile onboarding / spec.md)과 일치. 드리프트 나는 하드코딩 숫자 금지 → 일반 표현. scanner가 카운트 패턴 MEDIUM 플래그. (CL-PRODUCT-CLAIM)"
+    max_iterations: 3
+    on_max_fail: "ESCALATE_TO_HUMAN"
