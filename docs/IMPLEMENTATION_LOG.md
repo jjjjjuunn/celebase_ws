@@ -28,6 +28,57 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-01
+agent: claude-opus-4-8 (1M context) + advisor (plan/verify/commit review)
+task_id: IMPL-CONTENT-ADMIN-CMS-001
+commit_sha: 861658f
+files_changed:
+  - services/content-service/src/lib/content-legal-gate.ts
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts
+  - services/content-service/tests/unit/content-legal-gate.test.ts
+  - services/content-service/tests/unit/lifestyle-claim.admin.routes.test.ts
+  - services/content-service/tests/unit/lifestyle-claim.repository.write.test.ts
+  - docker-compose.yml
+  - scripts/content-legal-scan.py
+  - .claude/rules/domain/content-legal.md
+  - pipeline/templates/content-gate-criteria.yaml
+  - spec.md
+verified_by: claude-opus-4-8 (tc 0 / lint 0 / test 118) + 로컬 라이브 스택 E2E 15/15 + L3 self-adversarial (updateClaim 동적 SET 파라미터화 안전)
+---
+### 완료: admin CMS 쓰기 API + 발행 직전 법무 게이트 (IMPL-CONTENT-ADMIN-CMS-001)
+- 비전공 운영자가 claim+story 작성/편집/발행. content-service POST /admin/claims · PATCH /admin/claims/:id + 기존 transition 에 게이트 주입.
+- **불변식**: status=published 되는 모든 경로(create / update / transition)는 DB write 이전에 assertLegalGate() 단일 choke-point 통과 — BLOCK 시 throw → write 없음(published 잔류 방지).
+- content-legal-gate.ts: content-legal-scan.py 결정적 체크를 구조화 story 로 TS 포팅. CL-FTC-GUAR/CL-NAME-CTA/CL-DISC=BLOCK, CL-ENGINE=HIGH, CL-PRODUCT-CLAIM=MEDIUM. negation 가드. 셀럽명은 display_name.
+- repository: createClaim(트랜잭션)/updateClaim(동적 SET — 컬럼명 고정 리터럴 + 값은 $n 플레이스홀더로 Rule 2 안전) + findByIdAdmin story select + slug 해석.
+- UI = monorepo 밖 로컬 툴 admin-studio(image-studio 패턴, apps/web frozen 회피, 토큰 로컬 .env). docker-compose ADMIN_API_TOKEN host-env 보간.
+- 검증: typecheck/lint 0 · 118 tests(content-legal-gate 10 + repo write + admin routes) · 로컬 라이브 스택 E2E 15/15(직접 인증 401/403, gate-block count 불변, update no-clobber, 이미지 호스트 allowlist) · L3 self-adversarial(gemini CLI 부재 fallback) — updateClaim 동적 SET injection 없음.
+### 미완료: admin-studio staging 연결(현 로컬 DB 전용 — CONTENT_SERVICE_URL staging + 토큰은 별도 단계). Cognito admin role · 풀 카드 미리보기 · 이미지 업로드 엔드포인트 · Trend Intelligence 자동 draft = 후속.
+### 연관 파일: services/content-service/src/{lib/content-legal-gate.ts,repositories/lifestyle-claim.repository.ts,routes/admin/lifestyle-claim.admin.routes.ts}, services/content-service/tests/unit/{content-legal-gate,lifestyle-claim.admin.routes,lifestyle-claim.repository.write}.test.ts, docker-compose.yml, /Users/junwon/celebase/admin-studio/{server.mjs,index.html}
+
+---
+date: 2026-06-01
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-MOBILE-CLAIM-HERO-IMG-001
+commit_sha: dfebf68
+files_changed:
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+  - db/seeds/lifestyle-claims/_schema.json
+  - db/seeds/lifestyle-claims/cameron-diaz.json
+verified_by: claude-opus-4-8 (shared-types build 0 / mobile typecheck 0)
+---
+### 완료: claim story per-slide hero 이미지 렌더 (IMPL-MOBILE-CLAIM-HERO-IMG-001)
+- 카드뉴스 6슬라이드에 슬라이드별 hero 이미지. **텍스트는 라이브 렌더 유지(이미지에 굽지 않음 — 다국어/편집/법무).** image:null=텍스트 전용(회귀 0).
+- shared-types: StorySlideHeadSchema 에 image(절대 URL, nullable·optional)·layout('fullbleed'|'band') + entities.ClaimStorySlide parity + seed _schema.json 동기화.
+- ClaimDetailScreen: hook=fullbleed(이미지+scrim+오버레이 텍스트), info=band(상단 이미지+하단 텍스트), resizeMode cover.
+- seed: cameron-diaz 음식 카드 hero 4장 URL + 노화/철학 카드 6슬라이드 story 추가.
+- 검증: shared-types build 0 / mobile typecheck 0.
+### 미완료: 실기기/시뮬레이터 비주얼 확인(dev 빌드). 다른 셀럽 hero 이미지 + story 작성. 이미지 업로드 자동화(S3 스크립트).
+### 연관 파일: apps/mobile/src/screens/ClaimDetailScreen.tsx, packages/shared-types/src/{entities.ts,schemas/lifestyle-claims.ts}, db/seeds/lifestyle-claims/{_schema.json,cameron-diaz.json}
+
+---
 date: 2026-05-31
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-CLAIM-STORY-POLISH-001
