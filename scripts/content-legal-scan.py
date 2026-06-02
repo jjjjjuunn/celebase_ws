@@ -68,21 +68,33 @@ OVERPROMISE_PATTERNS: list[tuple[str, str]] = [
 PRODUCT_CLAIM_PATTERNS: list[tuple[str, str]] = [
     (r"\banswer\s+\d+\s+questions?\b", "onboarding question count"),
     (r"\b\d+\s+questions?\b", "question count"),
-    (r"\b\d+[- ]?(day|week|step)s?\s+(plan|program|onboarding)\b", "plan/program length"),
+    (
+        r"\b\d+[- ]?(day|week|step)s?\s+(plan|program|onboarding)\b",
+        "plan/program length",
+    ),
 ]
 
 # Negation guard: editorial copy legitimately *disclaims* guarantees
 # ("isn't a guarantee", "no cure", "won't reverse"). Such negated mentions
 # are FTC-safe and must NOT be flagged. Check a small window before the match.
 NEGATION_TOKENS: tuple[str, ...] = (
-    "isn't", "is not", "not a", "not an", "no ", "without", "never",
-    "won't", "aren't", "n't a",
+    "isn't",
+    "is not",
+    "not a",
+    "not an",
+    "no ",
+    "without",
+    "never",
+    "won't",
+    "aren't",
+    "n't a",
 )
 
 
 def _negated(text: str, start: int) -> bool:
-    window = text[max(0, start - 24):start].lower().replace("’", "'")
+    window = text[max(0, start - 24) : start].lower().replace("’", "'")
     return any(tok in window for tok in NEGATION_TOKENS)
+
 
 # Disclaimer detectors (CL-DISC).
 AFFILIATION_RE = re.compile(
@@ -143,7 +155,9 @@ def scan(text: str, celeb: str, health_claim: bool) -> list[dict[str, str]]:
             }
         )
     else:
-        name_re = re.compile(r"\b(" + "|".join(celeb_tokens(celeb)) + r")\b", re.IGNORECASE)
+        name_re = re.compile(
+            r"\b(" + "|".join(celeb_tokens(celeb)) + r")\b", re.IGNORECASE
+        )
         start, end = region
         for k in range(start, end):
             line = lines[k]
@@ -231,8 +245,12 @@ def scan(text: str, celeb: str, health_claim: bool) -> list[dict[str, str]]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="CONTENT-GATE legal/copy scanner")
     ap.add_argument("copy_file", help="path to the 6-slide copy text/markdown")
-    ap.add_argument("--celeb", required=True, help='celebrity name, e.g. "Cameron Diaz"')
-    ap.add_argument("--health-claim", action="store_true", help="card is a health claim")
+    ap.add_argument(
+        "--celeb", required=True, help='celebrity name, e.g. "Cameron Diaz"'
+    )
+    ap.add_argument(
+        "--health-claim", action="store_true", help="card is a health claim"
+    )
     args = ap.parse_args()
 
     path = Path(args.copy_file)
