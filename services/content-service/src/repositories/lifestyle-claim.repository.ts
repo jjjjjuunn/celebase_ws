@@ -268,14 +268,15 @@ export async function findSourcesByClaimId(
 export async function findByIdAdmin(
   pool: pg.Pool,
   id: string,
-): Promise<LifestyleClaimWithSources | null> {
+): Promise<LifestyleClaimDetailWithSources | null> {
+  // admin 편집 화면이 기존 story 를 로드해야 하므로 lc.story 포함(detail 과 동일).
   const sql = `
-    SELECT ${CLAIM_COLUMNS}
+    SELECT ${CLAIM_COLUMNS}, lc.story
     FROM lifestyle_claims AS lc
     WHERE lc.id = $1 AND lc.is_active = TRUE
     LIMIT 1
   `;
-  const { rows } = await pool.query<LifestyleClaim>(sql, [id]);
+  const { rows } = await pool.query<LifestyleClaim & { story: ClaimStory | null }>(sql, [id]);
   const claim = rows[0];
   if (!claim) return null;
   const sources = await findSourcesByClaimId(pool, claim.id);
@@ -515,4 +516,213 @@ export async function setHealthClaim(
   `;
   const { rows } = await pool.query<LifestyleClaim>(sql, [id, isHealthClaim]);
   return rows[0] ?? null;
+}
+
+// ── Admin write (create/edit) — admin CMS (IMPL-CONTENT-ADMIN-CMS-001) ──────
+// 라우트가 celebrity_slug→celebrity_id, base_diet_id_slug→base_diet_id 를 미리 해석해
+// 아래 input 에 resolved id 로 전달한다(resolve 헬퍼 사용). 발행 게이트는 라우트가 호출.
+
+export interface ClaimSourceInput {
+  source_type: string;
+  outlet: string;
+  url?: string | null | undefined;
+  published_date?: string | null | undefined;
+  excerpt?: string | null | undefined;
+  is_primary?: boolean | undefined;
+}
+
+export interface CreateClaimInput {
+  celebrity_id: string | null;
+  claim_type: ClaimType;
+  headline: string;
+  body?: string | null | undefined;
+  trust_grade: TrustGrade;
+  primary_source_url?: string | null | undefined;
+  verified_by?: string | null | undefined;
+  is_health_claim: boolean;
+  disclaimer_key?: string | null | undefined;
+  base_diet_id?: string | null | undefined;
+  tags: string[];
+  status: ClaimStatus;
+  story?: ClaimStory | null | undefined;
+  sources: ClaimSourceInput[];
+}
+
+export interface UpdateClaimInput {
+  claim_type?: ClaimType | undefined;
+  headline?: string | undefined;
+  body?: string | null | undefined;
+  trust_grade?: TrustGrade | undefined;
+  primary_source_url?: string | null | undefined;
+  verified_by?: string | null | undefined;
+  is_health_claim?: boolean | undefined;
+  disclaimer_key?: string | null | undefined;
+  base_diet_id?: string | null | undefined;
+  tags?: string[] | undefined;
+  status?: ClaimStatus | undefined;
+  story?: ClaimStory | null | undefined;
+  sources?: ClaimSourceInput[] | undefined;
+}
+
+async function insertSources(
+  client: pg.PoolClient,
+  claimId: string,
+  sources: ClaimSourceInput[],
+): Promise<void> {
+  for (const src of sources) {
+    await client.query(
+      `INSERT INTO claim_sources (claim_id, source_type, outlet, url, excerpt, published_date, is_primary)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [claimId, src.source_type, src.outlet, src.url ?? null, src.excerpt ?? null, src.published_date ?? null, src.is_primary ?? false],
+    );
+  }
+}
+
+// claim + sources 를 원자적으로 삽입. RETURNING 에 story 포함(detail schema 검증 통과).
+export async function createClaim(
+  pool: pg.Pool,
+  input: CreateClaimInput,
+): Promise<LifestyleClaimDetailWithSources> {
+  const publishedAt = input.status === 'published' ? new Date() : null;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<LifestyleClaim & { story: ClaimStory | null }>(
+      `INSERT INTO lifestyle_claims (
+         celebrity_id, claim_type, headline, body, trust_grade, primary_source_url,
+         verified_by, is_health_claim, disclaimer_key, base_diet_id, tags, status,
+         published_at, story
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)
+       RETURNING ${CLAIM_COLUMNS.replace(/lc\./g, '')}, story`,
+      [
+        input.celebrity_id,
+        input.claim_type,
+        input.headline,
+        input.body ?? null,
+        input.trust_grade,
+        input.primary_source_url ?? null,
+        input.verified_by ?? null,
+        input.is_health_claim,
+        input.disclaimer_key ?? null,
+        input.base_diet_id ?? null,
+        input.tags,
+        input.status,
+        publishedAt,
+        input.story != null ? JSON.stringify(input.story) : null,
+      ],
+    );
+    const claim = rows[0];
+    if (!claim) throw new Error('createClaim: INSERT returned no row');
+    await insertSources(client, claim.id, input.sources);
+    await client.query('COMMIT');
+    const sources = await findSourcesByClaimId(pool, claim.id);
+    return { ...claim, sources };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// 부분 편집. 보낸 필드만 갱신. sources 제공 시 전량 교체. RETURNING 에 story 포함.
+export async function updateClaim(
+  pool: pg.Pool,
+  id: string,
+  input: UpdateClaimInput,
+): Promise<LifestyleClaimDetailWithSources | null> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const sets: string[] = [];
+    const values: unknown[] = [id];
+    const push = (col: string, val: unknown, cast = ''): void => {
+      values.push(val);
+      sets.push(`${col} = $${String(values.length)}${cast}`);
+    };
+    if (input.claim_type !== undefined) push('claim_type', input.claim_type);
+    if (input.headline !== undefined) push('headline', input.headline);
+    if (input.body !== undefined) push('body', input.body);
+    if (input.trust_grade !== undefined) push('trust_grade', input.trust_grade);
+    if (input.primary_source_url !== undefined) push('primary_source_url', input.primary_source_url);
+    if (input.verified_by !== undefined) push('verified_by', input.verified_by);
+    if (input.is_health_claim !== undefined) push('is_health_claim', input.is_health_claim);
+    if (input.disclaimer_key !== undefined) push('disclaimer_key', input.disclaimer_key);
+    if (input.base_diet_id !== undefined) push('base_diet_id', input.base_diet_id);
+    if (input.tags !== undefined) push('tags', input.tags);
+    if (input.status !== undefined) push('status', input.status);
+    if (input.story !== undefined) {
+      push('story', input.story != null ? JSON.stringify(input.story) : null, '::jsonb');
+    }
+    // draft → published 로 올릴 때 published_at 보충(기존 값 보존).
+    if (input.status === 'published') sets.push('published_at = COALESCE(published_at, NOW())');
+
+    let claim: (LifestyleClaim & { story: ClaimStory | null }) | undefined;
+    if (sets.length > 0) {
+      sets.push('updated_at = NOW()');
+      const { rows } = await client.query<LifestyleClaim & { story: ClaimStory | null }>(
+        `UPDATE lifestyle_claims SET ${sets.join(', ')}
+          WHERE id = $1 AND is_active = TRUE
+          RETURNING ${CLAIM_COLUMNS.replace(/lc\./g, '')}, story`,
+        values,
+      );
+      claim = rows[0];
+    } else {
+      const { rows } = await client.query<LifestyleClaim & { story: ClaimStory | null }>(
+        `SELECT ${CLAIM_COLUMNS.replace(/lc\./g, '')}, story FROM lifestyle_claims
+          WHERE id = $1 AND is_active = TRUE LIMIT 1`,
+        [id],
+      );
+      claim = rows[0];
+    }
+    if (!claim) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    if (input.sources !== undefined) {
+      await client.query('DELETE FROM claim_sources WHERE claim_id = $1', [id]);
+      await insertSources(client, id, input.sources);
+    }
+    await client.query('COMMIT');
+    const sources = await findSourcesByClaimId(pool, id);
+    return { ...claim, sources };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// slug → id 해석(라우트가 호출, null 이면 NotFoundError). 시더 헬퍼와 동일 쿼리.
+export async function resolveCelebrityIdBySlug(pool: pg.Pool, slug: string): Promise<string | null> {
+  const { rows } = await pool.query<{ id: string }>(
+    'SELECT id FROM celebrities WHERE slug = $1 LIMIT 1',
+    [slug],
+  );
+  return rows[0]?.id ?? null;
+}
+
+export async function resolveBaseDietIdByCelebSlug(pool: pg.Pool, slug: string): Promise<string | null> {
+  const { rows } = await pool.query<{ id: string }>(
+    `SELECT bd.id FROM base_diets bd
+       JOIN celebrities c ON c.id = bd.celebrity_id
+      WHERE c.slug = $1 AND bd.is_active = TRUE
+      ORDER BY bd.created_at DESC
+      LIMIT 1`,
+    [slug],
+  );
+  return rows[0]?.id ?? null;
+}
+
+// 법무 게이트 CL-NAME-CTA 용 셀럽 display_name (❗ name 컬럼 아님).
+export async function getCelebrityDisplayName(
+  pool: pg.Pool,
+  celebrityId: string,
+): Promise<string | null> {
+  const { rows } = await pool.query<{ display_name: string }>(
+    'SELECT display_name FROM celebrities WHERE id = $1 LIMIT 1',
+    [celebrityId],
+  );
+  return rows[0]?.display_name ?? null;
 }
