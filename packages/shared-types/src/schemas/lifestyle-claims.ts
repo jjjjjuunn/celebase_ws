@@ -56,6 +56,9 @@ export type LifestyleClaimWire = z.infer<typeof LifestyleClaimWireSchema>;
 const StorySlideHeadSchema = {
   eyebrow: z.string().optional(),
   headline: z.string(),
+  // hero 이미지(절대 URL) + 배치. 권위 검증은 seed 의 _schema.json(format:uri, enum).
+  image: z.string().url().nullable().optional(),
+  layout: z.enum(['fullbleed', 'band']).optional(),
 };
 
 export const ClaimStorySchema = z.object({
@@ -112,6 +115,58 @@ export const LifestyleClaimListResponseSchema = z.object({
 export type LifestyleClaimListResponse = z.infer<
   typeof LifestyleClaimListResponseSchema
 >;
+
+// ── Admin write (create/edit) request schemas — admin CMS (IMPL-CONTENT-ADMIN-CMS-001) ──
+// 사람이 작성하는 claim 입력. seed _schema.json claim shape 미러. content-service 가
+// 요청 본문 검증에 사용. story 는 위 ClaimStorySchema(image/layout 포함) 재사용.
+
+const AdminClaimSourceInputSchema = z
+  .object({
+    source_type: z.enum([
+      'interview',
+      'social_post',
+      'podcast',
+      'book',
+      'article',
+      'press_release',
+      'other',
+    ]),
+    outlet: z.string().min(1).max(200),
+    url: z.string().url().max(2048).nullable().optional(),
+    published_date: z.string().date().nullable().optional(),
+    excerpt: z.string().max(300).nullable().optional(),
+    is_primary: z.boolean().optional(),
+  })
+  .strict();
+
+export const AdminClaimCreateSchema = z
+  .object({
+    // create 시 셀럽 연결(loader 가 slug→id 해석). null/생략 ⇒ 무셀럽 트렌드 카드.
+    celebrity_slug: z
+      .string()
+      .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+      .nullable()
+      .optional(),
+    claim_type: ClaimType,
+    headline: z.string().min(1).max(280),
+    body: z.string().max(10000).nullable().optional(),
+    trust_grade: TrustGrade,
+    primary_source_url: z.string().url().max(2048).nullable().optional(),
+    verified_by: z.string().max(100).nullable().optional(),
+    is_health_claim: z.boolean(),
+    disclaimer_key: z.string().max(100).nullable().optional(),
+    base_diet_id_slug: z.string().nullable().optional(),
+    story: ClaimStorySchema.nullable().optional(),
+    tags: z.array(z.string().max(50)).max(20),
+    status: ClaimStatus,
+    sources: z.array(AdminClaimSourceInputSchema).min(1),
+  })
+  .strict();
+export type AdminClaimCreate = z.infer<typeof AdminClaimCreateSchema>;
+
+// PATCH(부분 편집) — 모든 필드 optional. 보낸 필드만 갱신.
+export const AdminClaimUpdateSchema = AdminClaimCreateSchema.partial();
+export type AdminClaimUpdate = z.infer<typeof AdminClaimUpdateSchema>;
 
 // ── Wire↔Row parity guards (D1, celebrities.ts:72~88 패턴) ─────────────
 

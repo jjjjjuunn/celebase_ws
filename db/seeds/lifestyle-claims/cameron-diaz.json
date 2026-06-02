@@ -8,7 +8,9 @@
         "hook": {
           "eyebrow": "DIET · CELEBRITY DECODE",
           "headline": "Cameron Diaz's longevity plate, *decoded.*",
-          "sub": "What she's said she eats on her Mediterranean, 80/20 approach — and what it looks like *rescaled to you.*"
+          "sub": "What she's said she eats on her Mediterranean, 80/20 approach — and what it looks like *rescaled to you.*",
+          "image": "https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/cameron-diaz/cameron-diaz-diet-01.png",
+          "layout": "fullbleed"
         },
         "what": {
           "eyebrow": "WHAT SHE DOES",
@@ -18,7 +20,9 @@
             "**Whole-wheat & quinoa pasta** as staple grains, a **rice-based probiotic drink,** and a daily squeeze of lemon.",
             "**Crowds out refined sugar & processed food** with whole foods — an **80/20** framework, not rigid restriction."
           ],
-          "source": "Sources: People (on \"The Body Book\"); Cameron Diaz, \"The Body Book\" / \"The Longevity Book\"."
+          "source": "Sources: People (on \"The Body Book\"); Cameron Diaz, \"The Body Book\" / \"The Longevity Book\".",
+          "image": "https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/cameron-diaz/cameron-diaz-diet-02.png",
+          "layout": "band"
         },
         "science": {
           "eyebrow": "WHAT THE SCIENCE SAYS",
@@ -29,7 +33,9 @@
             "It's also **associated with** healthy aging & longevity (Blue Zones)."
           ],
           "caveat": "\"Associated with\" isn't a guarantee — and **her calorie & protein needs aren't yours.**",
-          "source": "Per Mayo Clinic; PREDIMED (NEJM) / NCBI review."
+          "source": "Per Mayo Clinic; PREDIMED (NEJM) / NCBI review.",
+          "image": "https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/cameron-diaz/cameron-diaz-diet-03.png",
+          "layout": "band"
         },
         "catch": {
           "eyebrow": "BUT HERE'S THE CATCH",
@@ -44,7 +50,9 @@
             { "who": "Your macros", "what": "Protein · carbs · fat **split to your goal.**" },
             { "who": "Your foods", "what": "Swaps for what you'll **actually eat & can find.**" }
           ],
-          "source": "Built from your onboarding answers — her real Mediterranean template, rescaled."
+          "source": "Built from your onboarding answers — her real Mediterranean template, rescaled.",
+          "image": "https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/cameron-diaz/cameron-diaz-diet-04.png",
+          "layout": "band"
         },
         "cta": {
           "eyebrow": "YOUR TURN",
@@ -81,6 +89,56 @@
     {
       "claim_type": "philosophy",
       "base_diet_id_slug": null,
+      "story": {
+        "hook": {
+          "eyebrow": "PHILOSOPHY · CELEBRITY DECODE",
+          "headline": "Cameron Diaz on aging — *embraced, not fought.*",
+          "sub": "Her take: understand how your body changes, then back it with daily habits — *not a fixed youthful ideal.*"
+        },
+        "what": {
+          "eyebrow": "WHAT SHE'S SAID",
+          "headline": "Accept the change — then participate in it.",
+          "rows": [
+            "Sees aging as something to **actively work with**, not resist (Good Morning America).",
+            "Treats **consistent whole-food habits** as the foundation of long-term vitality — not short-term diets.",
+            "Wrote *The Longevity Book* to unpack **how the body actually ages** and how lifestyle factors in."
+          ],
+          "source": "Sources: Good Morning America interview; Cameron Diaz, \"The Longevity Book\"."
+        },
+        "science": {
+          "eyebrow": "WHAT THE SCIENCE SAYS",
+          "headline": "Habits are *associated with* how we age.",
+          "checks": [
+            "Diet, activity, sleep and stress are **associated with** healthy-aging markers — per public health reviews.",
+            "Whole-food, Mediterranean-style eating is **associated with** longevity in large studies (e.g., Blue Zones).",
+            "Consistency tends to matter more than any single 'anti-aging' fix."
+          ],
+          "caveat": "\"Associated with\" isn't a guarantee — and **her body, goals and numbers aren't yours.**",
+          "source": "Per public health reviews; Blue Zones research."
+        },
+        "catch": {
+          "eyebrow": "BUT HERE'S THE CATCH",
+          "headline": "A philosophy isn't a plan.",
+          "body": "Embracing aging is a mindset — it doesn't tell *you* what to eat tomorrow. Her habits were shaped by her body, goals and life. Copy the vibe and you still don't have *your* numbers."
+        },
+        "rescaled": {
+          "eyebrow": "RESCALED TO YOU",
+          "headline": "Same whole-food foundation. Your life.",
+          "profiles": [
+            { "who": "Your foundation", "what": "Whole-food habits **built around what you'll actually eat.**" },
+            { "who": "Your numbers", "what": "Calories & macros **set to your goal** — not a celebrity's." },
+            { "who": "Your pace", "what": "Sustainable habits **for your week** — not a crash diet." }
+          ],
+          "source": "Built from your onboarding answers — a whole-food template, rescaled to you."
+        },
+        "cta": {
+          "eyebrow": "YOUR TURN",
+          "headline": "Build *your* whole-food longevity plan.",
+          "button": "Make my Plan",
+          "sub": "Answer a few quick questions and we tailor a whole-food week to your calories, macros & tastes.",
+          "disclaimer": "Editorial based on publicly reported information (Good Morning America; \"The Longevity Book\"). celebase is not affiliated with, endorsed by, or sponsored by Cameron Diaz. Not medical advice; individual results vary."
+        }
+      },
       "trust_grade": "B",
       "status": "published",
       "is_health_claim": true,
