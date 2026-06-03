@@ -202,10 +202,11 @@ export function NewsScreen({ onClaimPress, onOpenPlan }: NewsScreenProps): React
           keyExtractor={(item) => item.claim.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <ClaimCard
               claim={item.claim}
               onPress={onClaimPress}
+              feedVariant={index === 0 ? 'lead' : 'row'}
               {...(item.celebrity !== undefined ? { celebrity: item.celebrity } : {})}
             />
           )}

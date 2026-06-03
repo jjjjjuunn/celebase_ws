@@ -46,6 +46,10 @@ export const LifestyleClaimWireSchema = z.object({
   is_active: z.boolean(),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime(),
+  // News 표지(피드 photo+hook) — story.hook 에서 파생한 lean 표지 2필드(detail-only story 대신).
+  // story 없는 claim 은 null → mobile 이 텍스트 fallback 표지를 렌더. (IMPL-MOBILE-NEWS-COVER-001)
+  cover_image_url: z.string().url().nullable().optional(),
+  cover_hook: z.string().max(280).nullable().optional(),
 });
 export type LifestyleClaimWire = z.infer<typeof LifestyleClaimWireSchema>;
 

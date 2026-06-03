@@ -30,6 +30,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import type { schemas } from '@celebbase/shared-types';
 
@@ -100,9 +101,12 @@ function RichText({
     <Text style={style}>
       {tokens.map((tok, i) => {
         const key = `${tok.kind}-${String(i)}-${tok.t.slice(0, 6)}`;
+        // 각 토큰 Text 에 부모 style 을 명시 전파한다. RN nested Text 의 color 상속에
+        // 의존하면(부모만 style) normal/bold 토큰이 기본색(검정)으로 폴백해 dark 슬라이드
+        // (cream 텍스트)가 안 보인다 — IMPL-MOBILE-CLAIM-STORY-POLISH 회귀. 명시 전파로 봉인.
         if (tok.kind === 'bold') {
           return (
-            <Text key={key} style={{ fontWeight: theme.weight.bold }}>
+            <Text key={key} style={[style, { fontWeight: theme.weight.bold }]}>
               {tok.t}
             </Text>
           );
@@ -113,6 +117,7 @@ function RichText({
             <Text
               key={key}
               style={[
+                style,
                 { fontFamily: theme.news.font.display, fontStyle: 'italic' },
                 accentColor !== undefined ? { color: accentColor } : null,
               ]}
@@ -121,7 +126,11 @@ function RichText({
             </Text>
           );
         }
-        return <Text key={key}>{tok.t}</Text>;
+        return (
+          <Text key={key} style={style}>
+            {tok.t}
+          </Text>
+        );
       })}
     </Text>
   );
@@ -191,7 +200,7 @@ interface DetailBodyProps {
 function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { claim, sources } = data;
   const s = claim.story; // ClaimStory | null
 
@@ -202,7 +211,10 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [areaH, setAreaH] = useState(0);
+  // areaH = 측정된 carousel 영역 높이. onLayout 전 초기값 = window height — 측정 전 블랭크
+  // 플래시를 막고(고정 프레임 디자인 보존: 모든 슬라이드 동일 높이), RN-testing-library 가
+  // onLayout 을 발화하지 않아도 슬라이드가 렌더되게 한다(areaH>0 게이트 충족).
+  const [areaH, setAreaH] = useState(height);
   const isGuest = useIsGuest();
   const { credits, loading: creditsLoading } = useMealPlanCredits(isGuest);
   const maxDays =
@@ -230,22 +242,34 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
         <Text style={styles.ctaArrow}>→</Text>
       </TouchableOpacity>
     ) : (
-      <TouchableOpacity
-        onPress={() => {
-          if (ctaDisabled) {
-            Alert.alert('No credits left', 'You have no meal-plan credits remaining.');
-            return;
-          }
-          setSheetVisible(true);
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={liveButtonLabel}
-        disabled={creditsLoading}
-        style={[styles.ctaBtn, ctaDisabled ? styles.ctaDisabled : null]}
-      >
-        <Text style={styles.ctaBtnText}>{liveButtonLabel}</Text>
-        <Text style={styles.ctaArrow}>→</Text>
-      </TouchableOpacity>
+      // disabled(크레딧 0/미로딩)는 State-B ghost(lime 외곽선)와 구별되는 muted fill+lock+헬퍼.
+      // opacity 0.55(=lime 올리브화) 금지 — enabled 는 canonical lime+ink 그대로.
+      <>
+        <TouchableOpacity
+          onPress={() => {
+            if (ctaDisabled) {
+              Alert.alert('No credits left', 'You have no meal-plan credits remaining.');
+              return;
+            }
+            setSheetVisible(true);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={liveButtonLabel}
+          disabled={creditsLoading}
+          style={[styles.ctaBtn, ctaDisabled ? styles.ctaDisabled : null]}
+        >
+          {ctaDisabled ? (
+            <Ionicons name="lock-closed" size={15} color={theme.news.inkSoft} />
+          ) : null}
+          <Text style={[styles.ctaBtnText, ctaDisabled ? styles.ctaBtnTextMuted : null]}>
+            {liveButtonLabel}
+          </Text>
+          {ctaDisabled ? null : <Text style={styles.ctaArrow}>→</Text>}
+        </TouchableOpacity>
+        {ctaDisabled ? (
+          <Text style={styles.ctaHelper}>No credits left — manage in My Plan.</Text>
+        ) : null}
+      </>
     )
   ) : showComingSoon ? (
     <View style={styles.ctaGhost} accessibilityRole="text">
@@ -284,12 +308,6 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     hero: hookImage !== null ? { url: hookImage, layout: hookFb ? 'fullbleed' : 'band' } : null,
     node: (
       <>
-        {!hookFb ? (
-          <>
-            <Blob color={theme.news.lime} size={230} top={-70} right={-60} opacity={0.85} />
-            <Blob color={accent} size={120} bottom={90} right={-40} opacity={0.45} />
-          </>
-        ) : null}
         <Eyebrow
           theme={theme}
           text={s?.hook.eyebrow ?? `${bucket} · CELEBRITY DECODE`}
@@ -399,13 +417,16 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 
   // 4·5) The catch / Rescaled to you (State A 한정)
   if (showInspiredCta) {
+    // catch 도 다른 슬라이드처럼 band(사진+다크 카피)로 통일(IMPL-MOBILE-CARDNEWS-UNIFY-001).
+    // 이미지 없으면 솔리드 다크 fallback(이 경우에만 큰 따옴표 모티프 — 극적 전환 유지).
+    const catchImage = s?.catch.image ?? null;
     slides.push({
       key: 'catch',
       tone: 'dark',
+      hero: catchImage !== null ? { url: catchImage, layout: 'band' } : null,
       node: (
         <>
-          <Text style={styles.quoteMark}>{'”'}</Text>
-          <Blob color={theme.news.forest2} size={220} bottom={-70} left={-60} opacity={0.55} />
+          {catchImage === null ? <Text style={styles.quoteMark}>{'”'}</Text> : null}
           <Eyebrow theme={theme} text={s?.catch.eyebrow ?? "BUT HERE'S THE CATCH"} dot={theme.news.lime} onDark />
           <RichText
             text={s?.catch.headline ?? 'Built for their body & goals.'}
@@ -460,7 +481,6 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
             <Text style={styles.stateBadgeText}>STATE A · LIVE</Text>
           </View>
         ) : null}
-        <Blob color={theme.news.forest2} size={200} top={-60} right={-60} opacity={0.5} />
         <Eyebrow
           theme={theme}
           text={s?.cta.eyebrow ?? (showInspiredCta ? 'YOUR TURN' : showComingSoon ? 'COMING SOON' : 'MORE')}
@@ -508,51 +528,69 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           setAreaH(e.nativeEvent.layout.height);
         }}
       >
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={onMomentumEnd}
-        >
-          {slides.map((slide, i) => {
-            const fb = slide.hero?.layout === 'fullbleed';
-            const band = slide.hero?.layout === 'band';
-            const footDark = slide.tone === 'dark' || fb;
-            return (
-              <View key={slide.key} style={{ width, ...(areaH > 0 ? { height: areaH } : {}) }}>
-                <ScrollView
-                  contentContainerStyle={styles.slideScroll}
-                  showsVerticalScrollIndicator={false}
-                >
+        {areaH > 0 ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={onMomentumEnd}
+          >
+            {slides.map((slide, i) => {
+              const fb = slide.hero?.layout === 'fullbleed';
+              const band = slide.hero?.layout === 'band';
+              const footDark = slide.tone === 'dark' || fb;
+              const hero = slide.hero ?? null;
+              // band 이미지 = 카드 높이의 ~44% (고정 px → 프레임 비율). card flex:1 이라 areaH-마진.
+              const bandH = Math.round((areaH - theme.space(2) * 2) * 0.44);
+              return (
+                // 고정 프레임: slidePage(width×areaH) 안에서 card flex:1 → 전 슬라이드 동일 높이.
+                // 내부 = [fullbleed 배경 | band 상단 이미지] + [콘텐츠 ScrollView flex:1] + [footer 바닥 고정].
+                <View key={slide.key} style={[styles.slidePage, { width, height: areaH }]}>
                   <View
                     style={[
                       styles.card,
                       fb ? styles.cardImage : slide.tone === 'dark' ? styles.cardDark : styles.cardLight,
-                      band ? styles.cardBand : null,
                     ]}
                   >
-                    {fb && slide.hero !== null && slide.hero !== undefined ? (
+                    {fb && hero !== null ? (
                       <>
                         <Image
-                          source={{ uri: slide.hero.url }}
+                          source={{ uri: hero.url }}
                           style={StyleSheet.absoluteFill}
                           resizeMode="cover"
                           accessibilityIgnoresInvertColors
                         />
-                        <View style={styles.scrim} pointerEvents="none" />
-                        <View style={styles.scrimBottom} pointerEvents="none" />
+                        {/* canonical 4-stop scrim — 최종 stop은 동일 hue alpha-0(transparent 금지: RN=검정 hue-shift) */}
+                        <LinearGradient
+                          colors={['rgba(18,28,20,0.94)', 'rgba(18,28,20,0.6)', 'rgba(18,28,20,0.12)', 'rgba(18,28,20,0)']}
+                          locations={[0, 0.3, 0.55, 0.7]}
+                          start={{ x: 0, y: 1 }}
+                          end={{ x: 0, y: 0 }}
+                          style={StyleSheet.absoluteFill}
+                          pointerEvents="none"
+                        />
                       </>
                     ) : null}
-                    {band && slide.hero !== null && slide.hero !== undefined ? (
+                    {band && hero !== null ? (
                       <Image
-                        source={{ uri: slide.hero.url }}
-                        style={styles.bandImage}
+                        source={{ uri: hero.url }}
+                        style={[styles.bandImage, { height: bandH }]}
                         resizeMode="cover"
                         accessibilityIgnoresInvertColors
                       />
                     ) : null}
-                    {slide.node}
-                    <View style={styles.foot}>
+                    {fb ? (
+                      <View style={styles.fbContent}>{slide.node}</View>
+                    ) : (
+                      <ScrollView
+                        style={styles.cardScroll}
+                        contentContainerStyle={styles.cardContent}
+                        showsVerticalScrollIndicator={false}
+                      >
+                        {slide.node}
+                      </ScrollView>
+                    )}
+                    <View style={[styles.foot, fb ? styles.footFb : null]}>
                       <Text style={footDark ? styles.wordmarkDark : styles.wordmark}>
                         cele<Text style={styles.wordmarkB}>base</Text>
                       </Text>
@@ -561,11 +599,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                       </Text>
                     </View>
                   </View>
-                </ScrollView>
-              </View>
-            );
-          })}
-        </ScrollView>
+                </View>
+              );
+            })}
+          </ScrollView>
+        ) : null}
       </View>
 
       <View style={styles.dots}>
@@ -593,35 +631,6 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 }
 
 // ── 소형 컴포넌트 ─────────────────────────────────────────────
-interface BlobProps {
-  color: string;
-  size: number;
-  opacity: number;
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-}
-function Blob({ color, size, opacity, top, bottom, left, right }: BlobProps): React.JSX.Element {
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: color,
-        opacity,
-        ...(top !== undefined ? { top } : {}),
-        ...(bottom !== undefined ? { bottom } : {}),
-        ...(left !== undefined ? { left } : {}),
-        ...(right !== undefined ? { right } : {}),
-      }}
-    />
-  );
-}
-
 function Eyebrow({
   theme,
   text,
@@ -700,35 +709,19 @@ function makeStyles(theme: Theme) {
 
     bodyRoot: { flex: 1 },
     carouselArea: { flex: 1 },
-    slideScroll: {
-      flexGrow: 1,
-      justifyContent: 'center',
-      paddingHorizontal: theme.space(4),
-      paddingVertical: theme.space(3),
-    },
-    card: {
-      borderRadius: 22,
-      borderWidth: 1,
-      paddingHorizontal: theme.space(6),
-      paddingTop: theme.space(7),
-      paddingBottom: theme.space(5),
-      minHeight: 440,
-      overflow: 'hidden',
-      justifyContent: 'center',
-    },
+    // 고정 프레임: slidePage(width×areaH)의 패딩 안에서 card flex:1 → 전 슬라이드 동일 높이.
+    slidePage: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(2) },
+    card: { flex: 1, borderRadius: 22, borderWidth: 1, overflow: 'hidden' },
     cardLight: { backgroundColor: n.cream, borderColor: n.line },
     cardDark: { backgroundColor: n.forest, borderColor: n.forest },
-    // hero 이미지 레이아웃 (image:null 이면 미적용 — 텍스트 카드 그대로)
-    cardImage: { backgroundColor: n.forest, borderColor: n.forest, justifyContent: 'flex-end' },
-    cardBand: { justifyContent: 'flex-start' },
-    bandImage: {
-      height: 160,
-      marginTop: -theme.space(7),
-      marginHorizontal: -theme.space(6),
-      marginBottom: theme.space(4),
-    },
-    scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: n.ink, opacity: 0.28 },
-    scrimBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '62%', backgroundColor: n.ink, opacity: 0.5 },
+    cardImage: { backgroundColor: n.forest, borderColor: n.forest },
+    // band 상단 이미지 — 풀폭, 높이는 렌더에서 카드 높이의 ~44%로 인라인 주입.
+    bandImage: { width: '100%' },
+    // 콘텐츠 영역 — 내부 스크롤(overflow 안전망). 패딩은 콘텐츠가 보유(band 이미지는 풀폭이라 카드 패딩 0).
+    cardScroll: { flex: 1 },
+    cardContent: { flexGrow: 1, paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
+    // fullbleed(hook) — 이미지+gradient 위, 카피는 바닥 정렬.
+    fbContent: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: theme.space(6), paddingTop: theme.space(6) },
     hHookOnImg: { fontFamily: f.display, fontSize: 40, fontWeight: theme.weight.medium, color: n.cream, lineHeight: 44, letterSpacing: -0.6, marginTop: theme.space(4) },
     subOnImg: { fontFamily: f.body, fontSize: 16, color: n.cream2, lineHeight: 24, marginTop: theme.space(4) },
     swipeOnImg: { fontFamily: f.mono, fontSize: 12, color: n.lime, letterSpacing: 2.4, fontWeight: theme.weight.semibold },
@@ -813,8 +806,11 @@ function makeStyles(theme: Theme) {
       backgroundColor: n.ctaLive.bg,
       borderRadius: theme.radius.pill,
     },
-    ctaDisabled: { opacity: 0.55 },
+    // disabled = muted tan fill(cream2) — lime 올리브화(opacity) 금지, State-B ghost(외곽선)와도 구별.
+    ctaDisabled: { backgroundColor: n.cream2 },
     ctaBtnText: { fontFamily: f.body, fontSize: 18, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
+    ctaBtnTextMuted: { color: n.inkSoft },
+    ctaHelper: { fontFamily: f.mono, fontSize: 11, color: n.cream2, letterSpacing: 0.3, marginTop: theme.space(2), opacity: 0.85 },
     ctaArrow: { fontFamily: f.mono, fontSize: 18, fontWeight: theme.weight.bold, color: n.ctaLive.fg },
     ctaGhost: {
       flexDirection: 'row',
@@ -833,7 +829,9 @@ function makeStyles(theme: Theme) {
     ctaSub: { fontFamily: f.body, fontSize: 15, color: n.cream2, lineHeight: 22, marginTop: theme.space(4) },
     disclaimer: { fontFamily: f.mono, fontSize: 9.5, color: n.cream2, lineHeight: 15, marginTop: theme.space(3), opacity: 0.8 },
 
-    foot: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: theme.space(5) },
+    // footer = card 의 마지막 flex 자식 → ScrollView(flex:1)가 밀어내 카드 바닥에 고정(스크롤로 안 가려짐).
+    foot: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: theme.space(6), paddingTop: theme.space(2), paddingBottom: theme.space(4) },
+    footFb: { paddingTop: theme.space(2) },
     wordmark: { fontFamily: f.display, fontSize: 18, fontWeight: theme.weight.semibold, color: n.ink },
     wordmarkDark: { fontFamily: f.display, fontSize: 18, fontWeight: theme.weight.semibold, color: n.cream },
     wordmarkB: { color: n.clay },

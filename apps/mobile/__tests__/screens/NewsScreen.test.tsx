@@ -151,7 +151,9 @@ describe('<NewsScreen />', () => {
     // 셀럽 attribution (client-side join) — 이름이 카드 accessibilityLabel 로 announce 되고
     // (a11y 계약: 앵커 행은 a11y 트리에서 숨겨 중복 focus 방지), 시각적으로도 앵커 행에 렌더.
     expect(screen.getByLabelText('Beyoncé: plant-based reset')).toBeTruthy();
-    expect(screen.getByText('Beyoncé', { includeHiddenElements: true })).toBeTruthy();
+    // cover 카드 디자인(IMPL-MOBILE-NEWS-COVER-001): 셀럽명은 표지 eyebrow 에 대문자로
+    // 렌더된다("DIET · BEYONCÉ"). 위 a11y 라벨이 "Beyoncé: …" attribution 을 announce.
+    expect(screen.getByText(/Beyoncé/i, { includeHiddenElements: true })).toBeTruthy();
     // beauty/workout/brand claim 은 Diet 탭에서 미렌더.
     expect(screen.queryByText('collagen morning routine')).toBeNull();
     expect(screen.queryByText('the iron paradise split')).toBeNull();

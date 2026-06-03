@@ -28,6 +28,30 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-03
+agent: claude-opus-4-8 (1M context) + advisor (verify/commit review)
+task_id: IMPL-MOBILE-NEWS-COVER-001
+commit_sha: 45a286b
+files_changed:
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+  - services/content-service/src/repositories/lifestyle-claim.repository.ts
+  - apps/mobile/src/components/ClaimCard.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/screens/NewsScreen.tsx
+  - apps/mobile/package.json
+  - pnpm-lock.yaml
+  - spec.md
+verified_by: claude-opus-4-8 (content-service tc0/lint0/test 120 · mobile tc0/lint0 · shared-types build0)
+---
+### 완료: News 피드 cover 카드 — story.hook 파생 표지 (IMPL-MOBILE-NEWS-COVER-001)
+- 피드 리스트가 story.hook 에서 lean 2필드 파생 반환: cover_image_url(= story->'hook'->>'image') + cover_hook(= story->'hook'->>'headline'). 풀 story 미포함 유지. 둘 다 nullable·optional.
+- mobile ClaimCard: feedVariant 'lead'(풀커버) / 'row'(컴팩트). cover_image_url 있으면 음식 사진 풀배경 + LinearGradient scrim, 없으면 진초록 + Fraunces 이니셜 워터마크(faceless·합법 fallback). expo-linear-gradient 추가.
+- shared-types LifestyleClaimWireSchema + cover_image_url/cover_hook(optional) — BFF schema.parse 통과(additive optional). content-service listFeed SQL 에 2 cover 컬럼 select(LEFT JOIN celebrities 유지).
+- 검증: content-service tc/lint 0 + test 120/120, mobile tc/lint 0, shared-types build 0.
+### 미완료: **데이터** — staging claim 의 story.hook.image 가 0건이라 배포해도 cover 사진 미표시(전부 fallback). studio Image탭으로 hook.image 에 S3 URL 설정 + 발행 필요. 코드는 main 머지 → CD 배포해야 staging 피드가 cover 필드 반환.
+### 연관 파일: packages/shared-types/src/schemas/lifestyle-claims.ts, services/content-service/src/repositories/lifestyle-claim.repository.ts, apps/mobile/src/{components/ClaimCard.tsx,screens/ClaimDetailScreen.tsx,screens/NewsScreen.tsx}, apps/mobile/package.json, spec.md
+
+---
 date: 2026-06-01
 agent: claude-opus-4-8 (1M context) + advisor (plan/verify/commit review)
 task_id: IMPL-CONTENT-ADMIN-CMS-001
