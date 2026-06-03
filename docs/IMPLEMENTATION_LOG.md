@@ -8446,7 +8446,7 @@ verified_by: claude-opus-4-8 (web typecheck 0 + lint 0 landing + fe_token_hardco
 date: 2026-06-03
 agent: claude-opus-4-8 (1M context) + 3-judge plan review (Codex/Gemini/advisor) + L3 self-adversarial diff
 task_id: TOOL-STUDIO-STAGING-001
-commit_sha: PENDING
+commit_sha: 9695d6f
 files_changed:
   - services/content-service/src/lib/content-legal-gate.ts
   - services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts
