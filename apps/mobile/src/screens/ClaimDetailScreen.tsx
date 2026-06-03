@@ -200,7 +200,7 @@ interface DetailBodyProps {
 function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { claim, sources } = data;
   const s = claim.story; // ClaimStory | null
 
@@ -211,7 +211,10 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [areaH, setAreaH] = useState(0);
+  // areaH = 측정된 carousel 영역 높이. onLayout 전 초기값 = window height — 측정 전 블랭크
+  // 플래시를 막고(고정 프레임 디자인 보존: 모든 슬라이드 동일 높이), RN-testing-library 가
+  // onLayout 을 발화하지 않아도 슬라이드가 렌더되게 한다(areaH>0 게이트 충족).
+  const [areaH, setAreaH] = useState(height);
   const isGuest = useIsGuest();
   const { credits, loading: creditsLoading } = useMealPlanCredits(isGuest);
   const maxDays =
