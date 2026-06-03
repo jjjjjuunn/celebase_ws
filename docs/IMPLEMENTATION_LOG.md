@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-03
 agent: claude-opus-4-8 (1M context) + advisor (verify/commit review)
 task_id: IMPL-MOBILE-NEWS-COVER-001
-commit_sha: PENDING
+commit_sha: 45a286b
 files_changed:
   - packages/shared-types/src/schemas/lifestyle-claims.ts
   - services/content-service/src/repositories/lifestyle-claim.repository.ts
