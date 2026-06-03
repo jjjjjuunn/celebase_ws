@@ -2243,7 +2243,7 @@ story 는 `findById`(detail) 에서만 select 한다 — 피드 리스트(`Lifes
 
 #### 7.2 Claim story per-slide hero 이미지 *(IMPL-MOBILE-CLAIM-HERO-IMG-001)*
 
-story 슬라이드에 선택적 hero 이미지를 도입한다. `StorySlideHeadSchema` 에 `image`(절대 URL, nullable·optional) + `layout`(`'fullbleed' | 'band'`) 을 추가하고 `_schema.json`·`entities.ClaimStorySlide` parity 를 맞춘다. **텍스트는 여전히 앱이 라이브 렌더**한다 — 이미지에 글자를 굽지 않는다(다국어·편집·법무 안전). 렌더: hook=`fullbleed`(이미지+scrim+오버레이 텍스트), info 슬라이드=`band`(상단 이미지+하단 텍스트), `image:null`=텍스트 전용(회귀 0). 이미지 호스트는 S3 에셋 도메인 allowlist 로 제한(오타·사설버킷 차단, fetch 안 함 — SSRF 없음).
+story 슬라이드에 선택적 hero 이미지를 도입한다. `StorySlideHeadSchema` 에 `image`(절대 URL, nullable·optional) + `layout`(`'fullbleed' | 'band'`) 을 추가하고 `_schema.json`·`entities.ClaimStorySlide` parity 를 맞춘다. **텍스트는 여전히 앱이 라이브 렌더**한다 — 이미지에 글자를 굽지 않는다(다국어·편집·법무 안전). 렌더: hook=`fullbleed`(이미지+scrim+오버레이 텍스트), info 슬라이드=`band`(상단 이미지+하단 텍스트), `image:null`=텍스트 전용(회귀 0). 이미지 호스트는 S3 에셋 도메인 allowlist 로 제한(오타·사설버킷 차단, fetch 안 함 — SSRF 없음). **서버측 강제**: 발행 게이트(`content-legal-gate.ts` CL-IMAGE-HOST)가 image hostname 을 `ASSET_HOST_ALLOW` 와 정확/도메인 suffix 매칭(substring 우회 차단)하고 미일치 시 BLOCK(400) — admin CMS 외부 노출 시 curl 우회 차단(published 경로).
 
 #### 7.2 Claim 운영 admin CMS *(IMPL-CONTENT-ADMIN-CMS-001)*
 

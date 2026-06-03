@@ -8441,3 +8441,25 @@ verified_by: claude-opus-4-8 (web typecheck 0 + lint 0 landing + fe_token_hardco
 - 검증: web typecheck 0, lint 0(landing), fe_token_hardcode pass, next build 성공, frozen-lockfile in sync, no-JS/reduced-motion 페일세이프 유지.
 ### 미완료: 실존 셀럽 사진·이름·식단 공개 노출 — likeness/법무 사인오프 권고(머지 전). record-log-sha.sh (commit_sha 갱신).
 ### 연관 파일: apps/web/src/landing/CardNewsShowcase.tsx, apps/web/src/landing/WorkedExample.tsx, apps/web/src/landing/data.ts, apps/web/package.json
+
+---
+date: 2026-06-03
+agent: claude-opus-4-8 (1M context) + 3-judge plan review (Codex/Gemini/advisor) + L3 self-adversarial diff
+task_id: TOOL-STUDIO-STAGING-001
+commit_sha: 9695d6f
+files_changed:
+  - services/content-service/src/lib/content-legal-gate.ts
+  - services/content-service/src/routes/admin/lifestyle-claim.admin.routes.ts
+  - services/content-service/tests/unit/content-legal-gate.test.ts
+  - .claude/rules/domain/content-legal.md
+  - spec.md
+verified_by: claude-opus-4-8 (tc 0 / lint 0 / content-legal-gate 12 tests) + L3 self-adversarial diff (codex CLI fallback — hostname 우회/빈 allowlist/published 커버리지 점검, 구멍 없음)
+---
+### 완료: 발행 게이트 서버측 image-host allowlist (CL-IMAGE-HOST) + admin 감사로그 (TOOL-STUDIO-STAGING-001 Phase 2)
+- studio(콘텐츠 운영도구) staging 인증 노출의 선결 보안 — admin CMS 외부 노출 시 발행 이미지 host 우회 차단(기존 host 체크가 studio 클라이언트에만 있던 갭을 서버측으로 이전).
+- content-legal-gate.ts: collectImages(슬라이드별 image URL 수집) + imageHostAllowed(`new URL().hostname` 정확/도메인 suffix 매칭 — substring 우회 차단; `ASSET_HOST_ALLOW` env, 미설정 시 skip) + **CL-IMAGE-HOST(BLOCK)**. published choke-point(create/update/transition; transition→published 는 existing.story 재검사)만 검사.
+- admin routes: create/update/transition 성공 후 pino structured 감사로그(`admin.claim.<action>`; claimId·action·status — 토큰/PHI 미기록).
+- 테스트: CL-IMAGE-HOST(허용/비허용/서브도메인·쿼리 우회/미설정 skip) → content-legal-gate 12/12. typecheck/lint 0.
+- spec sync: content-legal.md rule 등재 + spec.md §7.2 서버측 강제 명시.
+### 미완료: studio staging 배포(컨테이너 + Caddy 인증 subdomain admin.staging.celebase.app + DNS) = card-tools repo + staging EC2 수동(별도 단계). admin actor 식별(단일 토큰) · 영구 audit 테이블 = 후속. record-log-sha.sh (commit_sha 갱신).
+### 연관 파일: services/content-service/src/{lib/content-legal-gate.ts,routes/admin/lifestyle-claim.admin.routes.ts}, services/content-service/tests/unit/content-legal-gate.test.ts, .claude/rules/domain/content-legal.md, spec.md

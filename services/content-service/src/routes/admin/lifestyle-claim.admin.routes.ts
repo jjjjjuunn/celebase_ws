@@ -166,6 +166,11 @@ export async function lifestyleClaimAdminRoutes(
       ]);
     }
 
+    // admin 감사로그(단일 admin 토큰 — actor 식별은 토큰 단위). 발행 추적용 structured log.
+    request.log.info(
+      { claimId: id, action: 'transition', toStatus: body.status },
+      'admin.claim.transition',
+    );
     void reply.status(200);
     return { claim: result.claim, gate_warnings: transitionWarnings };
   });
@@ -231,6 +236,10 @@ export async function lifestyleClaimAdminRoutes(
     };
     const created = await claimRepo.createClaim(pool, input);
     const { sources, ...claim } = created;
+    request.log.info(
+      { claimId: created.id, action: 'create', status: created.status, claimType: created.claim_type },
+      'admin.claim.create',
+    );
     void reply.status(201);
     return { claim, sources, gate_warnings: warnings };
   });
@@ -288,6 +297,10 @@ export async function lifestyleClaimAdminRoutes(
     const updated = await claimRepo.updateClaim(pool, id, patch);
     if (!updated) throw new NotFoundError('Claim not found');
     const { sources, ...claim } = updated;
+    request.log.info(
+      { claimId: id, action: 'update', toStatus: updated.status },
+      'admin.claim.update',
+    );
     return { claim, sources, gate_warnings: warnings };
   });
 }

@@ -64,12 +64,13 @@ gate_spec: "pipeline/templates/content-gate-criteria.yaml"
 | **CL-NOMINATIVE** | 명목적 공정이용 3요건 충족 (① 식별에 필요 ② 최소 사용 ③ 후원 암시 없음) — CA §3344/SB683, Lanham, *New Kids* | **claude_judgment** | HIGH |
 | **CL-FTC-PROMISE** | "associated with/linked to" 유지, 단정·과장 금지 (FTC) | **claude_judgment** | HIGH |
 | **CL-IMAGE** | 이미지: 얼굴 X·로고 X·타이포 중심, **AI 셀럽 얼굴 생성 금지**. 프롬프트 = 오브제/음식/손목아래/실루엣 | **claude_judgment** (이미지 디렉션 검토) | BLOCK |
+| **CL-IMAGE-HOST** | 발행 이미지 URL 의 hostname 이 신뢰 S3 에셋 allowlist(`ASSET_HOST_ALLOW`)에 일치 — 정확/도메인 suffix 매칭(substring 우회 차단). admin 도구 외부 노출 시 curl 우회 차단(서버측 강제) | `content-service content-legal-gate.ts` (서버측 자동, published 경로) | BLOCK |
 
 ---
 
 ## rule → check 매핑 (drift 방지)
 
-- **required (자동, exit 0 필요)**: CL-SRC-SCHEMA · CL-SRC-ALLOWLIST · CL-SRC-PRIMARY · CL-SRC-TRUSTGATE · CL-SRC-CELEBLINK → `scripts/validate-claim-seeds.py` ‖ CL-NAME-CTA · CL-FTC-GUAR · CL-DISC → `scripts/content-legal-scan.py`
+- **required (자동, exit 0 필요)**: CL-SRC-SCHEMA · CL-SRC-ALLOWLIST · CL-SRC-PRIMARY · CL-SRC-TRUSTGATE · CL-SRC-CELEBLINK → `scripts/validate-claim-seeds.py` ‖ CL-NAME-CTA · CL-FTC-GUAR · CL-DISC → `scripts/content-legal-scan.py` ‖ **CL-IMAGE-HOST → `content-service content-legal-gate.ts`** (서버측 런타임 발행 게이트, published 경로 — seed CI 스캐너와 별개)
 - **claude_judgment (정성)**: CL-STATE-A · CL-SRC-SUPPORTS · CL-FALSELIGHT · CL-HEALTHFLAG · CL-ENGINE · CL-NAME-EDITORIAL · CL-NOMINATIVE · CL-FTC-PROMISE · CL-IMAGE · CL-PRODUCT-CLAIM
 - **scanner-detected (advisory, exit-fail 아님)**: CL-PRODUCT-CLAIM (하드코딩 카운트 MEDIUM 플래그)
 - **v1 backlog (스크립트화 예정)**: CL-STATE-A (base_diet_id_slug → data/<slug>.json food 연결 자동 대조) · CL-ENGINE (현재 부분 스캔만)

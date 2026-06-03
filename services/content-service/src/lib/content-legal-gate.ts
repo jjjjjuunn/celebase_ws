@@ -93,6 +93,35 @@ function collectStrings(
   }
 }
 
+// ── 이미지 host allowlist (서버측 — admin 우회/외부 노출 차단) ──
+// ASSET_HOST_ALLOW(env): 신뢰 이미지 호스트(정확 hostname 또는 도메인 suffix). 미설정 시 검증 skip(로컬 dev) — staging/prod 는 env 설정 필수.
+// 매 호출 env 를 읽어(런타임 반영 + 테스트 친화) hostname 정확/suffix 매칭한다.
+
+/** story 슬라이드별 image URL 수집 (collectStrings 는 image 를 copy 가 아니라 제외하므로 별도). */
+function collectImages(story: ClaimStory): Array<{ slide: string; url: string }> {
+  const out: Array<{ slide: string; url: string }> = [];
+  for (const [slide, node] of Object.entries(story)) {
+    if (node !== null && typeof node === 'object' && 'image' in node) {
+      const img = (node as Record<string, unknown>)['image'];
+      if (typeof img === 'string' && img.trim() !== '') out.push({ slide, url: img.trim() });
+    }
+  }
+  return out;
+}
+
+/** url 의 hostname 이 allowlist(정확 또는 도메인 suffix)에 일치하는지. 파싱 불가 = 거부(substring 우회 차단). */
+function imageHostAllowed(url: string): boolean {
+  const allow = (process.env['ASSET_HOST_ALLOW'] ?? '').trim().toLowerCase();
+  if (allow === '') return true; // 미설정 → skip(기존 동작 보존; staging/prod 는 env 설정)
+  let host: string;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false; // URL 파싱 불가 → 거부
+  }
+  return host === allow || host.endsWith(`.${allow}`);
+}
+
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -208,6 +237,19 @@ export function runLegalGate(
       field: 'cta.disclaimer',
       evidence: "is_health_claim=true but no 'Not medical advice / educational purposes' disclaimer found",
     });
+  }
+
+  // CL-IMAGE-HOST (BLOCK) — 발행 이미지는 신뢰 호스트(allowlist)여야. hostname 정확/suffix 매칭(substring 우회 차단).
+  for (const { slide, url } of collectImages(story)) {
+    if (!imageHostAllowed(url)) {
+      findings.push({
+        rule: 'CL-IMAGE-HOST',
+        severity: 'BLOCK',
+        slide,
+        field: `${slide}.image`,
+        evidence: `image host not in allowlist (use trusted S3 asset host): ${JSON.stringify(url.slice(0, 160))}`,
+      });
+    }
   }
 
   return findings;

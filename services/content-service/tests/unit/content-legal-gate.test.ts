@@ -112,7 +112,46 @@ describe('content-legal-gate', () => {
     const s = baseStory();
     s.hook.image = 'https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/x/cure-detox.png';
     s.hook.layout = 'fullbleed';
-    // URL 에 "cure"/"detox" 가 있어도 image 필드라 스캔 제외 → BLOCK 0.
-    expect(runLegalGate(s, 'Cameron Diaz', true).filter((f) => f.severity === 'BLOCK')).toHaveLength(0);
+    // URL 에 "cure"/"detox" 가 있어도 image 필드라 (카피) 스캔 제외 → CL-FTC-GUAR 등 0.
+    expect(runLegalGate(s, 'Cameron Diaz', true).filter((f) => f.rule === 'CL-FTC-GUAR')).toHaveLength(0);
+  });
+
+  it('CL-IMAGE-HOST: 비허용 host·서브도메인/쿼리 우회는 BLOCK, 허용 host 는 통과', () => {
+    const prev = process.env['ASSET_HOST_ALLOW'];
+    process.env['ASSET_HOST_ALLOW'] = 'celebbase-assets-staging.s3.us-west-2.amazonaws.com';
+    try {
+      const ok = baseStory();
+      ok.hook.image = 'https://celebbase-assets-staging.s3.us-west-2.amazonaws.com/hero/x/01.png';
+      expect(runLegalGate(ok, 'Cameron Diaz', true).filter((f) => f.rule === 'CL-IMAGE-HOST')).toHaveLength(0);
+
+      const evil = baseStory();
+      evil.hook.image = 'https://evil.com/x.png';
+      expect(rules(evil, 'Cameron Diaz', true)).toContain('CL-IMAGE-HOST:BLOCK');
+
+      // 서브도메인 트릭 (<allow>.evil.com) 은 hostname 정확/suffix 매칭으로 차단.
+      const sub = baseStory();
+      sub.hook.image = 'https://celebbase-assets-staging.s3.us-west-2.amazonaws.com.evil.com/x.png';
+      expect(rules(sub, 'Cameron Diaz', true)).toContain('CL-IMAGE-HOST:BLOCK');
+
+      // 쿼리 트릭 (?x=<allow>) 도 hostname 은 evil.com 이므로 차단.
+      const q = baseStory();
+      q.hook.image = 'https://evil.com/?x=celebbase-assets-staging.s3.us-west-2.amazonaws.com';
+      expect(rules(q, 'Cameron Diaz', true)).toContain('CL-IMAGE-HOST:BLOCK');
+    } finally {
+      if (prev === undefined) delete process.env['ASSET_HOST_ALLOW'];
+      else process.env['ASSET_HOST_ALLOW'] = prev;
+    }
+  });
+
+  it('CL-IMAGE-HOST: ASSET_HOST_ALLOW 미설정이면 검사 skip(로컬 dev)', () => {
+    const prev = process.env['ASSET_HOST_ALLOW'];
+    delete process.env['ASSET_HOST_ALLOW'];
+    try {
+      const s = baseStory();
+      s.hook.image = 'https://anything.example.com/x.png';
+      expect(runLegalGate(s, 'Cameron Diaz', true).filter((f) => f.rule === 'CL-IMAGE-HOST')).toHaveLength(0);
+    } finally {
+      if (prev !== undefined) process.env['ASSET_HOST_ALLOW'] = prev;
+    }
   });
 });
