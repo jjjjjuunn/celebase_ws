@@ -190,10 +190,17 @@ export async function listByCelebrity(
   return { items, has_next: hasNext, next_cursor: buildNextCursor(items, hasNext) };
 }
 
+// 피드 표지(photo+hook) — story.hook 에서 cover 2필드 파생. story 없으면 둘 다 null
+// → mobile 텍스트 fallback 표지. (IMPL-MOBILE-NEWS-COVER-001)
+export type FeedClaimRow = LifestyleClaim & {
+  cover_image_url: string | null;
+  cover_hook: string | null;
+};
+
 export async function listFeed(
   pool: pg.Pool,
   opts: ListLifestyleClaimOptions,
-): Promise<ListResult<LifestyleClaim>> {
+): Promise<ListResult<FeedClaimRow>> {
   const limit = clampLimit(opts.limit);
 
   const whereClauses: string[] = [
@@ -229,7 +236,9 @@ export async function listFeed(
   const limitParam = `$${String(values.length)}`;
 
   const sql = `
-    SELECT ${CLAIM_COLUMNS}
+    SELECT ${CLAIM_COLUMNS},
+           lc.story->'hook'->>'image' AS cover_image_url,
+           lc.story->'hook'->>'headline' AS cover_hook
     FROM lifestyle_claims AS lc
     LEFT JOIN celebrities AS c
       ON c.id = lc.celebrity_id
@@ -238,7 +247,7 @@ export async function listFeed(
     LIMIT ${limitParam}
   `;
 
-  const { rows } = await pool.query<LifestyleClaim>(sql, values);
+  const { rows } = await pool.query<FeedClaimRow>(sql, values);
   const hasNext = rows.length > limit;
   const items = rows.slice(0, limit);
   return { items, has_next: hasNext, next_cursor: buildNextCursor(items, hasNext) };
