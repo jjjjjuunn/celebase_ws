@@ -80,3 +80,10 @@ celebase.app {
 		format console
 	}
 }
+
+# ── staging 전용 운영도구(studio) 사이트 블록 — EC2 /config 볼륨에서 import (TOOL-STUDIO-STAGING-001) ──
+# admin.staging.celebase.app(basic_auth + studio reverse_proxy)는 제품 monorepo 가 아니라
+# EC2 /config/conf.d/admin.caddy(수동·CD scp 가 안 덮는 caddy_config 볼륨)에 둔다.
+# 이유: studio 는 별도 ops repo(card-tools) 자산 + basic_auth 크리덴셜을 제품 git 에서 분리.
+# glob 이 비면(로컬/CI, /config 부재) no-op 이라 안전.
+import /config/conf.d/*.caddy
