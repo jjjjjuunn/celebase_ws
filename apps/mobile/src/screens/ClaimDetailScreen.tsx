@@ -576,11 +576,12 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                             pointerEvents="none"
                           />
                         ) : (
-                          // 정보 슬라이드(what/science/rescaled/catch) fullbleed: 텍스트 영역 전체를 덮는
-                          // 강한 scrim(상단 0.62 → 하단 0.9) → 이미지 밝기와 무관하게 cream 글자 가독(Gemini#1).
+                          // 정보 슬라이드(what/science/rescaled/catch) fullbleed: 텍스트가 상단 정렬이라
+                          // scrim 도 상단 가중(상단 0.9 → 하단 0.66). 상단 글자 영역은 진하게 보장(이미지 밝기
+                          // 무관 cream 가독, Gemini#1) + 하단은 footer 가독 유지하며 이미지가 약하게 비침.
                           <LinearGradient
-                            colors={['rgba(18,28,20,0.62)', 'rgba(18,28,20,0.74)', 'rgba(18,28,20,0.9)']}
-                            locations={[0, 0.5, 1]}
+                            colors={['rgba(18,28,20,0.9)', 'rgba(18,28,20,0.78)', 'rgba(18,28,20,0.66)']}
+                            locations={[0, 0.55, 1]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 0, y: 1 }}
                             style={StyleSheet.absoluteFill}
@@ -598,10 +599,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                     ) : null}
                     {fb ? (
                       // fullbleed 콘텐츠도 ScrollView — 텍스트 많은 정보 슬라이드가 클립되지 않게(Gemini#2/Codex F1).
-                      // flexGrow:1 + flex-end 로 짧으면 바닥 정렬(포스터 룩 유지), 넘치면 스크롤.
+                      // 표지(hook)는 바닥 정렬(포스터 룩); 정보 슬라이드는 상단 정렬로 통일 → 콘텐츠 길이와
+                      // 무관하게 글자 시작점이 항상 같아 슬라이드 간 읽기 리듬이 흔들리지 않는다(IMPL-MOBILE-CLAIM-HERO-CUSTOM-001).
                       <ScrollView
                         style={styles.cardScroll}
-                        contentContainerStyle={styles.fbContent}
+                        contentContainerStyle={[styles.fbContent, slide.cover === true ? styles.fbAnchorBottom : styles.fbAnchorTop]}
                         showsVerticalScrollIndicator={false}
                       >
                         {slide.node}
@@ -749,9 +751,13 @@ function makeStyles(theme: Theme) {
     // 콘텐츠 영역 — 내부 스크롤(overflow 안전망). 패딩은 콘텐츠가 보유(band 이미지는 풀폭이라 카드 패딩 0).
     cardScroll: { flex: 1 },
     cardContent: { flexGrow: 1, paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
-    // fullbleed — 이미지+gradient 위, 카피는 바닥 정렬. ScrollView contentContainerStyle 이라
-    // flexGrow:1(짧으면 바닥 고정·포스터 룩, 넘치면 스크롤). paddingBottom 으로 footer 와 간격 확보.
-    fbContent: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
+    // fullbleed — 이미지+gradient 위 카피. ScrollView contentContainerStyle 라 flexGrow:1(짧으면 anchor
+    // 위치 고정, 넘치면 스크롤). 정렬은 슬라이드 종류별로 분리(fbAnchorBottom/Top).
+    fbContent: { flexGrow: 1, paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
+    // 표지(hook): 바닥 정렬 — 포스터 룩(타이틀이 카드 하단에 앉음).
+    fbAnchorBottom: { justifyContent: 'flex-end' },
+    // 정보 슬라이드: 상단 정렬 — 글자 시작점을 전 슬라이드 통일(읽기 리듬 보존). 짧으면 아래로 이미지가 비침.
+    fbAnchorTop: { justifyContent: 'flex-start' },
     // fullbleed 정보 슬라이드 onDark 오버레이 — 기존 light-tone 스타일 위에 color 만 덮어 cream 가독 확보.
     // chip/profile 은 강한 scrim 위에서 line 색이 안 보여 반투명 흰색으로 대체(rgba — hex 토큰 규칙 무관).
     onImgText: { color: n.cream },
