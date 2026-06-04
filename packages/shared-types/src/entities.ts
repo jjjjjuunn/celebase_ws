@@ -367,6 +367,8 @@ export interface ClaimStorySlide {
   image?: string | null | undefined;
   // 이미지 배치. 생략 시 역할별 기본값(hook=fullbleed, 그 외=band) — ClaimDetailScreen.
   layout?: 'fullbleed' | 'band' | undefined;
+  // hero 크롭 focal point(0..1; x=가로, y=세로). 생략=center(0.5,0.5). 앱 상세 FocalImage·card-template bg-position 이 사용(IG 프로필식 크롭 통제).
+  image_focal?: { x: number; y: number } | undefined;
 }
 export interface ClaimStory {
   hook: ClaimStorySlide & { sub: string; swipe?: string | undefined };

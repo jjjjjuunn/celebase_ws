@@ -63,6 +63,8 @@ const StorySlideHeadSchema = {
   // hero 이미지(절대 URL) + 배치. 권위 검증은 seed 의 _schema.json(format:uri, enum).
   image: z.string().url().nullable().optional(),
   layout: z.enum(['fullbleed', 'band']).optional(),
+  // hero 크롭 focal point(0..1). 생략=center. ClaimStorySlide.image_focal 과 parity.
+  image_focal: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).optional(),
 };
 
 export const ClaimStorySchema = z.object({
