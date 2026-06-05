@@ -16,7 +16,6 @@ import { Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Linking,
   ScrollView,
   StyleSheet,
@@ -34,6 +33,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import type { schemas } from '@celebbase/shared-types';
 
+import { FocalImage } from '../components/FocalImage';
 import { MealPlanGenerateSheet } from '../components/MealPlanGenerateSheet';
 import { TrustGradeBadge } from '../components/TrustGradeBadge';
 import { signalLoginRequired } from '../lib/auth-events';
@@ -290,22 +290,30 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     key: string;
     tone: 'light' | 'dark';
     node: React.ReactNode;
-    hero?: { url: string; layout: 'fullbleed' | 'band' } | null;
+    hero?: { url: string; layout: 'fullbleed' | 'band'; focal?: { x: number; y: number } | null } | null;
+    // fullbleed hook(표지)=이미지 우선 → 바닥 위주 가벼운 scrim. 그 외 fullbleed=정보 슬라이드 →
+    // 텍스트 영역 전체를 덮는 강한 scrim(cream 글자 가독, CARDNEWS-HERO-CUSTOM-001 Gemini#1).
+    cover?: boolean;
   }> = [];
 
-  // hero 이미지(있으면). hook=fullbleed(표지), 정보 슬라이드=band(상단 이미지/하단 글).
-  // v1: 비-hook 슬라이드는 layout 무관 band 로 렌더(정보슬라이드 fullbleed-in-app 은 후속).
+  // hero 이미지 + 슬라이드별 layout(fullbleed/band) 존중. 생략 시 역할 기본값(hook=fullbleed, 그 외=band).
+  // CARDNEWS-HERO-CUSTOM-001: 비-hook 도 layout='fullbleed' 면 fullbleed 렌더(텍스트 onDark cream).
+  // focal(image_focal)로 크롭 위치를 통제(FocalImage). 정보 슬라이드는 layout 미설정 시 band(기존 동작).
   const hookImage = s?.hook.image ?? null;
   const hookFb = hookImage !== null && (s?.hook.layout ?? 'fullbleed') === 'fullbleed';
   const whatImage = s?.what.image ?? null;
+  const whatFb = whatImage !== null && (s?.what.layout ?? 'band') === 'fullbleed';
   const scienceImage = s?.science?.image ?? null;
+  const scienceFb = scienceImage !== null && (s?.science?.layout ?? 'band') === 'fullbleed';
   const rescaledImage = s?.rescaled.image ?? null;
+  const rescaledFb = rescaledImage !== null && (s?.rescaled.layout ?? 'band') === 'fullbleed';
 
   // 1) Decode — 이미지 있으면 fullbleed(표지): 이미지 위 scrim + 밝은 글자 오버레이.
   slides.push({
     key: 'decode',
     tone: 'light',
-    hero: hookImage !== null ? { url: hookImage, layout: hookFb ? 'fullbleed' : 'band' } : null,
+    cover: true,
+    hero: hookImage !== null ? { url: hookImage, layout: hookFb ? 'fullbleed' : 'band', focal: s?.hook.image_focal ?? null } : null,
     node: (
       <>
         <Eyebrow
@@ -335,29 +343,29 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
   slides.push({
     key: 'what',
     tone: 'light',
-    hero: whatImage !== null ? { url: whatImage, layout: 'band' } : null,
+    hero: whatImage !== null ? { url: whatImage, layout: whatFb ? 'fullbleed' : 'band', focal: s?.what.image_focal ?? null } : null,
     node: (
       <>
-        <Eyebrow theme={theme} text={s?.what.eyebrow ?? 'WHAT THEY DO'} dot={accent} />
+        <Eyebrow theme={theme} text={s?.what.eyebrow ?? 'WHAT THEY DO'} dot={whatFb ? theme.news.lime : accent} onDark={whatFb} />
         {s !== null ? (
           <>
-            <RichText text={s.what.headline} style={styles.hLight} />
+            <RichText text={s.what.headline} style={[styles.hLight, whatFb ? styles.onImgText : null]} />
             <View style={styles.rows}>
               {s.what.rows.map((row, i) => (
                 <View key={`what-${String(i)}`} style={styles.row}>
-                  <View style={styles.numChip}>
-                    <Text style={styles.numChipText}>{`0${String(i + 1)}`}</Text>
+                  <View style={[styles.numChip, whatFb ? styles.chipOnImg : null]}>
+                    <Text style={[styles.numChipText, whatFb ? styles.onImgText : null]}>{`0${String(i + 1)}`}</Text>
                   </View>
-                  <RichText text={row} style={styles.rowText} />
+                  <RichText text={row} style={[styles.rowText, whatFb ? styles.onImgText : null]} />
                 </View>
               ))}
             </View>
             {s.what.source != null && s.what.source !== '' ? (
-              <Text style={styles.srcNote}>{s.what.source}</Text>
+              <Text style={[styles.srcNote, whatFb ? styles.onImgTextSoft : null]}>{s.what.source}</Text>
             ) : null}
           </>
         ) : (
-          <Text style={styles.body}>
+          <Text style={[styles.body, whatFb ? styles.onImgTextSoft : null]}>
             {claim.body !== null && claim.body !== ''
               ? claim.body
               : 'Their real routine, compiled from the sources below.'}
@@ -367,11 +375,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           <TrustGradeBadge grade={claim.trust_grade} />
         </View>
         <View style={styles.sourcesSection}>
-          <Text style={styles.sectionTitle}>Sources</Text>
+          <Text style={[styles.sectionTitle, whatFb ? styles.onImgTextSoft : null]}>Sources</Text>
           {sources.length === 0 ? (
-            <Text style={styles.bodyMuted}>No sources available.</Text>
+            <Text style={[styles.bodyMuted, whatFb ? styles.onImgTextSoft : null]}>No sources available.</Text>
           ) : (
-            sources.map((source) => <SourceRow key={source.id} source={source} />)
+            sources.map((source) => <SourceRow key={source.id} source={source} onDark={whatFb} />)
           )}
         </View>
       </>
@@ -384,31 +392,31 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     slides.push({
       key: 'science',
       tone: 'light',
-      hero: scienceImage !== null ? { url: scienceImage, layout: 'band' } : null,
+      hero: scienceImage !== null ? { url: scienceImage, layout: scienceFb ? 'fullbleed' : 'band', focal: sci.image_focal ?? null } : null,
       node: (
         <>
-          <Eyebrow theme={theme} text={sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'} dot={accent} />
-          <RichText text={sci.headline} style={styles.hLight} />
+          <Eyebrow theme={theme} text={sci.eyebrow ?? 'WHAT THE SCIENCE SAYS'} dot={scienceFb ? theme.news.lime : accent} onDark={scienceFb} />
+          <RichText text={sci.headline} style={[styles.hLight, scienceFb ? styles.onImgText : null]} />
           <View style={styles.rows}>
             {sci.checks.map((c, i) => (
               <View key={`sci-${String(i)}`} style={styles.row}>
-                <View style={[styles.markChip, styles.markOk]}>
-                  <Text style={styles.markOkText}>✓</Text>
+                <View style={[styles.markChip, styles.markOk, scienceFb ? styles.chipOnImg : null]}>
+                  <Text style={[styles.markOkText, scienceFb ? styles.onImgText : null]}>✓</Text>
                 </View>
-                <RichText text={c} style={styles.rowText} />
+                <RichText text={c} style={[styles.rowText, scienceFb ? styles.onImgText : null]} />
               </View>
             ))}
             {sci.caveat != null && sci.caveat !== '' ? (
               <View style={styles.row}>
-                <View style={[styles.markChip, styles.markWarn]}>
-                  <Text style={styles.markWarnText}>!</Text>
+                <View style={[styles.markChip, styles.markWarn, scienceFb ? styles.chipOnImg : null]}>
+                  <Text style={[styles.markWarnText, scienceFb ? styles.onImgText : null]}>!</Text>
                 </View>
-                <RichText text={sci.caveat} style={styles.rowText} />
+                <RichText text={sci.caveat} style={[styles.rowText, scienceFb ? styles.onImgText : null]} />
               </View>
             ) : null}
           </View>
           {sci.source != null && sci.source !== '' ? (
-            <Text style={styles.srcNote}>{sci.source}</Text>
+            <Text style={[styles.srcNote, scienceFb ? styles.onImgTextSoft : null]}>{sci.source}</Text>
           ) : null}
         </>
       ),
@@ -420,10 +428,11 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     // catch 도 다른 슬라이드처럼 band(사진+다크 카피)로 통일(IMPL-MOBILE-CARDNEWS-UNIFY-001).
     // 이미지 없으면 솔리드 다크 fallback(이 경우에만 큰 따옴표 모티프 — 극적 전환 유지).
     const catchImage = s?.catch.image ?? null;
+    const catchFb = catchImage !== null && (s?.catch.layout ?? 'band') === 'fullbleed';
     slides.push({
       key: 'catch',
       tone: 'dark',
-      hero: catchImage !== null ? { url: catchImage, layout: 'band' } : null,
+      hero: catchImage !== null ? { url: catchImage, layout: catchFb ? 'fullbleed' : 'band', focal: s?.catch.image_focal ?? null } : null,
       node: (
         <>
           {catchImage === null ? <Text style={styles.quoteMark}>{'”'}</Text> : null}
@@ -452,16 +461,16 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
     slides.push({
       key: 'rescale',
       tone: 'light',
-      hero: rescaledImage !== null ? { url: rescaledImage, layout: 'band' } : null,
+      hero: rescaledImage !== null ? { url: rescaledImage, layout: rescaledFb ? 'fullbleed' : 'band', focal: s?.rescaled.image_focal ?? null } : null,
       node: (
         <>
-          <Eyebrow theme={theme} text={s?.rescaled.eyebrow ?? 'RESCALED TO YOU'} dot={accent} />
-          <RichText text={s?.rescaled.headline ?? 'Same base. Your numbers.'} style={styles.hLight} />
+          <Eyebrow theme={theme} text={s?.rescaled.eyebrow ?? 'RESCALED TO YOU'} dot={rescaledFb ? theme.news.lime : accent} onDark={rescaledFb} />
+          <RichText text={s?.rescaled.headline ?? 'Same base. Your numbers.'} style={[styles.hLight, rescaledFb ? styles.onImgText : null]} />
           <View style={styles.profiles}>
             {profiles.map((p, i) => (
-              <View key={`resc-${String(i)}`} style={styles.profile}>
-                <Text style={[styles.profileWho, { color: accent }]}>{p.who.toUpperCase()}</Text>
-                <RichText text={p.what} style={styles.profileWhat} />
+              <View key={`resc-${String(i)}`} style={[styles.profile, rescaledFb ? styles.profileOnImg : null]}>
+                <Text style={[styles.profileWho, { color: rescaledFb ? theme.news.lime : accent }]}>{p.who.toUpperCase()}</Text>
+                <RichText text={p.what} style={[styles.profileWhat, rescaledFb ? styles.onImgTextSoft : null]} />
               </View>
             ))}
           </View>
@@ -554,33 +563,51 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
                   >
                     {fb && hero !== null ? (
                       <>
-                        <Image
-                          source={{ uri: hero.url }}
-                          style={StyleSheet.absoluteFill}
-                          resizeMode="cover"
-                          accessibilityIgnoresInvertColors
-                        />
-                        {/* canonical 4-stop scrim — 최종 stop은 동일 hue alpha-0(transparent 금지: RN=검정 hue-shift) */}
-                        <LinearGradient
-                          colors={['rgba(18,28,20,0.94)', 'rgba(18,28,20,0.6)', 'rgba(18,28,20,0.12)', 'rgba(18,28,20,0)']}
-                          locations={[0, 0.3, 0.55, 0.7]}
-                          start={{ x: 0, y: 1 }}
-                          end={{ x: 0, y: 0 }}
-                          style={StyleSheet.absoluteFill}
-                          pointerEvents="none"
-                        />
+                        <FocalImage uri={hero.url} focal={hero.focal} style={StyleSheet.absoluteFill} />
+                        {slide.cover === true ? (
+                          // 표지(hook): 이미지 우선 — 바닥 위주 4-stop scrim(상단 투명, 하단 0.94).
+                          // 최종 stop은 동일 hue alpha-0(transparent 금지: RN=검정 hue-shift).
+                          <LinearGradient
+                            colors={['rgba(18,28,20,0.94)', 'rgba(18,28,20,0.6)', 'rgba(18,28,20,0.12)', 'rgba(18,28,20,0)']}
+                            locations={[0, 0.3, 0.55, 0.7]}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 0, y: 0 }}
+                            style={StyleSheet.absoluteFill}
+                            pointerEvents="none"
+                          />
+                        ) : (
+                          // 정보 슬라이드(what/science/rescaled/catch) fullbleed: 텍스트가 상단 정렬이라
+                          // scrim 도 상단 가중(상단 0.9 → 하단 0.66). 상단 글자 영역은 진하게 보장(이미지 밝기
+                          // 무관 cream 가독, Gemini#1) + 하단은 footer 가독 유지하며 이미지가 약하게 비침.
+                          <LinearGradient
+                            colors={['rgba(18,28,20,0.9)', 'rgba(18,28,20,0.78)', 'rgba(18,28,20,0.66)']}
+                            locations={[0, 0.55, 1]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={StyleSheet.absoluteFill}
+                            pointerEvents="none"
+                          />
+                        )}
                       </>
                     ) : null}
                     {band && hero !== null ? (
-                      <Image
-                        source={{ uri: hero.url }}
+                      <FocalImage
+                        uri={hero.url}
+                        focal={hero.focal}
                         style={[styles.bandImage, { height: bandH }]}
-                        resizeMode="cover"
-                        accessibilityIgnoresInvertColors
                       />
                     ) : null}
                     {fb ? (
-                      <View style={styles.fbContent}>{slide.node}</View>
+                      // fullbleed 콘텐츠도 ScrollView — 텍스트 많은 정보 슬라이드가 클립되지 않게(Gemini#2/Codex F1).
+                      // 표지(hook)는 바닥 정렬(포스터 룩); 정보 슬라이드는 상단 정렬로 통일 → 콘텐츠 길이와
+                      // 무관하게 글자 시작점이 항상 같아 슬라이드 간 읽기 리듬이 흔들리지 않는다(IMPL-MOBILE-CLAIM-HERO-CUSTOM-001).
+                      <ScrollView
+                        style={styles.cardScroll}
+                        contentContainerStyle={[styles.fbContent, slide.cover === true ? styles.fbAnchorBottom : styles.fbAnchorTop]}
+                        showsVerticalScrollIndicator={false}
+                      >
+                        {slide.node}
+                      </ScrollView>
                     ) : (
                       <ScrollView
                         style={styles.cardScroll}
@@ -653,9 +680,11 @@ function Eyebrow({
 
 interface SourceRowProps {
   source: schemas.ClaimSourceWire;
+  // fullbleed 정보 슬라이드(강한 scrim 위) 에서 cream 변형 — 생략 시 기존 light-tone(forest/muted).
+  onDark?: boolean;
 }
 
-function SourceRow({ source }: SourceRowProps): React.JSX.Element {
+function SourceRow({ source, onDark = false }: SourceRowProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const allowed = isAllowedSourceUrl(source.url);
@@ -664,11 +693,13 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
   if (!allowed || source.url === null) {
     return (
       <View style={styles.sourceRowDisabled}>
-        <Text style={styles.sourceOutlet}>
+        <Text style={[styles.sourceOutlet, onDark ? styles.onImgTextSoft : null]}>
           {source.outlet}
           {date !== null ? ` · ${date}` : ''}
         </Text>
-        <Text style={styles.sourceUnavailable}>Source link unavailable</Text>
+        <Text style={[styles.sourceUnavailable, onDark ? styles.onImgTextSoft : null]}>
+          Source link unavailable
+        </Text>
       </View>
     );
   }
@@ -682,8 +713,8 @@ function SourceRow({ source }: SourceRowProps): React.JSX.Element {
       accessibilityLabel={`Open ${source.outlet} link`}
       style={styles.sourceRow}
     >
-      <Ionicons name="open-outline" size={15} color={theme.news.forest} />
-      <Text style={styles.sourceLink}>
+      <Ionicons name="open-outline" size={15} color={onDark ? theme.news.lime : theme.news.forest} />
+      <Text style={[styles.sourceLink, onDark ? styles.onImgText : null]}>
         {source.outlet}
         {date !== null ? ` (${date})` : ''}
       </Text>
@@ -720,8 +751,19 @@ function makeStyles(theme: Theme) {
     // 콘텐츠 영역 — 내부 스크롤(overflow 안전망). 패딩은 콘텐츠가 보유(band 이미지는 풀폭이라 카드 패딩 0).
     cardScroll: { flex: 1 },
     cardContent: { flexGrow: 1, paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
-    // fullbleed(hook) — 이미지+gradient 위, 카피는 바닥 정렬.
-    fbContent: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: theme.space(6), paddingTop: theme.space(6) },
+    // fullbleed — 이미지+gradient 위 카피. ScrollView contentContainerStyle 라 flexGrow:1(짧으면 anchor
+    // 위치 고정, 넘치면 스크롤). 정렬은 슬라이드 종류별로 분리(fbAnchorBottom/Top).
+    fbContent: { flexGrow: 1, paddingHorizontal: theme.space(6), paddingTop: theme.space(6), paddingBottom: theme.space(2) },
+    // 표지(hook): 바닥 정렬 — 포스터 룩(타이틀이 카드 하단에 앉음).
+    fbAnchorBottom: { justifyContent: 'flex-end' },
+    // 정보 슬라이드: 상단 정렬 — 글자 시작점을 전 슬라이드 통일(읽기 리듬 보존). 짧으면 아래로 이미지가 비침.
+    fbAnchorTop: { justifyContent: 'flex-start' },
+    // fullbleed 정보 슬라이드 onDark 오버레이 — 기존 light-tone 스타일 위에 color 만 덮어 cream 가독 확보.
+    // chip/profile 은 강한 scrim 위에서 line 색이 안 보여 반투명 흰색으로 대체(rgba — hex 토큰 규칙 무관).
+    onImgText: { color: n.cream },
+    onImgTextSoft: { color: n.cream2 },
+    chipOnImg: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.4)' },
+    profileOnImg: { borderTopColor: 'rgba(255,255,255,0.25)' },
     hHookOnImg: { fontFamily: f.display, fontSize: 40, fontWeight: theme.weight.medium, color: n.cream, lineHeight: 44, letterSpacing: -0.6, marginTop: theme.space(4) },
     subOnImg: { fontFamily: f.body, fontSize: 16, color: n.cream2, lineHeight: 24, marginTop: theme.space(4) },
     swipeOnImg: { fontFamily: f.mono, fontSize: 12, color: n.lime, letterSpacing: 2.4, fontWeight: theme.weight.semibold },

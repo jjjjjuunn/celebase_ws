@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-04
+agent: claude-opus-4-8 (1M context) + advisor (verify)
+task_id: IMPL-MOBILE-CLAIM-HERO-CUSTOM-001
+commit_sha: 86a53db
+files_changed:
+  - packages/shared-types/src/entities.ts
+  - packages/shared-types/src/schemas/lifestyle-claims.ts
+  - apps/mobile/src/components/FocalImage.tsx
+  - apps/mobile/src/components/__tests__/FocalImage.test.ts
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tc0/lint0/test 228·38 suites · shared-types build0 · content-service tc0 · staging DB ff114069 jennifer-aniston 전 슬라이드 layout=fullbleed+hero img 확인)
+---
+### 완료: hero 커스터마이즈 — focal point + per-slide layout 존중 (plan CARDNEWS-HERO-CUSTOM-001)
+- shared-types: `image_focal:{x,y}`(0..1, 생략=center) → `StorySlideHeadSchema`(Zod) + `entities.ClaimStorySlide`(양방향 parity guard). 숫자라 법무 게이트 무영향(collectStrings/collectImages 미수집).
+- 앱 `FocalImage` 신규: 고정 컨테이너 + cover 스케일 이미지 절대배치 → focal 중앙정렬(overflow:hidden 크롭), `Image.getSize` 종횡비 보정(기본 2:3), focal 없음/미측정/실패 시 plain cover center 폴백. offset 계산을 `computeFocalBox` 순수 함수로 분리 + 단위 테스트 8.
+- 앱 `ClaimDetailScreen`: 비-hook `layout:'band'` 하드코딩 제거 → 저장된 layout 존중. fullbleed 정보 슬라이드(what/science/rescaled/catch) onDark(cream) + 텍스트 영역 강한 scrim(0.62→0.9; hook 표지는 바닥 위주 가벼운 scrim) + ScrollView(flexGrow·flex-end). hero = `FocalImage`(focal 적용).
+- content-service: 로직 무변경(image_focal schema 통과만) — tc0.
+- spec.md §7.2.1 동기.
+### 미완료: card-tools(별도 레포) D/E — 스튜디오 focal 피커 + 피사체 프리셋 드롭다운 제거(시드 보존) + card-template `background-position`. content-service staging 재배포(focal 발행 전 선행 — 미배포 시 Zod strip). 앱 `expo run:ios` 시각 검증(fullbleed 스크롤·focal 크롭).
+### 연관 파일: studio/index.html · card-system/card-template.html (celebase-card-tools)
+
+---
 date: 2026-06-03
 agent: claude-opus-4-8 (1M context) + advisor (verify/commit review)
 task_id: IMPL-MOBILE-NEWS-COVER-001

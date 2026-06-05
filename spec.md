@@ -2245,6 +2245,15 @@ Lean v1 은 신규 스키마·콘텐츠 의존 없이 기존 claim 필드 + 정�
 
 story 슬라이드에 선택적 hero 이미지를 도입한다. `StorySlideHeadSchema` 에 `image`(절대 URL, nullable·optional) + `layout`(`'fullbleed' | 'band'`) 을 추가하고 `_schema.json`·`entities.ClaimStorySlide` parity 를 맞춘다. **텍스트는 여전히 앱이 라이브 렌더**한다 — 이미지에 글자를 굽지 않는다(다국어·편집·법무 안전). 렌더: hook=`fullbleed`(이미지+scrim+오버레이 텍스트), info 슬라이드=`band`(상단 이미지+하단 텍스트), `image:null`=텍스트 전용(회귀 0). 이미지 호스트는 S3 에셋 도메인 allowlist 로 제한(오타·사설버킷 차단, fetch 안 함 — SSRF 없음). **서버측 강제**: 발행 게이트(`content-legal-gate.ts` CL-IMAGE-HOST)가 image hostname 을 `ASSET_HOST_ALLOW` 와 정확/도메인 suffix 매칭(substring 우회 차단)하고 미일치 시 BLOCK(400) — admin CMS 외부 노출 시 curl 우회 차단(published 경로).
 
+##### 7.2.1 Hero 커스터마이즈: focal point + per-slide layout 존중 *(IMPL-MOBILE-CLAIM-HERO-CUSTOM-001 / plan CARDNEWS-HERO-CUSTOM-001)*
+
+발행자가 hero 표현을 슬라이드별로 통제한다. 두 축:
+
+1. **focal point** — `StorySlideHeadSchema`·`entities.ClaimStorySlide` 에 `image_focal:{x,y}`(0..1, 생략=center(0.5,0.5)) 추가. 같은 이미지가 피드 커버/SNS(4:5, 상하 크롭)와 앱 상세 hook(좌우 크롭)에서 다른 축으로 center-crop 되어 가로로 치우친 피사체가 앱 상세에서 잘리던 문제를 해결한다 — IG 프로필 사진처럼 **보여줄 지점을 발행자가 지정**한다. 앱은 `FocalImage`(고정 컨테이너 + cover 스케일 이미지를 절대배치해 focal 을 중앙 정렬, `overflow:hidden` 크롭; `Image.getSize` 로 종횡비 보정, 기본 2:3; focal 없음/미측정/실패 시 plain cover center 폴백) 로, SNS/스튜디오 미리보기는 `card-template` `background-position` 으로 적용. focal 은 숫자라 법무 게이트 무영향(`collectStrings`/`collectImages` 미수집). 피드 커버는 center 유지(썸네일은 상하 크롭이라 무영향 — 후속 시 `cover_image_focal`).
+2. **per-slide layout 존중** — 앱 `ClaimDetailScreen` 이 비-hook 슬라이드를 `layout:'band'` 로 하드코딩하던 v1 제한을 제거하고 **저장된 `layout`(fullbleed/band)을 그대로 렌더**한다(생략 시 역할 기본값 hook=fullbleed·그 외=band). fullbleed 정보 슬라이드(what/science/rescaled/catch)는 텍스트를 onDark(cream) 변형으로 렌더하고, **글자를 상단 정렬로 통일**한다 — 콘텐츠 길이와 무관하게 슬라이드 간 글자 시작점이 같아 읽기 리듬이 흔들리지 않는다. scrim 도 상단 가중(상단 0.9→하단 0.66)으로 상단 글자 영역을 진하게(이미지 밝기 무관 cream 가독) + 하단은 footer 가독 유지하며 이미지가 약하게 비친다. **hook 표지만 예외**로 바닥 정렬(포스터 룩) + 바닥 위주 가벼운 scrim 을 유지한다. 콘텐츠는 ScrollView(`flexGrow:1`)라 넘치면 스크롤. `layout` 은 이미 schema/스튜디오/저장/카드템플릿이 지원했으므로 본 변경은 **순수 앱 변경**이다.
+
+**배포 순서 강제**: content-service 에 `image_focal` 스키마가 배포되기 *전* 스튜디오가 focal 을 발행하면 admin 라우트의 `ClaimStorySchema`(Zod) 파싱이 미정의 키를 strip 해 소실된다 → (1) shared-types 갱신본으로 content-service 재배포 → (2) 스튜디오 focal 발행. per-slide `layout` 은 이미 schema 지원이라 순서 무관(앱 리빌드만으로 즉시 반영).
+
 #### 7.2 Claim 운영 admin CMS *(IMPL-CONTENT-ADMIN-CMS-001)*
 
 비전공 운영자가 claim+story 를 작성·편집·발행하는 경로. content-service `/admin/claims`(POST 생성 · PATCH 부분편집) + 기존 `transition`. **불변식**: `status=published` 가 되는 모든 경로(create-as-published · update-to-published · draft→published transition)는 DB write *이전에* `assertLegalGate()` 단일 choke-point 를 통과한다 — BLOCK 1건이라도면 throw → write 없음(published 잔류 방지). 게이트는 `content-legal-scan.py` 결정적 체크를 구조화 story 로 TS 포팅(`content-legal-gate.ts`): CL-FTC-GUAR(보장 표현)·CL-NAME-CTA(CTA 내 셀럽명)·CL-DISC(비제휴·의료 disclaimer)=BLOCK, CL-ENGINE=HIGH·CL-PRODUCT-CLAIM=MEDIUM=경고. UI 는 monorepo 밖 로컬 툴(`admin-studio`, image-studio 패턴 — `apps/web` frozen 회피, 토큰은 로컬 `.env`). admin 라우트는 `X-Admin-Token`(`ADMIN_API_TOKEN`) 가드(IMPL-021).
