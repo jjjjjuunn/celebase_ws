@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-07
 agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
 task_id: IMPL-MOBILE-MEALPLAN-NEWSFIRST-001
-commit_sha: PENDING
+commit_sha: f4374c4
 files_changed:
   - apps/mobile/src/navigation/types.ts
   - apps/mobile/src/navigation/PlanNavigator.tsx
