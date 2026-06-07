@@ -12,7 +12,6 @@
 // CTA·게스트 boot-kick 불변식(PR195) 보존: 게스트는 credits skip + 시트 미렌더 + 로그인 게이트.
 // 전 슬라이드 동시 마운트(가상화 없음 — ≤6).
 
-import { Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -46,6 +45,10 @@ import { EmptyState, Text, useTheme, type Theme } from '../ui';
 interface ClaimDetailScreenProps {
   claimId: string;
   onBack: () => void;
+  /** 생성+폴링 완료 후 — 새 plan id. News→Plan 으로 착지(focus 토큰). 미주입 시 no-op(테스트). */
+  onPlanCreated?: (mealPlanId: string) => void;
+  /** 무크레딧 CTA → Paywall. 미주입 시 no-op(테스트). */
+  onNavigatePaywall?: () => void;
 }
 
 type DetailState =
@@ -136,7 +139,12 @@ function RichText({
   );
 }
 
-export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): React.JSX.Element {
+export function ClaimDetailScreen({
+  claimId,
+  onBack,
+  onPlanCreated,
+  onNavigatePaywall,
+}: ClaimDetailScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [state, setState] = useState<DetailState>({ phase: 'loading' });
@@ -187,7 +195,11 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
           />
         </View>
       ) : (
-        <DetailBody data={state.data} />
+        <DetailBody
+          data={state.data}
+          onPlanCreated={onPlanCreated}
+          onNavigatePaywall={onNavigatePaywall}
+        />
       )}
     </SafeAreaView>
   );
@@ -195,9 +207,11 @@ export function ClaimDetailScreen({ claimId, onBack }: ClaimDetailScreenProps): 
 
 interface DetailBodyProps {
   data: schemas.LifestyleClaimDetailResponse;
+  onPlanCreated?: (mealPlanId: string) => void;
+  onNavigatePaywall?: () => void;
 }
 
-function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
+function DetailBody({ data, onPlanCreated, onNavigatePaywall }: DetailBodyProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { width, height } = useWindowDimensions();
@@ -247,8 +261,9 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
       <>
         <TouchableOpacity
           onPress={() => {
+            // 무크레딧: dead-end Alert 대신 Paywall 로(생성·크레딧 게이트가 claim CTA 로 이동).
             if (ctaDisabled) {
-              Alert.alert('No credits left', 'You have no meal-plan credits remaining.');
+              onNavigatePaywall?.();
               return;
             }
             setSheetVisible(true);
@@ -267,7 +282,7 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           {ctaDisabled ? null : <Text style={styles.ctaArrow}>→</Text>}
         </TouchableOpacity>
         {ctaDisabled ? (
-          <Text style={styles.ctaHelper}>No credits left — manage in My Plan.</Text>
+          <Text style={styles.ctaHelper}>No credits left — tap to upgrade.</Text>
         ) : null}
       </>
     )
@@ -647,9 +662,10 @@ function DetailBody({ data }: DetailBodyProps): React.JSX.Element {
           onClose={() => {
             setSheetVisible(false);
           }}
-          onGenerated={() => {
+          onGenerated={(mealPlanId) => {
             setSheetVisible(false);
-            Alert.alert('Plan created', 'Find it under My Plan in the News header.');
+            // dead-end 다이얼로그 대신 결과로 이동 — 새 plan 으로 착지(focus 토큰 = plan id).
+            onPlanCreated?.(mealPlanId);
           }}
         />
       ) : null}

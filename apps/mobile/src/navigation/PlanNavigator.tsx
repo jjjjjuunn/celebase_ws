@@ -13,16 +13,15 @@ import type { PlanStackParamList, PlanStackScreenProps, RootStackParamList } fro
 
 const Stack = createNativeStackNavigator<PlanStackParamList>();
 
-// MealPlan 화면을 root 모달(Onboarding/Paywall) 네비게이션 + focus refresh 로 감싼다.
-// 화면 자체는 nav 비의존(테스트 용이) — 콜백 주입 + reloadKey prop 으로 통신.
-function MealPlanRoute(): React.JSX.Element {
+// MealPlan 화면을 root 모달(Onboarding) 네비게이션 + 탭/스택 네비 + focus refresh 로 감싼다.
+// 화면 자체는 nav 비의존(테스트 용이) — 콜백 주입 + reloadKey/focusPlanId prop 으로 통신.
+// 뉴스-우선: 생성·크레딧 게이트는 claim CTA 로 이동 → '+'/빈상태는 News 로 안내(onNavigateNews).
+function MealPlanRoute({ route, navigation }: PlanStackScreenProps<'MealPlan'>): React.JSX.Element {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const planNav = useNavigation<NativeStackNavigationProp<PlanStackParamList>>();
   const [reloadKey, setReloadKey] = useState(0);
   const firstFocus = useRef(true);
 
-  // Paywall/Onboarding 모달에서 돌아오면 credits/plans 를 재fetch — 결제 직후
-  // stale "업그레이드" CTA 가 남는 것을 막는다. 최초 focus 는 mount fetch 와 중복이라 skip.
+  // Onboarding 모달에서 돌아오면 bio/credits/plans 를 재fetch. 최초 focus 는 mount fetch 와 중복이라 skip.
   useFocusEffect(
     useCallback(() => {
       if (firstFocus.current) {
@@ -36,14 +35,15 @@ function MealPlanRoute(): React.JSX.Element {
   return (
     <MealPlanScreen
       reloadKey={reloadKey}
+      focusPlanId={route.params?.focusPlanId}
       onNavigateOnboarding={() => {
         rootNav.navigate('Onboarding');
       }}
-      onNavigatePaywall={() => {
-        rootNav.navigate('Paywall');
+      onNavigateNews={() => {
+        navigation.navigate('News', { screen: 'NewsFeed' });
       }}
       onNavigateRecipe={(recipeId) => {
-        planNav.navigate('RecipeDetail', { recipeId });
+        navigation.navigate('RecipeDetail', { recipeId });
       }}
     />
   );

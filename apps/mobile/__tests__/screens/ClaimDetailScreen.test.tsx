@@ -6,10 +6,11 @@ jest.mock('expo-secure-store', () => ({
 
 // CTA wiring (IMPL-MOBILE-CLAIM-CTA-001) introduces useMealPlanCredits, which
 // fires its own fetch on every mount — stub it so each test's mockResolvedValueOnce
-// still covers only the /claims/:id fetch.
+// still covers only the /claims/:id fetch. 잔량은 per-test 로 조정(무크레딧→Paywall 검증).
+let mockCreditsRemaining = 3; // jest factory 가 참조하려면 'mock' prefix 필수.
 jest.mock('../../src/lib/use-meal-plan-credits', () => ({
   useMealPlanCredits: () => ({
-    credits: { credits_remaining: 3, credits_total: 3, tier: 'premium' },
+    credits: { credits_remaining: mockCreditsRemaining, credits_total: 3, tier: 'premium' },
     loading: false,
     refresh: jest.fn(),
   }),
@@ -74,6 +75,7 @@ describe('<ClaimDetailScreen />', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetPendingRefresh();
+    mockCreditsRemaining = 3; // 기본: 크레딧 보유(기존 테스트는 enabled CTA 전제).
     process.env['EXPO_PUBLIC_BFF_BASE_URL'] = 'http://localhost:3000';
     process.env['EXPO_PUBLIC_USER_SERVICE_URL'] = 'http://localhost:3001';
     fetchSpy = jest.spyOn(globalThis, 'fetch');
@@ -215,5 +217,53 @@ describe('<ClaimDetailScreen />', () => {
     fireEvent.press(screen.getByLabelText('Back'));
 
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('잔량>0 → "Make my Plan" 탭 → 생성 시트(컴팩트) 오픈', async () => {
+    // claim + 시트의 getBaseDiet 가 같은 fetch 를 타므로 mockResolvedValue(persistent) 사용.
+    // getBaseDiet 는 claim shape 를 받아 parse 실패→맥락만 생략(시트는 정상 렌더).
+    fetchSpy.mockResolvedValue(
+      makeResponse(200, {
+        claim: { ...CLAIM_BASE, base_diet_id: '01927000-0000-7000-8000-aaaaaaaaaaaa' },
+        sources: [],
+      }),
+    );
+
+    renderScreen(
+      <ClaimDetailScreen
+        claimId={CLAIM_BASE.id}
+        onBack={jest.fn()}
+        onPlanCreated={jest.fn()}
+        onNavigatePaywall={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(await screen.findByLabelText('Make my Plan'));
+    // 시트가 열리면 컴팩트 시트의 생성 버튼이 나타난다.
+    expect(await screen.findByLabelText('Generate plan')).toBeTruthy();
+  });
+
+  it('무크레딧(잔량 0) → "Make my Plan" 탭 → Paywall (dead-end Alert 없음)', async () => {
+    mockCreditsRemaining = 0;
+    fetchSpy.mockResolvedValueOnce(
+      makeResponse(200, {
+        claim: { ...CLAIM_BASE, base_diet_id: '01927000-0000-7000-8000-aaaaaaaaaaaa' },
+        sources: [],
+      }),
+    );
+    const onNavigatePaywall = jest.fn();
+
+    renderScreen(
+      <ClaimDetailScreen
+        claimId={CLAIM_BASE.id}
+        onBack={jest.fn()}
+        onNavigatePaywall={onNavigatePaywall}
+      />,
+    );
+    await screen.findByText('celery juice ritual');
+
+    // ctaDisabled(잔량 0): 시트가 아니라 Paywall 로 이동(dead-end 제거).
+    fireEvent.press(screen.getByLabelText('Make my Plan'));
+    expect(onNavigatePaywall).toHaveBeenCalledTimes(1);
   });
 });

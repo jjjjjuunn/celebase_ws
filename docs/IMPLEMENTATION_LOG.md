@@ -28,6 +28,34 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-07
+agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
+task_id: IMPL-MOBILE-MEALPLAN-NEWSFIRST-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/navigation/types.ts
+  - apps/mobile/src/navigation/PlanNavigator.tsx
+  - apps/mobile/src/navigation/NewsNavigator.tsx
+  - apps/mobile/src/components/MealPlanGenerateSheet.tsx
+  - apps/mobile/src/screens/ClaimDetailScreen.tsx
+  - apps/mobile/src/screens/MealPlanScreen.tsx
+  - apps/mobile/__tests__/screens/MealPlanScreen.test.tsx
+  - apps/mobile/__tests__/components/MealPlanGenerateSheet.test.tsx
+  - apps/mobile/__tests__/screens/ClaimDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tc0 lint0 jest 228 green 38 suites; fe_token_hardcode pass; Codex+Gemini+advisor 3-judge PASS; Sigma kcal=production screenshot evidence)
+---
+### 완료: My Plan / Meal Plan 뉴스-우선 개편 (plan synchronous-leaping-dragon, PO 제기 6이슈) — 순수 apps/mobile, BE/스키마 무관
+- 생성 퍼널 일원화(Issue 5): 셀럽 grid 시트 제거 → 새 식단은 News claim "Make my Plan" CTA 로만. MealPlanScreen '+'/빈상태 → News(onNavigateNews). MealPlanGenerateSheet = preset 전용 + 하단 컴팩트 시트 + getBaseDiet 맥락, picker 제거(온보딩 유지), 생성 state machine(runId/poll/error) 보존.
+- 생성 후 착지(Issue 6): ClaimDetail "Plan created" Alert 제거 → onPlanCreated(planId) → navigate('Plan',{screen:'MealPlan',params:{focusPlanId}}). focusPlanId = 생성마다 distinct 토큰(plan id) → 2번째 생성도 useEffect 재발화(상수 sentinel 버그 회피, advisor 발견). plans 로드 완료 후 그 plan start_date 선택(reload 레이스 가드).
+- 무크레딧 paywall: ClaimDetail ctaDisabled(잔량0) → Alert 대신 onNavigatePaywall (dead-end 제거).
+- 날짜 스트립(Issue 2): 오늘±2 고정 5일 폐기 → daily_plans 있고 end_date>=오늘 plan 의 [min(start,오늘)..max(end,오늘)] 가로 스크롤(과거 plan 제외). 6~7일 전 날짜 도달.
+- 화면 단순화+null 정직(Issue 3·4): TransformationPanel(셀럽 kcal vs 나) 제거 → 셀럽 avg_daily_kcal null "—" 깨짐 소멸. 대체 = 1줄 영양 요약(유저 daily_totals 실제 합산 + macro 바) + "Inspired by 셀럽·다이어트". 좌측 rail+스냅 제거 → 끼니별 섹션 헤더 + 세로 카드 리스트.
+- 리뷰 트리아지: Codex BLOCK(IMPL log 수정 금지) 기각 — AGENTS.md 는 Codex 구현자 fence, IMPL log 갱신은 CLAUDE.md Workflow #4 가 Claude 에 강제(본 작업 Claude 직접 구현). focusPlanId plumbing·무크레딧 paywall·테스트 확장·날짜 bound·state machine 보존·Sigma 선행 수용.
+### 미완료: 사용자 기기 시각 검증(npx expo run:ios — 컴팩트 시트 레이아웃·가로 strip 스크롤·끼니 리스트). 코드/유닛/타입/린트는 green, 시각 검증만 사용자 device 핸드오프.
+### 연관 파일: apps/mobile/__tests__/guest-mode.test.tsx (CTA 게이팅 불변 회귀 가드)
+
+---
 date: 2026-06-04
 agent: claude-opus-4-8 (1M context) + advisor (verify)
 task_id: IMPL-MOBILE-CLAIM-HERO-CUSTOM-001

@@ -2206,9 +2206,23 @@ IMPL-MOBILE-TABS-PIVOT-001 / GUEST-NEWS-HOME-001 의 탭 구성을 News-first �
 - **표시 탭**: 게스트 = `News` 단독(탭바 숨김 — 단일 화면). authed = `News` + `SettingsTab` (2탭 표시). `initialRouteName` = `News` (공통).
 - **`Celebrities` 탭 제거**: 셀럽 wellness 는 News 피드 카드 attribution 으로 노출. legacy `CelebritiesNavigator`/`CelebritiesScreen`/`CelebrityDetailScreen` 은 mock-only orphan 으로 잔존 — `CHORE-MOBILE-NAV-ORPHAN-CLEANUP-001` 가 dead-code 정리.
 - **`Meal Plan` 흡수**: `Plan` 탭은 탭바에서 숨기되(`tabBarButton: () => null`) navigator 등록은 유지. 진입점은 (1) News 헤더 **"My Plan"** 버튼(authed 전용 — guest 'Sign in' affordance 와 동일 패턴, `navigate('Plan', { screen: 'MealPlan' })` 로 부모 탭 버블) + (2) ClaimDetail "Make my Plan" 게이트.
-- **boot-kick 불변식**: MealPlanScreen 은 mount 시 protected fetch → "My Plan" 버튼은 `!isGuest` + `onOpenPlan` 존재 시에만 렌더(게스트 미노출). ClaimDetail 생성 완료 alert 카피를 "식단 탭" → "News 헤더의 My Plan" 으로 갱신.
+- **boot-kick 불변식**: MealPlanScreen 은 mount 시 protected fetch → "My Plan" 버튼은 `!isGuest` + `onOpenPlan` 존재 시에만 렌더(게스트 미노출). (생성 완료 후 동작은 IMPL-MOBILE-MEALPLAN-NEWSFIRST-001 에서 "Plan created" Alert → Plan 탭 직접 착지로 대체됨 — 아래 참조.)
 
 본 흡수는 TABS-PIVOT-001 의 셀럽-first 가설을 News-first 로 대체한다 — 단독 `Celebrities`/`Meal Plan` 탭의 진입 가치가 낮다는 사용자 판단(2026-05-30)을 반영하며, 셀럽별 브라우징이 다시 필요해지면 카드 셀럽명 탭 기반 필터 뷰로 fast-follow 한다 (탭 부활 아님).
+
+#### 7.2 Mobile Meal Plan 뉴스-우선 개편 *(IMPL-MOBILE-MEALPLAN-NEWSFIRST-001 / plan synchronous-leaping-dragon)*
+
+NEWS-NAV-ABSORB-001 로 Meal Plan 이 News 의 페이오프 보조 화면이 됐으나 UI 는 "Meal Plan 이 주인공"이던 시절 설계라 방향성과 어긋나 6개 문제를 개편(사용자 PO 제기, 2026-06). 순수 `apps/mobile` 변경 (BE/shared-types/스키마 무관 — 기존 `MealPlanWire.start_date/end_date` · per-day `daily_totals` · `getBaseDiet` 재사용).
+
+- **생성 퍼널 일원화(News-first, Issue 5)**: 셀럽 grid 생성 시트 제거. 새 식단은 **News claim "Make my Plan" CTA** 로만 생성(셀럽은 스토리 맥락과 함께 등장). MealPlanScreen 의 '+' 와 모든 빈상태 CTA 는 News (`onNavigateNews → navigate('News',{screen:'NewsFeed'})`) 로 안내. `MealPlanGenerateSheet` 는 **preset 전용**(claim `base_diet_id` 직행) + 전체화면 → **하단 컴팩트 시트** + `getBaseDiet` 다이어트 맥락. picker(`CelebrityPicker`) 분기 제거(온보딩에선 유지). 생성 state machine(runId 무효화·poll·error) 보존.
+- **생성 후 결과 착지(dead-end 제거, Issue 6)**: ClaimDetail 생성 완료 시 `Alert('Plan created')` 제거 → `onPlanCreated(planId)` → `navigate('Plan',{screen:'MealPlan',params:{focusPlanId}})`. `focusPlanId` 는 **생성마다 distinct 토큰(plan id)** 이라 2번째 생성에도 `useEffect` 재발화(상수 sentinel 미발화 버그 회피). MealPlanScreen 은 plans 로드 완료 후 그 plan 의 `start_date` 선택(reload 레이스 가드 — plan 로드 전 미적용).
+- **무크레딧 paywall(dead-end 제거)**: 생성·크레딧 게이트가 claim CTA 로 이동 → ClaimDetail `ctaDisabled`(잔량 0) 는 Alert 대신 **Paywall 이동**(`onNavigatePaywall`, ClaimDetailRoute 가 `rootNav.navigate('Paywall')` 주입). MealPlanScreen 은 paywall prop 불요.
+- **날짜 스트립 확장(Issue 2)**: 오늘±2 고정 5일 폐기 → `daily_plans` 있고 `end_date≥오늘` 인 plan 들의 `[min(start,오늘)…max(end,오늘)]` 연속 범위 가로 스크롤(완전 과거 plan 제외 → sparse 방지). 6~7일 plan 의 전 날짜 도달, 오늘 항상 포함·기본 선택.
+- **화면 단순화 + null 정직(Issue 3·4)**: "YOUR TRANSFORMATION"(셀럽 kcal vs 나) 2단 패널 제거 → 셀럽 `avg_daily_kcal` 가 일부 null(공개 출처 부재, 의도적)이라 "—"로 깨지던 문제 소멸. 대체 = **1줄 영양 요약**(유저 `daily_totals` 실제 합산 kcal + 3색 macro 바 — 정직) + "Inspired by {셀럽}·{다이어트}" attribution. 좌측 끼니 rail + 스냅스크롤 제거 → **끼니별 섹션 헤더(BREAKFAST/LUNCH/SNACK/DINNER) + 세로 카드 리스트**.
+- **검증**: typecheck/lint/jest(38 suites · 228 tests green; MealPlanScreen·MealPlanGenerateSheet·ClaimDetailScreen·guest-mode·focusPlanId 라우트 param 갱신). per-meal kcal 소스(`adjusted_nutrition?.calories ?? recipe base`)는 기존 화면과 동일 — production 스크린샷(breakfast 310 / 일일 1,410)이 per-meal·총합 정합을 이미 입증(Advisor Σ 검증).
+- **리뷰**: Codex+Gemini+Advisor 3자 PASS(plan 단계). 기각: Codex BLOCK(IMPLEMENTATION_LOG 수정 금지) — AGENTS.md "DO NOT Modify" 는 Codex 구현자 fence 이고 IMPL log 갱신은 CLAUDE.md Workflow #4 가 Claude 에게 강제(이 작업은 Claude 직접 구현).
+
+본 개편으로 Meal Plan 은 News 페이오프 흐름(claim → 생성 → 결과 착지)과 정합하며, 셀럽은 항상 스토리 맥락과 함께 노출된다 — 단독 셀럽 grid 진입은 제거됐다. 셀럽별 직접 생성이 다시 필요하면 News 필터 뷰로 fast-follow 한다(셀럽 grid 부활 아님). 잔여: 사용자 기기 시각 검증(컴팩트 시트·가로 날짜 strip·끼니 리스트) 및 엔진 personalization 정상화(`daily_totals` vs `daily_targets`)는 `MEAL-PLAN-PERSONALIZATION-ROADMAP` P0 장기 과제로 본 UI 범위 밖이다.
 
 #### 7.2 Mobile claim story carousel (Lean v1) *(IMPL-MOBILE-CLAIM-STORY-CAROUSEL-001)*
 

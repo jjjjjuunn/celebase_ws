@@ -1,4 +1,5 @@
-// MealPlanScreen — 3-state 게이트(미온보딩/생성가능/소진) + 캘린더 + 시트 + focus refresh.
+// MealPlanScreen — 뉴스-우선 페이오프 화면: 온보딩 게이트 + plan 기간 날짜 스트립 +
+// 1줄 영양 요약(Inspired by) + 끼니 섹션 리스트 + '+'/빈상태 → News 퍼널 + focusPlanId 착지.
 // 실제 서비스 경로를 태우고 globalThis.fetch 만 url 로 라우팅한다.
 
 jest.mock('expo-secure-store', () => ({
@@ -14,7 +15,7 @@ import { MealPlanScreen } from '../../src/screens/MealPlanScreen';
 import { __resetPendingRefresh } from '../../src/lib/fetch-with-refresh';
 import { ThemeProvider } from '../../src/ui';
 
-// Screen now consumes useTheme() — every render must be inside ThemeProvider.
+// Screen consumes useTheme() — every render must be inside ThemeProvider.
 function renderScreen(ui: ReactElement): ReturnType<typeof render> {
   return render(<ThemeProvider>{ui}</ThemeProvider>);
 }
@@ -59,15 +60,17 @@ const BASE_DIET = {
   updated_at: '2026-04-23T00:00:00.000Z',
 };
 
-// 5일 스트립은 오늘 중앙 ±2일을 보여주고 default 선택일 = 오늘, default 끼니 = breakfast.
-// 따라서 plan 의 날짜를 "오늘"로 맞춰야 breakfast meal 이 화면에 노출된다.
-function todayISO(): string {
+// 날짜 스트립 기본 선택일 = 오늘. plan 의 날짜를 "오늘"로 맞춰야 끼니가 즉시 노출된다.
+function isoOffset(days: number): string {
   const d = new Date();
+  d.setDate(d.getDate() + days);
   const y = String(d.getFullYear());
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+const todayISO = (): string => isoOffset(0);
+const tomorrowISO = (): string => isoOffset(1);
 
 const PLAN = {
   id: '01927000-0000-7000-8000-000000000010',
@@ -96,6 +99,15 @@ const PLAN = {
   created_at: '2026-05-13T00:00:00.000Z',
   updated_at: '2026-05-13T00:00:00.000Z',
   deleted_at: null,
+};
+
+// 내일 시작 plan — focusPlanId 착지(비-오늘 선택) 검증용.
+const PLAN_TOMORROW = {
+  ...PLAN,
+  id: '01927000-0000-7000-8000-000000000011',
+  start_date: tomorrowISO(),
+  end_date: tomorrowISO(),
+  daily_plans: [{ ...PLAN.daily_plans[0], date: tomorrowISO() }],
 };
 
 const RECIPE = {
@@ -177,7 +189,7 @@ interface ScreenRoutes {
   bioStatus?: number;
   credits: () => unknown;
   plans?: unknown[];
-  /** base_diet 조인 실패(404) 시뮬레이션 — transformation/celebRow 미렌더 회귀 가드용. */
+  /** base_diet 조인 실패(404) 시뮬레이션 — Inspired-by attribution 미렌더 회귀 가드용. */
   baseDietStatus?: number;
 }
 
@@ -237,175 +249,109 @@ describe('<MealPlanScreen />', () => {
     const onNavigateOnboarding = jest.fn();
 
     renderScreen(
-      <MealPlanScreen
-        onNavigateOnboarding={onNavigateOnboarding}
-        onNavigatePaywall={jest.fn()}
-      />,
+      <MealPlanScreen onNavigateOnboarding={onNavigateOnboarding} onNavigateNews={jest.fn()} />,
     );
 
     fireEvent.press(await screen.findByLabelText('온보딩하고 크레딧 3개 받기'));
     expect(onNavigateOnboarding).toHaveBeenCalledTimes(1);
   });
 
-  it('온보딩 완료 + 잔량>0 → 헤더 크레딧 뱃지 + 생성(+) + 오늘 breakfast 끼니 표시', async () => {
+  it('온보딩 + plan 있는 날 → 크레딧 뱃지 + 영양 요약(Inspired by) + 끼니 카드', async () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN] });
 
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={jest.fn()} />);
 
-    // 헤더 생성(+) 버튼 + compact 크레딧 뱃지(tier · 잔량).
-    expect(await screen.findByLabelText('Generate meal plan')).toBeTruthy();
+    // 헤더: '+'(News 퍼널) + compact 크레딧 뱃지(tier · 잔량).
+    expect(await screen.findByLabelText('Make a meal plan from News')).toBeTruthy();
     expect(screen.getByText('PREMIUM · 14')).toBeTruthy();
-    // default 선택: 오늘 + breakfast → recipe 제목 로컬 조인 노출. placeholder('Recipe #...') 아님.
-    // (카드 이름으로 노출 → findAllByText length>0)
+    // 끼니 카드: recipe 제목 로컬 조인 + kcal·시간 + overview. placeholder('Recipe #...') 아님.
     expect((await screen.findAllByText('Greek Yogurt Power Bowl')).length).toBeGreaterThan(0);
     expect(screen.queryByText(/^Recipe #/)).toBeNull();
-    // 칼로리(이름 옆) + 소요시간(사진 우상단, prep5+cook0) + 한줄 overview(narrative) + 셀럽 기반.
-    expect(screen.getByText('420 kcal')).toBeTruthy();
-    expect(screen.getByText('5 min')).toBeTruthy();
+    expect(screen.getByText('420 kcal · 5 min')).toBeTruthy();
     expect(screen.getByText('Greek yogurt with honey')).toBeTruthy();
-    expect(await screen.findByText('Based on Beyoncé')).toBeTruthy();
+    // 1줄 영양 요약: 오늘 라벨 + daily_totals kcal(실제 합산) + 유저 macro%.
+    expect(screen.getByText('Today')).toBeTruthy();
+    expect(screen.getByText('1,800 kcal')).toBeTruthy();
+    expect(screen.getByText('P 28 · C 41 · F 31')).toBeTruthy();
+    // 셀럽/다이어트 attribution.
+    expect(await screen.findByText(/Inspired by Beyoncé/)).toBeTruthy();
   });
 
-  it('plan 있는 날 → transformation 패널(셀럽 kcal/macro → 유저 kcal/macro)', async () => {
+  it('끼니 섹션 — 끼니 있는 슬롯만 헤더 렌더(좌측 rail 제거 회귀 가드)', async () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN] });
 
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={jest.fn()} />);
 
-    expect(await screen.findByText('YOUR TRANSFORMATION')).toBeTruthy();
-    // 셀럽 측: base_diet macro_ratio 30/40/30 (avg_daily_kcal 1800).
-    expect(screen.getByText('P 30 · C 40 · F 30')).toBeTruthy();
-    // 유저 측: daily_totals grams(120/180/60) → kcal % 환산 → P28·C41·F31.
-    expect(screen.getByText('P 28 · C 41 · F 31')).toBeTruthy();
-    expect(screen.getByText('You')).toBeTruthy();
+    // PLAN 은 breakfast 끼니만 → BREAKFAST 섹션 헤더만, 나머지 슬롯은 미렌더.
+    expect(await screen.findByText('BREAKFAST')).toBeTruthy();
+    expect(screen.queryByText('LUNCH')).toBeNull();
+    expect(screen.queryByText('SNACK')).toBeNull();
+    expect(screen.queryByText('DINNER')).toBeNull();
   });
 
-  it('base_diet 조인 실패 → transformation 패널 + celebRow 미렌더(회귀 가드)', async () => {
+  it('base_diet 조인 실패 → Inspired-by attribution 미렌더(회귀 가드), 끼니는 유지', async () => {
     routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN], baseDietStatus: 404 });
 
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={jest.fn()} />);
 
-    // 끼니는 plan.daily_plans 에서 직접 오므로 렌더되지만(panel 비의존),
-    await screen.findByText('420 kcal');
-    // base_diet 조인 실패 → transform·celebName 둘 다 없음 → 패널·celebRow 미렌더.
-    expect(screen.queryByText('YOUR TRANSFORMATION')).toBeNull();
-    expect(screen.queryByText('Based on Beyoncé')).toBeNull();
+    // 끼니/요약은 plan.daily_plans 에서 직접 오므로 렌더(attribution 비의존).
+    await screen.findByText('420 kcal · 5 min');
+    expect(screen.getByText('1,800 kcal')).toBeTruthy();
+    // base_diet 조인 실패 → celeb/diet 이름 없음 → Inspired-by 줄 미렌더.
+    expect(screen.queryByText(/Inspired by/)).toBeNull();
   });
 
-  it('식단 있는 날 → 좌측 기둥 4 라벨 + 끼니 있는 슬롯만 활성/강조', async () => {
-    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN] });
-
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
-
-    // 기둥에 4 끼니 라벨이 모두 노출(Breakfast 는 카드 헤더에도 등장하므로 ≥1).
-    expect((await screen.findAllByText('Breakfast')).length).toBeGreaterThan(0);
-    expect(screen.getByText('Lunch')).toBeTruthy();
-    expect(screen.getByText('Snack')).toBeTruthy();
-    expect(screen.getByText('Dinner')).toBeTruthy();
-
-    // PLAN 은 breakfast 끼니만 → Breakfast 기둥 항목이 selected + 활성, 나머지는 disabled.
-    expect(screen.getByLabelText('Breakfast')).toBeSelected();
-    expect(screen.getByLabelText('Breakfast')).toBeEnabled();
-    expect(screen.getByLabelText('Lunch')).toBeDisabled();
-    expect(screen.getByLabelText('Dinner')).toBeDisabled();
-  });
-
-  it('잔량 0 → 업그레이드 CTA → Paywall 콜백', async () => {
-    routeScreen(fetchSpy, { credits: () => CREDITS_FREE_EMPTY });
-    const onNavigatePaywall = jest.fn();
+  it("빈상태/'+' → News 퍼널 (무크레딧 paywall dead-end 없음)", async () => {
+    routeScreen(fetchSpy, { credits: () => CREDITS_FREE_EMPTY, plans: [] });
+    const onNavigateNews = jest.fn();
 
     renderScreen(
-      <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={onNavigatePaywall} />,
+      <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={onNavigateNews} />,
     );
 
-    fireEvent.press(await screen.findByLabelText('Upgrade for credits'));
-    expect(onNavigatePaywall).toHaveBeenCalledTimes(1);
+    // 오늘 plan 없음 → 빈상태 CTA → News.
+    fireEvent.press(await screen.findByText('News 에서 식단 만들기'));
+    expect(onNavigateNews).toHaveBeenCalledTimes(1);
+
+    // 헤더 '+' 도 News 로 (셀럽 grid 시트 없음).
+    fireEvent.press(screen.getByLabelText('Make a meal plan from News'));
+    expect(onNavigateNews).toHaveBeenCalledTimes(2);
   });
 
-  it('생성(+) → 생성 시트 오픈', async () => {
-    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [] });
+  it('focusPlanId → 새 plan 의 start_date(내일) 선택 후 그 날 끼니 노출', async () => {
+    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: [PLAN_TOMORROW] });
 
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
+    renderScreen(
+      <MealPlanScreen
+        onNavigateOnboarding={jest.fn()}
+        onNavigateNews={jest.fn()}
+        focusPlanId={PLAN_TOMORROW.id}
+      />,
+    );
 
-    fireEvent.press(await screen.findByLabelText('Generate meal plan'));
-    // 시트의 Generate 버튼이 나타나면 시트가 열린 것.
-    expect(await screen.findByLabelText('Generate plan')).toBeTruthy();
+    // 기본 선택=오늘(plan 없음)이지만 focusPlanId 가 내일을 선택 → 끼니 노출.
+    expect((await screen.findAllByText('Greek Yogurt Power Bowl')).length).toBeGreaterThan(0);
   });
 
-  it('생성 완료 → 내부 reloadCounter refresh 로 크레딧 뱃지 갱신(14→13)', async () => {
-    const GENERATE_ACCEPT = {
-      id: PLAN.id,
-      status: 'queued' as const,
-      estimated_completion_sec: 30,
-      poll_url: `/meal-plans/${PLAN.id}`,
-      ws_channel: `mealplan:${PLAN.id}`,
-    };
-    let generated = false;
-    fetchSpy.mockImplementation((url: string, init?: RequestInit) => {
-      const u = url;
-      const method = init?.method ?? 'GET';
-      if (u.includes('/api/users/me/bio-profile')) {
-        return Promise.resolve(makeResponse(200, { bio_profile: BIO_PROFILE }));
-      }
-      if (u.includes('/api/meal-plans/credits')) {
-        return Promise.resolve(
-          makeResponse(200, generated ? { ...CREDITS_PREMIUM, credits_remaining: 13 } : CREDITS_PREMIUM),
-        );
-      }
-      if (u.includes('/api/base-diets/')) {
-        return Promise.resolve(makeResponse(200, { base_diet: BASE_DIET }));
-      }
-      if (u.includes('/api/celebrities/') && u.endsWith('/diets')) {
-        return Promise.resolve(makeResponse(200, { diets: [BASE_DIET] }));
-      }
-      if (u.includes('/api/celebrities')) {
-        return Promise.resolve(
-          makeResponse(200, { items: [CELEB], next_cursor: null, has_next: false }),
-        );
-      }
-      if (method === 'POST' && u.endsWith('/api/meal-plans')) {
-        generated = true;
-        return Promise.resolve(makeResponse(201, GENERATE_ACCEPT));
-      }
-      if (method === 'GET' && u.includes('/api/meal-plans/')) {
-        return Promise.resolve(makeResponse(200, { id: PLAN.id, status: 'active', daily_plans: [] }));
-      }
-      if (u.includes('/api/meal-plans')) {
-        return Promise.resolve(makeResponse(200, { items: [], next_cursor: null, has_next: false }));
-      }
-      return Promise.reject(new Error(`unmocked ${u}`));
-    });
-
-    renderScreen(<MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} />);
-
-    expect(await screen.findByText('PREMIUM · 14')).toBeTruthy();
-    fireEvent.press(screen.getByLabelText('Generate meal plan'));
-    fireEvent.press(await screen.findByLabelText('Select Beyoncé'));
-    fireEvent.press(screen.getByLabelText('Generate plan'));
-
-    // onGenerated → reloadCounter 증가 → 전체 refetch → 크레딧 뱃지가 13 으로 갱신.
-    expect(await screen.findByText('PREMIUM · 13')).toBeTruthy();
-  });
-
-  it('reloadKey 변경(focus refresh) → 잔량 0 → 결제 후 식단 만들기 로 갱신', async () => {
-    let creditsState: unknown = CREDITS_FREE_EMPTY;
-    routeScreen(fetchSpy, { credits: () => creditsState });
+  it('reloadKey 변경(focus refresh) → plans 재fetch 반영(빈→끼니)', async () => {
+    const plansState: unknown[] = [];
+    routeScreen(fetchSpy, { credits: () => CREDITS_PREMIUM, plans: plansState });
 
     const { rerender } = renderScreen(
-      <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} reloadKey={0} />,
+      <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={jest.fn()} reloadKey={0} />,
     );
 
-    // 초기: 잔량 0 → 업그레이드 CTA.
-    expect(await screen.findByLabelText('Upgrade for credits')).toBeTruthy();
+    // 초기: plan 없음 → 빈상태 CTA.
+    expect(await screen.findByText('News 에서 식단 만들기')).toBeTruthy();
 
-    // 사용자가 Paywall 에서 premium 구매 → 서버 잔량 갱신, focus 로 reloadKey 증가.
-    creditsState = CREDITS_PREMIUM;
+    // 식단 생성 후 focus → reloadKey 증가 → 재fetch 시 plan 노출(같은 배열 ref 변형).
+    plansState.push(PLAN);
     rerender(
       <ThemeProvider>
-        <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigatePaywall={jest.fn()} reloadKey={1} />
+        <MealPlanScreen onNavigateOnboarding={jest.fn()} onNavigateNews={jest.fn()} reloadKey={1} />
       </ThemeProvider>,
     );
 
-    // 재fetch 후 stale "Upgrade" 가 아니라 생성(+) 으로 바뀌어야 한다.
-    expect(await screen.findByLabelText('Generate meal plan')).toBeTruthy();
+    expect((await screen.findAllByText('Greek Yogurt Power Bowl')).length).toBeGreaterThan(0);
   });
 });
