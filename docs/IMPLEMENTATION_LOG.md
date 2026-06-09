@@ -28,6 +28,28 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-09
+agent: claude-opus-4-8 (1M context) + Codex(v1·v3 PASS) + Gemini(v1·v2·v3) + advisor (3-judge 반복)
+task_id: IMPL-MOBILE-RECIPE-STEPVIEW-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/components/RecipeSteps.tsx
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/__tests__/components/RecipeSteps.test.tsx
+  - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 + mobile tc0/lint0/jest 240 green/fe_token_hardcode pass
+---
+### 완료: Recipe 탭 = 몰입형 step-by-step (Cook Mode 통합·리디자인, IMPL-MOBILE-RECIPE-STEPVIEW-001)
+- 사용자(PO) 피드백: (1) 별도 Cook Mode 모달/버튼 말고 Recipe 탭 자체가 step view, (2) 흰배경+빈여백 구림. 해결 = `CookMode.tsx` 삭제 → 인라인 `RecipeSteps.tsx`(몰입 포레스트 다크, theme.news 토큰만 raw hex 0).
+- **Model B 상태**: `lockOuter`(독립, immersive 활성, IFF tab==='recipe') + `current`(부모 리프트 → 탭 왕복에도 스텝 보존) + outer `scrollEnabled={!lockOuter}` ↔ per-page inner 스크롤로 nested same-axis 충돌 구조적 제거.
+- 전이: Recipe 선택 → tabBarY 측정 후 scrollTo+lock / 헤더 back·Ingredients = 이탈 / Done = 개요복귀+Step1 리셋 / 재진입 = Recipe 재탭. fillH=window-safeTop-tabBarH(default 48), nav safeBottom, keep-awake useIsFocused+마운트 게이트.
+- 테스트: RecipeSteps(counter·Next/Prev·controlled current·1-step Done·onExit·tips/null) + RecipeDetailScreen("Start cook mode" 부재·Recipe→step+scrollEnabled=false·onDone→ingredients+unlock·Ingredients 왕복 후 current 보존·instructions 0). 신규 12 + 전체 240 green.
+- 3-judge 반복(검증된 것만): Codex v1 4건(keep-awake·nested-scroll·safeBottom·테스트) + Gemini v1 HIGH amnesia(리프트)·LOW onDone/fillH 수용, MEDIUM 단계별재료 **기각**(데이터 없음). Gemini v2 2 MEDIUM(클리핑·re-entry) → Model B 로 구조적 N/A. Codex v3·Gemini v3 PASS + LOW(측정후 lock·2단 safety-exit) 수용. advisor: 추가 라운드 불필요·기기검증이 실제 게이트.
+### 미완료: scroll-lock+auto-scroll+fill-height 상호작용 기기검증(유닛 불가 — 사용자 device). 백로그: non-launching "view all steps" 토글·인분조절·음식사진·핸즈프리.
+### 연관 파일: apps/mobile/src/components/RecipeSteps.tsx, apps/mobile/src/screens/RecipeDetailScreen.tsx, spec.md
+
+---
 date: 2026-06-08
 agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
 task_id: IMPL-MOBILE-RECIPE-COOKMODE-001

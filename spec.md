@@ -2284,6 +2284,16 @@ Meal Plan 끼니 카드 → `RecipeDetailScreen`(음식 페이오프) 가독성/
 
 리뷰: Codex+Gemini+Advisor 3자 PASS. Codex 가 "tips 122/122" 데이터 오류(실제 122/542 — 420개 키 누락)를 잡아 정정. keep-awake lifecycle·Android back·스텝 오버플로·peek 드로어·1-step·a11y 수용. IMPL log BLOCK 기각(Claude 소유 — AGENTS.md 는 Codex 구현자 fence). 자동 검증: mobile tc0·lint0·jest 238 green(40 suites).
 
+#### 7.2 Recipe 탭 = 몰입형 step-by-step (Cook Mode 통합·리디자인) *(IMPL-MOBILE-RECIPE-STEPVIEW-001 / plan synchronous-leaping-dragon)*
+
+기기검증 후 사용자(PO) 피드백 2건: (1) 별도 Cook Mode(버튼+풀스크린 모달) 대신 Recipe 탭 자체가 step-by-step 으로 보이게(별도 런치 금지), (2) Cook UI 가 밋밋(흰배경+검정)하고 짧은 스텝이 풀스크린에 떠 빈 여백이 큼. 해결 = `CookMode.tsx` 삭제 → 인라인 `RecipeSteps.tsx` 전환 + 몰입형 포레스트 다크 surface(`theme.news.forest`/`cream`/`lime` 디자인 토큰, raw hex 0). 별도 Cook Mode CTA·Modal·Ingredients peek 드로어 제거.
+
+상태 모델 = "Model B": `RecipeDetailScreen` 이 `tab`(ingredients|recipe) + `lockOuter`(immersive 활성) + `current`(스텝 인덱스, 부모로 리프트) 를 소유한다. 불변식 = `lockOuter=true` 는 항상 `tab==='recipe'` 와 함께이며 잠금해제 전환은 항상 recipe 탭 이탈과 동반 → "unlock 된 채 recipe 탭에 머무는 상태"가 부재(이전 클리핑·re-entry 역설의 근원 제거). Recipe 탭 활성 동안 outer ScrollView 를 `scrollEnabled={!lockOuter}` 로 잠가 세로 스크롤을 RecipeSteps per-page inner ScrollView 하나로 한정 → 같은-축 중첩 충돌이 구조적으로 불가능하다. `current` 가 부모 소유라 Ingredients 왕복/재진입에도 스텝 진행이 보존된다.
+
+전이: Recipe 탭 선택 → tabBar `onLayout` y 측정 → `scrollTo(tabBarY)`(탭바를 viewport 상단 pin = 탈출구) → 측정 완료 시에만 `setLockOuter(true)`. 헤더 back(onExit)·Ingredients 탭 tap = immersive 이탈(잠금해제·스텝 보존), 마지막 "Done"(onDone) = 상단 개요 복귀 + Step1 리셋, 재진입은 Recipe 탭 재탭. `fillH = windowHeight - safeTop - tabBarH`(측정 전 default 48), 하단 nav `paddingBottom: safeBottom`. keep-awake 는 `useIsFocused` + 마운트(=recipe 탭 시) 게이트 → 이탈/blur 시 해제.
+
+리뷰: Codex+Gemini+Advisor 3자 반복 PASS(v3). Gemini 의 "단계별 재료 표시"는 데이터 부재(`instructions[]={step,text,duration_min}` — ingredient 링크 없음)로 기각, "2-step 진입"은 방향 위반으로 기각. nested-scroll·amnesia(state 리프트)·clipping·re-entry·keep-awake·safeBottom·fillH race 모두 수용·해소. 자동검증: mobile tc0·lint0·jest 240 green·fe_token_hardcode pass. scroll-lock+auto-scroll+fill-height 상호작용은 기기검증(유닛 불가) 대상.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```
