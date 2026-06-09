@@ -99,3 +99,61 @@ class TestListMealPlansOrdering:
         assert "created_at < $2::timestamptz" in sql
         assert "ORDER BY created_at DESC" in sql
         assert pool.fetch.call_args.args[2] == cursor
+
+
+class TestGetRecentRecipeIds:
+    """get_recent_recipe_ids collects recipe_ids from the user's most recent plan(s)
+    for a (user, base_diet) so the engine can rotate away from them
+    (IMPL-MEAL-VARIETY-REGEN-001). DB mocked — exercises extraction + SQL filters.
+    """
+
+    @pytest.mark.asyncio
+    async def test_extracts_recipe_ids_across_days_and_meals(self) -> None:
+        pool = AsyncMock()
+        pool.fetch = AsyncMock(
+            return_value=[
+                {
+                    "daily_plans": [
+                        {
+                            "meals": [
+                                {"meal_type": "breakfast", "recipe_id": "bf-1"},
+                                {"meal_type": "lunch", "recipe_id": "lu-1"},
+                            ]
+                        },
+                        {"meals": [{"meal_type": "dinner", "recipe_id": "di-1"}]},
+                    ]
+                }
+            ]
+        )
+        ids = await repo.get_recent_recipe_ids(pool, "user-1", "diet-1", "plan-current")
+        assert ids == {"bf-1", "lu-1", "di-1"}
+
+    @pytest.mark.asyncio
+    async def test_sql_filters_and_positional_args(self) -> None:
+        pool = AsyncMock()
+        pool.fetch = AsyncMock(return_value=[])
+        ids = await repo.get_recent_recipe_ids(pool, "user-1", "diet-1", "plan-current")
+        assert ids == set()  # empty history → empty set
+        sql = pool.fetch.call_args.args[0]
+        assert "base_diet_id = $2" in sql
+        assert "id <> $3" in sql
+        assert "deleted_at IS NULL" in sql
+        assert "status NOT IN ('queued', 'generating', 'failed')" in sql
+        assert "daily_plans <> '[]'::jsonb" in sql
+        # positional args after the SQL: user_id, base_diet_id, exclude_plan_id, lookback
+        assert pool.fetch.call_args.args[1:] == ("user-1", "diet-1", "plan-current", 1)
+
+    @pytest.mark.asyncio
+    async def test_ignores_meals_without_recipe_id(self) -> None:
+        pool = AsyncMock()
+        pool.fetch = AsyncMock(
+            return_value=[
+                {
+                    "daily_plans": [
+                        {"meals": [{"meal_type": "snack"}, {"recipe_id": "s-1"}]}
+                    ]
+                }
+            ]
+        )
+        ids = await repo.get_recent_recipe_ids(pool, "u", "d", "p")
+        assert ids == {"s-1"}

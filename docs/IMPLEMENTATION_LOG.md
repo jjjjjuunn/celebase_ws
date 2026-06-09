@@ -28,6 +28,30 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-09
+agent: claude-opus-4-8 (1M context) + gemini (PASS) + codex (traversal-stall→fallback) + advisor (verify)
+task_id: IMPL-MEAL-VARIETY-REGEN-001
+commit_sha: PENDING
+files_changed:
+  - services/meal-plan-engine/src/repositories/meal_plan_repository.py
+  - services/meal-plan-engine/src/consumers/sqs_consumer.py
+  - services/meal-plan-engine/src/engine/pipeline.py
+  - services/meal-plan-engine/tests/unit/test_meal_plan_repository.py
+  - services/meal-plan-engine/tests/unit/test_pipeline.py
+  - spec.md
+verified_by: claude-opus-4-8 + 221 unit tests + ruff
+---
+### 완료: 식단 재생성 다양성 — exclude-recent 회전 (IMPL-MEAL-VARIETY-REGEN-001)
+- 문제: 결정론적 파이프라인(random_seed=42·interleave_search=False, 1-day는 variety penalty=0)으로 같은 (user, base_diet) 반복 생성 시 동일 식단. 실증(`/tmp/feasibility_check.py`): Cameron 풀 1200~1500kcal에서 유효 1-day 식단 2~3개 존재 → 회전 가능.
+- `meal_plan_repository.get_recent_recipe_ids` 신규: 동일 다이어트 직전 plan(lookback=1)의 recipe_id 집합 반환(parameterized·soft-delete·status NOT IN·daily_plans 비어있지 않음 필터; JSONB 코덱 list 디코드 — 추가 파싱 없음).
+- `sqs_consumer._process_message` → `run_pipeline(exclude_recipe_ids=...)` → `pipeline.py` Step 5 `build_meal_plan(forbidden_ids=...)`. 솔버는 입력에 결정적 유지(determinism 테스트 불변), 다양성은 history 입력 변동에서. 최적성·노브 없음.
+- graceful retry: exclusion으로 infeasible 시 exclusion 없이 1회 재시도(novelty → "최적 plan 반복"으로 안전 강등). 메트릭 중복 카운트 방지(회복 경로=record_ilp_success만, 양쪽 attempt infeasible일 때만 record_ilp_infeasible).
+- 테스트: repo 추출/SQL 필터 3 + pipeline(forbidden 전달·graceful retry·메트릭 회귀·기본 None) 5. 전체 221 unit PASS, ruff clean.
+- 3-judge: Gemini PASS(멀티데이 7-day는 graceful-retry로 동일반복 — 의도적 수용·문서화). Codex traversal-stall→포착 finding+pipeline.md 폴백: [MEDIUM] retry/metrics 수용, [LOW] UUID-cast 기각(기존 get_meal_plan이 str→uuid 정상 동작 입증). advisor: feasibility BLOCKING 통과 + 메트릭 회귀 테스트 보강 필수(반영).
+### 미완료(백로그): 레시피 증설(다이어트당 4→N, 진짜 천장 해소); CHORE-MEAL-HIGH-TARGET-INFEASIBLE-001(타깃 ≥1600 저칼로리 다이어트 풀 부족 → 영양무시 round-robin fallback); LLM 리랭커(기본 off) 켜질 시 excluded recipe re-introduction(reranker에도 exclude 전달); 멀티데이 재생성 다양성(meal_type별 최빈 N개만 제외 완화전략).
+### 연관 파일: services/meal-plan-engine/src/engine/pipeline.py, services/meal-plan-engine/src/consumers/sqs_consumer.py, services/meal-plan-engine/src/repositories/meal_plan_repository.py, spec.md
+
+---
 date: 2026-06-04
 agent: claude-opus-4-8 (1M context) + advisor (verify)
 task_id: IMPL-MOBILE-CLAIM-HERO-CUSTOM-001

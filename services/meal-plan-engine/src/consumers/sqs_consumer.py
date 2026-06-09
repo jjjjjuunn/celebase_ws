@@ -131,6 +131,13 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
     # row's consecutive-date window (FEAT-MEAL-CONSECUTIVE-DATES-001) the calendar reads.
     start_date = plan_row.get("start_date") if plan_row else None
 
+    # IMPL-MEAL-VARIETY-REGEN-001: recipe_ids from the user's most recent plan for this
+    # diet → passed to the engine as solver forbidden_ids so repeat generations of the
+    # same celebrity diet aren't identical (rotation). Empty for the first-ever plan.
+    exclude_recipe_ids = await repo.get_recent_recipe_ids(
+        pool, user_id, base_diet_id, plan_id
+    )
+
     # Progress callback → WebSocket broadcast (IMPL-014-a)
     async def on_progress(payload: Dict[str, Any]) -> None:
         _logger.info("plan=%s progress: %s", plan_id, payload)
@@ -155,6 +162,7 @@ async def _process_message(message_body: Dict[str, Any]) -> None:
         redis_client=redis_client,
         llm_context=llm_context,
         start_date=start_date,
+        exclude_recipe_ids=exclude_recipe_ids,
     )
 
     # Persist result — BS-NEW-03 final_out 가드: standard/llm 양쪽 mode 필드 모두 보존.
