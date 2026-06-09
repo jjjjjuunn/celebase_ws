@@ -1401,6 +1401,8 @@ carb_kcal = remaining_kcal × (1 - base_diet.fat_ratio)
 
 **Pipeline 통합** (PR-D2): `pipeline.py` Step 5 가 ILP solver primary path + variety_optimizer fallback (PIPELINE_USE_ILP=False or ILP exception).
 
+**재생성 다양성 — exclude-recent 회전** (IMPL-MEAL-VARIETY-REGEN-001): 솔버는 입력에 대해 결정적이라 같은 (user, base_diet)을 반복 생성하면 동일 식단이 나온다(특히 1-day는 variety penalty=0). `sqs_consumer` 가 동일 다이어트의 직전 plan(`meal_plan_repository.get_recent_recipe_ids`, lookback=1)의 recipe_id 를 `run_pipeline(exclude_recipe_ids=...)` → 솔버 `forbidden_ids` 로 전달해 다음 생성이 달라지게 한다(결정성·최적성 보존, 다양성은 history 입력 변동에서). exclusion 으로 infeasible 시 **exclusion 없이 1회 재시도**(novelty → "최적 plan 반복"으로 안전 강등). 다양성은 (diet, target)별 **best-effort** — 다이어트당 meal_type 별 레시피가 4개뿐이라 타깃당 유효 식단 2~3개에서 순환(레시피 증설은 별도 백로그). 멀티데이는 풀 소진으로 대개 graceful-retry → 현행 day별 다양성 유지.
+
 **fail-closed**: ILP infeasible + fallback empty → `ILPInfeasibleError` raise → sqs_consumer 가 `status='failed'` 처리. PR-C2 deferred_backlog (0.0 silent plan) 방지.
 
 **Fallback (`variety_optimizer.py`, fallback_only)**:

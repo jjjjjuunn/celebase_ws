@@ -482,3 +482,127 @@ async def test_pipeline_propagates_goal_pace_to_calorie_adjuster() -> None:
     }
     result = await run_pipeline(**inputs)
     assert result["target_kcal"] == 1875
+
+
+# ── IMPL-MEAL-VARIETY-REGEN-001: exclude-recent rotation ────────────────────────
+
+
+def _ilp_pool() -> List[RecipeSlot]:
+    """Nutrition-complete pool so the ILP path (mocked) is exercised, not filtered out."""
+    return [
+        RecipeSlot(
+            recipe_id=f"r{i}-{mt}",
+            meal_type=mt,
+            allergens=[],
+            ingredients=[],
+            nutrition={"calories": 400, "protein_g": 25, "carbs_g": 50, "fat_g": 12},
+        )
+        for mt in ("breakfast", "lunch", "dinner", "snack")
+        for i in range(6)
+    ]
+
+
+@pytest.mark.asyncio
+async def test_exclude_recipe_ids_passed_to_solver_as_forbidden() -> None:
+    """exclude_recipe_ids → build_meal_plan(forbidden_ids=...) 로 전달."""
+    pool = _ilp_pool()
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True):
+        with patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver:
+            mock_solver.return_value = [[pool[0]]] * inputs["duration_days"]
+            await run_pipeline(
+                **inputs, exclude_recipe_ids={"r0-breakfast", "r0-lunch"}
+            )
+
+    assert mock_solver.call_args.kwargs["forbidden_ids"] == {"r0-breakfast", "r0-lunch"}
+
+
+@pytest.mark.asyncio
+async def test_no_exclude_passes_forbidden_none() -> None:
+    """exclude_recipe_ids 미지정(기본 None) → forbidden_ids=None (현행 동작 회귀 보호)."""
+    pool = _ilp_pool()
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True):
+        with patch("src.engine.pipeline.plan_solver.build_meal_plan") as mock_solver:
+            mock_solver.return_value = [[pool[0]]] * inputs["duration_days"]
+            await run_pipeline(**inputs)
+
+    assert mock_solver.call_args.kwargs["forbidden_ids"] is None
+
+
+@pytest.mark.asyncio
+async def test_graceful_retry_without_exclusion_when_excluded_infeasible() -> None:
+    """exclusion 으로 ILP infeasible → exclusion 없이 1회 재시도 → 유효 plan 산출."""
+    pool = _ilp_pool()
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    with patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True):
+        with patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=[
+                plan_solver.ILPInfeasibleError("excluded too much"),
+                [[pool[0]]] * inputs["duration_days"],
+            ],
+        ) as mock_solver:
+            result = await run_pipeline(**inputs, exclude_recipe_ids={"r0-breakfast"})
+
+    assert result["status"] == "completed"
+    assert mock_solver.call_count == 2
+    # 1st call carries the exclusion, 2nd (retry) drops it.
+    assert mock_solver.call_args_list[0].kwargs["forbidden_ids"] == {"r0-breakfast"}
+    assert mock_solver.call_args_list[1].kwargs["forbidden_ids"] is None
+
+
+@pytest.mark.asyncio
+async def test_recovery_records_success_not_infeasible() -> None:
+    """메트릭 중복 카운트 방지(Codex MEDIUM): 회복 경로는 record_ilp_success 1회 +
+    record_ilp_infeasible 미호출 (call-count 만으론 못 잡는 회귀를 닫는다)."""
+    pool = _ilp_pool()
+    inputs = _baseline_inputs()
+    inputs["base_diet"] = {"recipes": list(pool)}
+    inputs["candidate_pool"] = pool
+
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch("src.engine.pipeline.llm_metrics_singleton") as mock_metrics,
+        patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=[
+                plan_solver.ILPInfeasibleError("excluded too much"),
+                [[pool[0]]] * inputs["duration_days"],
+            ],
+        ),
+    ):
+        await run_pipeline(**inputs, exclude_recipe_ids={"r0-breakfast"})
+
+    mock_metrics.record_ilp_success.assert_called_once()
+    mock_metrics.record_ilp_infeasible.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_both_attempts_infeasible_records_infeasible_and_falls_back() -> None:
+    """exclusion + no-exclusion 둘 다 infeasible → record_ilp_infeasible + round-robin fallback."""
+    inputs = _baseline_inputs()  # baseline pool → fallback path 가 plan 생성
+
+    with (
+        patch("src.engine.pipeline.settings.PIPELINE_USE_ILP", True),
+        patch("src.engine.pipeline.llm_metrics_singleton") as mock_metrics,
+        patch(
+            "src.engine.pipeline.plan_solver.build_meal_plan",
+            side_effect=plan_solver.ILPInfeasibleError("infeasible both times"),
+        ) as mock_solver,
+    ):
+        result = await run_pipeline(**inputs, exclude_recipe_ids={"r0"})
+
+    assert mock_solver.call_count == 2  # exclusion attempt + no-exclusion retry
+    mock_metrics.record_ilp_infeasible.assert_called_once()
+    mock_metrics.record_ilp_success.assert_not_called()
+    assert result["status"] == "completed"  # legacy variety_optimizer fallback
