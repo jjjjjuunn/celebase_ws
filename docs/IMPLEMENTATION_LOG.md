@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-08
+agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
+task_id: IMPL-MOBILE-RECIPE-COOKMODE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/components/CookMode.tsx
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/__tests__/components/CookMode.test.tsx
+  - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tc0 lint0 jest 238 green 40 suites; Codex+Gemini+advisor 3-judge PASS; Codex caught tips data error corrected to 122-of-542)
+---
+### 완료: 레시피 상세 가독성 + Cook Mode (plan synchronous-leaping-dragon) — 순수 apps/mobile, BE/스키마 무관
+- 신규 CookMode: 전체화면 한 스텝씩(RN Modal + 가로 paging ScrollView, 각 스텝 세로 ScrollView), counter+progress, Ingredients peek 드로어(tap-to-dismiss·nav 안 가림), 1-step=Finish만, useKeepAwake(visible-only 마운트로 lifecycle 안전), onRequestClose(Android back), a11y label 전부.
+- RecipeDetailScreen 폴리시: 조리 스텝 카드+여백(밀도↓ chunking)+duration chip, 재료 preparation(.trim 가드), tips 콜아웃(null/빈문자 가드 — 시드 122/542 만 보유), Cook Mode 진입 CTA(영양 카드 직후 prominent), hero scrim→expo-linear-gradient.
+- expo-keep-awake ~15.0.8 설치(네이티브 리빌드 필요).
+- 테스트 신규 2: CookMode(다스텝·1-step·Finish·peek·a11y) + RecipeDetailScreen(렌더·Cook 버튼 유무·preparation·tips 유/무).
+- 리뷰 트리아지: Codex 가 내 "tips 122/122" 데이터 오류를 122/542(420 키 누락)로 정정 — 검증 후 수용. keep-awake lifecycle·Android back·오버플로·peek 드로어·1-step·a11y 수용. IMPL log BLOCK 기각(AGENTS.md=Codex 구현자 fence, CLAUDE.md Workflow#4 가 Claude 에 강제).
+### 미완료: 사용자 기기 시각 검증(Cook Mode swipe/prev-next/peek/finish/keep-awake·Android back, 진입점 발견성). PR 은 #215(IMPL-MOBILE-MEALPLAN-NEWSFIRST-001) 위 스택 — #215 머지 후 main retarget.
+### 연관 파일: apps/mobile/src/components/MealPhoto.tsx (hero 사진 — image_url null 시 placeholder, 음식 사진 Phase 대기)
+
+---
 date: 2026-06-07
 agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
 task_id: IMPL-MOBILE-MEALPLAN-NEWSFIRST-001

@@ -12,9 +12,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { schemas } from '@celebbase/shared-types';
 
+import { CookMode } from '../components/CookMode';
 import { MealPhoto } from '../components/MealPhoto';
 import { getRecipeDetail } from '../services/recipes';
 import { EmptyState, Text, useTheme, type Theme } from '../ui';
@@ -86,6 +88,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
   const [tab, setTab] = useState<DetailTab>('ingredients');
   const [showMacroDetail, setShowMacroDetail] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set());
+  const [cookOpen, setCookOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,7 +162,11 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
         {/* Hero — 풀블리드 사진 + back + 제목/메타 오버레이 */}
         <View style={styles.hero}>
           <MealPhoto imageUrl={recipe.image_url} name={recipe.title} fill />
-          <View style={styles.heroScrim} />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.7)']}
+            locations={[0, 0.45, 1]}
+            style={styles.heroScrim}
+          />
           {backButton}
           <View style={styles.heroText}>
             <Text variant="h1" tone="onBrand" style={styles.heroTitle}>
@@ -212,6 +219,27 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
             </>
           ) : null}
         </View>
+
+        {/* Cook Mode 진입 — 높고 눈에 띄는 위치(조리 시작 CTA). 스텝 있을 때만. */}
+        {recipe.instructions.length > 0 ? (
+          <TouchableOpacity
+            onPress={() => {
+              setCookOpen(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Start cook mode"
+            activeOpacity={0.9}
+            style={styles.cookBtn}
+          >
+            <Ionicons name="flame-outline" size={20} color={theme.color.onBrand} />
+            <Text variant="body" tone="onBrand" style={styles.cookBtnText}>
+              Cook Mode
+            </Text>
+            <Text variant="bodySm" tone="onBrand" style={styles.cookBtnSub}>
+              {`${String(recipe.instructions.length)} steps`}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
         {/* Highlights — 영양 수치 기반 사실(주장 아님). 효능 데이터셋 생기면 교체 예정. */}
         {highlights.length > 0 ? (
@@ -271,6 +299,11 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
             <View style={styles.list}>
               {ingredients.map((ing, idx) => {
                 const isChecked = checked.has(idx);
+                // preparation 은 다수 채워짐(chopped 등)이나 빈 문자열도 있어 가드 후 표기.
+                const prep =
+                  ing.preparation != null && ing.preparation.trim() !== ''
+                    ? ` · ${ing.preparation.trim()}`
+                    : '';
                 return (
                   <TouchableOpacity
                     key={`${ing.name}-${String(idx)}`}
@@ -288,7 +321,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
                       color={isChecked ? theme.color.brand : theme.color.textMuted}
                     />
                     <Text variant="body" style={[styles.ingredientName, isChecked ? styles.ingredientChecked : null]}>
-                      {`${ing.name} (${fmtQty(ing.quantity)} ${ing.unit})`}
+                      {`${ing.name} (${fmtQty(ing.quantity)} ${ing.unit}${prep})`}
                     </Text>
                     {ing.is_optional ? (
                       <Text variant="caption" tone="muted">
@@ -309,22 +342,41 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
         ) : (
           <View style={styles.list}>
             {recipe.instructions.map((step) => (
-              <View key={step.step} style={styles.stepRow}>
+              <View key={step.step} style={styles.stepCard}>
                 <View style={styles.stepNum}>
                   <Text variant="metricSm" tone="onBrand">
                     {String(step.step)}
                   </Text>
                 </View>
                 <View style={styles.stepBody}>
-                  <Text variant="body">{step.text}</Text>
+                  <Text variant="body" style={styles.stepText}>
+                    {step.text}
+                  </Text>
                   {step.duration_min != null ? (
-                    <Text variant="caption" tone="muted">
-                      {`${String(step.duration_min)} min`}
-                    </Text>
+                    <View style={styles.durationChip}>
+                      <Ionicons name="time-outline" size={13} color={theme.color.brand} />
+                      <Text variant="caption" tone="brand">
+                        {`${String(step.duration_min)} min`}
+                      </Text>
+                    </View>
                   ) : null}
                 </View>
               </View>
             ))}
+            {/* tips — 시드 ~22%만 보유 → null/빈문자 가드 필수. */}
+            {recipe.tips != null && recipe.tips.trim() !== '' ? (
+              <View style={styles.tipCard}>
+                <Ionicons name="bulb-outline" size={18} color={theme.color.brand} />
+                <View style={styles.tipBody}>
+                  <Text variant="label" tone="brand">
+                    TIP
+                  </Text>
+                  <Text variant="bodySm" tone="muted">
+                    {recipe.tips.trim()}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
           </View>
         )}
 
@@ -332,6 +384,15 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
           This information is for educational purposes only and is not intended as medical advice.
         </Text>
       </ScrollView>
+
+      <CookMode
+        visible={cookOpen}
+        onClose={() => {
+          setCookOpen(false);
+        }}
+        steps={recipe.instructions}
+        ingredients={ingredients}
+      />
     </SafeAreaView>
   );
 }
@@ -378,15 +439,8 @@ function makeStyles(theme: Theme) {
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     body: { paddingBottom: theme.space(8) },
     hero: { height: HERO_HEIGHT, width: '100%' },
-    heroScrim: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: HERO_HEIGHT * 0.6,
-      backgroundColor: theme.color.ink,
-      opacity: 0.45,
-    },
+    // 그라데이션 scrim — hero 전체에 깔되 하단으로 갈수록 어둡게(제목 가독; 실사진 대비).
+    heroScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
     backBtn: {
       position: 'absolute',
       top: theme.space(3),
@@ -466,7 +520,28 @@ function makeStyles(theme: Theme) {
     },
     ingredientName: { flex: 1 },
     ingredientChecked: { textDecorationLine: 'line-through', color: theme.color.textMuted },
-    stepRow: { flexDirection: 'row', gap: theme.space(3), paddingVertical: theme.space(2) },
+    // Cook Mode 진입 CTA (영양 카드 직후, 눈에 띄는 prominent 버튼).
+    cookBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(2),
+      marginHorizontal: theme.space(4),
+      marginBottom: theme.space(3),
+      paddingVertical: theme.space(3),
+      paddingHorizontal: theme.space(4),
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.color.brand,
+    },
+    cookBtnText: { fontWeight: theme.weight.semibold },
+    cookBtnSub: { marginLeft: 'auto', opacity: 0.85 },
+    // 조리 스텝 = 카드 + 여백(밀도↓ chunking).
+    stepCard: {
+      flexDirection: 'row',
+      gap: theme.space(3),
+      padding: theme.space(4),
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.color.surface,
+    },
     stepNum: {
       width: 28,
       height: 28,
@@ -475,7 +550,27 @@ function makeStyles(theme: Theme) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    stepBody: { flex: 1, gap: 2, paddingTop: 2 },
+    stepBody: { flex: 1, gap: theme.space(2), paddingTop: 2 },
+    stepText: { lineHeight: 24 },
+    durationChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(1),
+      alignSelf: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: theme.space(2),
+      borderRadius: theme.radius.pill,
+      backgroundColor: theme.color.brandSubtle,
+    },
+    tipCard: {
+      flexDirection: 'row',
+      gap: theme.space(3),
+      padding: theme.space(4),
+      borderRadius: theme.radius.lg,
+      backgroundColor: theme.color.brandSubtle,
+      marginTop: theme.space(1),
+    },
+    tipBody: { flex: 1, gap: 2 },
     disclaimer: { paddingHorizontal: theme.space(4), paddingTop: theme.space(5) },
   });
 }
