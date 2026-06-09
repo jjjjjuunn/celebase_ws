@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-09
 agent: claude-opus-4-8 (1M context) + gemini (PASS) + codex (traversal-stall→fallback) + advisor (verify)
 task_id: IMPL-MEAL-VARIETY-REGEN-001
-commit_sha: PENDING
+commit_sha: 72357b4
 files_changed:
   - services/meal-plan-engine/src/repositories/meal_plan_repository.py
   - services/meal-plan-engine/src/consumers/sqs_consumer.py
