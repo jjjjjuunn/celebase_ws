@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-08
 agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
 task_id: IMPL-MOBILE-RECIPE-COOKMODE-001
-commit_sha: PENDING
+commit_sha: 4ffbb9c
 files_changed:
   - apps/mobile/package.json
   - apps/mobile/src/components/CookMode.tsx
