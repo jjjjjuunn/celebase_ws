@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-09
 agent: claude-opus-4-8 (1M context) + Codex(v1·v3 PASS) + Gemini(v1·v2·v3) + advisor (3-judge 반복)
 task_id: IMPL-MOBILE-RECIPE-STEPVIEW-001
-commit_sha: PENDING
+commit_sha: bbbdaa6
 files_changed:
   - apps/mobile/src/components/RecipeSteps.tsx
   - apps/mobile/src/screens/RecipeDetailScreen.tsx
