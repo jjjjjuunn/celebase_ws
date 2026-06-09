@@ -55,8 +55,10 @@ export type NewsStackParamList = {
 };
 
 // ── Plan / Profile / Settings stacks (single screen each for now) ────
+// MealPlan.focusPlanId: claim "Make my Plan" 생성 직후 그 plan 으로 착지시키는 토큰.
+// 생성마다 distinct(plan id)라 useEffect 가 매 생성 재발화한다(상수 sentinel 의 미발화 회피).
 export type PlanStackParamList = {
-  MealPlan: undefined;
+  MealPlan: { focusPlanId?: string } | undefined;
   RecipeDetail: { recipeId: string };
 };
 

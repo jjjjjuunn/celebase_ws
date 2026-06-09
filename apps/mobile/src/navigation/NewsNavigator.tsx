@@ -36,6 +36,14 @@ function ClaimDetailRoute({
       onBack={() => {
         navigation.goBack();
       }}
+      // 생성 직후: Alert 대신 Plan 으로 착지(새 plan id 를 focus 토큰으로 전달 — 매 생성 재발화).
+      onPlanCreated={(planId) => {
+        navigation.navigate('Plan', { screen: 'MealPlan', params: { focusPlanId: planId } });
+      }}
+      // 무크레딧 CTA: dead-end Alert 대신 Paywall(root modal) 로.
+      onNavigatePaywall={() => {
+        navigation.navigate('Paywall');
+      }}
     />
   );
 }
