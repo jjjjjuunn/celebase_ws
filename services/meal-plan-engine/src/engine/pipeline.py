@@ -175,6 +175,7 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
     redis_client: Any = None,
     llm_context: Dict[str, Any] | None = None,
     start_date: date | None = None,
+    exclude_recipe_ids: set[str] | None = None,
 ) -> Dict[str, Any]:
     """Generate a personalised meal-plan using the Two-Pass strategy.
 
@@ -283,8 +284,13 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
             if slot.nutrition is not None
             and all(key in slot.nutrition for key in ("calories", "protein_g", "fat_g"))
         ]
-        try:
-            varied_plan = plan_solver.build_meal_plan(
+
+        # IMPL-MEAL-VARIETY-REGEN-001: rotate away from the user's most recent recipes
+        # (exclude_recipe_ids) so repeat generations differ. If the exclusion makes the
+        # nutrition problem infeasible, retry once WITHOUT it so a valid plan is still
+        # produced — novelty degrades to "best plan, possibly repeating" (graceful).
+        def _solve(forbidden: set[str]) -> List[List[RecipeSlot]]:
+            return plan_solver.build_meal_plan(
                 candidate_pool=solver_pool,
                 target_kcal=int(target_kcal),
                 macros=macros,
@@ -292,7 +298,24 @@ async def run_pipeline(  # noqa: C901 – orchestration wrapper is inherently lo
                 time_limit_sec=settings.ILP_TIME_LIMIT_SEC,
                 random_seed=settings.ILP_RANDOM_SEED,
                 weights=settings.PIPELINE_ILP_WEIGHTS or None,
+                forbidden_ids=forbidden or None,
             )
+
+        exclude = set(exclude_recipe_ids or ())
+        try:
+            try:
+                varied_plan = _solve(exclude)
+            except plan_solver.ILPInfeasibleError:
+                if exclude:
+                    _logger.info(
+                        "rotation exclusion made ILP infeasible — retry without exclusion"
+                    )
+                    # 재차 infeasible 시 outer except 로 전파 → record_ilp_infeasible + fallback.
+                    varied_plan = _solve(set())
+                else:
+                    raise
+            # 회복 경로(exclusion-infeasible → no-exclusion 성공) 포함 — record_ilp_success 만.
+            # record_ilp_infeasible 는 양쪽 attempt 모두 실패한 outer except 에서만 (중복 카운트 방지).
             llm_metrics_singleton.record_ilp_success(status="optimal_or_feasible")
         except plan_solver.ILPTimeoutError:
             llm_metrics_singleton.record_ilp_timeout(reason="solver_timeout")

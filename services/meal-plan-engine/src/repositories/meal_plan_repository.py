@@ -161,6 +161,49 @@ async def find_recent_duplicate(
     return dict(row) if row else None
 
 
+async def get_recent_recipe_ids(
+    pool: asyncpg.Pool,
+    user_id: str,
+    base_diet_id: str,
+    exclude_plan_id: str,
+    lookback: int = 1,
+) -> set[str]:
+    """Return recipe_ids used in the user's most recent plan(s) for this base_diet.
+
+    Used by the engine to rotate AWAY from recently-served recipes
+    (IMPL-MEAL-VARIETY-REGEN-001) so repeat generations of the same celebrity diet are
+    not identical. Excludes the current plan, soft-deleted rows, and not-yet-generated
+    / failed plans. ``daily_plans`` is decoded to a Python list by the pool's JSONB
+    codec (``database.py``), so no manual json parsing is needed.
+    """
+
+    rows = await pool.fetch(
+        """
+        SELECT daily_plans FROM meal_plans
+        WHERE user_id = $1
+          AND base_diet_id = $2
+          AND id <> $3
+          AND deleted_at IS NULL
+          AND status NOT IN ('queued', 'generating', 'failed')
+          AND daily_plans <> '[]'::jsonb
+        ORDER BY created_at DESC
+        LIMIT $4
+        """,
+        user_id,
+        base_diet_id,
+        exclude_plan_id,
+        lookback,
+    )
+    recipe_ids: set[str] = set()
+    for row in rows:
+        for day in row["daily_plans"] or []:
+            for meal in day.get("meals", []):
+                rid = meal.get("recipe_id")
+                if rid:
+                    recipe_ids.add(rid)
+    return recipe_ids
+
+
 async def get_meal_plan(
     pool: asyncpg.Pool,
     plan_id: str,
