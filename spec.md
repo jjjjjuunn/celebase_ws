@@ -2274,6 +2274,16 @@ story 슬라이드에 선택적 hero 이미지를 도입한다. `StorySlideHeadS
 
 비전공 운영자가 claim+story 를 작성·편집·발행하는 경로. content-service `/admin/claims`(POST 생성 · PATCH 부분편집) + 기존 `transition`. **불변식**: `status=published` 가 되는 모든 경로(create-as-published · update-to-published · draft→published transition)는 DB write *이전에* `assertLegalGate()` 단일 choke-point 를 통과한다 — BLOCK 1건이라도면 throw → write 없음(published 잔류 방지). 게이트는 `content-legal-scan.py` 결정적 체크를 구조화 story 로 TS 포팅(`content-legal-gate.ts`): CL-FTC-GUAR(보장 표현)·CL-NAME-CTA(CTA 내 셀럽명)·CL-DISC(비제휴·의료 disclaimer)=BLOCK, CL-ENGINE=HIGH·CL-PRODUCT-CLAIM=MEDIUM=경고. UI 는 monorepo 밖 로컬 툴(`admin-studio`, image-studio 패턴 — `apps/web` frozen 회피, 토큰은 로컬 `.env`). admin 라우트는 `X-Admin-Token`(`ADMIN_API_TOKEN`) 가드(IMPL-021).
 
+#### 7.2 Recipe 상세 가독성 + Cook Mode *(IMPL-MOBILE-RECIPE-COOKMODE-001 / plan synchronous-leaping-dragon)*
+
+Meal Plan 끼니 카드 → `RecipeDetailScreen`(음식 페이오프) 가독성/폴리시. 사용자(PO) 가 조리 단계의 **긴 문단 밀도**(가독성)와 화면 폴리시를 지적 — 글자 크기가 아닌 chunking 이 본질. 4개 후속(레시피·음식사진·CMS) 중 우선순위 = 폴리시 → CMS → 사진(사용자 확정). 본 Phase = 순수 `apps/mobile`(BE/스키마 무관).
+
+신규 `CookMode`(`apps/mobile/src/components/CookMode.tsx`) = 조리 중 한 스텝씩 보는 전체화면 모드. RN Modal + 가로 paging ScrollView(ClaimDetail 캐러셀 패턴, reanimated 불요), 각 스텝은 세로 ScrollView(긴 텍스트 클립 방지), 상단 step counter+progress, 하단 Ingredients "peek" 부분 드로어(전체화면 takeover 아님 · tap-to-dismiss · nav 안 가림)+Prev/Next. 1-step 레시피(시드 43개)는 Prev 없이 Finish 만. `useKeepAwake`(expo-keep-awake)로 조리 중 화면 잠금 방지 — Modal 자식을 visible 일 때만 마운트해 닫으면 자동 해제(lifecycle 안전). Android 하드웨어 back = Modal `onRequestClose`. a11y label(counter·prev·next·finish·ingredients) 전부.
+
+`RecipeDetailScreen` 인라인 폴리시: 조리 스텝을 연속 리스트 → **스텝 카드 + 여백**(시각 chunking) + duration chip, 재료에 `preparation` 표기(빈 문자열 가드), `tips` 콜아웃(시드 542 레시피 중 122개만 보유 → `!= null && .trim()` 가드 필수), Cook Mode 진입 CTA(영양 카드 직후 prominent), hero flat scrim → `expo-linear-gradient` 그라데이션(실사진 대비). 음식 사진(AI 생성)·CMS 관리는 별도 후속 Phase.
+
+리뷰: Codex+Gemini+Advisor 3자 PASS. Codex 가 "tips 122/122" 데이터 오류(실제 122/542 — 420개 키 누락)를 잡아 정정. keep-awake lifecycle·Android back·스텝 오버플로·peek 드로어·1-step·a11y 수용. IMPL log BLOCK 기각(Claude 소유 — AGENTS.md 는 Codex 구현자 fence). 자동 검증: mobile tc0·lint0·jest 238 green(40 suites).
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```
