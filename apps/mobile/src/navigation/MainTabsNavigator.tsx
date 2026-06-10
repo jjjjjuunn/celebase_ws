@@ -81,7 +81,10 @@ export function MainTabsNavigator(): React.JSX.Element {
               tabBarLabel: TAB_LABELS.Plan,
               tabBarIcon: ({ color, size }: { color: string; size: number }) => tabIcon('Plan', color, size),
               // 탭바 버튼 숨김 — News 헤더 "My Plan" / ClaimDetail 게이트로만 진입(등록 유지).
+              // tabBarButton:()=>null 만으론 flex 슬롯이 남아 News/Settings 가 양 끝으로 벌어진다 →
+              // tabBarItemStyle display:none 으로 슬롯을 layout 에서 제거해 2탭이 균등 분배되게 한다.
               tabBarButton: () => null,
+              tabBarItemStyle: styles.tabItemHidden,
               tabBarStyle: focused === 'RecipeDetail' ? styles.tabBarHidden : styles.tabBar,
             };
           }}
@@ -105,6 +108,8 @@ function makeStyles(theme: Theme) {
   return StyleSheet.create({
     tabBar: { backgroundColor: theme.color.surface, borderTopColor: theme.color.border },
     tabBarHidden: { display: 'none' },
+    // 숨긴 Plan 탭 슬롯을 layout 에서 제거(빈 가운데 슬롯 → News/Settings 균등 분배).
+    tabItemHidden: { display: 'none' },
     label: { fontSize: theme.type.caption, fontWeight: theme.weight.semibold },
   });
 }

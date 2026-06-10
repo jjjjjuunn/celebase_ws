@@ -29,6 +29,23 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-06-09
+agent: claude-opus-4-8 (1M context)
+task_id: IMPL-MOBILE-TABBAR-BALANCE-001
+commit_sha: PENDING
+files_changed:
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - spec.md
+verified_by: claude-opus-4-8 + mobile tc0/lint0/jest 243 green (균등 배치 체감은 기기검증)
+---
+### 완료: 하단 탭바 균형 — 숨긴 Plan 슬롯 collapse (IMPL-MOBILE-TABBAR-BALANCE-001)
+- 사용자(PO): authed 탭바에서 News·Settings 가 양 끝으로 벌어져 어색. 원인 = Plan 탭을 `tabBarButton: () => null` 로만 숨겨 React Navigation bottom-tabs 가 가운데 flex 슬롯을 남김.
+- 수정: Plan Tab.Screen 에 `tabBarItemStyle: { display: 'none' }`(styles.tabItemHidden) 추가 → 숨긴 슬롯을 layout 에서 제거 → News·Settings 균등 분배. RecipeDetail focus 전체 탭바 숨김(getFocusedRouteNameFromRoute) 불변.
+- 검증: mobile tc0·lint0·jest 243 green. 균등 배치 체감은 기기검증(유닛 불가 — RN navigator 레이아웃).
+### 미완료: 균등 배치 기기검증(사용자 device). 없음.
+### 연관 파일: apps/mobile/src/navigation/MainTabsNavigator.tsx, spec.md
+
+---
+date: 2026-06-09
 agent: claude-opus-4-8 (1M context) + Codex(PASS) + Gemini(adversarial PASS) + advisor (3-judge)
 task_id: IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001
 commit_sha: 0c21c52
