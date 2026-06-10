@@ -1,6 +1,6 @@
-// RecipeDetailScreen — Hero/영양/Highlights/Ingredients·Recipe(몰입 step view) 통합.
-// Recipe 탭 = RecipeSteps(별도 Cook Mode 버튼/모달 없음). 실제 서비스 경로(getRecipeDetail)를
-// 태우고 globalThis.fetch 만 url 로 라우팅. scroll-lock 은 prop 레벨 검증(실제 스크롤은 기기검증).
+// RecipeDetailScreen — Hero/영양/Highlights/Ingredients·Recipe 통합. Recipe 탭 = 풀스크린
+// RecipeSteps 오버레이(별도 Cook Mode 버튼/모달 없음, scroll-lock 없음). 실제 서비스 경로
+// (getRecipeDetail)를 태우고 globalThis.fetch 만 url 로 라우팅. 풀스크린 레이아웃은 기기검증.
 
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue(null),
@@ -76,21 +76,6 @@ function mockDetail(fetchSpy: jest.SpyInstance, o: DetailOverride = {}): void {
   });
 }
 
-// jest 는 onLayout 을 자동 발화하지 않으므로, lock 이 engage 하려면 tabBar y 를 수동 주입한다.
-function layoutTabBar(): void {
-  fireEvent(screen.getByTestId('recipe-tabbar'), 'layout', {
-    nativeEvent: { layout: { x: 0, y: 250, width: 320, height: 48 } },
-  });
-}
-
-// outer ScrollView 의 scrollEnabled prop (lockOuter 의 prop-레벨 검증).
-function outerScrollEnabled(): boolean | undefined {
-  const el = screen.getByTestId('recipe-detail-scroll') as unknown as {
-    props: { scrollEnabled?: boolean };
-  };
-  return el.props.scrollEnabled;
-}
-
 describe('<RecipeDetailScreen />', () => {
   let fetchSpy: jest.SpyInstance;
 
@@ -122,34 +107,41 @@ describe('<RecipeDetailScreen />', () => {
     expect(screen.queryByLabelText('Start cook mode')).toBeNull();
   });
 
-  it('Recipe 탭 → 몰입 step view(counter) + outer 잠금', async () => {
+  it('Recipe 탭 → 몰입 step view 오버레이(counter)', async () => {
     mockDetail(fetchSpy);
     renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
     await screen.findByText('Savory Oat Bowl');
 
-    layoutTabBar();
     fireEvent.press(screen.getByText('Recipe'));
-
     expect(await screen.findByText('STEP 1 OF 3')).toBeTruthy();
-    expect(outerScrollEnabled()).toBe(false);
+    expect(screen.getByText('Boil the oats until creamy.')).toBeTruthy();
   });
 
-  it('onDone → Ingredients 개요 복귀 + outer 잠금해제', async () => {
+  it('onDone → Ingredients 개요 복귀 + step 뷰 사라짐', async () => {
     mockDetail(fetchSpy);
     renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
     await screen.findByText('Savory Oat Bowl');
 
-    layoutTabBar();
     fireEvent.press(screen.getByText('Recipe'));
     await screen.findByText('STEP 1 OF 3');
     fireEvent.press(screen.getByLabelText('Next step'));
     fireEvent.press(screen.getByLabelText('Next step')); // → 마지막
     fireEvent.press(screen.getByLabelText('Done'));
 
-    // 개요(Ingredients 탭)로 복귀, step 뷰 사라짐, outer 스크롤 복원.
     expect(screen.queryByText('STEP 3 OF 3')).toBeNull();
     expect(screen.getByText('Rolled Oats (0.5 cup)')).toBeTruthy();
-    expect(outerScrollEnabled()).toBe(true);
+  });
+
+  it('헤더 back(⌄) → 개요 복귀(이탈)', async () => {
+    mockDetail(fetchSpy);
+    renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
+    await screen.findByText('Savory Oat Bowl');
+
+    fireEvent.press(screen.getByText('Recipe'));
+    await screen.findByText('STEP 1 OF 3');
+    fireEvent.press(screen.getByLabelText('Exit step view'));
+    expect(screen.queryByText('STEP 1 OF 3')).toBeNull();
+    expect(screen.getByText('Rolled Oats (0.5 cup)')).toBeTruthy();
   });
 
   it('Ingredients 왕복 후 Recipe 재진입 시 같은 스텝 보존(amnesia 회귀)', async () => {
@@ -157,7 +149,6 @@ describe('<RecipeDetailScreen />', () => {
     renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
     await screen.findByText('Savory Oat Bowl');
 
-    layoutTabBar();
     fireEvent.press(screen.getByText('Recipe'));
     await screen.findByText('STEP 1 OF 3');
     fireEvent.press(screen.getByLabelText('Next step')); // step 2
@@ -168,12 +159,11 @@ describe('<RecipeDetailScreen />', () => {
     expect(screen.getByText('STEP 2 OF 3')).toBeTruthy(); // Step 1 로 리셋되지 않음
   });
 
-  it('instructions 없음 → Recipe 탭에 step 뷰 미노출(안내)', async () => {
+  it('instructions 없음 → Recipe 탭에 step 오버레이 미노출(안내)', async () => {
     mockDetail(fetchSpy, { recipe: { ...RECIPE, instructions: [] } });
     renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
     await screen.findByText('Savory Oat Bowl');
 
-    layoutTabBar();
     fireEvent.press(screen.getByText('Recipe'));
     expect(await screen.findByText('조리 단계가 아직 없어요.')).toBeTruthy();
     expect(screen.queryByText(/STEP 1 OF/)).toBeNull();

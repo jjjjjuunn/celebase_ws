@@ -2294,6 +2294,8 @@ Meal Plan 끼니 카드 → `RecipeDetailScreen`(음식 페이오프) 가독성/
 
 리뷰: Codex+Gemini+Advisor 3자 반복 PASS(v3). Gemini 의 "단계별 재료 표시"는 데이터 부재(`instructions[]={step,text,duration_min}` — ingredient 링크 없음)로 기각, "2-step 진입"은 방향 위반으로 기각. nested-scroll·amnesia(state 리프트)·clipping·re-entry·keep-awake·safeBottom·fillH race 모두 수용·해소. 자동검증: mobile tc0·lint0·jest 240 green·fe_token_hardcode pass. scroll-lock+auto-scroll+fill-height 상호작용은 기기검증(유닛 불가) 대상.
 
+**기기검증 정정 (overlay)**: 위 Model B 의 scroll-pin(`scrollTo(tabBarY)`)+`lockOuter` 방식이 기기에서 mis-position/overflow(포레스트가 화면 중간서 시작·하단 News/Settings 탭바 뒤로 잘림·스크롤 불가)했다 — 3-judge PASS 였으나 런타임 렌더링 버그라 페이퍼 리뷰가 구조적으로 못 잡은 케이스. **근본 수정**: RecipeSteps 를 in-scroll tab body 가 아니라 `RecipeDetailScreen` 의 **absolute 풀스크린 오버레이**(`top:insets.top`~화면 바닥, 스크롤·lock 비의존)로 렌더하고, `MainTabsNavigator` 가 `getFocusedRouteNameFromRoute` 로 RecipeDetail focus 시 하단 탭바를 숨겨 전체화면을 확보(MealPlan 복귀 시 복원)한다. `lockOuter`/`scrollTo`/`tabBarY`/`fillH`/per-page-scroll-lock 은 전부 제거 — current 리프트·keep-awake(useIsFocused)·Done/Exit 2단 이탈은 유지. 자동검증 tc0·lint0·jest 241·fe_token pass. 탭바 hide/restore + 풀스크린 레이아웃은 기기 재검증 대상.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```

@@ -9,17 +9,8 @@
 // 평점·건강 효능·재료 역할(메인/서브) 은 데이터 부재 + 효능 주장 출처 규칙 때문에 미구현.
 // 화면은 nav 비의존(prop 콜백) — PlanNavigator 가 recipeId/onBack 주입.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-  type LayoutChangeEvent,
-} from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -46,7 +37,6 @@ type Phase =
 type DetailTab = 'ingredients' | 'recipe';
 
 const HERO_HEIGHT = 300;
-const DEFAULT_TAB_BAR_H = 48;
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
@@ -94,19 +84,15 @@ function nutritionHighlights(n: Recipe['nutrition']): Highlight[] {
 export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
   const [phase, setPhase] = useState<Phase>({ state: 'loading' });
   const [tab, setTab] = useState<DetailTab>('ingredients');
   const [showMacroDetail, setShowMacroDetail] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set());
-  // Recipe 탭 = 몰입 step view. lockOuter=true 는 항상 tab==='recipe' 와 함께(Model B 불변식):
-  // 잠금해제 전환은 항상 탭 이탈과 동반 → "unlock 된 채 recipe 탭에 머무는 상태" 부재.
-  const [lockOuter, setLockOuter] = useState(false);
+  // Recipe 탭 활성 시 RecipeSteps 를 풀스크린 오버레이로 렌더(스크롤 비의존 — 기존 scroll-pin+lock
+  // 방식이 기기에서 mis-position/overflow 했던 것을 근본 회피). current 는 부모 소유 → 탭 왕복에도
+  // 스텝 보존. 하단 News/Settings 탭바는 MainTabs 가 RecipeDetail 에서 숨긴다(오버레이 전체화면 확보).
   const [stepIndex, setStepIndex] = useState(0);
-  const [tabBarY, setTabBarY] = useState(0);
-  const [tabBarH, setTabBarH] = useState(DEFAULT_TAB_BAR_H);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,32 +151,14 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
   if (n.sodium_mg !== undefined) macroDetail.push({ label: 'Sodium', value: `${String(Math.round(n.sodium_mg))}mg` });
   const highlights = nutritionHighlights(n);
 
-  // RecipeSteps 가 채울 viewport 높이(탭바를 상단 pin 한 뒤 그 아래 전체).
-  const fillH = windowHeight - insets.top - tabBarH;
-
-  // Model B 전이 — lockOuter 는 항상 tab==='recipe'(스텝 있음) 와 함께만 true.
-  const selectTab = (t: DetailTab): void => {
-    if (t === 'recipe' && recipe.instructions.length > 0 && tabBarY > 0) {
-      // 탭바를 viewport 상단으로 pin → outer 잠금(immersive). lock 은 tabBarY 측정 후에만.
-      scrollRef.current?.scrollTo({ y: tabBarY, animated: true });
-      setTab('recipe');
-      setLockOuter(true);
-    } else {
-      setTab(t);
-      setLockOuter(false);
-    }
-  };
-  // 헤더 back — immersive 이탈(개요 접근). 스텝 진행(stepIndex)은 보존 → 재진입 시 재개.
+  // 헤더 back(⌄) — immersive 이탈(개요로). stepIndex 보존 → Recipe 재진입 시 같은 스텝 재개.
   const exitSteps = (): void => {
     setTab('ingredients');
-    setLockOuter(false);
   };
-  // 마지막 "Done" — 개요 복귀 + Step1 리셋 + 탭 이탈로 keep-awake 해제.
+  // 마지막 "Done" — 개요 복귀 + Step1 리셋(오버레이 unmount → keep-awake 해제).
   const finishSteps = (): void => {
     setTab('ingredients');
-    setLockOuter(false);
     setStepIndex(0);
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const toggleChecked = (idx: number): void => {
@@ -204,13 +172,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        ref={scrollRef}
-        scrollEnabled={!lockOuter}
-        contentContainerStyle={styles.body}
-        showsVerticalScrollIndicator={false}
-        testID="recipe-detail-scroll"
-      >
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         {/* Hero — 풀블리드 사진 + back + 제목/메타 오버레이 */}
         <View style={styles.hero}>
           <MealPhoto imageUrl={recipe.image_url} name={recipe.title} fill />
@@ -297,21 +259,14 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
         ) : null}
 
         {/* 탭: Ingredients / Recipe */}
-        <View
-          style={styles.tabBar}
-          testID="recipe-tabbar"
-          onLayout={(e: LayoutChangeEvent) => {
-            setTabBarY(e.nativeEvent.layout.y);
-            setTabBarH(e.nativeEvent.layout.height);
-          }}
-        >
+        <View style={styles.tabBar}>
           {(['ingredients', 'recipe'] as const).map((t) => {
             const active = t === tab;
             return (
               <TouchableOpacity
                 key={t}
                 onPress={() => {
-                  selectTab(t);
+                  setTab(t);
                 }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
@@ -377,22 +332,27 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
               조리 단계가 아직 없어요.
             </Text>
           </View>
-        ) : (
-          <RecipeSteps
-            steps={recipe.instructions}
-            tips={recipe.tips ?? null}
-            height={fillH}
-            current={stepIndex}
-            onStepChange={setStepIndex}
-            onDone={finishSteps}
-            onExit={exitSteps}
-          />
-        )}
+        ) : null}
 
         <Text variant="caption" tone="muted" style={styles.disclaimer}>
           This information is for educational purposes only and is not intended as medical advice.
         </Text>
       </ScrollView>
+
+      {/* Recipe 탭 = 몰입형 step view: 스크롤 비의존 풀스크린 오버레이(노치 아래~화면 바닥).
+          하단 탭바는 MainTabs 가 RecipeDetail 에서 숨겨 전체화면을 확보. */}
+      {tab === 'recipe' && recipe.instructions.length > 0 ? (
+        <View style={[styles.stepsOverlay, { top: insets.top }]}>
+          <RecipeSteps
+            steps={recipe.instructions}
+            tips={recipe.tips ?? null}
+            current={stepIndex}
+            onStepChange={setStepIndex}
+            onDone={finishSteps}
+            onExit={exitSteps}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -435,6 +395,8 @@ type ComponentIcon = React.ComponentProps<typeof Ionicons>['name'];
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.color.bg },
+    // Recipe step view 풀스크린 오버레이 — top 은 인라인 insets.top(노치 아래), 바닥까지.
+    stepsOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: theme.news.forest },
     plainHeader: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(3) },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     body: { paddingBottom: theme.space(8) },

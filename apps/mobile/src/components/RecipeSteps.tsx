@@ -32,8 +32,6 @@ type InstructionStep = schemas.RecipeWire['instructions'][number];
 interface RecipeStepsProps {
   steps: InstructionStep[];
   tips: string | null;
-  /** 부모가 주입하는 viewport-fill 높이 (windowHeight - safeTop - tabBarH). */
-  height: number;
   /** 현재 스텝 인덱스 — 부모 소유(controlled, 탭 왕복에도 보존). */
   current: number;
   onStepChange: (index: number) => void;
@@ -52,7 +50,6 @@ function KeepAwake(): null {
 export function RecipeSteps({
   steps,
   tips,
-  height,
   current,
   onStepChange,
   onDone,
@@ -101,7 +98,7 @@ export function RecipeSteps({
   const navBottom = Math.max(insets.bottom, theme.space(3));
 
   return (
-    <View style={[styles.container, { height }]} onLayout={onContainerLayout}>
+    <View style={styles.container} onLayout={onContainerLayout}>
       {isFocused ? <KeepAwake /> : null}
 
       {/* 헤더: back(이탈) + STEP i OF n + progress */}
@@ -224,7 +221,7 @@ export function RecipeSteps({
 function makeStyles(theme: Theme) {
   const n = theme.news;
   return StyleSheet.create({
-    container: { backgroundColor: n.forest, overflow: 'hidden' },
+    container: { flex: 1, backgroundColor: n.forest, overflow: 'hidden' },
     header: {
       flexDirection: 'row',
       alignItems: 'center',

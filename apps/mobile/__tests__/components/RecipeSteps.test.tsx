@@ -34,7 +34,6 @@ function Harness({ steps = STEPS3, tips = null, onDone = jest.fn(), onExit = jes
       <RecipeSteps
         steps={steps}
         tips={tips}
-        height={600}
         current={current}
         onStepChange={setCurrent}
         onDone={onDone}
