@@ -2306,7 +2306,11 @@ Meal Plan 끼니 카드 → `RecipeDetailScreen`(음식 페이오프) 가독성/
 
 #### 7.2 Mobile 하단 탭바 균형 (Plan 슬롯 collapse) *(IMPL-MOBILE-TABBAR-BALANCE-001)*
 
-authed 사용자의 하단 탭바는 News·Settings 두 탭만 보이고 Plan 은 등록만 된 채 숨김(News 헤더 "My Plan" / ClaimDetail 게이트로만 진입)이다. 그런데 숨김을 `tabBarButton: () => null` 로만 처리하면 React Navigation bottom-tabs 가 Plan 의 flex 슬롯을 그대로 남겨 가운데가 비고 News·Settings 가 화면 양 끝으로 벌어지는 어색한 배치가 된다(사용자 PO 제기, 2026-06). 수정 = Plan Tab.Screen 에 `tabBarItemStyle: { display: 'none' }` 를 추가해 숨긴 슬롯을 layout 에서 제거 → 남은 두 탭이 균등 분배된다. RecipeDetail focus 시 전체 탭바 숨김(`getFocusedRouteNameFromRoute`) 로직은 불변. 순수 `apps/mobile` 변경(`MainTabsNavigator.tsx` 1곳). 균등 배치 체감은 기기검증 대상.
+authed 사용자의 하단 탭바는 News·Settings 두 탭만 보이고 Plan 은 등록만 된 채 숨김(News 헤더 "My Plan" / ClaimDetail 게이트로만 진입)이다. 그런데 숨김을 `tabBarButton: () => null` 로만 처리하면 React Navigation bottom-tabs 가 Plan 의 flex 슬롯을 그대로 남겨 가운데가 비고 News·Settings 가 화면 양 끝으로 벌어지는 어색한 배치가 된다(사용자 PO 제기, 2026-06).
+
+수정 = Plan Tab.Screen 에 `tabBarItemStyle: { display: 'none' }` 를 추가해 숨긴 슬롯을 layout 에서 제거 → 남은 두 탭이 균등 분배된다. `tabBarButton: () => null` 은 press 타깃 제거용으로 유지한다.
+
+RecipeDetail focus 시 전체 탭바 숨김(`getFocusedRouteNameFromRoute`) 로직은 불변. 순수 `apps/mobile` 변경(`MainTabsNavigator.tsx` 1곳). 균등 배치 체감은 기기검증 대상.
 
 ### 7.3 Meal Plan Generation Flow (Detail)
 
