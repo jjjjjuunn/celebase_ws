@@ -2296,6 +2296,14 @@ Meal Plan 끼니 카드 → `RecipeDetailScreen`(음식 페이오프) 가독성/
 
 **기기검증 정정 (overlay)**: 위 Model B 의 scroll-pin(`scrollTo(tabBarY)`)+`lockOuter` 방식이 기기에서 mis-position/overflow(포레스트가 화면 중간서 시작·하단 News/Settings 탭바 뒤로 잘림·스크롤 불가)했다 — 3-judge PASS 였으나 런타임 렌더링 버그라 페이퍼 리뷰가 구조적으로 못 잡은 케이스. **근본 수정**: RecipeSteps 를 in-scroll tab body 가 아니라 `RecipeDetailScreen` 의 **absolute 풀스크린 오버레이**(`top:insets.top`~화면 바닥, 스크롤·lock 비의존)로 렌더하고, `MainTabsNavigator` 가 `getFocusedRouteNameFromRoute` 로 RecipeDetail focus 시 하단 탭바를 숨겨 전체화면을 확보(MealPlan 복귀 시 복원)한다. `lockOuter`/`scrollTo`/`tabBarY`/`fillH`/per-page-scroll-lock 은 전부 제거 — current 리프트·keep-awake(useIsFocused)·Done/Exit 2단 이탈은 유지. 자동검증 tc0·lint0·jest 241·fe_token pass. 탭바 hide/restore + 풀스크린 레이아웃은 기기 재검증 대상.
 
+#### 7.2 Recipe 상세 개요 에디토리얼 재구성 *(IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001 / plan synchronous-leaping-dragon)*
+
+기기검증 후 사용자(PO) 가 `RecipeDetailScreen` 개요가 raw 하다고 지적. 코드로 검증한 원인은 (1) 모든 레시피가 300px 어두운 빈 히어로(MealPhoto 회색 플레이스홀더 + `0→0.7` 검정 scrim → 깨진 void)로 시작, (2) 그 아래가 테두리 카드 스택(영양 box·Highlights box·재료 채운 pill)이라 위계·리듬이 없다는 점이다. 팔레트(gold)는 진입 직전 MealPlan 과 일관하므로 결함이 아니며 — news 포레스트 팔레트는 NewsScreen·ClaimDetail 두 화면에만 스코프됨 — 방향은 gold 앱-표준을 유지한 채 구성을 에디토리얼로 재배치하는 것으로 사용자가 확정(방향 B). Recipe 탭 step-view 오버레이·탭 상태기계는 불변 보존(개요 영역만 변경).
+
+재구성: 3개 phase(loading/error/ready)를 단일 in-flow 앱바(back chevron)로 통합하고 다크 hero 오버레이·`expo-linear-gradient` scrim 을 제거한다. 히어로는 어댑티브 — recipe.image_url 이 있으면 contained 둥근 photo 밴드(타이틀은 사진 밖에 두어 이미지 밝기 무관 가독), 없으면(현재) 밴드를 생략해 void 를 없앤다. 음식 사진은 AI 생성 예정이라 도착 시 코드 변경 없이 밴드가 채워진다(additive, load-bearing 아님). 헤더는 eyebrow(meal_type) + 큰 Fraunces 타이틀(`display`) + 옵션 desc + light meta 칩. 영양은 박스 대신 상·하 룰 밴드(calories=focal `metricLg`, P/C/F=`metricMd`)로 좁은 기기 오버플로를 회피하고, Highlights 는 "WHY IT FITS" soft 칩으로 모듈 구분, 재료는 채운 pill 대신 hairline divider 행(full-row 44px 터치타깃, a11y 라벨에 수량·prep 포함)으로 바꾼다.
+
+리뷰: Codex(PASS)·Gemini(adversarial PASS)·Advisor 3자 반복. 수용 = meta 칩 light 토큰(다크용 onInk/onBrand 재사용 금지), stat metricLg→metricMd 오버플로, 재료 우측정렬 폐기(인라인 유지)·44px 터치타깃, loading/error phase back 통합 + 죽은 hero 코드 스윕, null-state top spacing 못박기. 기각 = "빈 80px 히어로"(void 변종)·"font salad"(앱 전역 확립 type 시스템). 자동검증: mobile tc0·lint0·jest 243 green·fe_token_hardcode pass. 사진 없는 헤더가 의도적 여백 vs cramped 로 읽히는지 + display 크기는 기기검증(유닛 불가) 대상.
+
 ### 7.3 Meal Plan Generation Flow (Detail)
 
 ```
