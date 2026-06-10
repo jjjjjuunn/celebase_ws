@@ -12,6 +12,7 @@
 
 import { useMemo, type ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -73,12 +74,16 @@ export function MainTabsNavigator(): React.JSX.Element {
         <Tab.Screen
           name="Plan"
           component={PlanNavigator}
-          options={{
-            tabBarLabel: TAB_LABELS.Plan,
-            tabBarIcon: ({ color, size }) => tabIcon('Plan', color, size),
-            // 탭바에서 숨김 — News 헤더 "My Plan" 버튼 / ClaimDetail 게이트로만 진입.
-            // 등록은 유지하므로 navigate('Plan', { screen: 'MealPlan' }) 동작.
-            tabBarButton: () => null,
+          options={({ route }) => {
+            // RecipeDetail(몰입 step view)에서는 하단 탭바를 숨겨 전체화면 확보 → MealPlan 복귀 시 복원.
+            const focused = getFocusedRouteNameFromRoute(route) ?? 'MealPlan';
+            return {
+              tabBarLabel: TAB_LABELS.Plan,
+              tabBarIcon: ({ color, size }: { color: string; size: number }) => tabIcon('Plan', color, size),
+              // 탭바 버튼 숨김 — News 헤더 "My Plan" / ClaimDetail 게이트로만 진입(등록 유지).
+              tabBarButton: () => null,
+              tabBarStyle: focused === 'RecipeDetail' ? styles.tabBarHidden : styles.tabBar,
+            };
           }}
         />
       ) : null}

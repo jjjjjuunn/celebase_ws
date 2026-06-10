@@ -28,6 +28,53 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-09
+agent: claude-opus-4-8 (1M context) + Codex(v1·v3 PASS) + Gemini(v1·v2·v3) + advisor (3-judge 반복)
+task_id: IMPL-MOBILE-RECIPE-STEPVIEW-001
+commit_sha: bbbdaa6
+files_changed:
+  - apps/mobile/src/components/RecipeSteps.tsx
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/src/navigation/MainTabsNavigator.tsx
+  - apps/mobile/__tests__/components/RecipeSteps.test.tsx
+  - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 + mobile tc0/lint0/jest 241 green/fe_token_hardcode pass (오버레이 정정 포함)
+---
+### 완료: Recipe 탭 = 몰입형 step-by-step (Cook Mode 통합·리디자인, IMPL-MOBILE-RECIPE-STEPVIEW-001)
+- 사용자(PO) 피드백: (1) 별도 Cook Mode 모달/버튼 말고 Recipe 탭 자체가 step view, (2) 흰배경+빈여백 구림. 해결 = `CookMode.tsx` 삭제 → 인라인 `RecipeSteps.tsx`(몰입 포레스트 다크, theme.news 토큰만 raw hex 0).
+- **Model B 상태**: `lockOuter`(독립, immersive 활성, IFF tab==='recipe') + `current`(부모 리프트 → 탭 왕복에도 스텝 보존) + outer `scrollEnabled={!lockOuter}` ↔ per-page inner 스크롤로 nested same-axis 충돌 구조적 제거.
+- 전이: Recipe 선택 → tabBarY 측정 후 scrollTo+lock / 헤더 back·Ingredients = 이탈 / Done = 개요복귀+Step1 리셋 / 재진입 = Recipe 재탭. fillH=window-safeTop-tabBarH(default 48), nav safeBottom, keep-awake useIsFocused+마운트 게이트.
+- 테스트: RecipeSteps(counter·Next/Prev·controlled current·1-step Done·onExit·tips/null) + RecipeDetailScreen("Start cook mode" 부재·Recipe→step+scrollEnabled=false·onDone→ingredients+unlock·Ingredients 왕복 후 current 보존·instructions 0). 신규 12 + 전체 240 green.
+- 3-judge 반복(검증된 것만): Codex v1 4건(keep-awake·nested-scroll·safeBottom·테스트) + Gemini v1 HIGH amnesia(리프트)·LOW onDone/fillH 수용, MEDIUM 단계별재료 **기각**(데이터 없음). Gemini v2 2 MEDIUM(클리핑·re-entry) → Model B 로 구조적 N/A. Codex v3·Gemini v3 PASS + LOW(측정후 lock·2단 safety-exit) 수용. advisor: 추가 라운드 불필요·기기검증이 실제 게이트.
+- **기기검증 정정(사용자 device, 스크린샷)**: Model B 의 scroll-pin(scrollTo tabBarY)+lock 이 기기에서 **mis-position/overflow**(포레스트가 화면 중간서 시작·하단 News/Settings 탭바 뒤로 잘림·스크롤 불가) — advisor 가 예고한 "런타임 렌더링은 페이퍼 리뷰가 못 잡음" 지점. 사용자 결정="바로 구현". **근본 수정 = 풀스크린 오버레이**: RecipeSteps 를 `RecipeDetailScreen` 의 absolute 오버레이(`top:insets.top`~bottom, 스크롤 비의존)로 렌더 + `MainTabs` 가 `getFocusedRouteNameFromRoute` 로 RecipeDetail 에서 하단 탭바 숨김(전체화면 확보·MealPlan 복귀 시 복원). `lockOuter`/`scrollTo`/`tabBarY`/`fillH`/per-page-scroll-lock 전부 제거. current 리프트·keep-awake(useIsFocused)·2단 exit 유지. tc0/lint0/jest 241 green. **탭바 hide/restore + 풀스크린 레이아웃은 사용자 재검증.**
+### 미완료: 풀스크린 오버레이 + 하단 탭바 hide/restore 기기 재검증(유닛 불가 — 사용자 device). 백로그: non-launching "view all steps" 토글·인분조절·음식사진·핸즈프리.
+### 연관 파일: apps/mobile/src/components/RecipeSteps.tsx, apps/mobile/src/screens/RecipeDetailScreen.tsx, spec.md
+
+---
+date: 2026-06-08
+agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
+task_id: IMPL-MOBILE-RECIPE-COOKMODE-001
+commit_sha: 4ffbb9c
+files_changed:
+  - apps/mobile/package.json
+  - apps/mobile/src/components/CookMode.tsx
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/__tests__/components/CookMode.test.tsx
+  - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 (mobile tc0 lint0 jest 238 green 40 suites; Codex+Gemini+advisor 3-judge PASS; Codex caught tips data error corrected to 122-of-542)
+---
+### 완료: 레시피 상세 가독성 + Cook Mode (plan synchronous-leaping-dragon) — 순수 apps/mobile, BE/스키마 무관
+- 신규 CookMode: 전체화면 한 스텝씩(RN Modal + 가로 paging ScrollView, 각 스텝 세로 ScrollView), counter+progress, Ingredients peek 드로어(tap-to-dismiss·nav 안 가림), 1-step=Finish만, useKeepAwake(visible-only 마운트로 lifecycle 안전), onRequestClose(Android back), a11y label 전부.
+- RecipeDetailScreen 폴리시: 조리 스텝 카드+여백(밀도↓ chunking)+duration chip, 재료 preparation(.trim 가드), tips 콜아웃(null/빈문자 가드 — 시드 122/542 만 보유), Cook Mode 진입 CTA(영양 카드 직후 prominent), hero scrim→expo-linear-gradient.
+- expo-keep-awake ~15.0.8 설치(네이티브 리빌드 필요).
+- 테스트 신규 2: CookMode(다스텝·1-step·Finish·peek·a11y) + RecipeDetailScreen(렌더·Cook 버튼 유무·preparation·tips 유/무).
+- 리뷰 트리아지: Codex 가 내 "tips 122/122" 데이터 오류를 122/542(420 키 누락)로 정정 — 검증 후 수용. keep-awake lifecycle·Android back·오버플로·peek 드로어·1-step·a11y 수용. IMPL log BLOCK 기각(AGENTS.md=Codex 구현자 fence, CLAUDE.md Workflow#4 가 Claude 에 강제).
+### 미완료: 사용자 기기 시각 검증(Cook Mode swipe/prev-next/peek/finish/keep-awake·Android back, 진입점 발견성). PR 은 #215(IMPL-MOBILE-MEALPLAN-NEWSFIRST-001) 위 스택 — #215 머지 후 main retarget.
+### 연관 파일: apps/mobile/src/components/MealPhoto.tsx (hero 사진 — image_url null 시 placeholder, 음식 사진 Phase 대기)
+
+---
 date: 2026-06-07
 agent: claude-opus-4-8 (1M context) + Codex + Gemini + advisor (3-judge plan review)
 task_id: IMPL-MOBILE-MEALPLAN-NEWSFIRST-001
