@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-09
 agent: claude-opus-4-8 (1M context) + Codex(PASS) + Gemini(adversarial PASS) + advisor (3-judge)
 task_id: IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001
-commit_sha: PENDING
+commit_sha: 0c21c52
 files_changed:
   - apps/mobile/src/screens/RecipeDetailScreen.tsx
   - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
