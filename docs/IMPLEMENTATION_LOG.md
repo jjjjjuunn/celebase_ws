@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-09
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-TABBAR-BALANCE-001
-commit_sha: PENDING
+commit_sha: 480976a
 files_changed:
   - apps/mobile/src/navigation/MainTabsNavigator.tsx
   - spec.md
