@@ -29,6 +29,26 @@ verified_by: <human | codex-review | 기타 검증자>
 
 ---
 date: 2026-06-09
+agent: claude-opus-4-8 (1M context) + Codex(PASS) + Gemini(adversarial PASS) + advisor (3-judge)
+task_id: IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001
+commit_sha: 0c21c52
+files_changed:
+  - apps/mobile/src/screens/RecipeDetailScreen.tsx
+  - apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx
+  - spec.md
+verified_by: claude-opus-4-8 + mobile tc0/lint0/jest 243 green/fe_token_hardcode pass (기기 재검증 대기)
+---
+### 완료: Recipe 상세 개요 에디토리얼 재구성 (gold 유지·AI-photo-ready, IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001)
+- 사용자(PO) "개요가 raw". 검증된 원인: (1) 모든 레시피가 300px 어두운 빈 히어로(MealPhoto 회색 + 0→0.7 검정 scrim = 깨진 void), (2) 그 아래 테두리 카드 스택(영양 box·Highlights box·재료 pill) 위계 없음. 팔레트(gold)는 MealPlan 과 일관 = 결함 아님(grep 검증: news 포레스트는 NewsScreen·ClaimDetail 둘만). 방향 B = gold 유지 에디토리얼 재구성(새 이음새 0).
+- **어댑티브 히어로**: image_url 있으면 contained 둥근 photo 밴드(타이틀은 사진 밖 — 이미지 밝기 무관 가독), 없으면(현재) 밴드 생략 → void 제거. 사진은 AI 생성 예정 → 도착 시 코드 변경 없이 밴드 채워짐(additive). 3 phase(loading/error/ready) 단일 in-flow 앱바로 통합 + 죽은 hero 코드·`expo-linear-gradient` 스윕.
+- 구성: eyebrow(meal_type) + 큰 Fraunces 타이틀(`display`) + 옵션 desc + light meta 칩 / 영양 룰밴드(calories=focal metricLg, P/C/F metricMd, 박스 제거) / "WHY IT FITS" soft 칩(모듈 구분) / 재료 hairline divider 행(채운 pill 제거, full-row 44px, a11y 라벨에 수량·prep). Recipe 탭 step-view 오버레이·탭 상태기계 불변 보존(stepsOverlay = SafeAreaView 직속).
+- 테스트: 기존 7 의미 보존 + eyebrow(meal_type)·stat 4매크로·**어댑티브 히어로 image_url 부재→photo 밴드 미렌더(void 회귀가드)/존재→렌더**. 신규 포함 RecipeDetailScreen 9 green, 전체 mobile 243 green.
+- 3-judge: Codex PASS·Gemini(adversarial) PASS·Advisor reconcile. 수용 = meta 칩 light 토큰(onInk/onBrand 금지), stat metricLg→metricMd 오버플로, 재료 우측정렬 폐기(인라인 유지)·44px, loading/error back 통합 + hero 코드 스윕, null-state top spacing 못박음. 기각 = "빈 80px 히어로"(void 변종)·"font salad"(앱 type 시스템 확립). tc0/lint0/jest 243/fe_token pass.
+### 미완료: 사진 없는 헤더가 의도적 여백 vs cramped 로 읽히는지 + display 크기 기기검증(유닛 불가 — 사용자 device). 백로그: 인분 스케일·단위 토글(table-stakes, 데이터 필요), 방향 C(포레스트 브랜드 이주 — Plan 플로우 동반), AI 음식사진.
+### 연관 파일: apps/mobile/src/screens/RecipeDetailScreen.tsx, apps/mobile/__tests__/screens/RecipeDetailScreen.test.tsx, spec.md
+
+---
+date: 2026-06-09
 agent: claude-opus-4-8 (1M context) + Codex(v1·v3 PASS) + Gemini(v1·v2·v3) + advisor (3-judge 반복)
 task_id: IMPL-MOBILE-RECIPE-STEPVIEW-001
 commit_sha: bbbdaa6

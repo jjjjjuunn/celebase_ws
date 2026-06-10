@@ -1,6 +1,8 @@
-// RecipeDetailScreen — Hero/영양/Highlights/Ingredients·Recipe 통합. Recipe 탭 = 풀스크린
-// RecipeSteps 오버레이(별도 Cook Mode 버튼/모달 없음, scroll-lock 없음). 실제 서비스 경로
-// (getRecipeDetail)를 태우고 globalThis.fetch 만 url 로 라우팅. 풀스크린 레이아웃은 기기검증.
+// RecipeDetailScreen — 에디토리얼 재구성(IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001): eyebrow(meal_type)·
+// 큰 serif 타이틀·meta 칩·영양 stat 룰밴드·WHY IT FITS·재료 divider 행. 어댑티브 히어로(image_url
+// 있으면 contained photo 밴드, 없으면 생략 — void 제거). Recipe 탭 = 풀스크린 RecipeSteps 오버레이
+// (별도 Cook Mode 버튼/모달 없음). 실제 서비스 경로(getRecipeDetail)를 태우고 globalThis.fetch 만 url
+// 로 라우팅. 시각 리듬·display 크기는 기기검증.
 
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn().mockResolvedValue(null),
@@ -90,14 +92,33 @@ describe('<RecipeDetailScreen />', () => {
     fetchSpy.mockRestore();
   });
 
-  it('mount → 제목 + 영양 + (기본) 재료 탭 preparation 표기', async () => {
+  it('mount → eyebrow(meal_type) + 제목 + stat 4매크로 + 재료 preparation 표기', async () => {
     mockDetail(fetchSpy);
     renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
 
     expect(await screen.findByText('Savory Oat Bowl')).toBeTruthy();
+    expect(screen.getByText('breakfast')).toBeTruthy(); // eyebrow(meal_type) — label 변형은 시각만, 텍스트는 원문
+    // stat 룰밴드 4매크로 라벨
     expect(screen.getByText('Calories')).toBeTruthy();
+    expect(screen.getByText('Protein')).toBeTruthy();
+    expect(screen.getByText('Carbs')).toBeTruthy();
+    expect(screen.getByText('Fat')).toBeTruthy();
     expect(screen.getByText('Rolled Oats (0.5 cup)')).toBeTruthy();
     expect(screen.getByText('Zucchini (0.5 medium · sliced)')).toBeTruthy();
+  });
+
+  it('어댑티브 히어로 — image_url 부재 → photo 밴드 미렌더(어두운 void 회귀가드)', async () => {
+    mockDetail(fetchSpy); // RECIPE.image_url === null
+    renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
+    await screen.findByText('Savory Oat Bowl');
+    expect(screen.queryByTestId('recipe-photo-band')).toBeNull();
+  });
+
+  it('어댑티브 히어로 — image_url 존재 → contained photo 밴드 렌더', async () => {
+    mockDetail(fetchSpy, { recipe: { ...RECIPE, image_url: 'https://example.com/oat.jpg' } });
+    renderScreen(<RecipeDetailScreen recipeId={RECIPE.id} onBack={jest.fn()} />);
+    await screen.findByText('Savory Oat Bowl');
+    expect(screen.getByTestId('recipe-photo-band')).toBeTruthy();
   });
 
   it('별도 "Start cook mode" 버튼 부재(통합됨)', async () => {

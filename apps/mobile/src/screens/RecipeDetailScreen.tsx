@@ -1,18 +1,23 @@
-// RecipeDetail — Plan 탭에서 끼니 카드를 탭하면 진입. 레퍼런스("Recipe Details") 레이아웃:
-//   풀블리드 사진(+back) → 제목/메타(난이도·시간·인분) → 영양 카드(+상세 토글) →
-//   탭(Ingredients / Recipe) → 재료 목록 또는 조리 단계 → 면책 고지.
+// RecipeDetail — Plan 탭에서 끼니 카드를 탭하면 진입. 에디토리얼 재구성(IMPL-MOBILE-RECIPE-DETAIL-EDITORIAL-001):
+//   in-flow 앱바(back) → [사진 있을 때만] contained 둥근 photo 밴드 → eyebrow(meal_type)·큰 serif 타이틀·
+//   meta 칩 → 영양 stat 룰밴드(calories focal) → WHY IT FITS soft 칩 → 탭(Ingredients/Recipe) →
+//   재료 divider 행 또는 조리단계 안내 → 면책 고지.
+//
+// 방향 B(gold 앱-표준 유지 — MealPlan 과 일관, 새 이음새 0). 사진은 AI 생성 예정 → 어댑티브 히어로:
+//   image_url 있으면 contained 밴드, 없으면(현재) 밴드 생략(어두운 placeholder void 제거). 타이틀은
+//   항상 사진 밖(이미지 밝기 무관 가독). AI 사진 도착 시 코드 변경 없이 밴드만 채워진다.
+//
+// Recipe 탭 = 풀스크린 forest step view 오버레이(스크롤 비의존). current(stepIndex)는 부모 소유 →
+//   탭 왕복에도 스텝 보존. 하단 News/Settings 탭바는 MainTabs 가 RecipeDetail 에서 숨긴다.
+//   stepsOverlay 는 SafeAreaView 직속(ScrollView 밖) — 회귀 가드.
 //
 // 데이터: BFF `/api/recipes/:id` → { recipe(RecipeWire), ingredients(lean) }.
-// 재료는 BFF 가 recipe_ingredients join 을 매핑 — 해당 BFF 변경 배포 전엔 빈 배열이라
-// Ingredients 탭은 graceful 안내를 띄운다(레시피/영양/사진은 기존 API 로 즉시 표시).
-//
-// 평점·건강 효능·재료 역할(메인/서브) 은 데이터 부재 + 효능 주장 출처 규칙 때문에 미구현.
+// 평점·건강 효능·재료 역할은 데이터 부재 + 효능 주장 출처 규칙 때문에 미구현.
 // 화면은 nav 비의존(prop 콜백) — PlanNavigator 가 recipeId/onBack 주입.
 
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { schemas } from '@celebbase/shared-types';
 
@@ -36,7 +41,8 @@ type Phase =
 
 type DetailTab = 'ingredients' | 'recipe';
 
-const HERO_HEIGHT = 300;
+// 사진 있을 때만 렌더되는 contained 밴드 높이(고정).
+const PHOTO_H = 200;
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
@@ -52,6 +58,8 @@ function totalMinutes(recipe: Recipe): number | null {
 function fmtQty(n: number): string {
   return String(n);
 }
+
+type ComponentIcon = React.ComponentProps<typeof Ionicons>['name'];
 
 interface Highlight {
   icon: ComponentIcon;
@@ -89,9 +97,8 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
   const [tab, setTab] = useState<DetailTab>('ingredients');
   const [showMacroDetail, setShowMacroDetail] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set());
-  // Recipe 탭 활성 시 RecipeSteps 를 풀스크린 오버레이로 렌더(스크롤 비의존 — 기존 scroll-pin+lock
-  // 방식이 기기에서 mis-position/overflow 했던 것을 근본 회피). current 는 부모 소유 → 탭 왕복에도
-  // 스텝 보존. 하단 News/Settings 탭바는 MainTabs 가 RecipeDetail 에서 숨긴다(오버레이 전체화면 확보).
+  // Recipe 탭 활성 시 RecipeSteps 를 풀스크린 오버레이로 렌더(스크롤 비의존). current 는 부모 소유 →
+  // 탭 왕복에도 스텝 보존. 하단 News/Settings 탭바는 MainTabs 가 RecipeDetail 에서 숨긴다.
   const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
@@ -111,22 +118,25 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
     };
   }, [recipeId]);
 
-  const backButton = (
-    <Pressable
-      onPress={onBack}
-      accessibilityRole="button"
-      accessibilityLabel="Back"
-      style={styles.backBtn}
-      hitSlop={8}
-    >
-      <Ionicons name="arrow-back" size={22} color={theme.color.onInk} />
-    </Pressable>
+  // 단일 in-flow back 컨트롤 — loading/error/ready 세 phase 공유(고아 다크 pill 방지).
+  const topBar = (
+    <View style={styles.topBar}>
+      <Pressable
+        onPress={onBack}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        style={styles.backBtn}
+        hitSlop={8}
+      >
+        <Ionicons name="chevron-back" size={26} color={theme.color.text} />
+      </Pressable>
+    </View>
   );
 
   if (phase.state !== 'ready') {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.plainHeader}>{backButton}</View>
+        {topBar}
         {phase.state === 'loading' ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color={theme.color.brand} />
@@ -145,6 +155,9 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
   const { recipe, ingredients } = phase;
   const n = recipe.nutrition;
   const time = totalMinutes(recipe);
+  const hasPhoto = recipe.image_url != null && recipe.image_url !== '';
+  const description =
+    recipe.description != null && recipe.description.trim() !== '' ? recipe.description.trim() : null;
   const macroDetail: Array<{ label: string; value: string }> = [];
   if (n.fiber_g !== undefined) macroDetail.push({ label: 'Fiber', value: `${String(Math.round(n.fiber_g))}g` });
   if (n.sugar_g !== undefined) macroDetail.push({ label: 'Sugar', value: `${String(Math.round(n.sugar_g))}g` });
@@ -172,44 +185,51 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {topBar}
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        {/* Hero — 풀블리드 사진 + back + 제목/메타 오버레이 */}
-        <View style={styles.hero}>
-          <MealPhoto imageUrl={recipe.image_url} name={recipe.title} fill />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.7)']}
-            locations={[0, 0.45, 1]}
-            style={styles.heroScrim}
-          />
-          {backButton}
-          <View style={styles.heroText}>
-            <Text variant="h1" tone="onBrand" style={styles.heroTitle}>
-              {recipe.title}
+        {/* 어댑티브 히어로 — 사진 있을 때만 contained 둥근 밴드(타이틀은 사진 밖). 없으면 생략(void 제거). */}
+        {hasPhoto ? (
+          <View style={styles.photoBand} testID="recipe-photo-band">
+            <MealPhoto imageUrl={recipe.image_url} name={recipe.title} fill />
+          </View>
+        ) : null}
+
+        {/* 에디토리얼 헤더 — eyebrow(meal_type) · 큰 serif 타이틀 · desc · meta 칩 */}
+        <View style={styles.header}>
+          <Text variant="label" tone="muted">
+            {recipe.meal_type}
+          </Text>
+          <Text variant="display" style={styles.title}>
+            {recipe.title}
+          </Text>
+          {description !== null ? (
+            <Text variant="body" tone="muted">
+              {description}
             </Text>
-            <View style={styles.metaRow}>
-              {recipe.difficulty !== null ? (
-                <Meta icon="speedometer-outline" label={capitalize(recipe.difficulty)} />
-              ) : null}
-              {time !== null ? <Meta icon="time-outline" label={`${String(time)} min`} /> : null}
-              <Meta icon="restaurant-outline" label={`Serves ${String(recipe.servings)}`} />
-            </View>
+          ) : null}
+          <View style={styles.metaRow}>
+            {recipe.difficulty !== null ? (
+              <MetaChip icon="speedometer-outline" label={capitalize(recipe.difficulty)} />
+            ) : null}
+            {time !== null ? <MetaChip icon="time-outline" label={`${String(time)} min`} /> : null}
+            <MetaChip icon="restaurant-outline" label={`Serves ${String(recipe.servings)}`} />
           </View>
         </View>
 
-        {/* 영양 카드 */}
-        <View style={styles.nutritionCard}>
-          <View style={styles.macroRow}>
-            <Macro value={String(Math.round(n.calories))} unit="kcal" label="Calories" />
-            <Macro value={`${String(Math.round(n.protein_g))}g`} unit="" label="Protein" />
-            <Macro value={`${String(Math.round(n.carbs_g))}g`} unit="" label="Carbs" />
-            <Macro value={`${String(Math.round(n.fat_g))}g`} unit="" label="Fat" />
+        {/* 영양 stat 밴드 — 상·하 룰 사이 4-up(calories focal). 박스 제거. */}
+        <View style={styles.statBand}>
+          <View style={styles.statRow}>
+            <Stat value={String(Math.round(n.calories))} unit="kcal" label="Calories" focal />
+            <Stat value={`${String(Math.round(n.protein_g))}g`} unit="" label="Protein" />
+            <Stat value={`${String(Math.round(n.carbs_g))}g`} unit="" label="Carbs" />
+            <Stat value={`${String(Math.round(n.fat_g))}g`} unit="" label="Fat" />
           </View>
           {macroDetail.length > 0 ? (
             <>
               {showMacroDetail ? (
-                <View style={styles.macroDetailRow}>
+                <View style={styles.statDetailRow}>
                   {macroDetail.map((m) => (
-                    <Macro key={m.label} value={m.value} unit="" label={m.label} />
+                    <Stat key={m.label} value={m.value} unit="" label={m.label} />
                   ))}
                 </View>
               ) : null}
@@ -222,10 +242,10 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
                 style={styles.detailToggle}
               >
                 <Text variant="bodySm" tone="brand">
-                  {showMacroDetail ? 'Hide detail' : 'View Detail'}
+                  {showMacroDetail ? 'Hide detail' : 'View detail'}
                 </Text>
                 <Ionicons
-                  name={showMacroDetail ? 'chevron-up' : 'chevron-forward'}
+                  name={showMacroDetail ? 'chevron-up' : 'chevron-down'}
                   size={14}
                   color={theme.color.brand}
                 />
@@ -234,24 +254,26 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
           ) : null}
         </View>
 
-        {/* Highlights — 영양 수치 기반 사실(주장 아님). 효능 데이터셋 생기면 교체 예정. */}
+        {/* WHY IT FITS — 영양 수치 기반 사실(주장 아님). soft 칩으로 별도 모듈 구분. */}
         {highlights.length > 0 ? (
           <View style={styles.section}>
-            <Text variant="h3" style={styles.sectionTitle}>
-              Highlights
+            <Text variant="label" tone="muted">
+              WHY IT FITS
             </Text>
-            <View style={styles.highlightRow}>
+            <View style={styles.whyRow}>
               {highlights.map((h) => (
-                <View key={h.label} style={styles.highlightCard}>
-                  <View style={styles.highlightIcon}>
-                    <Ionicons name={h.icon} size={20} color={theme.color.brand} />
+                <View key={h.label} style={styles.whyChip}>
+                  <View style={styles.whyIcon}>
+                    <Ionicons name={h.icon} size={18} color={theme.color.brand} />
                   </View>
-                  <Text variant="body" style={styles.highlightLabel}>
-                    {h.label}
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    {h.detail}
-                  </Text>
+                  <View style={styles.whyText}>
+                    <Text variant="body" style={styles.whyLabel}>
+                      {h.label}
+                    </Text>
+                    <Text variant="caption" tone="muted">
+                      {h.detail}
+                    </Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -297,6 +319,9 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
                   ing.preparation != null && ing.preparation.trim() !== ''
                     ? ` · ${ing.preparation.trim()}`
                     : '';
+                const qtyStr = ` (${fmtQty(ing.quantity)} ${ing.unit}${prep})`;
+                // 시각은 name + (muted qty) 로 분리되므로 SR 라벨에 전체를 담는다.
+                const a11yLabel = `${ing.name}${qtyStr}${ing.is_optional ? ', optional' : ''}`;
                 return (
                   <TouchableOpacity
                     key={`${ing.name}-${String(idx)}`}
@@ -305,7 +330,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
                     }}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: isChecked }}
-                    accessibilityLabel={ing.name}
+                    accessibilityLabel={a11yLabel}
                     style={styles.ingredientRow}
                   >
                     <Ionicons
@@ -314,7 +339,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
                       color={isChecked ? theme.color.brand : theme.color.textMuted}
                     />
                     <Text variant="body" style={[styles.ingredientName, isChecked ? styles.ingredientChecked : null]}>
-                      {`${ing.name} (${fmtQty(ing.quantity)} ${ing.unit}${prep})`}
+                      {`${ing.name}${qtyStr}`}
                     </Text>
                     {ing.is_optional ? (
                       <Text variant="caption" tone="muted">
@@ -340,7 +365,7 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
       </ScrollView>
 
       {/* Recipe 탭 = 몰입형 step view: 스크롤 비의존 풀스크린 오버레이(노치 아래~화면 바닥).
-          하단 탭바는 MainTabs 가 RecipeDetail 에서 숨겨 전체화면을 확보. */}
+          stepsOverlay 는 SafeAreaView 직속·ScrollView 밖(회귀 가드). 하단 탭바는 MainTabs 가 숨긴다. */}
       {tab === 'recipe' && recipe.instructions.length > 0 ? (
         <View style={[styles.stepsOverlay, { top: insets.top }]}>
           <RecipeSteps
@@ -357,32 +382,13 @@ export function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScreenProps
   );
 }
 
-function Meta({ icon, label }: { icon: ComponentIcon; label: string }): React.JSX.Element {
+// meta 칩 — light bg 전용 토큰(surface+border). 다크 히어로용 onInk/onBrand 재사용 금지.
+function MetaChip({ icon, label }: { icon: ComponentIcon; label: string }): React.JSX.Element {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
-    <View style={styles.meta}>
-      <Ionicons name={icon} size={14} color={theme.color.onInk} />
-      <Text variant="caption" tone="onBrand">
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function Macro({ value, unit, label }: { value: string; unit: string; label: string }): React.JSX.Element {
-  const theme = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
-  return (
-    <View style={styles.macro}>
-      <Text variant="metricMd" tone="brand">
-        {value}
-        {unit !== '' ? (
-          <Text variant="caption" tone="brand">
-            {` ${unit}`}
-          </Text>
-        ) : null}
-      </Text>
+    <View style={styles.metaChip}>
+      <Ionicons name={icon} size={13} color={theme.color.textMuted} />
       <Text variant="caption" tone="muted">
         {label}
       </Text>
@@ -390,79 +396,106 @@ function Macro({ value, unit, label }: { value: string; unit: string; label: str
   );
 }
 
-type ComponentIcon = React.ComponentProps<typeof Ionicons>['name'];
+// 영양 stat — calories(focal)=metricLg, P/C/F=metricMd. 값 영역 고정 높이로 라벨 정렬.
+function Stat({ value, unit, label, focal = false }: { value: string; unit: string; label: string; focal?: boolean }): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <View style={styles.stat}>
+      <View style={styles.statValueWrap}>
+        <Text variant={focal ? 'metricLg' : 'metricMd'}>
+          {value}
+          {unit !== '' ? (
+            <Text variant="caption" tone="muted">
+              {` ${unit}`}
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+      <Text variant="caption" tone="muted">
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 function makeStyles(theme: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.color.bg },
     // Recipe step view 풀스크린 오버레이 — top 은 인라인 insets.top(노치 아래), 바닥까지.
     stepsOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: theme.news.forest },
-    plainHeader: { paddingHorizontal: theme.space(4), paddingVertical: theme.space(3) },
+    // in-flow 상단 앱바(3 phase 공유). 다크 pill 없음 — 투명 + ink chevron.
+    topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: theme.space(2), paddingVertical: theme.space(2) },
+    backBtn: { width: 40, height: 40, borderRadius: theme.radius.pill, alignItems: 'center', justifyContent: 'center' },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     body: { paddingBottom: theme.space(8) },
-    hero: { height: HERO_HEIGHT, width: '100%' },
-    // 그라데이션 scrim — hero 전체에 깔되 하단으로 갈수록 어둡게(제목 가독; 실사진 대비).
-    heroScrim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-    backBtn: {
-      position: 'absolute',
-      top: theme.space(3),
-      left: theme.space(4),
-      width: 40,
-      height: 40,
-      borderRadius: theme.radius.pill,
-      backgroundColor: theme.color.ink,
-      opacity: 0.85,
+    // 사진 있을 때만 — contained 둥근 밴드.
+    photoBand: { marginHorizontal: theme.space(4), height: PHOTO_H, borderRadius: theme.radius.lg, overflow: 'hidden' },
+    // 에디토리얼 헤더 — paddingTop space(4) 로 앱바 아래 의도적 여백(사진 없을 때 cramped 방지).
+    header: { paddingHorizontal: theme.space(4), paddingTop: theme.space(4), gap: theme.space(2) },
+    title: { marginTop: theme.space(1) },
+    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(2), marginTop: theme.space(1) },
+    metaChip: {
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-    },
-    heroText: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: theme.space(4), gap: theme.space(2) },
-    heroTitle: { fontFamily: theme.font.display, color: theme.color.onInk },
-    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.space(3) },
-    meta: { flexDirection: 'row', alignItems: 'center', gap: theme.space(1) },
-    nutritionCard: {
-      margin: theme.space(4),
-      padding: theme.space(4),
-      borderRadius: theme.radius.lg,
+      gap: theme.space(1),
+      paddingHorizontal: theme.space(3),
+      paddingVertical: theme.space(1),
+      borderRadius: theme.radius.pill,
       backgroundColor: theme.color.surface,
       borderWidth: 1,
       borderColor: theme.color.border,
+    },
+    // 영양 stat 룰밴드 — 상·하 hairline, 박스 없음.
+    statBand: {
+      marginHorizontal: theme.space(4),
+      marginTop: theme.space(5),
+      paddingVertical: theme.space(3),
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: theme.color.border,
       gap: theme.space(3),
     },
-    macroRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    macroDetailRow: {
+    statRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    statDetailRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       borderTopWidth: 1,
       borderTopColor: theme.color.border,
       paddingTop: theme.space(3),
     },
-    macro: { alignItems: 'center', gap: 2, flex: 1 },
-    detailToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: theme.space(1) },
-    section: { marginHorizontal: theme.space(4), marginBottom: theme.space(3), gap: theme.space(2) },
-    sectionTitle: { fontFamily: theme.font.display },
-    highlightRow: { flexDirection: 'row', gap: theme.space(3) },
-    highlightCard: {
+    stat: { flex: 1, alignItems: 'center', gap: 2 },
+    // 값 영역 고정 높이(=metricLg lineHeight) → metricLg/metricMd 혼용에도 라벨 정렬.
+    statValueWrap: { height: Math.round(theme.type.metricLg * 1.12), justifyContent: 'center' },
+    detailToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: theme.space(1) },
+    // 섹션(WHY IT FITS)
+    section: { marginHorizontal: theme.space(4), marginTop: theme.space(5), gap: theme.space(2) },
+    whyRow: { flexDirection: 'row', gap: theme.space(3) },
+    // soft 칩 — brandSubtle 배경(무거운 테두리 X) → 룰밴드/divider 와 구분되는 별도 모듈.
+    whyChip: {
       flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.space(2),
       padding: theme.space(3),
       borderRadius: theme.radius.lg,
-      backgroundColor: theme.color.surface,
-      borderWidth: 1,
-      borderColor: theme.color.border,
-      gap: 2,
+      backgroundColor: theme.color.brandSubtle,
     },
-    highlightIcon: {
+    whyIcon: {
       width: 36,
       height: 36,
       borderRadius: theme.radius.pill,
-      backgroundColor: theme.color.brandSubtle,
+      backgroundColor: theme.color.surface,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: theme.space(1),
     },
-    highlightLabel: { fontWeight: theme.weight.semibold },
+    whyText: { flex: 1, gap: 2 },
+    whyLabel: { fontWeight: theme.weight.semibold },
+    // 탭
     tabBar: {
       flexDirection: 'row',
       marginHorizontal: theme.space(4),
+      marginTop: theme.space(5),
       borderBottomWidth: 1,
       borderBottomColor: theme.color.border,
     },
@@ -470,15 +503,16 @@ function makeStyles(theme: Theme) {
     tabItemActive: { borderBottomColor: theme.color.brand },
     tabTextActive: { fontWeight: theme.weight.semibold },
     tabEmpty: { padding: theme.space(6), alignItems: 'center' },
-    list: { paddingHorizontal: theme.space(4), paddingTop: theme.space(3), gap: theme.space(2) },
+    // 재료 — divider 행(채운 pill 제거), full-row 44px 터치타깃.
+    list: { paddingHorizontal: theme.space(4), paddingTop: theme.space(2) },
     ingredientRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: theme.space(3),
       paddingVertical: theme.space(3),
-      paddingHorizontal: theme.space(4),
-      borderRadius: theme.radius.md,
-      backgroundColor: theme.color.surface,
+      minHeight: 44,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.color.border,
     },
     ingredientName: { flex: 1 },
     ingredientChecked: { textDecorationLine: 'line-through', color: theme.color.textMuted },
