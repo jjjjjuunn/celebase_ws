@@ -88,6 +88,12 @@ function requireEnv(name: string): string {
   return v.trim();
 }
 
+// Progress output via process.stdout — the policy gate forbids stdout logging
+// through the console API (mirrors db/seeds/run.ts). Diagnostics use warn/error.
+function log(msg: string): void {
+  process.stdout.write(`${msg}\n`);
+}
+
 function s3Key(item: MatchedItem): string {
   return `recipes/${item.celebSlug}/${item.recipeId}.webp`;
 }
@@ -167,7 +173,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`input=${args.inputDir} files=${String(dirFiles.size)} csvRows=${String(csvRows.length)} bucket=${bucket} dryRun=${String(args.dryRun)}`);
+  log(`input=${args.inputDir} files=${String(dirFiles.size)} csvRows=${String(csvRows.length)} bucket=${bucket} dryRun=${String(args.dryRun)}`);
 
   const pool = new pg.Pool({ connectionString: databaseUrl });
   try {
@@ -187,12 +193,12 @@ async function main(): Promise<void> {
       const have = await recipesWithImage(pool, work.map((m) => m.recipeId));
       const before = work.length;
       work = work.filter((m) => !have.has(m.recipeId));
-      console.log(`  --only-missing: ${String(before - work.length)} already have image_url, ${String(work.length)} remain`);
+      log(`  --only-missing: ${String(before - work.length)} already have image_url, ${String(work.length)} remain`);
     }
 
     if (args.dryRun) {
-      if (work.length > 0) console.log(`  sample URL: ${publicBase}/${s3Key(work[0])}`);
-      console.log(`[dry-run] matched=${String(plan.matched.length)} toProcess=${String(work.length)} unresolved=${String(unresolved)} — no writes`);
+      if (work.length > 0) log(`  sample URL: ${publicBase}/${s3Key(work[0])}`);
+      log(`[dry-run] matched=${String(plan.matched.length)} toProcess=${String(work.length)} unresolved=${String(unresolved)} — no writes`);
       return;
     }
 
@@ -227,9 +233,9 @@ async function main(): Promise<void> {
         continue;
       }
       updated += 1;
-      console.log(`  ✓ ${m.celebSlug} / ${m.title} → ${key}`);
+      log(`  ✓ ${m.celebSlug} / ${m.title} → ${key}`);
     }
-    console.log(`done: uploaded=${String(uploaded)} updated=${String(updated)} skippedUnresolved=${String(unresolved)} extraFiles=${String(plan.extraFiles.length)}`);
+    log(`done: uploaded=${String(uploaded)} updated=${String(updated)} skippedUnresolved=${String(unresolved)} extraFiles=${String(plan.extraFiles.length)}`);
     if (unresolved > 0) {
       console.error('✗ unresolved mismatches present — see report above');
       process.exitCode = 1;
