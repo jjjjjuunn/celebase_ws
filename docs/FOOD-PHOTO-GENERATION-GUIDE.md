@@ -123,5 +123,40 @@ no watermarks, no cutlery brand marks.
 
 ---
 
+## 8. 업로드 (ops) — 생성된 사진을 앱에 반영
+
+생성된 이미지는 **Drive 직접링크로 쓸 수 없다**(불안정·CDN 아님·content-legal `ASSET_HOST_ALLOW` 차단). Drive 는 전달용일 뿐, 실제 서빙은 신뢰 S3(`celebbase-assets-<env>/recipes/`)에서 한다. 배치 스크립트 `db/seeds/scripts/upload-recipe-images.ts` 가 로컬 폴더의 이미지를 → sharp 로 1500×1000 WebP 정규화 → S3 업로드 → `recipes.image_url` 세팅까지 한다.
+
+### 파일명 계약 (필수)
+팀원은 각 사진을 **shotlist CSV 의 `target_filename` 열 그대로** 이름 지어야 한다 (예 `jennifer-aniston__smoked-salmon-and-egg-plate.png`). gpt-image-2 가 뱉는 기본 이름(`ChatGPT Image ….png`)은 **매칭 불가** → 스크립트가 "unmatched" 로 건너뛴다. (스크립트는 `target_filename` 으로 파일을 찾고, `(celebrity_slug, title)` 로 DB recipe 를 찾아 연결한다.)
+
+### prereq (1회, owner)
+- **S3 버킷 `recipes/*` public-read** 가 켜져 있어야 한다(클레임 `hero/*` 와 동일). 안 켜져 있으면 업로드는 성공해도 앱에서 **403**. 파일럿 1장으로 `curl -I` 200 확인 필수.
+
+### 실행
+```bash
+# 1) Drive 폴더 → 로컬 다운로드 (rclone 권장; Drive remote 1회 설정 후)
+rclone copy "gdrive:Celebase/recipe-photos" ./recipe-photos --drive-shared-with-me
+
+# 2) env (staging 예시)
+export DATABASE_URL=postgresql://…           # staging DB
+export RECIPE_ASSETS_BUCKET=celebbase-assets-staging
+export RECIPE_ASSETS_PUBLIC_BASE_URL=https://celebbase-assets-staging.s3.us-west-2.amazonaws.com
+export AWS_REGION=us-west-2                   # AWS 자격증명은 SDK 표준 체인(env/profile/role)
+
+# 3) 먼저 dry-run — 매칭 플랜/누락 리포트만(쓰기 없음)
+pnpm --filter @celebbase/db run images:recipes -- --input ./recipe-photos --dry-run
+
+# 4) 실제 업로드 (이미 채워진 건 건너뛰려면 --only-missing)
+pnpm --filter @celebbase/db run images:recipes -- --input ./recipe-photos [--only-missing]
+
+# 5) 검증: 익명 GET 200 + 앱에서 렌더
+curl -I "<업로드된 image_url>"
+```
+- **dry-run** 은 matched / 파일없음 / DB매칭없음 / ambiguous / CSV외 파일을 전부 리포트한다. 불일치는 무시되지 않으며, 실제 실행에서 미해결 불일치가 있으면 종료코드 ≠ 0.
+- 키 = `recipes/<celeb>/<recipe_id>.webp` (recipe.id → 충돌 불가, 재실행 idempotent).
+
+---
+
 ## 부록 — 전체 음식 리스트
-머신 가독 전체 목록은 **`docs/food-photo-shotlist.csv`** 참조(300행). 컬럼: `meal_type, celebrity_slug, title, key_ingredients, description`. meal_type → title 순 정렬.
+머신 가독 전체 목록은 **`docs/food-photo-shotlist.csv`** 참조(300행). 컬럼: `meal_type, celebrity_slug, title, target_filename, key_ingredients, description`. meal_type → title 순 정렬. **`target_filename` = 팀 파일명 계약.**

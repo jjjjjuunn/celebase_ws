@@ -28,6 +28,29 @@ verified_by: <human | codex-review | 기타 검증자>
 <!-- 새 엔트리는 이 줄 아래에 추가 -->
 
 ---
+date: 2026-06-13
+agent: claude-opus-4-8 (1M context) + Codex(NEEDS-CHANGES→반영) + Gemini(FAIL→반영) + advisor (3-judge)
+task_id: CHORE-CONTENT-RECIPE-IMG-UPLOAD-001
+commit_sha: PENDING
+files_changed:
+  - db/seeds/scripts/upload-recipe-images.ts
+  - db/seeds/scripts/upload-recipe-images.lib.ts
+  - db/seeds/scripts/upload-recipe-images.test.ts
+  - db/package.json
+  - docs/food-photo-shotlist.csv
+  - docs/FOOD-PHOTO-GENERATION-GUIDE.md
+verified_by: claude-opus-4-8 + tsx --test 5 green/tsc0/CLI fail-closed smoke + S3 recipes/* 파일럿 curl 200
+---
+### 완료: Recipe 음식 사진 수집 파이프라인 (Drive→S3→recipes.image_url, CHORE-CONTENT-RECIPE-IMG-UPLOAD-001)
+- 팀원이 gpt-image-2 PNG 를 Drive 에 적재 → 앱 반영하는 재실행 배치 스크립트. 결정: 저장 = `celebbase-assets-<env>` S3 + `recipes/` prefix(이미 ASSET_HOST_ALLOW 신뢰 호스트, 클레임 `hero/*` 와 동일 버킷).
+- `upload-recipe-images.lib.ts`(순수): slugify·normalizeTitle(NFKC+smart quote+공백)·parseCsv(RFC4180 따옴표)·buildRecipeIndex·planMatch(양방향 불일치). `upload-recipe-images.ts`(오케스트레이션): 로컬 dir 입력 + shotlist CSV(`target_filename`) 권위 → `(celeb,title)`→recipe.id → sharp 1500×1000 cover webp82 → S3 `recipes/<celeb>/<recipe_id>.webp`(max-age 86400) → `UPDATE … image_url`(rowcount===1). `--dry-run`/`--only-missing`, fail-closed(env), traversal 차단, 다중매칭 ambiguous skip, hard-gate 불일치(미해결 시 exit≠0). 키=recipe.id → 충돌불가·idempotent.
+- 3-judge(Codex NEEDS-CHANGES·Gemini FAIL → 반영): 키에 recipe.id(slug 충돌 silent overwrite 제거)·(celeb,title) 다중매칭 방어·title NFKC 정규화·CSV 따옴표 파서·target_filename path-traversal 차단·main()↔lib 분리·S3→DB 순서+rowcount·순차(sharp 메모리)·3:2 cover 경고·dry-run resolved URL. advisor: **`recipes/*` public-read 블로커**(정책 hero/* 한정 확인)→정책 additive 확장+파일럿 curl 200, content-hash 키 제거(과설계), CSV 따옴표, db test 의 turbo 영향→`test:unit`(CI 비대상).
+- 인프라: `celebbase-assets-staging` 버킷 정책에 `PublicReadRecipes`(`recipes/*`) statement 추가(hero/* 보존, 읽기검증). **prod 버킷 동일 적용 필요(후속)**. db deps: sharp ^0.35.1 + @aws-sdk/client-s3 ^3.700 (devDeps).
+- 검증: `tsx --test` 5 green · tsc0 · CLI fail-closed/arg 스모크 · S3 `recipes/_pilot` 익명 curl -I **200**(정리됨). DB-매칭 e2e + 실이미지 전량은 팀 이미지 도착 시 operator 가 staging 에서 dry-run→실행.
+### 미완료: 팀 이미지 도착 후 staging dry-run→전량 업로드(operator). prod assets 버킷 `recipes/*` public-read 동일 적용. S3 orphan(수정본 교체 시) cleanup 잡 — 후속.
+### 연관 파일: db/seeds/scripts/upload-recipe-images.ts, db/seeds/scripts/upload-recipe-images.lib.ts, db/seeds/scripts/upload-recipe-images.test.ts, db/package.json, docs/food-photo-shotlist.csv, docs/FOOD-PHOTO-GENERATION-GUIDE.md
+
+---
 date: 2026-06-09
 agent: claude-opus-4-8 (1M context)
 task_id: IMPL-MOBILE-TABBAR-BALANCE-001
