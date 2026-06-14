@@ -130,6 +130,8 @@ no watermarks, no cutlery brand marks.
 ### 파일명 계약 (필수)
 팀원은 각 사진을 **shotlist CSV 의 `target_filename` 열 그대로** 이름 지어야 한다 (예 `jennifer-aniston__smoked-salmon-and-egg-plate.png`). gpt-image-2 가 뱉는 기본 이름(`ChatGPT Image ….png`)은 **매칭 불가** → 스크립트가 "unmatched" 로 건너뛴다. (스크립트는 `target_filename` 으로 파일을 찾고, `(celebrity_slug, title)` 로 DB recipe 를 찾아 연결한다.)
 
+> **diacritic 주의 (계약 = CSV)**: `target_filename` 은 NFKD slugify 로 악센트를 ASCII 화한다 — 예 "Tuna Niçoise Salad" → `…__tuna-nicoise-salad.png` (ç → `c`). 일부 rename 도구/OS 는 ç 를 ASCII 가 아니라 `-` 로 치환해 `…__tuna-ni-oise-salad.png` 를 만든다 → 이 경우 dry-run 이 그 행을 `missingFile` + 그 파일을 `extraFiles` 로 같이 리포트한다(조용한 누락 아님). **항상 CSV 의 `target_filename` 이 기준** — 어긋난 파일은 CSV 값으로 리네임하면 끝(1건짜리 한 줄 `mv`). 2026-06 초도 적재(300장)에서 Niçoise 1건이 이 케이스였다.
+
 ### prereq (1회, owner)
 - **S3 버킷 `recipes/*` public-read** 가 켜져 있어야 한다(클레임 `hero/*` 와 동일). 안 켜져 있으면 업로드는 성공해도 앱에서 **403**. 파일럿 1장으로 `curl -I` 200 확인 필수.
 

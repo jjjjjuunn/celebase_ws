@@ -61,6 +61,10 @@ function parseArgs(argv: string[]): Args {
   let onlyMissing = false;
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
+    if (a === '--') {
+      // end-of-options marker forwarded by `pnpm run <script> -- <args>`
+      continue;
+    }
     if (a === '--input') {
       inputDir = argv[i + 1] ?? '';
       i += 1;
