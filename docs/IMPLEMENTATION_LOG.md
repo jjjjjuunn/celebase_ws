@@ -31,7 +31,7 @@ verified_by: <human | codex-review | 기타 검증자>
 date: 2026-06-13
 agent: claude-opus-4-8 (1M context) + Codex(NEEDS-CHANGES→반영) + Gemini(FAIL→반영) + advisor (3-judge)
 task_id: CHORE-CONTENT-RECIPE-IMG-UPLOAD-001
-commit_sha: PENDING
+commit_sha: 4ba62a6
 files_changed:
   - db/seeds/scripts/upload-recipe-images.ts
   - db/seeds/scripts/upload-recipe-images.lib.ts
