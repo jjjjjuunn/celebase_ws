@@ -35,12 +35,15 @@ set -euo pipefail
 cd /app
 WORK="$(mktemp -d /tmp/celebase-seed-XXXXXX)"
 tar xzf /tmp/celebase-staging-seed.tar.gz -C "$WORK" 2>/dev/null
-PW=$(sudo docker compose exec -T db printenv POSTGRES_PASSWORD | tr -d '\r\n')
+PW=$(sudo docker compose exec -T db printenv POSTGRES_PASSWORD </dev/null | tr -d '\r\n')
 # seed 파일은 read-only 마운트, deps 는 컨테이너 내부(/work)에 설치 → 호스트 깨끗 유지.
+# </dev/null 필수: 이 블록은 `ssh 'bash -s' <<REMOTE` 의 heredoc 을 stdin 으로 받는다.
+# docker run 에 stdin 을 닫지 않으면 컨테이너(npm/tsx/이미지 pull)가 heredoc 나머지를
+# 소비해 seed 가 조용히 미완 실행되면서도 exit 0 으로 끝나 실패를 가린다(2026-06-15 incident).
 sudo docker run --rm --network app_default \
   -v "$WORK/db:/seeds:ro" \
   -e DATABASE_URL="postgresql://celebbase:${PW}@db:5432/celebbase" \
-  node:20 sh -c 'cp -r /seeds /work && cd /work && npm install --no-audit --no-fund --silent pg tsx >/dev/null 2>&1 && npx tsx seeds/run.ts'
+  node:20 sh -c 'cp -r /seeds /work && cd /work && npm install --no-audit --no-fund --silent pg tsx >/dev/null 2>&1 && npx tsx seeds/run.ts' </dev/null
 rm -r "$WORK"
 rm -f /tmp/celebase-staging-seed.tar.gz
 REMOTE
