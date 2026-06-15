@@ -1,0 +1,54 @@
+{
+  "slug": "jenna-ortega",
+  "display_name": "Jenna Ortega",
+  "short_bio": "Actress who ate vegan for years before becoming pescatarian while filming abroad, keeping a plant-forward plate with fish such as salmon, plus vegetables like broccoli and avocado.",
+  "avatar_url": "https://picsum.photos/seed/jenna-ortega/400/400",
+  "cover_image_url": "https://picsum.photos/seed/jenna-ortega-cover/800/600",
+  "category": "general",
+  "tags": [
+    "pescatarian",
+    "plant-forward",
+    "vegan-to-pescatarian",
+    "fish"
+  ],
+  "is_featured": false,
+  "sort_order": 20,
+  "base_diet": {
+    "name": "Jenna's Plant-Forward Pescatarian Plate",
+    "description": "A plant-forward pescatarian template — abundant vegetables, legumes and whole grains with fish added back for protein and nutrients. Editorial template; the macro split is a balanced starting point the plan rescales to each user (avg_daily_kcal intentionally null — engine scales to user TDEE).",
+    "philosophy": "Jenna ate vegan for years, then added fish (becoming pescatarian) while filming Wednesday abroad, when a strict vegan plan stopped meeting her nutritional needs. Her approach stays plant-forward with fish like salmon, alongside vegetables such as broccoli and avocado.",
+    "diet_type": "pescatarian",
+    "avg_daily_kcal": null,
+    "macro_ratio": {
+      "protein_pct": 25,
+      "carbs_pct": 45,
+      "fat_pct": 30
+    },
+    "included_foods": [
+      "salmon",
+      "broccoli",
+      "avocado",
+      "leafy greens",
+      "legumes",
+      "whole grains",
+      "brown rice",
+      "tofu",
+      "vegetables",
+      "fruit"
+    ],
+    "excluded_foods": [
+      "red meat",
+      "poultry"
+    ],
+    "key_supplements": [],
+    "source_refs": [
+      {
+        "type": "article",
+        "outlet": "HOLA!",
+        "date": "2023-02-09",
+        "url": "https://www.hola.com/us/celebrities/20230209342527/the-reason-why-jenna-ortega-is-no-longer-vegan/"
+      }
+    ]
+  },
+  "recipes": []
+}

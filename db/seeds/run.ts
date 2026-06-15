@@ -34,6 +34,9 @@ const CELEBRITY_FILES = [
   'gisele-bundchen',
   // 콘텐츠팀이 allowlisted 1차 출처(People + GMA/YouTube) 확보 → 7번째 시드 언블록.
   'cameron-diaz',
+  // Jenna Ortega — State B(Notify me) 최소 시드. base_diet 는 dormant(recipes 없음),
+  // claim 은 status=draft. WIRED(youtube) 정확 URL + is_primary flip + recipes 확보 시 State A 승격.
+  'jenna-ortega',
 ];
 
 function readJson<T>(relativePath: string): T {

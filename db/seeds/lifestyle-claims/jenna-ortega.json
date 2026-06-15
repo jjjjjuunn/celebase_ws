@@ -1,0 +1,92 @@
+{
+  "celebrity_slug": "jenna-ortega",
+  "claims": [
+    {
+      "claim_type": "food",
+      "headline": "Switched from years of veganism to a plant-forward pescatarian diet",
+      "body": "Jenna Ortega ate vegan for years, then began eating fish again — becoming pescatarian — while filming Wednesday in Romania, where the meat-heavy local cuisine left few plant-based options and she felt she wasn't meeting her nutritional needs. Her approach stays plant-forward with fish such as salmon, plus vegetables like broccoli and avocado.",
+      "trust_grade": "B",
+      "primary_source_url": null,
+      "verified_by": "content-team — WIRED(youtube) URL+is_primary pending; HOLA! 2023-02-09 corroborates",
+      "is_health_claim": true,
+      "base_diet_id_slug": null,
+      "story": {
+        "hook": {
+          "eyebrow": "DIET · CELEBRITY DECODE",
+          "headline": "Jenna Ortega's plant-forward plate, *decoded.*",
+          "sub": "What she's said she eats since going vegan-to-pescatarian — *rescaled to you.*",
+          "swipe": "SWIPE →"
+        },
+        "what": {
+          "eyebrow": "WHAT SHE DOES",
+          "headline": "From years vegan to plant-forward with fish.",
+          "rows": [
+            "Was **vegan for years** — until ~6 months filming *Wednesday* in Romania, where the meat-heavy local food left few plant-based options.",
+            "She's said she **wasn't meeting her nutritional needs,** so she **started eating fish again** — now **pescatarian.**",
+            "Since adding fish back, she's named **salmon and broccoli** among her go-to meals."
+          ],
+          "source": "Sources: Jenna Ortega, WIRED interview (2023)."
+        },
+        "science": {
+          "eyebrow": "WHAT THE SCIENCE SAYS",
+          "headline": "Plant-forward, with fish, has a strong base.",
+          "checks": [
+            "Plant-forward eating is **associated with** better heart and metabolic markers in large studies.",
+            "Oily fish like salmon is **linked to** omega-3 intake within a balanced diet."
+          ],
+          "caveat": "\"Associated with\" isn't a guarantee — and a vegan-to-pescatarian switch is personal.",
+          "source": "Per general nutrition science (USDA, peer-reviewed); individual results vary."
+        },
+        "catch": {
+          "eyebrow": "BUT HERE'S THE CATCH",
+          "headline": "Her switch was about *her* needs.",
+          "body": "She changed her plan when strict veganism stopped fitting her body and schedule — your calories, protein needs and tastes are different again."
+        },
+        "rescaled": {
+          "eyebrow": "RESCALED TO YOU",
+          "headline": "Same plant-forward base. Your numbers.",
+          "profiles": [
+            { "who": "Your calories", "what": "Set to **your** daily target — not a performer's." },
+            { "who": "Your macros", "what": "Protein, carbs and fat split to **your goal.**" },
+            { "who": "Your foods", "what": "Vegan, pescatarian or flexible — **what you'll actually eat.**" }
+          ],
+          "source": "Built from your onboarding answers."
+        },
+        "cta": {
+          "eyebrow": "YOUR TURN",
+          "headline": "Build *your* plant-forward plate.",
+          "button": "Notify me",
+          "sub": "Tell us a few basics — we'll rescale a plant-forward approach to your calories, macros and tastes, and let you know when it's ready.",
+          "disclaimer": "celebase is not affiliated with, endorsed by, or sponsored by Jenna Ortega. Not medical advice; individual results vary."
+        }
+      },
+      "tags": [
+        "pescatarian",
+        "plant-forward",
+        "vegan",
+        "fish",
+        "diet"
+      ],
+      "status": "draft",
+      "disclaimer_key": null,
+      "sources": [
+        {
+          "source_type": "interview",
+          "outlet": "WIRED (Autocomplete Interview)",
+          "url": null,
+          "excerpt": "Ortega says she was vegan for a really long time but started eating fish again — becoming pescatarian — after filming Wednesday in Romania left her not meeting her nutrient requirements.",
+          "published_date": null,
+          "is_primary": false
+        },
+        {
+          "source_type": "article",
+          "outlet": "HOLA!",
+          "url": null,
+          "excerpt": "Jenna Ortega had to sacrifice her vegan diet while filming Wednesday in Romania; she had to change her diet and include fish.",
+          "published_date": "2023-02-09",
+          "is_primary": false
+        }
+      ]
+    }
+  ]
+}
